@@ -5,5 +5,5 @@ RPCNFSDCOUNT=8
 RPCMOUNTDOPTS=
 
 # If you are not running NFS with RPCSEC_GSS security, and wish to
-# disable the gssd server daemon then uncomment the following line
-# NEED_SVCGSSD=no
+# disable the gssd server daemon, then set NEED_SVCGSSD to "no".
+NEED_SVCGSSD=no
