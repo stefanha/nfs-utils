@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <errno.h>
 #include "nfslib.h"
 #include "exportfs.h"
 #include "xmalloc.h"
@@ -30,6 +31,8 @@
 
 #define EXPORT_DEFAULT_FLAGS	\
   (NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES)
+
+int export_errno;
 
 static char	*efname = NULL;
 static XFILE	*efp = NULL;
@@ -101,6 +104,7 @@ getexportent(int fromkernel, int fromexports)
 	}
 	if (ok < 0) {
 		xlog(L_ERROR, "expected client(options...)");
+		export_errno = EINVAL;
 		return NULL;
 	}
 	first = 0;
@@ -114,6 +118,7 @@ getexportent(int fromkernel, int fromexports)
 		*opt++ = '\0';
 		if (!(sp = strchr(opt, ')')) || sp[1] != '\0') {
 			syntaxerr("bad option list");
+			export_errno = EINVAL;
 			return NULL;
 		}
 		*sp = '\0';
@@ -122,6 +127,7 @@ getexportent(int fromkernel, int fromexports)
 	}
 	if (strlen(exp) >= sizeof(ee.e_hostname)) {
 		syntaxerr("client name too long");
+		export_errno = EINVAL;
 		return NULL;
 	}
 	strncpy(ee.e_hostname, exp, sizeof (ee.e_hostname) - 1);
@@ -370,7 +376,9 @@ parseopts(char *cp, struct exportent *ep, int warn)
 			if (opt[8]=='\0' || *oe != '\0') {
 				xlog(L_ERROR, "%s: %d: bad anonuid \"%s\"\n",
 				     flname, flline, opt);	
+bad_option:
 				free(opt);
+				export_errno = EINVAL;
 				return -1;
 			}
 		} else if (strncmp(opt, "anongid=", 8) == 0) {
@@ -379,18 +387,15 @@ parseopts(char *cp, struct exportent *ep, int warn)
 			if (opt[8]=='\0' || *oe != '\0') {
 				xlog(L_ERROR, "%s: %d: bad anongid \"%s\"\n",
 				     flname, flline, opt);	
-				free(opt);
-				return -1;
+				goto bad_option;
 			}
 		} else if (strncmp(opt, "squash_uids=", 12) == 0) {
 			if (parsesquash(opt+12, &squids, &nsquids, &cp) < 0) {
-				free(opt);
-				return -1;
+				goto bad_option;
 			}
 		} else if (strncmp(opt, "squash_gids=", 12) == 0) {
 			if (parsesquash(opt+12, &sqgids, &nsqgids, &cp) < 0) {
-				free(opt);
-				return -1;
+				goto bad_option;
 			}
 		} else if (strncmp(opt, "fsid=", 5) == 0) {
 			char *oe;
@@ -398,16 +403,14 @@ parseopts(char *cp, struct exportent *ep, int warn)
 			if (opt[5]=='\0' || *oe != '\0') {
 				xlog(L_ERROR, "%s: %d: bad fsid \"%s\"\n",
 				     flname, flline, opt);	
-				free(opt);
-				return -1;
+				goto bad_option;
 			}
 			ep->e_flags |= NFSEXP_FSID;
 		} else {
 			xlog(L_ERROR, "%s:%d: unknown keyword \"%s\"\n",
 					flname, flline, opt);
 			ep->e_flags |= NFSEXP_ALLSQUASH | NFSEXP_READONLY;
-			free(opt);
-			return -1;
+			goto bad_option;
 		}
 		free(opt);
 		while (isblank(*cp))
@@ -421,9 +424,11 @@ parseopts(char *cp, struct exportent *ep, int warn)
 
 out:
 	if (warn && !had_sync_opt)
-		xlog(L_WARNING, "No 'sync' or 'async' option specified for export \"%s:%s\".\n"
+		xlog(L_WARNING, "%s [%d]: No 'sync' or 'async' option specified for export \"%s:%s\".\n"
 				"  Assuming default behaviour ('sync').\n"
 		     		"  NOTE: this default has changed from previous versions\n",
+
+				flname, flline,
 				ep->e_hostname, ep->e_path);
 
 	return 1;

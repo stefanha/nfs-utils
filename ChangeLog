@@ -1,3 +1,16 @@
+2002-10-11  H.J. Lu <hjl@lucon.org>
+
+	* support/include/exportfs.h (export_errno): New.
+
+	* support/nfs/exports.c: Include <errno.h>.
+	(export_errno): New.
+	(getexportent): Set export_errno to EINVAL for bad option.
+	(parseopts): Likewise.
+	Report the location of the default sync/async option.
+
+	* utils/exportfs/exportfs.c (main): Initialize export_errno to
+	0. Return export_errno.
+
 2002-10-11  Juan Gomez  <gomez@cs.sjsu.edu>
 	NeilBrown <neilb@cse.unsw.edu.au>
 

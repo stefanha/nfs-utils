@@ -45,6 +45,8 @@ main(int argc, char **argv)
 
 	xlog_open("exportfs");
 
+	export_errno = 0;
+
 	while ((c = getopt(argc, argv, "aio:ruv")) != EOF) {
 		switch(c) {
 		case 'a':
@@ -119,7 +121,7 @@ main(int argc, char **argv)
 	xtab_export_write();
 	xtab_mount_write();
 
-	return 0;
+	return export_errno;
 }
 
 /* we synchronise intention with reality.

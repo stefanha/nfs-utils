@@ -77,4 +77,7 @@ int				rmtab_read(void);
 
 struct nfskey *			key_lookup(char *hname);
 
+/* Record export error.  */
+extern int export_errno;
+
 #endif /* EXPORTFS_H */
