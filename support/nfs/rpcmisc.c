@@ -29,6 +29,7 @@
 #include <memory.h>
 #include <errno.h>
 #include <unistd.h>
+#include <time.h>
 #include "nfslib.h"
 
 static void	closedown(int sig);
