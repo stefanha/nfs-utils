@@ -32,14 +32,16 @@ clients which are mounted on that host.
 %setup -q
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" ./configure
+%configure
 make all
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT{/sbin,/usr/{sbin,man/man5,man/man8}}
+mkdir -p $RPM_BUILD_ROOT/{/sbin,/usr/sbin}
+mkdir -p $RPM_BUILD_ROOT%{_mandir}/{man5,man8}
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
-make install install_prefix=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/var/lib/nfs
+make install_prefix=$RPM_BUILD_ROOT MANDIR=$RPM_BUILD_ROOT%{_mandir} SBINDIR=$RPM_BUILD_ROOT%{_prefix}/sbin install
 install -s -m 755 tools/rpcdebug/rpcdebug $RPM_BUILD_ROOT/sbin
 install -m 755 etc/redhat/nfs.init $RPM_BUILD_ROOT/etc/rc.d/init.d/nfs
 install -m 755 etc/redhat/nfslock.init $RPM_BUILD_ROOT/etc/rc.d/init.d/nfslock
@@ -85,6 +87,6 @@ fi
 /usr/sbin/rpc.nfsd
 /usr/sbin/rpc.rquotad
 /usr/sbin/showmount
-/usr/man/man?/*
+%{_mandir}/man?/*
 %config /etc/rc.d/init.d/nfslock
 %doc README
