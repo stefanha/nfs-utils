@@ -8,7 +8,7 @@
 	utils/statd/Makefile: add "predep" rule so that "make dep" works.
 	* Makefile: allow a simple "make" to run ./configure and "make dep"
 	if needed.
-	* configure.in, nfs-utils.spec: Update version to 1.0.4
+	* configure.in, nfs-utils.spec: Update version to 1.0.6
 	* run autoconf
 	
 2003-09-12  Chip Salzenberg  <chip@pobox.com>
