@@ -16,6 +16,7 @@
 	* utils/exportfs/exportfs.man: document mountpoint option.
 	* support/misc/mountpoint.c: New file with is_mountpoint()
 	to determine if something is a mountpoint.
+	
 2003-05-23  NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/mountd/cache.c(cache_get_filehandle): take a separate path
