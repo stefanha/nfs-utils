@@ -89,6 +89,11 @@ expsetup(struct nfsctl_export *exparg, nfs_export *exp)
 	if (stat(exp->m_export.m_path, &stb) < 0)
 		return 0;
 
+	if (exp->m_export.e_maptype != CLE_MAP_IDENT) {
+		xlog(L_ERROR, "%s: unsupported mapping; kernel supports only 'identity' (default)",
+		     exp->m_export.m_path);
+		return 0;
+	}
 	memset(exparg, 0, sizeof(*exparg));
 	strncpy(exparg->ex_path, exp->m_export.m_path,
 		sizeof (exparg->ex_path) - 1);

@@ -1,3 +1,9 @@
+nfs-utils (1:1.0-2) unstable; urgency=low
+
+  * Fail an export if its mapping option is unsupported.  (closes: #85678)
+
+ -- Chip Salzenberg <chip@debian.org>  Wed,  2 Jan 2002 15:52:37 -0800
+
 nfs-utils (1:1.0-1) unstable; urgency=medium
 
   * New upstream version.  (Version number is only change.)

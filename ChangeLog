@@ -1,3 +1,11 @@
+2002-01-02  Chip Salzenberg  <chip@pobox.com>
+
+	* support/export/nfsctl.c (expsetup): Don't export entries that
+	specify id mappings not supported by the kernel.  No extant kernel
+	supports any significant mapping, only 'identity' (i.e. none).
+	When other mappings are supported, this code will need changing.
+	* debian/changelog: Version 1.0-2.
+
 2001-12-26  Chip Salzenberg  <chip@pobox.com>
 
 	* nfs-utils.spec (Version): Set to "1.0".
