@@ -1,3 +1,14 @@
+nfs-utils (1:1.0.7-1) unstable; urgency=medium
+
+  * Acknowledge NMU; thanks to joeyh.  (closes: #287053)
+  * New upstream version:
+    > Add support for NFSv4.
+    > Ignore SIGPIPE, fixing a remote DOS.  Note that the previous
+      NMU already fixed this bug.  (CAN-2004-1014)
+    > At long last, fix "erroneous SM_UNMON" warnings.  (closes: #165744)
+
+ -- Chip Salzenberg <chip@debian.org>  Tue, 11 Jan 2005 23:31:05 -0500
+
 nfs-utils (1:1.0.6-3) unstable; urgency=medium
 
   * Remove obsolete debconf-related files in debian/rules, because source

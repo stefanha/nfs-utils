@@ -1,3 +1,15 @@
+2005-01-11  Chip Salzenberg  <chip@pobox.com>
+
+	* debian/changelog: Version 1.0.7-1.
+	* debian/nfs-common.default (NEED_IDMAPD, NEED_GSSD):
+	Disable by default, on advice of upstream.
+	* debian/nfs-kernel-server.default (NEED_SVCGSSD):
+	Likewise.
+
+	* utils/svcgssd/Makefile (predep): Symbolically link duplicated
+	source files.
+	(distclean): Remove symlinks to duplicated files.
+
 2004-12-17 NeilBrown <neilb@cse.unsw.edu.au>
 	Release 1.0.7
 
