@@ -1,7 +1,8 @@
 2003-03-26 NeilBrown <neilb@cse.unsw.edu.au>
-	*utils/mountd/rmtab.c(slink_sfe_rename): real_newpath should be
-	"const char*", not "char"
-	
+
+	* utils/mountd/rmtab.c (slink_safe_rename): real_newpath should be
+	"const char*", not "char*".
+
 2003-03-26 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* configure.in (VERSION): Set to "1.0.3".
