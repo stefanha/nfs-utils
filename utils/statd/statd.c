@@ -93,7 +93,9 @@ static void
 killer (int sig)
 {
 	log (L_FATAL, "Caught signal %d, un-registering and exiting.", sig);
-	pmap_unset (SM_PROG, SM_VERS);
+	if (!(run_mode & MODE_NOTIFY_ONLY))
+		pmap_unset (SM_PROG, SM_VERS);
+
 	exit (0);
 }
 
@@ -307,7 +309,14 @@ int main (int argc, char **argv)
 	statd_get_socket(out_port);
 
 	for (;;) {
-		pmap_unset (SM_PROG, SM_VERS);
+		if (!(run_mode & MODE_NOTIFY_ONLY)) {
+			/* Do not do pmap_unset() when running in notify mode.
+			 * We may clear the portmapper record for a statd not
+			 * running in notify mode disabling it.
+			 * Juan C. Gomez j_carlos_gomez@yahoo.com
+			 */
+			pmap_unset (SM_PROG, SM_VERS);
+		}
 		change_state ();
 		shuffle_dirs ();	/* Move directory names around */
 		notify_hosts ();	/* Send out notify requests */

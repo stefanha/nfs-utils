@@ -1,3 +1,9 @@
+2002-10-11  Juan Gomez  <gomez@cs.sjsu.edu>
+	NeilBrown <neilb@cse.unsw.edu.au>
+
+	utils/statd/statd.c(killer): don't pmap_unset if in notify_only mode
+	utils/statd/statd.c(main): don't pmap_unset if in notify_only mode
+	
 2002-09-16  Chip Salzenberg  <chip@pobox.com>
 
 	* utils/rquotad/rquota_svc.c (main): Use int for value of getopt.
