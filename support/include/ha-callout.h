@@ -14,6 +14,7 @@
 #define HA_CALLOUT_H
 
 #include <sys/wait.h>
+#include <signal.h>
 
 extern char *ha_callout_prog;
 
@@ -23,12 +24,22 @@ ha_callout(char *event, char *arg1, char *arg2, int arg3)
 	char buf[16]; /* should be plenty */
 	pid_t pid;
 	int ret = -1;
+	struct sigaction oldact, newact;
 
 	if (!ha_callout_prog) /* HA callout is not enabled */
 		return;
 
 	sprintf(buf, "%d", arg3);
 
+	/* many daemons ignore SIGCHLD as tcpwrappers will
+	 * fork a child to do logging.  We need to wait
+	 * for a child here, so we need to un-ignore
+	 * SIGCHLD temporarily
+	 */
+	newact.sa_handler = SIG_DFL;
+	newacc.sa_flags = 0;
+	sigemptyset(&newact.sa_mask);
+	sigaction(SIGCHLD, &newact, &oldact);
 	pid = fork();
 	switch (pid) {
 		case 0: execl(ha_callout_prog, ha_callout_prog,
@@ -41,7 +52,7 @@ ha_callout(char *event, char *arg1, char *arg2, int arg3)
 			break;
 		default: pid = waitpid(pid, &ret, 0);
   	}
-
+	sigaction(SIGCHLD, &oldact, &newact);
 #ifdef dprintf
 	dprintf(N_DEBUG, "ha callout returned %d\n", WEXITSTATUS(ret));
 #else
