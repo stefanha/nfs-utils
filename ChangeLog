@@ -13,6 +13,10 @@
 	* utils/idmapd/idmapd.c: don't allow Default domain and anon-uid
 	or -gid to be specified on command line.
 	* utils/idmapd/idmapd.c: improve error messages
+	* utils/idmapd/idmapd.c: Reopen nfsd files on sighup.  Allows us
+	to start up client side only (even when nfsd module not loaded),
+	and then sighup later after insmodding nfsd module. 
+
 	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>
 

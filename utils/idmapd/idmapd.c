@@ -109,6 +109,7 @@ TAILQ_HEAD(idmap_clientq, idmap_client);
 
 static void dirscancb(int, short, void *);
 static void clntscancb(int, short, void *);
+static void svrreopen(int, short, void *);
 static int  nfsopen(struct idmap_client *);
 static void nfscb(int, short, void *);
 static void nfsdcb(int, short, void *);
@@ -122,6 +123,7 @@ static void nametoidres(struct idmap_msg *);
 
 static int nfsdopen(char *);
 static int nfsdopenone(struct idmap_client *, short, char *);
+static void nfsdreopen(void);
 
 size_t  strlcat(char *, const char *, size_t);
 size_t  strlcpy(char *, const char *, size_t);
@@ -144,7 +146,7 @@ main(int argc, char **argv)
 {
 	int fd = 0, opt, fg = 0, nfsdret = -1;
 	struct idmap_clientq icq;
-	struct event rootdirev, clntdirev;
+	struct event rootdirev, clntdirev, svrdirev;
 	struct event initialize;
 	struct passwd *pw;
 	struct group *gr;
@@ -279,6 +281,8 @@ main(int argc, char **argv)
 		signal_add(&rootdirev, NULL);
 		signal_set(&clntdirev, SIGUSR2, clntscancb, &icq);
 		signal_add(&clntdirev, NULL);
+		signal_set(&svrdirev, SIGHUP, svrreopen, NULL);
+		signal_add(&svrdirev, NULL);
 
 		/* Fetch current state */
 		/* (Delay till start of event_dispatch to avoid possibly losing
@@ -370,6 +374,12 @@ dirscancb(int fd, short which, void *data)
 			ic->ic_scanned = 0;
 	}
 	return;
+}
+
+static void
+svrreopen(int fd, short which, void *data)
+{
+	nfsdreopen();
 }
 
 static void
@@ -566,6 +576,38 @@ nfscb(int fd, short which, void *data)
 		warn("write(%s)", ic->ic_path);
 out:
 	event_add(&ic->ic_event, NULL);
+}
+
+static void
+nfsdreopen_one(struct idmap_client *ic)
+{
+	int fd;
+
+	if (verbose > 0)
+		warnx("ReOpening %s", ic->ic_path);
+	if ((fd = open(ic->ic_path, O_RDWR, 0)) != -1) {
+		if (ic->ic_fd != -1)
+			close(ic->ic_fd);
+		ic->ic_event.ev_fd = ic->ic_fd = fd;
+		if ((ic->ic_event.ev_flags & EVLIST_INIT) == 0) {
+			event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
+			event_add(&ic->ic_event, NULL);
+		}
+	} else {
+		warnx("nfsdreopen: Opening '%s' failed: errno %d (%s)",
+			ic->ic_path, errno, strerror(errno));
+	}
+}
+
+/*
+ * Note: nfsdreopen assumes nfsdopen has already been called
+ */
+static void
+nfsdreopen()
+{
+	nfsdreopen_one(&nfsd_ic[IC_NAMEID]);
+	nfsdreopen_one(&nfsd_ic[IC_IDNAME]);
+	return;
 }
 
 static int
