@@ -4,9 +4,12 @@
 	* support/nfs/rmtab.c(fendrmtabent): sync changes to 
 	storage before returning, as this is critical state
 
-2002-04-08  H.J. Lu <hjl@lucon.org>
+2002-04-08  Sean O'Connell <sean@ee.duke.edu>
+	    H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfs: New.
+
+2002-04-08  H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfs.init: Updated.
 
