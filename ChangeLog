@@ -1,4 +1,9 @@
-2000-03-13 H.J. Lu <hjl@lucon.org>
+2000-03-12  Chip Salzenberg  <chip@valinux.com>
+	    Neil Brown  <neilb@cse.unsw.edu.au>
+
+	* support/nfs/rpcmisc.c (rpc_init): Share transports.
+
+Wed Mar  8 09:42:43 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
 
 	* etc/redhat/nfsd.init: Updated.
 

@@ -65,35 +65,53 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport,
 	}
 
 	if ((_rpcfdtype == 0) || (_rpcfdtype == SOCK_DGRAM)) {
-		if (_rpcfdtype == 0 && defport != 0 &&
-		    ((sock = makesock(defport, IPPROTO_UDP, bufsiz)) < 0)) {
-			xlog(L_FATAL, "%s: could not make a UDP socket\n",
-					name);
+		static SVCXPRT *last_transp = NULL;
+ 
+		if (_rpcfdtype == 0 && defport != 0) {
+			if (last_transp && last_transp->xp_port == defport) {
+				transp = last_transp;
+				goto udp_transport;
+			}
+			if ((sock = makesock(defport, IPPROTO_UDP, bufsiz)) < 0) {
+				xlog(L_FATAL, "%s: cannot make a UDP socket\n",
+						name);
+			}
 		}
 		transp = svcudp_create(sock);
 		if (transp == NULL) {
 			xlog(L_FATAL, "cannot create udp service.");
 		}
+      udp_transport:
 		if (!svc_register(transp, prog, vers, dispatch, IPPROTO_UDP)) {
 			xlog(L_FATAL, "unable to register (%s, %d, udp).",
 					name, vers);
 		}
+		last_transp = transp;
 	}
 
 	if ((_rpcfdtype == 0) || (_rpcfdtype == SOCK_STREAM)) {
-		if (_rpcfdtype == 0 && defport != 0 &&
-		    ((sock = makesock(defport, IPPROTO_TCP, bufsiz)) < 0)) {
-			xlog(L_FATAL, "%s: could not make a TCP socket\n",
-					name);
+		static SVCXPRT *last_transp = NULL;
+
+		if (_rpcfdtype == 0 && defport != 0) {
+			if (last_transp && last_transp->xp_port == defport) {
+				transp = last_transp;
+				goto tcp_transport;
+			}
+			if ((sock = makesock(defport, IPPROTO_TCP, bufsiz)) < 0) {
+				xlog(L_FATAL, "%s: cannot make a TCP socket\n",
+						name);
+			}
 		}
 		transp = svctcp_create(sock, 0, 0);
 		if (transp == NULL) {
 			xlog(L_FATAL, "cannot create tcp service.");
 		}
+      tcp_transport:
 		if (!svc_register(transp, prog, vers, dispatch, IPPROTO_TCP)) {
 			xlog(L_FATAL, "unable to register (%s, %d, tcp).",
 					name, vers);
 		}
+		last_transp = transp;
 	}
 
 	if (_rpcpmstart) {
