@@ -1,3 +1,13 @@
+2005-04-06  Chip Salzenberg  <chip@pobox.com>
+
+	* support/nfs/exports.c (parseopts): Accept "acl" option to mean
+	~NFSEXP_NOACL, and "no_acl" to mean NFSEXP_NOACL.
+	(putexportent): Report NFSEXP_NOACL as "no_acl", and ~NFSEXP_NOACL
+	as "acl".
+	* utils/exportfs/exportfs.c (dump): Report NFSEXP_NOACL as
+	"no_acl".
+	* utils/exportfs/exports.man: Document "no_acl".
+
 2005-03-14  NeilBrown <neilb@cse.unsw.edu.au>
 	Denis Vlasenko <vda@ilport.com.ua>
 	* support/export/client.c(client_init and client_gettype):
