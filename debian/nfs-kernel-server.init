@@ -36,7 +36,7 @@ case "$1" in
 		start-stop-daemon --start --quiet \
 		    --exec $PREFIX/sbin/rpc.nfsd -- $RPCNFSDCOUNT
 		printf " mountd"
-		$PREFIX/bin/rpcinfo -u localhost nfs 3 > /dev/null 2>&1 ||
+		$PREFIX/bin/rpcinfo -u localhost nfs 3 >/dev/null 2>&1 ||
 		    RPCMOUNTDOPTS="$RPCMOUNTDOPTS --no-nfs-version 3"
 		start-stop-daemon --start --quiet \
 		    --exec $PREFIX/sbin/rpc.mountd -- $RPCMOUNTDOPTS

@@ -2,7 +2,12 @@
 
 #DEBHELPER#
 
-[ -x /etc/init.d/nfs-common ] && /etc/init.d/nfs-common stop
+case "$1" in
+    remove|purge)
+	[ -x /etc/init.d/nfs-common ] &&
+	   /etc/init.d/nfs-common stop
+	;;
+esac
 
 if [ "$1" != upgrade ]
 then
