@@ -67,6 +67,8 @@ void auth_unix_ip(FILE *f)
 	if (inet_aton(ipaddr, &addr)==0)
 		return;
 
+	auth_reload();
+
 	/* addr is a valid, interesting address, find the domain name... */
 	client = client_compose(addr);
 
@@ -137,6 +139,8 @@ void nfsd_fh(FILE *f)
 		memcpy(&fsidnum, fsid, 4);
 		break;
 	}
+
+	auth_reload();
 
 	/* Now determine export point for this fsid/domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
@@ -235,6 +239,8 @@ void nfsd_export(FILE *f)
 		goto out;
 	if (qword_get(&cp, path, strlen(lbuf)) <= 0)
 		goto out;
+
+	auth_reload();
 
 	/* now find flags for this export point in this domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {

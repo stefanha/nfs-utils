@@ -1,4 +1,10 @@
 2004-02-24 NeilBrown <neilb@cse.unsw.edu.au>
+	from "J. Bruce Fields" <bfields@fieldses.org>
+
+	* utils/mountd/cache.c: call auth_reload to make sure auth data is
+	current before responding to kernel upcall.
+	
+2004-02-24 NeilBrown <neilb@cse.unsw.edu.au>
 	Based on patch from  Greg Banks <gnb@melbourne.sgi.com>
 
 	* utils/exportfs/exports.man: Document fsid= option.
