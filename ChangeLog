@@ -1,3 +1,12 @@
+2003-07-02 NeilBrown <neilb@cse.unsw.edu.au>
+	Steve Dickson <SteveD@redhat.com>
+
+	* utils/mountd/mountd.man: Add valid kinds of debugging.
+	* utils/mountd/mountd.c(main): ignore SIGPIPE
+	* utils/nfsstat/nfsstat.c: fine-tune printing of warning so
+	we don't get warnings about unavailable stats that weren't asked
+	for.
+	
 2003-06-24 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* support/nfs/nfsexport.c(exp_unexp): When unexporting filesystems

@@ -56,7 +56,7 @@ a stale entry will remain in
 .SH OPTIONS
 .TP
 .B \-d kind " or " \-\-debug kind
-Turn on debugging for kind.
+Turn on debugging. Valid kinds are: all, auth, call, general and parse.
 .TP
 .B \-F " or " \-\-foreground
 Run in foreground (do not daemonize)

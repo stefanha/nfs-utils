@@ -124,6 +124,8 @@ main(int argc, char **argv)
 	int		opt_all = 0,
 			opt_srv = 0,
 			opt_clt = 0,
+			srv_info = 0,
+			clt_info = 0,
 			opt_prt = 0;
 	int		c;
 
@@ -184,9 +186,25 @@ main(int argc, char **argv)
 			"server.\n");
 	}
 
-	if ((opt_srv && !parse_statfile(NFSSVCSTAT, svcinfo))
-	 || (opt_clt && !parse_statfile(NFSCLTSTAT, cltinfo)))
-		return 2;
+	if (opt_srv) {
+		srv_info = parse_statfile(NFSSVCSTAT, svcinfo);
+		if (srv_info == 0 && opt_clt == 0) {
+			fprintf(stderr, "Warning: No Server Stats (%s: %m).\n", NFSSVCSTAT);
+			return 2;
+		}
+		if (srv_info == 0)
+			opt_srv = 0;
+	}
+
+	if (opt_clt) {
+		clt_info = parse_statfile(NFSCLTSTAT, cltinfo);
+		if (opt_srv == 0 && clt_info == 0) {
+			fprintf(stderr, "Warning: No Client Stats (%s: %m).\n", NFSCLTSTAT);
+			return 2;
+		}
+		if (clt_info == 0)
+			opt_clt = 0;
+	}
 
 	if (opt_srv) {
 		if (opt_prt & PRNT_NET) {
@@ -340,8 +358,8 @@ parse_statfile(const char *name, struct statinfo *statp)
 	 * be a fatal error -- it usually means the module isn't loaded.
 	 */
 	if ((fp = fopen(name, "r")) == NULL) {
-		fprintf(stderr, "Warning: %s: %m\n", name);
-		return 1;
+		// fprintf(stderr, "Warning: %s: %m\n", name);
+		return 0;
 	}
 
 	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
