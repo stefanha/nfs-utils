@@ -1,5 +1,14 @@
 2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
 
+	* configure.in, nfs-utils.spec: Update version to 1.0.4
+	* run autoconf
+
+	This is a 'pre-release' for 1.1.0  Hopefully 1.1.0 will be the
+	baseline for 2.6 and 2.8.  I.e. it should continue to work right
+	through the 2.8 (or 3.0) kernel series.  Previous releases wont.
+	
+2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/include/nfs/nfs.h: Make sure correct __kernel_dev_t is
 	used as the size was changed somewhere in 2.5.60-2.5.70.  Without
 	this nfs-utils compiles against 2.6 headers will not work on a
