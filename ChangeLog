@@ -1,11 +1,11 @@
 2001-06-05  H.J. Lu <hjl@lucon.org>
 
-	* utils/mountd/mountd.c (longopts): Add "foreground/d".
-	(main): Support --foreground/-d to set the limit of the number
+	* utils/mountd/mountd.c (longopts): Add "descriptors/o".
+	(main): Support --descriptors/-o to set the limit of the number
 	of open file descriptors.
 	(usage): Updated.
 
-	* utils/mountd/mountd.man: Updated for --foreground/-d.
+	* utils/mountd/mountd.man: Updated for --descriptors/-o.
 
 2001-06-04  H.J. Lu <hjl@lucon.org>
 
