@@ -63,6 +63,7 @@ extern char * mech2file(gss_OID mech);
 struct svc_cred {
 	uid_t	cr_uid;
 	gid_t	cr_gid;
+	int	cr_ngroups;
 	gid_t	cr_groups[NGROUPS];
 };
 
@@ -71,7 +72,7 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 		gss_OID mech, gss_buffer_desc *context_token)
 {
 	FILE *f;
-	int i, ngroups;
+	int i;
 	char *fname = NULL;
 
 	printerr(1, "doing downcall\n");
@@ -89,15 +90,8 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 	qword_printint(f, 0x7fffffff); /*XXX need a better timeout */
 	qword_printint(f, cred->cr_uid);
 	qword_printint(f, cred->cr_gid);
-	ngroups = NGROUPS;
-	for (i=0; i < NGROUPS; i++) {
-		if (cred->cr_groups[i] == NOGROUP) {
-			ngroups = i;
-			break;
-		}
-	}
-	qword_printint(f, ngroups);
-	for (i=0; i < ngroups; i++)
+	qword_printint(f, cred->cr_ngroups);
+	for (i=0; i < cred->cr_ngroups; i++)
 		qword_printint(f, cred->cr_groups[i]);
 	qword_print(f, fname);
 	qword_printhex(f, context_token->value, context_token->length);
@@ -167,7 +161,6 @@ send_response(FILE *f, gss_buffer_desc *in_handle, gss_buffer_desc *in_token,
 #define rpcsec_gsserr_credproblem	13
 #define rpcsec_gsserr_ctxproblem	14
 
-/* XXX memory leaks everywhere: */
 static int
 get_ids(gss_name_t client_name, gss_OID *mech, struct svc_cred *cred)
 {
@@ -194,12 +187,14 @@ get_ids(gss_name_t client_name, gss_OID *mech, struct svc_cred *cred)
 		*c = '\0';
 	/* XXX? mapping unknown users (including machine creds) to nobody: */
 	if ( !(pw = getpwnam(sname)) && !(pw = getpwnam("nobody")) )
-		goto out;
+		goto out_free;
 	cred->cr_uid = pw->pw_uid;
 	cred->cr_gid = pw->pw_gid;
 	/* XXX Read password file?  Use initgroups? I dunno...*/
-	cred->cr_groups[0] = NOGROUP;
+	cred->cr_ngroups = 0;
 	res = 0;
+out_free:
+	free(sname);
 out:
 	if (res)
 		printerr(0, "WARNING: get_uid failed\n");

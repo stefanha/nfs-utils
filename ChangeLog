@@ -6,6 +6,10 @@
 	specific files (as no-one actually uses them, especially not
 	redhat), and the nodist /etc files (as they drift out-of-date, and
 	the debian directory provides a suitable example.
+	* utils/svcgssd_proc.c(get_ids): fix memory leak
+	* utils/svcgssd/svcgssd_proc.c: Rely on count of the number of
+	groups instead of using a special guard value to identify the end
+	of the list. 
 	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>
 
