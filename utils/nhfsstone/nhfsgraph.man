@@ -1,0 +1,29 @@
+.TH NHFSGRAPH 8 "26 Feb 2000"
+.SH NAME
+nhfsgraph \- Run
+.B nhfsstone
+over multiple loads
+.SH SYNOPSIS
+.B nhfsgraph <plotfile>
+.SH DESCRIPTION
+Produce a PostScript graph of nhfsstone numbers.
+The input
+.B <plotfile>
+must contain
+.BR plot (5)
+number pairs derived from runs of
+.B nhfsstone 
+at different loads.
+.PP
+If you want something other than PostScript output, edit the
+script and replace
+.B psplot
+with
+.BR plot .
+.SH SEE ALSO
+.BR nhfsstone (8),
+.BR nhfsrun (8),
+.BR nhfsnums (8),
+.BR plot (5),
+.BR plot (1),
+.BR psplot (1)
