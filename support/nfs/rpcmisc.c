@@ -68,7 +68,8 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport,
 		static SVCXPRT *last_transp = NULL;
  
 		if (_rpcfdtype == 0) {
-			if (last_transp && last_transp->xp_port == defport) {
+			if (last_transp
+			    && (!defport || defport == last_transp->xp_port)) {
 				transp = last_transp;
 				goto udp_transport;
 			}
@@ -93,7 +94,8 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport,
 		static SVCXPRT *last_transp = NULL;
 
 		if (_rpcfdtype == 0) {
-			if (last_transp && last_transp->xp_port == defport) {
+			if (last_transp
+			    && (!defport || defport == last_transp->xp_port)) {
 				transp = last_transp;
 				goto tcp_transport;
 			}
