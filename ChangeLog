@@ -1,5 +1,11 @@
 2002-04-07  H.J. Lu <hjl@lucon.org>
 
+	* etc/redhat/nfslock.init (restart): Just do stop and start.
+
+	* etc/redhat/nfs.init: Fix a typo.
+
+2002-04-07  H.J. Lu <hjl@lucon.org>
+
 	* configure.in (VERSION): Set to "1.0.1".
 	* configure: Regenerated.
 	* nfs-utils.spec: Likewise.

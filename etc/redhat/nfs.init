@@ -36,7 +36,7 @@ if [ -f "$NFSDCFG" ]; then
    . "$NFSDCFG"
 else
    # Set some defaults
-   TUNE_QUEUE ="no"
+   TUNE_QUEUE="no"
    # Default to NFS version 3.
    RPCMOUNTDOPTS=""
 fi

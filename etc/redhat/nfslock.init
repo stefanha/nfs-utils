@@ -69,15 +69,8 @@ case "$1" in
 	status rpc.statd
 	;;
   restart)
-	echo -n "Restarting NFS file locking services: "
-	echo -n "rpc.lockd "
-	killproc lockd
-	daemon rpc.lockd
-	echo -n "rpc.statd "
-	killproc rpc.statd
-	daemon rpc.statd ${STATDARG}
-	touch /var/lock/subsys/nfslock
-	echo "done."
+	$0 stop
+	$0 start
 	;;
   probe)
 	if [ ! -f /var/lock/subsys/nfslock ] ; then
