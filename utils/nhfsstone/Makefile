@@ -4,6 +4,6 @@
 
 PROGRAM	= nhfsstone
 OBJS	= nhfsstone.o
-MAN1	= nhfsstone
+MAN8	= nhfsstone
 
 include $(TOP)rules.mk
