@@ -1,31 +1,55 @@
-This is the Linux NFS utility package version 0.3.3.
+This is version 1.0 of nfs-utils, the Linux NFS utility package.
 
-The nfs-utils package is available via the Linux NFS web page is at
 
-http://sourceforge.net/projects/nfs/
+0. PROJECT RESOURCES
 
-To compile, just do
+Home page:  http://sourceforge.net/projects/nfs/
 
-# ./configure
-# make
 
-# make install
+1. COMPILING WITHOUT PACKAGE MANAGEMENT
 
-will install the nfs-utils binaries. You have to install the NFS
-service scripts. There are 2 in etc/redhat provided for RedHat 6.x
-and 7.x. They are tested on RedHat 6.2 and 7.1.
+To compile without using a package management system, unpack the
+sources and run these commands:
+
+    # ./configure
+    # make
+
+To install binaries and documenation, run this command:
+
+    # make install
+
+You will have to install the two NFS service scripts yourself.
+Service scripts for RedHat 6.x and 7.x are in etc/redhat.  They
+have been tested on RedHat 6.2 and 7.1.
+
+
+2. COMPILING WITH RPM
 
 On RedHat 6.2 and 7.1, you can use
 
-# rpm -ta nfs-utils-0.3.3.tar.gz
+    # rpm -ta nfs-utils-1.0.tar.gz
 
 to build the source and binary RPMs.
 
-mount in util-linux 2.11f or above is required.
 
-Thanks.
+3. COMPILING FOR DEBIAN
+
+The nfs-utils tree has an up-to-date debian directory, so the usual
+debian build scripts should work.  The simplest way to build binary
+debs, however, is simply to become root (or use fakeroot) and run:
+
+    # debian/rules binary
 
 
-H.J.
-hjl@lucon.org
-09/24/2001
+4. REQUIRED VERSIONS OF OTHER TOOLS
+
+Proper NFS operation requires a 'mount' program from util-linux 2.11f
+or later.
+
+
+Share And Enjoy!
+
+    --	the nfs-utils developers
+	<nfs@lists.sourceforge.net>
+	26 Dec 2001
+

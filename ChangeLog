@@ -1,5 +1,11 @@
 2001-12-26  Chip Salzenberg  <chip@pobox.com>
 
+	* nfs-utils.spec (Version): Set to "1.0".
+	* configure.in (VERSION): Likewise.
+	* configure: Regenerated.
+	* README: Rewritten.
+	* debian/changelog: Version 1.0-1.
+
 	* utils/exportfs/exports.man: Emphasize the need for options to
 	immediately follow client names.  Explain that wildcards don't
 	usually work on addresses, but may work when reverse DNS fails.

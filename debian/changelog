@@ -1,3 +1,11 @@
+nfs-utils (1:1.0-1) unstable; urgency=medium
+
+  * New upstream version.  (Version number is only change.)
+  * Urgency "medium" so woody users see the pretty new version number.
+    (Yeah, it's shallow... but, doggone it, this is mature code.)
+
+ -- Chip Salzenberg <chip@debian.org>  Wed, 26 Dec 2001 20:21:15 -0800
+
 nfs-utils (1:0.3.3-6) unstable; urgency=high
 
   * Upstream fixes:
