@@ -66,8 +66,8 @@ will get the latest version.
 
 The files are
 
-ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.2.tar.gz
-ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.1-0.1.2.diff.gz
+ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/nfs-utils-0.1.2.tar.gz
+ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/nfs-utils-0.1.1-0.1.2.diff.gz
 
 To compile, just do
 
