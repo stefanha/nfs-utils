@@ -37,72 +37,14 @@
 #define TYPE_EXTENDED	0x01
 #define ACTIVE		0x02
 
-#ifdef ELM
-#define _PATH_DEV_DSK   "/dev/dsk/"
-#else
-#define _PATH_DEV_DSK   "/dev/"
+#ifndef MNTTYPE_AUTOFS
+#define MNTTYPE_AUTOFS	"autofs"
 #endif
 
 /*
  * Global unix authentication credentials.
  */
 extern struct authunix_parms *unix_cred;
-
-char *nfsmount_to_devname(char *pathname, int *blksize)
-{
-   DIR *dp;
-   dev_t device;
-   struct stat st;
-   struct dirent *de;
-   static char *devicename = NULL;
-   static int devicelen = 0;
-
-   if (stat(pathname, &st) == -1)
-      return (char *)0;
-
-   device = st.st_dev;
-   *blksize = st.st_blksize;
-
-   /*
-    * search for devicename in _PATH_DEV_DSK dir.
-    */
-   if ((dp = opendir(_PATH_DEV_DSK)) == (DIR *)0)
-      return (char *)0;
-
-   while ((de = readdir(dp)) != (struct dirent *)0) {
-      if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
-         continue;
-
-      if (devicelen == 0) {
-	 devicelen = sizeof (_PATH_DEV_DSK) + strlen (de->d_name) + 1;
-	 devicename = (char *) xmalloc (devicelen);
-      }
-      else {
-	  int newlen = sizeof (_PATH_DEV_DSK) + strlen (de->d_name) + 1;
-	  if (newlen > devicelen) {
-	      devicelen = newlen;
-	      devicename = (char *) xrealloc (devicename, devicelen);
-	  }
-      }
-
-      strcpy(devicename, _PATH_DEV_DSK);
-      strcat(devicename, de->d_name);
-      if (stat(devicename, &st) == -1)
-         continue;
-
-      if (!S_ISBLK(st.st_mode))
-         continue;
-
-      if ((device == st.st_rdev) && S_ISBLK(st.st_mode))
-         break;
-   }
-   closedir(dp);
-
-   if (de != (struct dirent *)0) {
-      return devicename;
-   } else
-      return (char *)0;
-}
 
 int in_group (gid_t *gids, u_int len, gid_t gid)
 {
@@ -126,8 +68,9 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
    FILE *fp;
    struct dqblk dq_dqb;
    struct mntent *mnt;
-   char *pathname, *devicename, *qfpathname;
+   char *pathname, *qfpathname;
    int fd, err, id, type;
+   struct stat st;
 
    /*
     * First check authentication.
@@ -160,23 +103,30 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
       }
    }
 
-   /*
-    * Convert a nfs_mountpoint to a local devicename.
-    */
-   if ((devicename = nfsmount_to_devname(pathname,
-        &result.getquota_rslt_u.gqr_rquota.rq_bsize)) == (char *)0) {
-      result.status = Q_NOQUOTA;   
-      return(&result);
-   }
-
    fp = setmntent(MNTTAB, "r");
    while ((mnt = getmntent(fp)) != (struct mntent *)0) {
-      if (strcmp(devicename, mnt->mnt_fsname))
+      if (strcasecmp (mnt->mnt_dir, pathname))
          continue;
 
+      if (mnt->mnt_fsname [0] != '/'
+	  || strcasecmp (mnt->mnt_type, MNTTYPE_NFS) == 0
+	  || strcasecmp (mnt->mnt_type, MNTTYPE_AUTOFS) == 0
+	  || strcasecmp (mnt->mnt_type, MNTTYPE_SWAP) == 0
+	  || strcasecmp (mnt->mnt_type, MNTTYPE_IGNORE) == 0
+	  || stat(pathname, &st) == -1)
+         break;
+
+#if 0
+      result.getquota_rslt_u.gqr_rquota.rq_bsize = st.st_blksize;
+#else
+      /* All blocks reported are 512 Bytes blocks. */
+      result.getquota_rslt_u.gqr_rquota.rq_bsize = 512;
+#endif
+
       if (hasquota(mnt, type, &qfpathname)) {
-         if ((err = quotactl(QCMD(Q_GETQUOTA, type), devicename, id,
-            (caddr_t)&dq_dqb)) == -1 && !(flags & ACTIVE)) {
+         if ((err = quotactl(QCMD(Q_GETQUOTA, type), mnt->mnt_fsname,
+	 		     id, (caddr_t)&dq_dqb)) == -1
+	     && !(flags & ACTIVE)) {
             if ((fd = open(qfpathname, O_RDONLY)) < 0)
 	    {
 	       free(qfpathname);

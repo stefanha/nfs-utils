@@ -1,6 +1,6 @@
 Summary: The utilities for Linux NFS client and server.
 Name: nfs-utils
-Version: 0.1.2
+Version: 0.1.3
 Release: 1
 Source0: ftp://ftp.valinux.com/pub/support/hjl/nfs/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
