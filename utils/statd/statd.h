@@ -56,3 +56,22 @@ stat_chge		SM_stat_chge;
 #define NOTIFY_TIMEOUT		 5 /* For status-change notifications. */
 #define SELECT_TIMEOUT		10 /* Max select() timeout when work to do. */
 #define MAX_TRIES		 5 /* Max number of tries for any host. */
+
+/*
+ * Modes of operation - Lon
+ */
+extern int run_mode;
+#define MODE_NODAEMON 1		/* No-daemon/foreground mode. */
+#define MODE_LOG_STDERR 2	/* in foreground mode, log to stderr */
+/*#define MODE_NOTIFY_ONLY 4*/	/* Send SM_NOTIFY to everyone monitored on
+				   a single interface/alias */
+/* LH - notify_only mode would be for notifying hosts on an IP alias
+ * that just came back up, for ex, when failing over a HA service to
+ * another host.... */
+
+/*
+ * Program name and version pointers -- See statd.c for the reasoning
+ * as to why they're global.
+ */
+extern char *name_p;		/* program basename */
+extern char *version_p;		/* program version */
