@@ -1,3 +1,8 @@
+2002-11-19  NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/exportfs/exports.man: Correct notes about whether the wild
+	card characters match a period.  They do.
+	
 2002-10-15  Juan Gomez <juang@us.ibm.com>
 
 	* utils/mountd/rmtab.c (slink_safe_rename): New. Support

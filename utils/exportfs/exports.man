@@ -45,9 +45,10 @@ parts or those containing a single dash (\-) are ignored.
 .IP "wildcards
 Machine names may contain the wildcard characters \fI*\fR and \fI?\fR.
 This can be used to make the \fIexports\fR file more compact; for instance,
-\fI*.cs.foo.edu\fR matches all hosts in the domain \fIcs.foo.edu\fR. However,
-these wildcard characters do not match the dots in a domain name, so the
-above pattern does not include hosts such as \fIa.b.cs.foo.edu\fR.
+\fI*.cs.foo.edu\fR matches all hosts in the domain
+\fIcs.foo.edu\fR.  As these characters also match the dots in a domain
+name, the given pattern will also match all hosts within any subdomain
+of \fIcs.foo.edu\fR.
 .IP "IP networks
 You can also export directories to all hosts on an IP (sub-) network
 simultaneously. This is done by specifying an IP address and netmask pair
