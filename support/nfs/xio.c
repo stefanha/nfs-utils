@@ -92,7 +92,7 @@ xgettok(XFILE *xfp, char sepa, char *tok, int len)
 	while (i < len && (c = xgetc(xfp)) != EOF && c != sepa && !isspace(c))
 		tok[i++] = c;
 	if (c == '\n')
-		ungetc(c, xfp->x_fp);
+		xungetc(c, xfp->x_fp);
 	if (!i)
 		return 0;
 	if (i >= len || (sepa && c != sepa))
@@ -126,10 +126,13 @@ xgetc(XFILE *xfp)
 }
 
 void
-xungetc(char c, XFILE *xfp)
+xungetc(int c, XFILE *xfp)
 {
-	if (c != EOF)
+	if (c != EOF) {
 		ungetc(c, xfp->x_fp);
+		if (c == '\n')
+			xfp->x_line--;
+	}
 }
 
 void
