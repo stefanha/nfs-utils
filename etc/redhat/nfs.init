@@ -36,7 +36,6 @@ RPCMOUNTDOPTS="--no-nfs-version 3"
 case "$1" in
   start)
 	# Start daemons.
-	action "Starting NFS services: " /usr/sbin/exportfs -r
 	echo -n "Starting NFS quotas: "
 	daemon rpc.rquotad
 	echo
@@ -46,6 +45,7 @@ case "$1" in
 	echo -n "Starting NFS daemon: "
 	daemon rpc.nfsd $RPCNFSDCOUNT
 	echo
+	action "Starting NFS services: " /usr/sbin/exportfs -r
 	touch /var/lock/subsys/nfs
 	;;
   stop)
