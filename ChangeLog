@@ -6,6 +6,7 @@
 	* support/nfs/exports.c (efname): Added: current exports file name.
 	(setnfsexportent): Set it.
 	(endnfsexportent, parseopts, getexport, syntaxerr): Use it.
+	(parseopts): Accept old-style "crossmnt" option, for old xtabs.
 
 2001-10-11  Chip Salzenberg  <chip@pobox.com>
 

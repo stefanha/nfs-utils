@@ -309,6 +309,10 @@ parseopts(char *cp, struct exportent *ep)
 			ep->e_flags |= NFSEXP_CROSSMNT;
 		else if (!strcmp(opt, "hide"))
 			ep->e_flags &= ~NFSEXP_CROSSMNT;
+		else if (!strcmp(opt, "crossmnt"))		/* old style */
+			ep->e_flags |= NFSEXP_CROSSMNT;
+		else if (!strcmp(opt, "nocrossmnt"))		/* old style */
+			ep->e_flags &= ~NFSEXP_CROSSMNT;
 		else if (!strcmp(opt, "wdelay"))
 			ep->e_flags |= NFSEXP_GATHERED_WRITES;
 		else if (!strcmp(opt, "no_wdelay"))
