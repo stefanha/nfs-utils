@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 1995, 1997-1999 Jeffrey A. Uphoff
+ * Copyright (C) 1995, 1997-1999, 2002 Jeffrey A. Uphoff
  * Major rewrite by Olaf Kirch, Dec. 1996.
  *
  * NSM for Linux.
@@ -68,44 +68,3 @@ extern notify_list *	nlist_gethost(notify_list *, char *, int);
 #define NL_MY_VERS(L)	(NL_MY_ID((L)).my_vers)
 #define NL_WHEN(L)	((L)->when)
 #define NL_TYPE(L)	((L)->type)
-
-#if 0
-#define NL_ADD_NO_ZERO(LIST, ITEM)\
-  NL_PREV(NL_FIRST((LIST))) = (ITEM);\
-  NL_NEXT((ITEM)) = NL_FIRST((LIST));\
-  NL_FIRST((LIST)) = (ITEM);\
-  NL_PREV((ITEM)) = (LIST);\
-  NL_TIMES((ITEM)) = 0;
-
-#define NL_ADD(LIST, ITEM)\
-  NL_ADD_NO_ZERO((LIST), (ITEM));\
-  NL_ADDR((ITEM)) = 0;\
-  NL_STATE((ITEM)) = 0;
-
-#define NL_DEL(ITEM)\
-  NL_NEXT(NL_PREV((ITEM))) = NL_NEXT((ITEM));\
-  NL_PREV(NL_NEXT((ITEM))) = NL_PREV((ITEM));
-
-#define NL_FREE(ITEM)\
-  if (NL_MY_NAME ((ITEM)))\
-    free (NL_MY_NAME ((ITEM)));\
-  if (NL_MON_NAME ((ITEM)))\
-    free (NL_MON_NAME((ITEM)));\
-  free ((ITEM));
-
-#define NL_DEL_FREE(ITEM)\
-  NL_DEL((ITEM))\
-  NL_FREE((ITEM))
-
-/* Yuck.  Kludge. */
-#define NL_COPY(SRC, DEST)\
-  NL_TIMES((DEST)) = NL_TIMES((SRC));\
-  NL_STATE((DEST)) = NL_TIMES((SRC));\
-  NL_MY_PROC((DEST)) = NL_MY_PROC((SRC));\
-  NL_MY_PROG((DEST)) = NL_MY_PROG((SRC));\
-  NL_MY_VERS((DEST)) = NL_MY_VERS((SRC));\
-  NL_MON_NAME((DEST)) = xstrdup (NL_MON_NAME((SRC)));\
-  NL_MY_NAME((DEST)) = xstrdup (NL_MY_NAME((SRC)));\
-  memcpy (&NL_ADDR((DEST)), &NL_ADDR((SRC)), sizeof (u_long));\
-  memcpy (NL_PRIV((DEST)), NL_PRIV((SRC)), SM_PRIV_SIZE);
-#endif
