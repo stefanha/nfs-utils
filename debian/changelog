@@ -1,3 +1,10 @@
+nfs-utils (1:0.2-1) unstable; urgency=low
+
+  * New upstream version number.
+  * Minor fixes.
+
+ -- Chip Salzenberg <chip@valinux.com>  Tue,  5 Sep 2000 11:30:00 -0700
+
 nfs-utils (1:0.1.9.1-2) unstable; urgency=medium
 
   * Upstream addition of tcpwrapper support in statd and mountd.
