@@ -67,10 +67,13 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	my_name = "127.0.0.1";
 
 	/* 2.	Reject any registrations for non-lockd services.
+	 *
 	 *	This is specific to the linux kernel lockd, which
 	 *	makes the callback procedure part of the lockd interface.
+	 *	It is also prone to break when lockd changes its callback
+	 *	procedure number.  XXX FIXME
 	 */
-	if (id->my_proc != 100021) {
+	if (id->my_proc != 100021 && id->my_proc != 24) {
 		log(L_WARNING,
 			"Attempt to register callback to service %d",
 			id->my_proc);
