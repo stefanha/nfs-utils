@@ -1,10 +1,12 @@
 nfs-utils (1:1.0.5-2) unstable; urgency=low
 
+  * Upstream CVS sync:
+    > Improve support for 2.6.0 /proc interface.
   * Use po-debconf.  Patch from Andre Luis Lopes <andrelop@ig.com.br>,
     with improved French from Christian Perrier <bubulle@debian.org>.
     (closes: #187866, #202196)
 
- -- 
+ -- Chip Salzenberg <chip@debian.org>  Wed, 20 Aug 2003 17:03:44 -0400
 
 nfs-utils (1:1.0.5-1) unstable; urgency=high
 
