@@ -122,6 +122,11 @@ struct nfs_fh_len *	getfh_old(struct sockaddr *addr, dev_t dev, ino_t ino);
 struct nfs_fh_len *	getfh(struct sockaddr *addr, const char *);
 struct nfs_fh_len *	getfh_size(struct sockaddr *addr, const char *, int size);
 
+void qword_print(FILE *f, char *str);
+void qword_printhex(FILE *f, char *str, int slen);
+void qword_printint(FILE *f, int num);
+void qword_eol(FILE *f);
+
 /* lockd. */
 int			lockdsvc();
 

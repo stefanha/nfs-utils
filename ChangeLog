@@ -1,3 +1,13 @@
+2003-03-26 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* support/nfs/cacheio.c: New File - support for read/writing
+	to export cache in /proc/rpc/*/channel
+	* support/nfs/Makefile: compile cacheio.c
+	* support/include/nfslib.h: declare cacheio.c functions
+	* support/nfs/nfsexport.c: export and unexport through
+	/proc/rpc/*/channel if possible, as old syscall interface
+	may not survive into 2.6 on all architectures.
+	
 2003-02-19 NeilBrown <neilb@cse.unsw.edu.au>	
 	Ben Leslie <benno@sesgroup.net>
 
