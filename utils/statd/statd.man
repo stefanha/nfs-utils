@@ -90,7 +90,7 @@ and
 manual pages.
 
 .SH FILES
-.BR /var/lib/nfs/sm/state
+.BR /var/lib/nfs/state
 .br
 .BR /var/lib/nfs/sm/*
 .br
