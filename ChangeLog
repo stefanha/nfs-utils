@@ -1,5 +1,11 @@
 2000-04-26  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "0.1.7.1".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+2000-04-26  H.J. Lu <hjl@lucon.org>
+
 	* etc/redhat/nfslock.init: Check if lockd exits before killing
 	it.
 
