@@ -88,8 +88,8 @@ to build the source and binary RPMs.
 
 If your mount from util-linux is too old, you will need 2 patches:
 
-ftp://ftp.valinux.com/pub/support/hjl/nfs/util-linux-2.9o-mount-nfsv3.patch
-ftp://ftp.valinux.com/pub/support/hjl/nfs/util-linux-2.9w-mount-nfsv3try.patch
+ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/util-linux-2.9o-mount-nfsv3.patch
+ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/util-linux-2.9w-mount-nfsv3try.patch
 
 Thanks.
 
