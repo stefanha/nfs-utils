@@ -25,12 +25,10 @@ fi
 # What is this?
 DESC="NFS common utilities"
 
-# Make sure that daemon cwds are in root fs.
-cd /
-
 # See how we were called.
 case "$1" in
   start)
+	cd /	# daemons should have root dir as cwd
 	printf "Starting $DESC:"
 	printf " statd"
 	start-stop-daemon --start --quiet \

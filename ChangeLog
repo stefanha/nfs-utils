@@ -1,3 +1,8 @@
+2001-06-15  Chip Salzenberg  <chip@debian.org>
+
+	* debian/changelog: Version 0.3.2-2.
+	* debian/*.init: Minor fixes.
+
 2001-06-07  Lon H. Hohberger <hohberger@missioncriticallinux.com>
 
 	* etc/nodist/nfs-server: Fixed a bug where the script would

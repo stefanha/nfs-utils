@@ -21,12 +21,10 @@ DESC="NFS kernel daemon"
 RPCNFSDCOUNT=8	# Number of servers to be started up by default
 RPCMOUNTDOPTS=
 
-# Make sure that daemon cwds are in root fs.
-cd /
-
 # See how we were called.
 case "$1" in
   start)
+	cd /	# daemons should have root dir as cwd
 	if grep -q '^/' /etc/exports; then
 		printf "Exporting directories for $DESC..."
 		$PREFIX/sbin/exportfs -r
@@ -38,7 +36,7 @@ case "$1" in
 		    --exec $PREFIX/sbin/rpc.nfsd -- $RPCNFSDCOUNT
 		printf " mountd"
 		$PREFIX/bin/rpcinfo -u localhost nfs 3 > /dev/null 2>&1 ||
-		    RPCMOUNTDOPTS="$RPCMOUNDOPTS --no-nfs-version 3"
+		    RPCMOUNTDOPTS="$RPCMOUNTDOPTS --no-nfs-version 3"
 		start-stop-daemon --start --quiet \
 		    --exec $PREFIX/sbin/rpc.mountd -- $RPCMOUNTDOPTS
 		echo "."

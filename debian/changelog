@@ -1,3 +1,11 @@
+nfs-utils (1:0.3.2-2) unstable; urgency=low
+
+  * Rebuild with new libc.  (closes: #97252, #97455, #99829, #100317)
+  * Fix typo in nfs-kernel-server init script.  (closes: #100380)
+  * Start all daemons in root directory.
+  
+ -- Chip Salzenberg <chip@debian.org>  Fri, 15 Jun 2001 15:57:18 -0700
+
 nfs-utils (1:0.3.2-1) unstable; urgency=low
 
   * Upstream changes to statd:
