@@ -1,3 +1,15 @@
+2000-11-09  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfs.init (start): Pass --no-tcp to mountd if
+	TCP is not supported by kernel.
+
+	* support/nfs/rpcmisc.c (rpc_init): Don't set _rpcfdtype to 0.
+
+	* utils/mountd/mountd.c (longopts): Add "-n/--no-tcp".
+	(main): Set to _rpcfdtype to SOCK_DGRAM for "-n/--no-tcp".
+
+	* utils/mountd/mountd.man: Updated for "-n/--no-tcp".
+
 2000-10-24  Lon Hohberger <hohberger@missioncriticallinux.com>
 
 	* utils/statd/callback.c: Fix bug preventing callbacks to local lockd.

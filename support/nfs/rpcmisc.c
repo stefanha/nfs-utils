@@ -50,9 +50,9 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport,
 
 	asize = sizeof(saddr);
 	sock = 0;
-	_rpcfdtype = 0;
 	if (getsockname(0, (struct sockaddr *) &saddr, &asize) == 0) {
 		int ssize = sizeof (int);
+		_rpcfdtype = 0;
 		if (saddr.sin_family != AF_INET)
 			xlog(L_FATAL, "init: stdin is bound to non-inet addr");
 		if (getsockopt(0, SOL_SOCKET, SO_TYPE,

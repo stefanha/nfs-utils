@@ -83,6 +83,9 @@ NFS kernel module was compiled without support for NFSv3,
 must be invoked with the option
 .B "\-\-no-nfs-version 3" .
 .TP
+.B \-n " or " \-\-no-tcp
+Don't advertise TCP for mount.
+.TP
 .B \-P
 Ignored (compatibility with unfsd??).
 .TP

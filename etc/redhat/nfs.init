@@ -50,6 +50,12 @@ case "$1" in
 		RPCMOUNTDOPTS="--no-nfs-version 3"
 	fi
 
+	# Let's see if we support NFS version 3.
+	/usr/sbin/rpcinfo -p localhost | grep nfs | grep tcp &>/dev/null
+	if [ $? -ne 0 ]; then
+		RPCMOUNTDOPTS="$RPCMOUNTDOPTS --no-tcp"
+	fi
+
 	echo -n "Starting NFS mountd: "
 	daemon rpc.mountd $RPCMOUNTDOPTS
 	echo
