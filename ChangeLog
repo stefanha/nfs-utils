@@ -1,11 +1,12 @@
 2003-09-12 NeilBrown <neilb@cse.unsw.edu.au>
+
 	* utils/mountd/mountd.c(main): Impose FD_SETSIZE as an upper limit
 	for RLIMIT_NOFILE
 	* utils/statd/statd.c(main): Ditto.
 
-	 michael <michael@newdream.net> discovered that svc_setreqsize in
-	glibc can segfault if RLIMIT_NOFILE is bigger than FD_SETSIZE,
-	so a simple solution is to impose a hard limit.
+	   michael <michael@newdream.net> discovered that svc_setreqsize
+	   in glibc can segfault if RLIMIT_NOFILE is bigger than
+	   FD_SETSIZE, so a simple solution is to impose a hard limit.
 
 2003-09-09  Chip Salzenberg  <chip@pobox.com>
 
