@@ -59,8 +59,8 @@ static unsigned int	svcfhinfo[6];	/* (for kernels >= 2.4.0)
 					 * 0  stale
 					 * 1  FH lookups
 					 * 2  'anon' FHs
-					 * 3  noncached non-directories
-					 * 4  noncached directories
+					 * 3  noncached directories
+					 * 4  noncached non-directories
 					 * leave hole to relocate stale for order
 					 *    compatability.
 					 */
@@ -214,11 +214,17 @@ main(int argc, char **argv)
 		/*
 		 * 2.2 puts all fh-related info after the 'rc' header
 		 * 2.4 puts all fh-related info after the 'fh' header, but relocates
-		 *     'stale' to the start :-(  We keep it at the end.
+		 *     'stale' to the start and swaps dir and nondir :-(  
+		 *     We preseve the 2.2 order
 		 */
 		if (opt_prt & PRNT_FH) {
 			if (get_stat_info("fh", svcinfo)) {	/* >= 2.4 */
+				int t = svcfhinfo[3];
+				svcfhinfo[3]=svcfhinfo[4];
+				svcfhinfo[4]=t;
+				
 				svcfhinfo[5]=svcfhinfo[0]; /* relocate 'stale' */
+				
 				print_numbers(
 					"Server file handle cache:\n"
 					"lookup     anon       ncachedir ncachedir  stale\n",
