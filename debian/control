@@ -8,15 +8,27 @@ Standards-Version: 3.1.1.1
 Package: nfs-kernel-server
 Priority: optional
 Architecture: any
-Depends: debconf (>= 1.0), nfs-common (>= 1:0.3.3-3), ${shlibs:Depends}
+Depends: nfs-common (>= 1:0.3.3-3), debconf (>= 1.0), sysvinit (>= 2.80-1), ${shlibs:Depends}
 Provides: knfs, nfs-server
 Conflicts: knfs, nfs-server
 Replaces: knfs, nfs-server
 Description: Kernel NFS server support
  Use this package if you have a fairly recent kernel (2.2.13 or better)
  and you want to use the kernel-mode NFS server.  The user-mode NFS
- server in the "nfs-server" package is slower but more featureful and
- easier to debug than the kernel-mode server.
+ server in the "nfs-user-server" package is slower but more featureful
+ and easier to debug than the kernel-mode server.
+ .
+ Upstream: SourceForge project "nfs", CVS module nfs-utils.
+
+Package: nfs-common
+Architecture: any
+Depends: portmap, debconf (>= 1.0), sysvinit (>= 2.80-1), ${shlibs:Depends}
+Provides: nfs-client
+Conflicts: nfs-client
+Replaces: nfs-client
+Description: NFS support files common to client and server
+ Use this package on any machine that does NFS either as client or
+ server.  Programs included: lockd, statd, showmount, and nfsstat.
  .
  Upstream: SourceForge project "nfs", CVS module nfs-utils.
 
@@ -26,17 +38,5 @@ Architecture: any
 Depends: nfs-common, ${shlibs:Depends}
 Replaces: nfs-kernel-server
 Description: NFS benchmark program.
- .
- Upstream: SourceForge project "nfs", CVS module nfs-utils.
-
-Package: nfs-common
-Architecture: any
-Depends: portmap, ${shlibs:Depends}
-Provides: nfs-client
-Conflicts: nfs-client
-Replaces: nfs-client
-Description: NFS support files common to client and server
- Use this package on any machine that does NFS either as client or
- server.  Programs included: lockd, statd, showmount, and nfsstat.
  .
  Upstream: SourceForge project "nfs", CVS module nfs-utils.

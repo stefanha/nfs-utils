@@ -1,3 +1,7 @@
+2003-02-12  Chip Salzenberg  <chip@pobox.com>
+
+	* debian/changelog: Version 1.0.2-2.
+
 2002-11-27  Chip Salzenberg  <chip@pobox.com>
 
 	* utils/mountd/rmtab.c (slink_safe_rename): Fix off-by-one buffer

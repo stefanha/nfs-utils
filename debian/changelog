@@ -1,3 +1,15 @@
+nfs-utils (1:1.0.2-2) unstable; urgency=medium
+
+  * Upstream CVS sync:
+    > Fix one-byte buffer overflow with no apparent security implications.
+      (It's a readlink on a path that should be writable only to root.)
+  * Make nfs-{common,kernel-server} depend on sysvinit 2.80-1 for invoke-rc.d.
+  * Make nfs-common depend on debconf (long overdue).
+  * Fix package description to name nfs-user-server as an alternative, rather
+    than "nfs-server" (which no longer exists).
+
+ -- Chip Salzenberg <chip@debian.org>  Wed, 12 Feb 2003 21:27:24 -0500
+
 nfs-utils (1:1.0.2-1) unstable; urgency=high
 
   * New upstream version:
