@@ -1,3 +1,7 @@
+2001-10-08  Chip Salzenberg  <chip@pobox.com>
+
+	* utils/mountd/mountd.man: Updated paths to /var/lib.
+
 2001-10-06  Preston Brown <pbrown@redhat.com>
 
 	* utils/nfsstat/nfsstat.man: Updated.
