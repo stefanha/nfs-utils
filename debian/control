@@ -21,6 +21,7 @@ Description: Kernel NFS server support
 Package: nhfsstone
 Architecture: any
 Depends: nfs-common, ${shlibs:Depends}
+Replaces: nfs-kernel-server
 Description: NFS benchmark program.
  .
  Upstream: SourceForge project "nfs", CVS module nfs-utils.

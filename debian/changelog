@@ -1,3 +1,11 @@
+nfs-utils (1:0.2.1-4) unstable; urgency=medium
+
+  * Warn about common errors in /etc/exports.  (closes: #66421)
+  * Fix line numbers in messages about /etc/exports.  (closes: #59734)
+  * Let nhfsstone replace files from old server packages.  (closes: #59261)
+
+ -- Chip Salzenberg <chip@valinux.com>  Sun,  3 Dec 2000 14:41:13 -0800
+
 nfs-utils (1:0.2.1-3) unstable; urgency=low
 
   * Add portmap dependency. (closes: #75639)

@@ -1,6 +1,8 @@
 2000-12-03  Chip Salzenberg  <chip@valinux.com>
 
 	* support/nfs/xio.c (xfopen): Initialize x_line to one, not zero.
+	* debian/control: Let nhfsstone replace files in nfs-kernel-server.
+	* debian/changelog: Version 0.2.1-4.
 
 2000-11-27  Tobias Ringstrom <tori@tellus.mine.nu>
 
