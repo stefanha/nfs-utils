@@ -7,7 +7,7 @@
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
-.B "/usr/sbin/rpc.statd [-F]
+.B "/usr/sbin/rpc.statd [-F] [-d] [-?] [-V]
 .SH DESCRIPTION
 The
 .B rpc.statd
@@ -36,6 +36,32 @@ forks and puts itself in the background when started. The
 .B -F
 argument tells it to remain in the foreground. This option is
 mainly for debugging purposes.
+.TP
+.B -d
+By default,
+.B rpc.statd
+sends logging messages via
+.BR syslog (3)
+to system log.  The
+.B -d
+argument forces it to log verbose output to
+.B stderr
+instead. This option is mainly for debugging purposes, and may only
+be used in conjunction with the
+.B -F
+parameter.
+.TP
+.B -?
+Causes
+.B rpc.statd
+to print out command-line help and exit.
+.TP
+.B -V
+Causes
+.B rpc.statd
+to print out version information and exit.
+
+
 
 .SH TCP_WRAPPERS SUPPORT
 This
