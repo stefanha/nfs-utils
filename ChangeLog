@@ -1,5 +1,9 @@
 2000-11-09  H.J. Lu <hjl@lucon.org>
 
+	* etc/redhat/nfs.init (start): Back out the last change.
+
+2000-11-09  H.J. Lu <hjl@lucon.org>
+
 	* etc/redhat/nfs.init (start): Pass --no-tcp to mountd if
 	TCP is not supported by kernel.
 
