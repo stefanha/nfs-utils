@@ -170,8 +170,10 @@ putexportent(struct exportent *ep)
 	fprintf(fp, "%ssync,", (ep->e_flags & NFSEXP_ASYNC)? "a" : "");
 	fprintf(fp, "%swdelay,", (ep->e_flags & NFSEXP_GATHERED_WRITES)?
 				"" : "no_");
-	fprintf(fp, "%shide,", (ep->e_flags & NFSEXP_CROSSMNT)?
+	fprintf(fp, "%shide,", (ep->e_flags & NFSEXP_NOHIDE)?
 				"no" : "");
+	fprintf(fp, "%scrossmnt,", (ep->e_flags & NFSEXP_CROSSMNT)?
+				"" : "no");
 	fprintf(fp, "%ssecure,", (ep->e_flags & NFSEXP_INSECURE_PORT)?
 				"in" : "");
 	fprintf(fp, "%sroot_squash,", (ep->e_flags & NFSEXP_ROOTSQUASH)?
@@ -333,12 +335,12 @@ parseopts(char *cp, struct exportent *ep, int warn)
 			had_sync_opt = 1;
 			ep->e_flags |= NFSEXP_ASYNC;
 		} else if (!strcmp(opt, "nohide"))
-			ep->e_flags |= NFSEXP_CROSSMNT;
+			ep->e_flags |= NFSEXP_NOHIDE;
 		else if (!strcmp(opt, "hide"))
-			ep->e_flags &= ~NFSEXP_CROSSMNT;
-		else if (!strcmp(opt, "crossmnt"))		/* old style */
+			ep->e_flags &= ~NFSEXP_NOHIDE;
+		else if (!strcmp(opt, "crossmnt"))
 			ep->e_flags |= NFSEXP_CROSSMNT;
-		else if (!strcmp(opt, "nocrossmnt"))		/* old style */
+		else if (!strcmp(opt, "nocrossmnt"))
 			ep->e_flags &= ~NFSEXP_CROSSMNT;
 		else if (!strcmp(opt, "wdelay"))
 			ep->e_flags |= NFSEXP_GATHERED_WRITES;

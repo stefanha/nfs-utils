@@ -333,8 +333,10 @@ dump(int verbose)
 				c = dumpopt(c, "async");
 			if (ep->e_flags & NFSEXP_GATHERED_WRITES)
 				c = dumpopt(c, "wdelay");
-			if (ep->e_flags & NFSEXP_CROSSMNT)
+			if (ep->e_flags & NFSEXP_NOHIDE)
 				c = dumpopt(c, "nohide");
+			if (ep->e_flags & NFSEXP_CROSSMNT)
+				c = dumpopt(c, "crossmnt");
 			if (ep->e_flags & NFSEXP_INSECURE_PORT)
 				c = dumpopt(c, "insecure");
 			if (ep->e_flags & NFSEXP_ROOTSQUASH)

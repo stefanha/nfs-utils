@@ -1,5 +1,11 @@
 2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
 
+	* support/include/nfs/export.h: New CROSSMNT distinct from NOHIDE
+	* support/nfs/exports.c: Make CROSSMNT distinct from NOHIDE
+	* utils/exportfs/exportfs.c(dump): ditto
+	
+2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/export/hostname.c(get_reliable_hostbyaddr): new function
 	to get host name from address with full checking of authenticity.
 	* support/include/misc.h: declare above function
