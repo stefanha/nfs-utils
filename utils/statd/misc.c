@@ -62,11 +62,12 @@ xunlink (char *path, char *host, short int check)
   tozap=alloca (strlen(path)+strlen(host)+2);
   sprintf (tozap, "%s/%s", path, host);
 
-  if (!check || !nlist_gethost(rtnl, host, 0))
+  if (!check || !nlist_gethost(rtnl, host, 0)) {
     if (unlink (tozap) == -1)
       log (L_ERROR, "unlink (%s): %s", tozap, strerror (errno));
     else
       dprintf (L_DEBUG, "Unlinked %s", tozap);
+  }
   else
     dprintf (L_DEBUG, "Not unlinking %s--host still monitored.", tozap);
 }
