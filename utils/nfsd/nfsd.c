@@ -11,6 +11,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
 #include <getopt.h>
 #include "nfslib.h"
 
@@ -41,6 +44,12 @@ main(int argc, char **argv)
 		default:
 			usage(argv[0]);
 		}
+	}
+
+	if (chdir(NFS_STATEDIR)) {
+		fprintf(stderr, "%s: chdir(%s) failed: %s\n",
+			argv [0], NFS_STATEDIR, strerror(errno));
+		exit(1);
 	}
 
 	if (optind < argc) {

@@ -25,6 +25,7 @@
 #endif
 
 #include <unistd.h>
+#include <errno.h>
 #include <rpc/rpc.h>
 #include "rquota.h"
 #include <stdlib.h>
@@ -252,6 +253,13 @@ int main(int argc, char **argv)
      default:
        usage(argv[0], 1);
      }
+   }
+
+   if (chdir(NFS_STATEDIR)) {
+     fprintf(stderr, "%s: chdir(%s) failed: %s\n",
+	     argv [0], NFS_STATEDIR, strerror(errno));
+
+     exit(1);
    }
 
    /* WARNING: the following works on Linux and SysV, but not BSD! */

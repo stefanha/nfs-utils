@@ -1,3 +1,10 @@
+2001-05-28  H.J. Lu <hjl@lucon.org>
+
+	* utils/lockd/lockd.c (main): chdir to NFS_STATEDIR.
+	* utils/mountd/mountd.c (main): Likewise.
+	* utils/nfsd/nfsd.c (main): Likewise.
+	* utils/rquotad/rquota_svc.c (main): Likewise.
+
 2001-05-06  Anne Milicia <milicia@missioncriticallinux.com>
 
 	* support/export/client.c (client_check): Check IP address

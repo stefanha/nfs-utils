@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -439,6 +440,12 @@ main(int argc, char **argv)
 	/* No more arguments allowed. */
 	if (optind != argc || !(nfs_version & 0x7))
 		usage(argv [0], 1);
+
+	if (chdir(NFS_STATEDIR)) {
+		fprintf(stderr, "%s: chdir(%s) failed: %s\n",
+			argv [0], NFS_STATEDIR, strerror(errno));
+		exit(1);
+	}
 
 	/* Initialize logging. */
 /*	xlog_open("mountd"); */
