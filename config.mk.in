@@ -43,13 +43,18 @@ ifndef ARCHFLAGS
 .EXPORT:	ARCHFLAGS
 endif
 
+BUILD_CC	= @BUILD_CC@
+ifdef BUILD
+CC		= $(BUILD_CC)
+else
 CC		= @CC@
-AR		= ar
-LD		= ld
+endif
+AR		= @AR@
+LD		= @LD@
 RM		= rm -f
 MKDIR		= mkdir -p
 LN_S		= ln -sf
-RANLIB		= ranlib
+RANLIB		= @RANLIB@
 INDENT		= indent
 RPCGEN		= $(TOP)bin/rpcgen
 GETKVER		= $(TOP)tools/getkversion

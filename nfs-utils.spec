@@ -4,7 +4,7 @@
 Summary: NFS utlilities and supporting daemons for the kernel NFS server.
 Name: nfs-utils
 Version: 0.3.2
-Release: 3
+Release: 4
 Source0: ftp://nfs.sourceforge.net/pub/nfs/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Obsoletes: nfs-server
@@ -35,7 +35,13 @@ clients which are mounted on that host.
 %setup -q
 
 %build
+%if %{_target_cpu} != %{_build_cpu}
+CC=%{__cc}; export CC
+BUILD_CC=gcc; export BUILD_CC
+%configure --build=%{__build_alias}
+%else
 %configure
+%endif
 make all
 
 %install

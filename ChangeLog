@@ -1,3 +1,23 @@
+2001-04-18  H.J. Lu <hjl@lucon.org>
+
+	* nfs-utils.spec.in: Support cross build.
+	* nfs-utils.spec: Regenerated.
+	(Release): Set to 4.
+
+	* config.sub: New.
+	* config.guess: New.
+
+	* config.mk.in (BUILD_CC): New.
+	(CC): Set to  $(BUILD_CC) if BUILD is defined.
+	(AR): Set to @AR@.
+	(LD): Set to @LD@.
+	(RANLIB): Set to @RANLIB@.
+
+	* configure.in: Check BUILD_CC, RANLIB, AR and LD.
+	* configure: Regenerated.
+
+	* tools/rpcgen/Makefile (BUILD): Set to true.
+
 2001-04-01  Chip Salzenberg  <chip@valinux.com>
 
 	* tools/rpcgen/rpc_svcout.c (write_timeout_func): Remove
