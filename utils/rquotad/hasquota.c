@@ -32,7 +32,7 @@
 #define min(x,y) ((x) < (y)) ? (x) : (y)
 
 #define CORRECT_FSTYPE(type) \
-(!strcmp(type,MNTTYPE_EXT2))
+((!strcmp(type,MNTTYPE_EXT2)) || (!strcmp(type,MNTTYPE_EXT3)))
 
 char *qfextension[] = INITQFNAMES;
 

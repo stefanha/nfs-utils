@@ -11,6 +11,7 @@
 #define MNTTYPE_COHERENT	"coherent"	/* Coherent file system */
 #define MNTTYPE_EXT		"ext"		/* Extended file system */
 #define MNTTYPE_EXT2		"ext2"		/* Second Extended file system */
+#define MNTTYPE_EXT3		"ext3"		/* Journaled Second Extended file system */
 #define MNTTYPE_HPFS		"hpfs"		/* OS/2's high performance file system */
 #define MNTTYPE_ISO9660		"iso9660"	/* ISO CDROM file system */
 #define MNTTYPE_MINIX		"minix"		/* MINIX file system */
