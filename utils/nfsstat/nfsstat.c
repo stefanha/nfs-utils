@@ -307,7 +307,8 @@ static void
 print_callstats(const char *hdr, const char **names,
 				 unsigned int *info, unsigned int nr)
 {
-	unsigned int	total;
+	unsigned long long	total;
+	unsigned long long	pct;
 	int		i, j;
 
 	fputs(hdr, stdout);
@@ -319,9 +320,10 @@ print_callstats(const char *hdr, const char **names,
 		for (j = 0; j < 6 && i + j < nr; j++)
 			printf("%-11s", names[i+j]);
 		printf("\n");
-		for (j = 0; j < 6 && i + j < nr; j++)
-			printf("%-6d %2d%% ",
-				info[i+j], 100 * info[i+j] / total);
+		for (j = 0; j < 6 && i + j < nr; j++) {
+			pct = ((unsigned long long) info[i+j]*100)/total;
+			printf("%-6d %2llu%% ", info[i+j], pct);
+		}
 		printf("\n");
 	}
 	printf("\n");
