@@ -1,5 +1,7 @@
 2003-07-24  Chip Salzenberg  <chip@pobox.com>
 
+	* support/nfs/xlog.c (xlog): Revise buffer-overflow fix to
+	use Debian security team's cleaner approach.
 	* debian/control, debian/*.templates, debian/po/*: Upgrade to
 	po-debconf system for translations of debconf messages.
 	* debian/changelog: Version 1.0.5-1.

@@ -142,13 +142,11 @@ xlog(int kind, const char *fmt, ...)
 		return;
 
 	va_start(args, fmt);
-	vsnprintf(buff, sizeof (buff) - 2, fmt, args);
+	vsnprintf(buff, sizeof (buff), fmt, args);
 	va_end(args);
-	buff[sizeof (buff) - 2] = 0;
 
-	if ((n = strlen(buff)) > 0 && buff[n-1] != '\n') {
-		buff[n++] = '\n'; buff[n++] = '\0';
-	}
+	if ((n = strlen(buff)) > 0 && buff[n-1] == '\n')
+		buff[--n] = '\0';
 
 	switch (kind) {
 	case L_FATAL:
@@ -180,7 +178,7 @@ xlog(int kind, const char *fmt, ...)
 					tm->tm_year, tm->tm_hour, tm->tm_min,
 					buff);
 #else
-			fprintf(log_fp, "%s: %s", log_name, buff);
+			fprintf(log_fp, "%s: %s\n", log_name, buff);
 #endif
 		}
 	}
