@@ -1,3 +1,9 @@
+2002-10-15  Juan Gomez <juang@us.ibm.com>
+
+	* utils/mountd/rmtab.c (slink_safe_rename): New. Support
+	symlink.
+	(mountlist_add): Call slink_safe_rename instead of rename.
+
 2002-10-11  H.J. Lu <hjl@lucon.org>
 
 	* support/include/exportfs.h (export_errno): New.

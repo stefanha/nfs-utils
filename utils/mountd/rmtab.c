@@ -8,7 +8,9 @@
 
 #include "config.h"
 
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -17,6 +19,40 @@
 #include "exportfs.h"
 #include "xio.h"
 #include "mountd.h"
+
+#include <limits.h> /* PATH_MAX */
+
+/* If new path is a link do not destroy it but place the
+ * file where the link points.
+ */
+
+static int 
+slink_safe_rename(const char * oldpath, const char * newpath)
+{
+  int r;
+  struct stat s;
+  char slink_path[PATH_MAX];
+  char real_newpath = newpath;
+
+  if((lstat(newpath, &s) == 0) && (S_ISLNK(s.st_mode))) {
+
+    /* New path is a symbolic link, do not destroy but follow */
+
+    if((r = readlink(newpath, slink_path, PATH_MAX))==-1) {
+
+      return -1;
+
+    }
+
+    slink_path[ (r < PATH_MAX) ? (r + 1) : (PATH_MAX - 1)] = '\0';
+
+    real_newpath = slink_path;
+
+  }
+
+  return rename(oldpath, real_newpath);
+
+}/* static int slink_safe_rename() */
 
 void
 mountlist_add(nfs_export *exp, const char *path)
@@ -82,7 +118,7 @@ mountlist_del(nfs_export *exp, const char *path)
 		if (!match || rep->r_count)
 			fputrmtabent(fp, rep, NULL);
 	}
-	if (rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
+	if (slink_safe_rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
 		xlog(L_ERROR, "couldn't rename %s to %s",
 				_PATH_RMTABTMP, _PATH_RMTAB);
 	}
@@ -130,7 +166,7 @@ mountlist_del_all(struct sockaddr_in *sin)
 		}
 		fputrmtabent(fp, rep, NULL);
 	}
-	if (rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
+	if (slink_safe_rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
 		xlog(L_ERROR, "couldn't rename %s to %s",
 				_PATH_RMTABTMP, _PATH_RMTAB);
 	}
