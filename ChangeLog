@@ -1,3 +1,9 @@
+2000-09-01  Jay Weber <jweber@valinux.com>
+
+	* etc/redhat/nfs.init: Added ability for rpc.mountd to default to
+	supporting version 3 of nfs if available, else it will fall back to
+	version 2 support only.
+
 2000-08-30  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.2".
