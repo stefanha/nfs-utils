@@ -4,6 +4,7 @@
  * Modified by H.J. Lu, 1998.
  * Modified by Lon Hohberger, Oct. 2000
  *   - Bugfix handling client responses.
+ *   - Paranoia on NOTIFY_CALLBACK case
  *
  * NSM for Linux.
  */
@@ -295,13 +296,17 @@ process_entry(int sockfd, notify_list *lp)
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_port   = lp->port;
-	sin.sin_addr   = lp->addr;
+	/* LH - moved address into switch */
 
 	switch (NL_TYPE(lp)) {
 	case NOTIFY_REBOOT:
 		prog = SM_PROG;
 		vers = SM_VERS;
 		proc = SM_NOTIFY;
+
+		/* Use source address for notify replies */
+		sin.sin_addr   = lp->addr;
+
 		func = (xdrproc_t) xdr_stat_chge;
 		objp = &SM_stat_chge;
 		break;
@@ -309,6 +314,11 @@ process_entry(int sockfd, notify_list *lp)
 		prog = NL_MY_PROG(lp);
 		vers = NL_MY_VERS(lp);
 		proc = NL_MY_PROC(lp);
+
+		/* __FORCE__ loopback for callbacks to lockd ... */
+		/* Just in case we somehow ignored it thus far */
+		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
 		func = (xdrproc_t) xdr_status;
 		objp = &new_status;
 		new_status.mon_name = NL_MON_NAME(lp);
