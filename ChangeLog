@@ -1,3 +1,11 @@
+2004-06-08 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/exportfs/exportfs.c: Don't rmtab_read if new_cache, it
+	  isn't necessary.
+	* support/nfs/cacheio.c(cache_flush): Change order in which caches
+	  are flushed so that dependancies don't keep things in the cache
+	  too long.
+	
 2004-03-18  Chip Salzenberg  <chip@pobox.com>
 
 	* debian/changelog: Version 1.0.6-2.

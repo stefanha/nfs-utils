@@ -130,7 +130,8 @@ main(int argc, char **argv)
 		if (!f_export)
 			for (i = optind ; i < argc ; i++)
 				unexportfs(argv[i], f_verbose);
-		rmtab_read();
+		if (!new_cache)
+			rmtab_read();
 	}
 	if (!new_cache) {
 		xtab_mount_read();
