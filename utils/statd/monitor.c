@@ -71,12 +71,15 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 *	This is specific to the linux kernel lockd, which
 	 *	makes the callback procedure part of the lockd interface.
 	 *	It is also prone to break when lockd changes its callback
-	 *	procedure number.  XXX FIXME
+	 *	procedure number -- which, in fact, has now happened once.
+	 *	There must be a better way....   XXX FIXME
 	 */
-	if (id->my_proc != 100021 && id->my_proc != 24) {
+	if (id->my_prog != 100021 ||
+	    (id->my_proc != 16 && id->my_proc != 24))
+	{
 		log(L_WARNING,
-			"Attempt to register callback to service %d",
-			id->my_proc);
+			"Attempt to register callback to %d/%d",
+			id->my_prog, id->my_proc);
 		goto failure;
 	}
 
