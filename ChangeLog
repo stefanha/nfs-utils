@@ -1,3 +1,7 @@
+Sun Dec 19 09:35:01 1999  H.J. Lu <hjl@lucon.org>
+
+	* README: Update the mailing list address.
+
 Sun Dec 19 09:22:28 1999  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.1.5".
