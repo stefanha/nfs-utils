@@ -1,3 +1,13 @@
+2001-05-06  Anne Milicia <milicia@missioncriticallinux.com>
+
+	* support/export/client.c (client_check): Check IP address
+	againet netgroup.
+
+2001-05-06  Neil Brown <neilb@cse.unsw.edu.au>
+
+	* support/export/client.c (client_gettype): Treat `*' as
+	MCL_ANONYMOUS.
+
 2001-04-22  H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec.in: Fix a typo.
