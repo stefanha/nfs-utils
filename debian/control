@@ -6,6 +6,7 @@ Build-Depends: debhelper, libwrap0-dev
 Standards-Version: 3.1.1.1
 
 Package: nfs-kernel-server
+Priority: optional
 Architecture: any
 Depends: debconf (>= 1.0), nfs-common (>= 1:0.3.3-3), ${shlibs:Depends}
 Provides: knfs, nfs-server

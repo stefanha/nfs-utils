@@ -1,0 +1,8 @@
+# Options for rpc.statd.
+#   Should rpc.statd listen on a specific port?
+#   If so, set this variable to a statd argument like: "--port 1000".
+STATDOPTS=
+
+# Are you _sure_ that your kernel does or does not need a lockd daemon?
+# If so, set this variable to either "yes" or "no".
+NEED_LOCKD=

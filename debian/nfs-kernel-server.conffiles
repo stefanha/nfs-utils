@@ -1,1 +1,2 @@
+/etc/default/nfs-kernel-server
 /etc/init.d/nfs-kernel-server

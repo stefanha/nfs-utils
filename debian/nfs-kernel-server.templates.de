@@ -1,11 +1,3 @@
-Template: nfs-kernel-server/sync-default
-Type: note
-Description: NFS server defaults to synchronous writes
- To comply with standards and increase data safety, the Linux NFS
- server now defaults to synchronous writes.  Since this is a major
- change, it is not silent: All exports should be explicitly marked as
- either "sync" or "async".  Exports not so marked will elicit warnings.
-
 Template: nfs-kernel-server/tcpwrappers-mountd
 Type: note
 Description: in /etc/hosts.{allow,deny}, replace "rpc.mountd" with "mountd"
@@ -16,3 +8,10 @@ Description: in /etc/hosts.{allow,deny}, replace "rpc.mountd" with "mountd"
  called itself "rpc.mountd".  Therefore, you should replace all
  occurrences of "rpc.mountd" with "mountd" in /etc/hosts.allow and
  /etc/hosts.deny.
+Description-de: "rpc.mountd" mit "mountd" in /etc/hosts.{allow,deny} ersetzen
+ =C4ltere Versionen von nfs-kernel-server enthalten einen Mount-daemon,
+ der als "rpc.mountd" bezeichnet wird. Der aktuelle Daemon wird jedoch
+ nur noch "mountd" genannt.
+ .
+ Deshalb sollten Sie alle Referenzen zu "rpc.mountd" in den Dateien
+ /etc/hosts.allow und /etc/hosts.deny mit "mountd" ersetzen.

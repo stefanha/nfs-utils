@@ -34,4 +34,4 @@ db_stop
 
 act="restart"
 [ "$1:$2" = "configure:" ] && act="start"
-/etc/init.d/nfs-kernel-server $act
+invoke-rc.d nfs-kernel-server $act

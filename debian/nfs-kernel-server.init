@@ -10,16 +10,24 @@
 #              which is configured via the /etc/exports file.
 #
 
+set -e
+
+# What is this?
+DESC="NFS kernel daemon"
 PREFIX=/usr
+
+# Exit if required binaries are missing.
 [ -x $PREFIX/sbin/rpc.nfsd ] || exit 0
 [ -x $PREFIX/sbin/rpc.mountd ] || exit 0
 [ -x $PREFIX/sbin/exportfs ] || exit 0
 
-# What is this?
-DESC="NFS kernel daemon"
-
-RPCNFSDCOUNT=8	# Number of servers to be started up by default
+# Read config
+DEFAULTFILE=/etc/default/nfs-kernel-server
+RPCNFSDCOUNT=8
 RPCMOUNTDOPTS=
+if [ -f $DEFAULTFILE ]; then
+    . $DEFAULTFILE
+fi
 
 # See how we were called.
 case "$1" in
@@ -79,4 +87,3 @@ case "$1" in
 esac
 
 exit 0
-

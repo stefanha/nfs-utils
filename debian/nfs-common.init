@@ -9,25 +9,35 @@
 #	       locking functionality.
 #
 
-PREFIX=
-
-# Should rpc.statd listen on a specific port?
-# If so, set this variable to a statd argument like: "--port 1000".
-STATDPORT=""
-
-NEED_LOCKD=yes
-if test -f /proc/ksyms
-then
-    # We need to be conservative and run lockd,
-    # unless we can prove that it isn't required.
-    grep -q lockdctl /proc/ksyms || NEED_LOCKD=no
-fi
-
-[ -x $PREFIX/sbin/rpc.statd ] || exit 0
-[ -x $PREFIX/sbin/rpc.lockd ] || [ "$NEED_LOCKD" = no ] || exit 0
+set -e
 
 # What is this?
 DESC="NFS common utilities"
+
+# Read config
+DEFAULTFILE=/etc/default/nfs-common
+PREFIX=
+NEED_LOCKD=
+if [ -f $DEFAULTFILE ]; then
+    . $DEFAULTFILE
+fi
+
+# Determine whether lockd is required
+case "$NEED_LOCKD" in
+yes|no)	;;
+*)  # We must be conservative and run lockd,
+    #  unless we can prove that it's not required.
+    NEED_LOCKD=yes
+    if test -f /proc/ksyms
+    then
+	grep -q lockdctl /proc/ksyms || NEED_LOCKD=no
+    fi
+    ;;
+esac
+
+# Exit if required binaries are missing.
+[ -x $PREFIX/sbin/rpc.statd ] || exit 0
+[ -x $PREFIX/sbin/rpc.lockd ] || [ "$NEED_LOCKD" = no ] || exit 0
 
 # See how we were called.
 case "$1" in
@@ -36,12 +46,12 @@ case "$1" in
 	printf "Starting $DESC:"
 	printf " statd"
 	start-stop-daemon --start --quiet \
-	    --exec $PREFIX/sbin/rpc.statd -- $STATDPORT
+	    --exec $PREFIX/sbin/rpc.statd -- $STATDOPTS
 	if [ "$NEED_LOCKD" = yes ]
 	then
 	    printf " lockd"
 	    start-stop-daemon --start --quiet \
-		--exec $PREFIX/sbin/rpc.lockd
+		--exec $PREFIX/sbin/rpc.lockd  || true
 	fi
 	echo "."
 	;;
@@ -52,7 +62,7 @@ case "$1" in
 	then
 	    printf " lockd"
 	    start-stop-daemon --stop --oknodo --quiet \
-		--name rpc.lockd --user 0
+		--name rpc.lockd --user 0  || true
 	fi
 	printf " statd"
 	start-stop-daemon --stop --oknodo --quiet \

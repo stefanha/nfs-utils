@@ -1,3 +1,21 @@
+nfs-utils (1:1.0.2-1) unstable; urgency=low
+
+  * New upstream version:
+    > Allow program stdin to be a non-INET socket.  (closes: #142557)
+  * Start nfs-common after nfs-kernel-server so that the server is running
+    when statd restarts.  In postinst, remove bad rc.d links from old
+    packages.  From Philippe Troin <phil@fifi.org>.  (closes: #160800)
+  * Make init scripts exit with non-zero status when daemons don't start.
+  * Add titles to templates where I forgot them.  (closes: #158489)
+  * Add /etc/default/{nfs-common,nfs-kernel-server} so setting random
+    parameters doesn't require editing init scripts.  (closes: #131539)
+  * Split templates into separate files, and add French templates.
+    (closes: #134630)
+  * Use invoke-rc.d to avoid premature daemon starts.  (closes: 158574)
+  * Change priority of nfs-kernel-server to 'optional'.
+
+ --
+
 nfs-utils (1:1.0.1-1) unstable; urgency=low
 
   * New upstream version:

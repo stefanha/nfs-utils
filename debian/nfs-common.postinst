@@ -4,10 +4,17 @@
 
 case "$1" in
     configure)
-	update-rc.d nfs-common defaults 19 81 >/dev/null
+	if [ "$2" != "" -a "$2" != "<unknown>" ] \
+	   && dpkg --compare-versions "$2" lt "1:1.0-3" \
+	   || ( dpkg --compare-versions "$2" ge "1:1.0.1" \
+		&& dpkg --compare-versions "$2" lt "1:1.0.2-1" )
+	then
+	    update-rc.d -f nfs-common-remove >/dev/null
+	fi
+	update-rc.d nfs-common defaults 21 79 >/dev/null
 	;;
 esac
 
 act="restart"
 [ "$1:$2" = "configure:" ] && act="start"
-/etc/init.d/nfs-common $act
+invoke-rc.d nfs-common $act
