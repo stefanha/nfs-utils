@@ -1,3 +1,11 @@
+2001-03-10  H.J. Lu <hjl@lucon.org>
+
+	* configure.in (VERSION): Set to "0.3.2".
+	* configure: Regenerated.
+	* nfs-utils.spec: Likewise.
+
+	* README: Updated for 0.3.2.
+
 2001-03-10  Tavis Barr <tavis@boole.isetr.columbia.edu>
 
 	* utils/rquotad/rquotad.man: Updated for -p.
@@ -50,7 +58,7 @@
 
 	* configure.in (VERSION): Set to "0.3.1".
 	* configure: Regenerated.
-o	* nfs-utils.spec: Likewise.
+	* nfs-utils.spec: Likewise.
 
 	* README: Updated for 0.3.1.
 
