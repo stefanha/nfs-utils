@@ -1,0 +1,78 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2003-04-06 12:51-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-15\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Description
+#: ../nfs-common.templates:3
+msgid "statd uses tcpwrappers"
+msgstr "statd benutzt tcpwrappers"
+
+#. Description
+#: ../nfs-common.templates:3
+msgid ""
+"The statd daemon uses tcpwrappers to control access.  To configure it, use "
+"program name \"statd\" in /etc/hosts.allow and /etc/hosts.deny."
+msgstr ""
+"Der statd-Daemon benutzt tcpwrappers für die Zugriffskontrolle. Um diesen zu "
+"konfigurieren, benutzen Sie den Namen \"statd\" in den Dateien /etc/hosts."
+"allow und /etc/hosts.deny."
+
+#. Description
+#: ../nfs-kernel-server.templates:3
+msgid "NFS server defaults to synchronous writes"
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:3
+msgid ""
+"To comply with standards and increase data safety, the Linux NFS server now "
+"defaults to synchronous writes.  Since this is a major change, it is not "
+"silent: All exports should be explicitly marked as either \"sync\" or \"async"
+"\".  Exports not so marked will elicit warnings."
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:11
+msgid "in /etc/hosts.{allow,deny}, replace \"rpc.mountd\" with \"mountd\""
+msgstr "\"rpc.mountd\" mit \"mountd\" in /etc/hosts.{allow,deny} ersetzen"
+
+#. Description
+#: ../nfs-kernel-server.templates:11
+msgid ""
+"The mount daemon uses tcpwrappers to control access.  To configure it, use "
+"program name \"mountd\" in /etc/hosts.allow and /etc/hosts.deny."
+msgstr ""
+"=C4ltere Versionen von nfs-kernel-server enthalten einen Mount-daemon, der "
+"als \"rpc.mountd\" bezeichnet wird. Der aktuelle Daemon wird jedoch nur noch "
+"\"mountd\" genannt."
+
+#. Description
+#: ../nfs-kernel-server.templates:11
+msgid ""
+"Older versions of nfs-kernel-server included a mount daemon that called "
+"itself \"rpc.mountd\".  Therefore, you should replace all occurrences of "
+"\"rpc.mountd\" with \"mountd\" in /etc/hosts.allow and /etc/hosts.deny."
+msgstr ""
+"Deshalb sollten Sie alle Referenzen zu \"rpc.mountd\" in den Dateien /etc/"
+"hosts.allow und /etc/hosts.deny mit \"mountd\" ersetzen."

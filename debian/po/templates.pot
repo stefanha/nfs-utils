@@ -1,0 +1,70 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2003-04-06 12:51-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Description
+#: ../nfs-common.templates:3
+msgid "statd uses tcpwrappers"
+msgstr ""
+
+#. Description
+#: ../nfs-common.templates:3
+msgid ""
+"The statd daemon uses tcpwrappers to control access.  To configure it, use "
+"program name \"statd\" in /etc/hosts.allow and /etc/hosts.deny."
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:3
+msgid "NFS server defaults to synchronous writes"
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:3
+msgid ""
+"To comply with standards and increase data safety, the Linux NFS server now "
+"defaults to synchronous writes.  Since this is a major change, it is not "
+"silent: All exports should be explicitly marked as either \"sync\" or \"async"
+"\".  Exports not so marked will elicit warnings."
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:11
+msgid "in /etc/hosts.{allow,deny}, replace \"rpc.mountd\" with \"mountd\""
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:11
+msgid ""
+"The mount daemon uses tcpwrappers to control access.  To configure it, use "
+"program name \"mountd\" in /etc/hosts.allow and /etc/hosts.deny."
+msgstr ""
+
+#. Description
+#: ../nfs-kernel-server.templates:11
+msgid ""
+"Older versions of nfs-kernel-server included a mount daemon that called "
+"itself \"rpc.mountd\".  Therefore, you should replace all occurrences of "
+"\"rpc.mountd\" with \"mountd\" in /etc/hosts.allow and /etc/hosts.deny."
+msgstr ""

@@ -2,7 +2,7 @@ Source: nfs-utils
 Priority: standard
 Section: net
 Maintainer: Chip Salzenberg <chip@debian.org>
-Build-Depends: debhelper, libwrap0-dev
+Build-Depends: debhelper (>= 4.1.16), libwrap0-dev
 Standards-Version: 3.1.1.1
 
 Package: nfs-kernel-server

@@ -1,7 +1,9 @@
 2003-07-24  Chip Salzenberg  <chip@pobox.com>
 
-	* debian/nfs-kernel-server.init: Cosmetic changes.
+	* debian/control, debian/*.templates, debian/po/*: Upgrade to
+	po-debconf system for translations of debconf messages.
 	* debian/changelog: Version 1.0.5-1.
+	* debian/nfs-kernel-server.init: Cosmetic changes.
 
 2003-07-18 NeilBrown <neilb@cse.unsw.edu.au>
 

@@ -1,9 +1,0 @@
-Template: nfs-common/tcpwrappers-statd
-Type: note
-Description: statd uses tcpwrappers
- The statd daemon uses tcpwrappers to control access.  To configure it, use
- program name "statd" in /etc/hosts.allow and /etc/hosts.deny.
-Description-fr: statd utilise tcpwrapper
- Le programme statd fonctionne avec tcpwrapper pour le contrôle d'accès.
- Utilisez le nom de programme « statd » dans /etc/hosts.allow et
- /etc/hosts.deny pour changer ce contrôle d'accès.
