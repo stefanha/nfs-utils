@@ -1,3 +1,8 @@
+2000-04-26  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfslock.init: Check if lockd exits before killing
+	it.
+
 2000-04-25  H.J. Lu <hjl@lucon.org>
 
 	* README: Require util-linux-2.10f-mount-rpc.patch for mount.
