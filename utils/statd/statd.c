@@ -12,10 +12,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
-#include <getopt.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_clnt.h>
-#include <rpcmisc.h>
 #include "statd.h"
 #include "version.h"
 
@@ -25,6 +23,9 @@
 
 
 short int restart = 0;
+int	_rpcpmstart = 0;	/* flags for tirpc rpcgen */
+int	_rpcfdtype = 0;
+int	_rpcsvcdirty = 0;
 int	run_mode = 0;		/* foreground logging mode */
 
 /* LH - I had these local to main, but it seemed silly to have 
@@ -33,19 +34,7 @@ int	run_mode = 0;		/* foreground logging mode */
 char *name_p = NULL;
 char *version_p = NULL;
 
-static struct option longopts[] =
-{
-	{ "foreground", 0, 0, 'F' },
-	{ "no-syslog", 0, 0, 'd' },
-	{ "help", 0, 0, 'h' },
-	{ "version", 0, 0, 'v' },
-	{ "outgoing-port", 1, 0, 'o' },
-	{ "port", 1, 0, 'p' },
-	{ NULL, 0, 0, 0 }
-};
-
 extern void sm_prog_1 (struct svc_req *, register SVCXPRT *);
-extern int statd_get_socket(int port);
 
 #ifdef SIMULATIONS
 extern void simulator (int, char **);
@@ -119,12 +108,10 @@ static void
 usage()
 {
 	fprintf(stderr,"usage: %s [options]\n", name_p);
-	fprintf(stderr,"      -h, -?, --help       Print this help screen.\n");
-	fprintf(stderr,"      -F, --foreground     Foreground (no-daemon mode)\n");
-	fprintf(stderr,"      -d, --no-syslog      Verbose logging to stderr.  Foreground mode only.\n");
-	fprintf(stderr,"      -p, --port           Port to listen on\n");
-	fprintf(stderr,"      -o, --outgoing-port  Port for outgoing connections\n");
-	fprintf(stderr,"      -V, -v, --version    Display version information and exit.\n");
+	fprintf(stderr,"      -h, -?       Print this help screen.\n");
+	fprintf(stderr,"      -F           Foreground (no-daemon mode)\n");
+	fprintf(stderr,"      -d           Verbose logging to stderr.  Foreground mode only.\n");
+	fprintf(stderr,"      -V           Display version information and exit.\n");
 }
 
 /* 
@@ -135,8 +122,7 @@ int main (int argc, char **argv)
 	extern char *optarg;
 	int pid;
 	int arg;
-	int port = 0, out_port = 0;
-
+	
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
 
@@ -155,49 +141,25 @@ int main (int argc, char **argv)
 	}
 	
 	/* Process command line switches */
-	while ((arg = getopt_long(argc, argv, "h?vVFdp:o:", longopts, NULL)) != EOF) {
+	while ((arg = getopt(argc, argv, "h?VFd")) >= 0) {
 		switch (arg) {
-		case 'V':	/* Version */
-		case 'v':
-			printf("%s version %s\n",name_p,version_p);
-			exit(0);
-		case 'F':	/* Foreground/nodaemon mode */
-			run_mode |= MODE_NODAEMON;
-			break;
-		case 'd':	/* No daemon only - log to stderr */
-			run_mode |= MODE_LOG_STDERR;
-			break;
-		case 'o':
-			out_port = atoi(optarg);
-			if (out_port < 1 || out_port > 65535) {
-				fprintf(stderr, "%s: bad port number: %s\n",
-					argv[0], optarg);
+			case 'V':	/* Version */
+				printf("%s version %s\n",name_p,version_p);
+				exit(0);
+			case 'F':	/* Foreground/nodaemon mode */
+				run_mode |= MODE_NODAEMON;
+				break;
+			case 'd':	/* No daemon only - log to stderr */
+				run_mode |= MODE_LOG_STDERR;
+				break;
+			case '?':	/* heeeeeelllllllpppp? heh */
+			case 'h':
 				usage();
-				exit(1);
-			}
-			break;
-		case 'p':
-			port = atoi(optarg);
-			if (port < 1 || port > 65535) {
-				fprintf(stderr, "%s: bad port number: %s\n",
-					argv[0], optarg);
+				exit (0);
+			default:	/* oh dear ... heh */
 				usage();
-				exit(1);
-			}
-			break;
-		case '?':	/* heeeeeelllllllpppp? heh */
-		case 'h':
-			usage();
-			exit (0);
-		default:	/* oh dear ... heh */
-			usage();
-			exit(-1);
+				exit(-1);
 		}
-	}
-
-	if (port == out_port && port != 0) {
-		fprintf(stderr, "Listening and outgoing ports cannot be the same!\n");
-		exit(-1);
 	}
 
 	if (!(run_mode & MODE_NODAEMON)) {
@@ -241,9 +203,6 @@ int main (int argc, char **argv)
 	/* WARNING: the following works on Linux and SysV, but not BSD! */
 	signal(SIGCHLD, SIG_IGN);
 
-	/* initialize out_port */
-	statd_get_socket(out_port);
-
 	for (;;) {
 		pmap_unset (SM_PROG, SM_VERS);
 		change_state ();
@@ -253,10 +212,9 @@ int main (int argc, char **argv)
 
 		/* future: IP aliasing 
 		if (!(run_mode & MODE_NOTIFY_ONLY)) {
-			rpc_init("statd", SM_PROG, SM_VERS, sm_prog_1, port);
+			do_regist (SM_PROG, sm_prog_1);
 		} */
-		/* this registers both UDP and TCP services */
-		rpc_init("statd", SM_PROG, SM_VERS, sm_prog_1, port);
+		do_regist(SM_PROG,sm_prog_1);
 
 		/*
 		 * Handle incoming requests:  SM_NOTIFY socket requests, as
@@ -265,4 +223,25 @@ int main (int argc, char **argv)
 		my_svc_run();	/* I rolled my own, Olaf made it better... */
 	}
 	return 0;
+}
+
+
+/*
+ * Register services.
+ */
+void do_regist(u_long prog, void (*sm_prog_1)())
+{
+	SVCXPRT		*transp;
+
+	if ((transp = svcudp_create(RPC_ANYSOCK)) == NULL)
+		die("cannot create udp service.");
+
+	if (!svc_register(transp, prog, SM_VERS, sm_prog_1, IPPROTO_UDP))
+		die("unable to register (SM_PROG, SM_VERS, udp).");
+
+	if ((transp = svctcp_create(RPC_ANYSOCK, 0, 0)) == NULL)
+		die("cannot create tcp service.");
+
+	if (!svc_register(transp, prog, SM_VERS, sm_prog_1, IPPROTO_TCP))
+		die("unable to register (SM_PROG, SM_VERS, tcp).");
 }

@@ -1,3 +1,15 @@
+2001-03-11  H.J. Lu <hjl@lucon.org>
+
+	* support/include/rpcmisc.h: Undo the change made on 2001-03-10.
+	* support/nfs/rpcmisc.c: Likewise.
+	* utils/rquotad/rquota_svc.c: Likewise.
+	* utils/rquotad/rquotad.man: Likewise.
+	* utils/statd/Makefile: Likewise.
+	* utils/statd/rmtcall.c: Likewise.
+	* utils/statd/simulate.c: Likewise.
+	* utils/statd/statd.c: Likewise.
+	* utils/statd/statd.man: Likewise.
+
 2001-03-10  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.3.2".
