@@ -1,3 +1,14 @@
+2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
+
+	* support/export/hostname.c(get_reliable_hostbyaddr): new function
+	to get host name from address with full checking of authenticity.
+	* support/include/misc.h: declare above function
+	* utils/mountd/auth.c(auth_authenticate_internal): remove all
+	logic for authenticating address.
+	* utils/mountd/auth.c(auth_authenticate): call new
+	get_reliable_hostbyaddr to to hostname lookup before calling _internal.
+	
+	
 2003-03-30  NeilBrown <neilb@cse.unsw.edu.au>
 
 	* tools/rpcgen/rpc_main.c(find_cpp): removed

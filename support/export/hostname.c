@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <xlog.h>
 #ifdef TEST
 #define xmalloc malloc
 #else
@@ -215,6 +216,57 @@ matchhostname (const char *h1, const char *h2)
   free (hp1);
   return status;
 }
+
+
+/* Map IP to hostname, and then map back to addr to make sure it is a
+ * reliable hostname 
+ */
+struct hostent *
+get_reliable_hostbyaddr(const char *addr, int len, int type)
+{
+	struct hostent *hp;
+
+	char **sp;
+	struct hostent *forward = NULL;
+	char *tmpname;
+
+	hp = gethostbyaddr(addr, len , type);
+	if (!hp)
+		return hp;
+
+	/* must make sure the hostent is authorative. */
+
+	hp = hostent_dup (hp);
+	tmpname = xstrdup((hp)->h_name);
+	if (tmpname) {
+		forward = gethostbyname(tmpname);
+		free(tmpname);
+	}
+	if (forward) {
+		/* now make sure the "addr" is in the list */
+		for (sp = forward->h_addr_list ; *sp ; sp++) {
+			if (memcmp(*sp, addr, forward->h_length)==0)
+				break;
+		}
+		
+		if (!*sp) {
+			/* it was a FAKE */
+			xlog(L_WARNING, "Fake hostname %s for %s - forward lookup doesn't match reverse",
+			     forward->h_name, inet_ntoa(*(struct in_addr*)addr));
+			return NULL;
+		}
+		free (hp);
+		hp = hostent_dup (forward);
+	}
+	else {
+		/* never heard of it. misconfigured DNS? */
+		xlog(L_WARNING, "Fake hostname %s for %s - forward lookup doesn't exist",
+		     forward->h_name, inet_ntoa(*(struct in_addr*)addr));
+		return NULL;
+	}
+	return hp;
+}
+
 
 #ifdef TEST
 void

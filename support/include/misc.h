@@ -20,5 +20,6 @@ int	matchhostname(const char *h1, const char *h2);
 struct hostent;
 struct hostent	*hostent_dup(struct hostent *hp);
 struct hostent	*get_hostent (const char *addr, int len, int type);
+struct hostent *get_reliable_hostbyaddr(const char *addr, int len, int type);
 
 #endif /* MISC_H */
