@@ -1,3 +1,8 @@
+2004-10-19 "J. Bruce Fields" <bfields@fieldses.org>
+
+	* support/gssapi/* support/rpc/* utils/gssd/* utils/svcgssd/* etc
+	initial support for GSSAPI authentication
+	
 2004-09-15 Neil Brown <neilb@cse.unsw.edu.au>
 
 	* utils/statd/monitor.c(sm_unmon_1_svc): is RESTRICTED_STATD, then
