@@ -256,6 +256,28 @@ If a path is given (e.g.
 then the nominted path must be a mountpoint for the exportpoint to be
 exported.
 
+.TP
+.IR fsid= num
+This option forces the filesystem identification portion of the file
+handle and file attributes used on the wire to be
+.I num
+instead of a number derived from the major and minor number of the
+block device on which the filesystem is mounted.  Any 32 bit number
+can be used, but it must be unique amongst all the exported filesystems.
+
+This can be useful for NFS failover, to ensure that both servers of
+the failover pair use the same NFS file handles for the shared filesystem
+thus avoiding stale file handles after failover.
+
+Some Linux filesystems are not mounted on a block device; exporting
+these via NFS requires the use of the
+.I fsid
+option (although that may still not be enough).
+
+The value  0 has a special meaning when use with NFSv4.  NFSv4 has a
+concept of a root of the overall exported filesystem. The export point
+exported with fsid=0 will be used as this root.
+
 .SS User ID Mapping
 .PP
 .I nfsd
