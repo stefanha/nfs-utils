@@ -37,7 +37,7 @@ clients which are mounted on that host.
 %build
 CC=%{__cc}; export CC
 BUILD_CC=gcc; export BUILD_CC
-%configure --build=%{__build_alias}
+%configure --build=%{_build_alias}
 make all
 
 %install

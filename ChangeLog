@@ -1,3 +1,8 @@
+2001-04-22  H.J. Lu <hjl@lucon.org>
+
+	* nfs-utils.spec.in: Fix a typo.
+	* nfs-utils.spec: Regenerated.
+
 2001-04-21  H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec.in: Fix cross build.
