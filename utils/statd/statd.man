@@ -3,7 +3,8 @@
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
 .\" Modified by Jeffrey A. Uphoff, 1999.
-.TH rpc.statd 8 "20 Aug 2000"
+.\" Modified by Lon Hohberger, 2000.
+.TH rpc.statd 8 "05 Oct 2000"
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
@@ -103,3 +104,5 @@ Jeff Uphoff <juphoff@transmeta.com>
 Olaf Kirch <okir@monad.swb.de>
 .br
 H.J. Lu <hjl@gnu.org>
+.br
+Lon Hohberger <hohberger@missioncriticallinux.com>
