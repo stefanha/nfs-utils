@@ -1,3 +1,7 @@
+2002-09-16  Chip Salzenberg  <chip@pobox.com>
+
+	* utils/rquotad/rquota_svc.c (main): Use int for value of getopt.
+
 2002-09-15  Chip Salzenberg  <chip@pobox.com>
 
 	* support/nfs/rpcmisc.c (rpc_init): Allow stdin to be a non-INET

@@ -234,7 +234,7 @@ killer (int sig)
 int main(int argc, char **argv)
 {
    register SVCXPRT *transp;
-   char c;
+   int c;
    int port = 0;
    struct sigaction sa;
 
