@@ -51,7 +51,8 @@ binary-arch: build
 	  done; \
 	  rm -f tmp/usr/sbin/*quota*; \
 	  rm -f tmp/usr/share/man/man8/*quota*; \
-	  rm -rf tmp/var/lib/nfs/*
+	  rm -rf tmp/var/lib/nfs/*; \
+	  cp --preserve=timestamps etc.exports tmp/etc/exports
 	# Fixups End Here #
 	dh_installdocs -A README
 	dh_installexamples

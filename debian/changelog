@@ -1,10 +1,17 @@
-nfs-utils (1:1.0.6-2) unstable; urgency=low
+nfs-utils (1:1.0.6-2) unstable; urgency=medium
 
-  * Test kernel version in init script; if kernel is 2.4 or later,
-    rpc.lockd is unnecessary.  Existing tests still apply to earlier
-    kernels.  (closes: #205867)
+  * Upstream CVS sync.
+  * Urgency "medium" to get debconf fix into testing.
+  * Make /etc/exports a conffile.  (closes: #224557)
+  * Remove debconf warning notes in favor of nfs-kernel-server.NEWS.
+    (closes: #228365)
+  * Test kernel version in init script; all kernels from 2.4 forward
+    have a lockd thread, and don't need rpc.lockd.  Probe older kernels
+    by checking for lockd-related symbols.  When in doubt, go ahead and
+    run rpc.lockd; if it's not needed, it exits.  (closes: #205867)
+  * Don't bother removing nfs-server's init links; it's long dead.
 
- --
+ -- Chip Salzenberg <chip@debian.org>  Thu, 18 Mar 2004 16:53:50 -0500
 
 nfs-utils (1:1.0.6-1) unstable; urgency=low
 
