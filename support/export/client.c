@@ -118,7 +118,20 @@ client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 
 		*cp = '\0';
 		clp->m_addrlist[0].s_addr = inet_addr(clp->m_hostname);
-		clp->m_addrlist[1].s_addr = inet_addr(cp+1);
+		if (strchr(cp + 1, '.')) {
+			clp->m_addrlist[1].s_addr = inet_addr(cp+1);
+		}
+		else {
+			int netmask = atoi(cp + 1);
+			if (0 < netmask && netmask <= 32) {
+				clp->m_addrlist[1].s_addr =
+					htonl ((uint32_t) ~0 << (32 - netmask));
+			}
+			else {
+				xlog(L_FATAL, "invalid netmask `%s' for %s",
+				     cp + 1, clp->m_hostname);
+			}
+		}
 		*cp = '/';
 		clp->m_naddr = 0;
 	} else if (!hp) {

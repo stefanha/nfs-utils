@@ -1,3 +1,8 @@
+2000-10-17  Scott McDermott <mcdermot@questra.com>
+
+	* support/export/client.c (client_init): Support CIDR netmask
+	in /etc/exports.
+
 2000-10-11  H.J. Lu <hjl@lucon.org>
 
 	* aclocal.m4 (AC_TCP_WRAPPER): Fix a typo.
