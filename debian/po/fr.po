@@ -11,14 +11,13 @@
 #
 #    Developers do not need to manually edit POT or PO files.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2003-04-06 12:51-0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Project-Id-Version: nfs-utils 1:1.0.3-1\n"
+"POT-Creation-Date: 2003-07-17 19:53+0200\n"
+"PO-Revision-Date: 2003-07-17 23:26+0200\n"
+"Last-Translator: Denis Barbier <barbier@debian.org>\n"
+"Language-Team: French <debian-l10n-french@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-15\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -26,7 +25,7 @@ msgstr ""
 #. Description
 #: ../nfs-common.templates:3
 msgid "statd uses tcpwrappers"
-msgstr "statd utilise tcpwrapper"
+msgstr "Statd utilise les intermédiaires TCP (« tcpwrappers »)"
 
 #. Description
 #: ../nfs-common.templates:3
@@ -34,14 +33,14 @@ msgid ""
 "The statd daemon uses tcpwrappers to control access.  To configure it, use "
 "program name \"statd\" in /etc/hosts.allow and /etc/hosts.deny."
 msgstr ""
-"Le programme statd fonctionne avec tcpwrapper pour le contrôle d'accès. "
-"Utilisez le nom de programme « statd » dans /etc/hosts.allow et /etc/hosts."
-"deny pour changer ce contrôle d'accès."
+"Le démon statd utilise les intermédiaires TCP pour le contrôle d'accès. Vous "
+"devez utiliser « statd » comme nom de programme dans /etc/hosts.allow et /"
+"etc/hosts.deny pour gérer ce contrôle d'accès."
 
 #. Description
 #: ../nfs-kernel-server.templates:3
 msgid "NFS server defaults to synchronous writes"
-msgstr ""
+msgstr "Le serveur NFS effectue par défaut des écritures synchrones"
 
 #. Description
 #: ../nfs-kernel-server.templates:3
@@ -51,6 +50,12 @@ msgid ""
 "silent: All exports should be explicitly marked as either \"sync\" or \"async"
 "\".  Exports not so marked will elicit warnings."
 msgstr ""
+"Afin de respecter les normes et améliorer la sécurité des données, le "
+"serveur NFS de Linux effectue désormais par défaut des écritures synchrones. "
+"Comme il s'agit d'une modification majeure, elle n'est pas mise en place sans "
+"prévenir : toutes les ressources exportées doivent être explicitement "
+"marquées soit avec « sync » soit avec « async ». Les ressources exportées "
+"sans ces options provoqueront l'affichage de messages d'avertissement."
 
 #. Description
 #: ../nfs-kernel-server.templates:11
@@ -63,9 +68,9 @@ msgid ""
 "The mount daemon uses tcpwrappers to control access.  To configure it, use "
 "program name \"mountd\" in /etc/hosts.allow and /etc/hosts.deny."
 msgstr ""
-"Le programme mount fonctionne avec tcpwrapper pour le contrôle d'accès. "
-"Utilisez le nom de programme « mountd » dans /etc/hosts.allow et /etc/hosts."
-"deny pour changer ce contrôle d'accès."
+"Le démon mount utilise les intermédiaires TCP pour le contrôle d'accès. Vous "
+"devez utiliser « mountd » comme nom de programme dans /etc/hosts.allow et /"
+"etc/hosts.deny pour gérer ce contrôle d'accès."
 
 #. Description
 #: ../nfs-kernel-server.templates:11
@@ -74,7 +79,7 @@ msgid ""
 "itself \"rpc.mountd\".  Therefore, you should replace all occurrences of "
 "\"rpc.mountd\" with \"mountd\" in /etc/hosts.allow and /etc/hosts.deny."
 msgstr ""
-"Les versions précédentes de nfs-kernel-server avaient un programme mount qui "
-"s'identifiait comme « rpc.mountd ». Par conséquent, vous devriez remplacer "
-"partout « rpc.mountd » par « mountd » dans /etc/hosts.allow et /etc/hosts."
-"deny."
+"Les versions précédentes de nfs-kernel-server comportaient un programme "
+"mount qui s'identifiait comme « rpc.mountd ». Par conséquent, vous devriez "
+"systématiquement remplacer « rpc.mountd » par « mountd » dans /etc/hosts."
+"allow et /etc/hosts.deny."
