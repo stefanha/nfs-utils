@@ -31,7 +31,7 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, int *, int v3)
 static struct option longopts[] =
 {
 	{ "foreground", 0, 0, 'F' },
-	{ "descriptors", 0, 0, 'o' },
+	{ "descriptors", 1, 0, 'o' },
 	{ "debug", 1, 0, 'd' },
 	{ "help", 0, 0, 'h' },
 	{ "exports-file", 1, 0, 'f' },

@@ -93,10 +93,10 @@ Don't advertise TCP for mount.
 .B \-P
 Ignored (compatibility with unfsd??).
 .TP
-.B \-p " or " \-\-port
+.B \-p " or " \-\-port num
 Force
 .B rpc.mountd
-to bind to the specified port, instead of using the random port
+to bind to the specified port num, instead of using the random port
 number assigned by the portmapper.
 .TP
 .B \-V " or " \-\-nfs-version

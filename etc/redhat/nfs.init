@@ -8,7 +8,7 @@
 #              networks. This service provides NFS server functionality, \
 #              which is configured via the /etc/exports file.
 # probe: true
-# config: /etc/sysconfig/nfsd
+# config: /etc/sysconfig/nfs
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -30,19 +30,13 @@ fi
 
 # Check for and source configuration file otherwise set defaults
 # TUNE_QUEUE: controls whether to up the size of input queues
-NFSDCFG=/etc/sysconfig/nfsd
-if [ -f "$NFSDCFG" ]; then
-   # Tune nfs server settings
-   . "$NFSDCFG"
-else
-   # Set some defaults
-   TUNE_QUEUE="no"
-   # Default to NFS version 3.
-   RPCMOUNTDOPTS=""
-fi
+[ -f /etc/sysconfig/nfs ] && . /etc/sysconfig/nfs
+
+[ -z "$MOUNTD_NFS_V2" ] && MOUNTD_NFS_V2=auto
+[ -z "$MOUNTD_NFS_V3" ] && MOUNTD_NFS_V3=auto
 
 # Number of servers to be started by default
-[ -z "$RPCNFSDCOUNT" ] && RPCNFSDCOUNT=8
+[ -z "$NFSDCOUNT" ] && NFSDCOUNT=8
 
 # Remote quota server
 [ -z "$RQUOTAD" ] && RQUOTAD=`type -path rpc.rquotad`
@@ -52,8 +46,6 @@ fi
 if [ "$TUNE_QUEUE" = "yes" ]; then
     RMEM_DEFAULT=`/sbin/sysctl -n net.core.rmem_default`
     RMEM_MAX=`/sbin/sysctl -n net.core.rmem_max`
-    WMEM_DEFAULT=`/sbin/sysctl -n net.core.wmem_default`
-    WMEM_MAX=`/sbin/sysctl -n net.core.wmem_max`
     # 256kb recommended minimum size based on SPECsfs NFS benchmarks
     [ -z "$NFS_QS" ] && NFS_QS=262144
 fi
@@ -66,8 +58,6 @@ case "$1" in
 	if [ "$TUNE_QUEUE" = "yes" ]; then
  	    /sbin/sysctl -w net.core.rmem_default=$NFSD_QS >/dev/null 2>&1
 	    /sbin/sysctl -w net.core.rmem_max=$NFSD_QS >/dev/null 2>&1
-	    /sbin/sysctl -w net.core.wmem_default=$NFSD_QS >/dev/null 2>&1
-	    /sbin/sysctl -w net.core.wmem_max=$NFSD_QS >/dev/null 2>&1
 	fi
 	action "Starting NFS services: " /usr/sbin/exportfs -r
 	if [ -n "$RQUOTAD" -a "$RQUOTAD" != "no" ]; then
@@ -76,27 +66,54 @@ case "$1" in
 	    echo
 	fi
 	echo -n "Starting NFS daemon: "
-	daemon rpc.nfsd $RPCNFSDCOUNT
+	daemon rpc.nfsd $NFSDCOUNT
 	echo
 
-	if [ -z "$RPCMOUNTDOPTS" ]; then
+	[ -n "$MOUNTD_PORT" ] \
+	&& MOUNTD_OPTIONS="$MOUNTD_OPTIONS -p $MOUNTD_PORT"
+	[ "$MOUNTD_TCP" = "no" -o "$MOUNTD_TCP" = "NO" ] \
+	&& MOUNTD_OPTIONS="$MOUNTD_OPTIONS --no-tcp"
+
+	case $MOUNTD_NFS_V2 in
+	auto|AUTO)
+	    # Let's see if we support NFS version 2.
+	    /usr/sbin/rpcinfo -u localhost nfs 2 &>/dev/null
+	    if [ $? -ne 0 ]; then
+		MOUNTD_OPTIONS="$MOUNTD_OPTIONS --no-nfs-version 2"
+	    fi
+	    ;;
+	no|NO)
+	    MOUNTD_OPTIONS="$MOUNTD_OPTIONS --no-nfs-version 2"
+	    ;;
+	yes|YES)
+	    MOUNTD_OPTIONS="$MOUNTD_OPTIONS --nfs-version 2"
+	    ;;
+	esac
+
+	case $MOUNTD_NFS_V3 in
+	auto|AUTO)
 	    # Let's see if we support NFS version 3.
 	    /usr/sbin/rpcinfo -u localhost nfs 3 &>/dev/null
 	    if [ $? -ne 0 ]; then
-		RPCMOUNTDOPTS="--no-nfs-version 3"
+		MOUNTD_OPTIONS="$MOUNTD_OPTIONS --no-nfs-version 3"
 	    fi
-	fi
+	    ;;
+	no|NO)
+	    MOUNTD_OPTIONS="$MOUNTD_OPTIONS --no-nfs-version 3"
+	    ;;
+	yes|YES)
+	    MOUNTD_OPTIONS="$MOUNTD_OPTIONS --nfs-version 3"
+	    ;;
+	esac
 
 	echo -n "Starting NFS mountd: "
-	daemon rpc.mountd $RPCMOUNTDOPTS
+	daemon rpc.mountd $MOUNTD_OPTIONS
 	echo
 	touch /var/lock/subsys/nfs
 	# reset input queue for rest of network services
 	if [ "$TUNE_QUEUE" = "yes" ]; then
 	    /sbin/sysctl -w net.core.rmem_default=$RMEM_DEFAULT >/dev/null 2>&1
 	    /sbin/sysctl -w net.core.rmem_max=$RMEM_MAX >/dev/null 2>&1
-	    /sbin/sysctl -w net.core.wmem_default=$WMEM_DEFAULT >/dev/null 2>&1
-	    /sbin/sysctl -w net.core.wmem_max=$WMEM_MAX >/dev/null 2>&1
 	fi
 	;;
   stop)

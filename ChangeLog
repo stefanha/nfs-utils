@@ -1,3 +1,16 @@
+2002-04-08  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfs: New.
+
+	* etc/redhat/nfs.init: Updated.
+
+	* nfs-utils.spec.in: Updated.
+	* nfs-utils.spec: Regenerated.
+
+	* utils/mountd/mountd.c (longopts): Fix a typo.
+
+	* utils/mountd/mountd.man: Updated.
+
 2002-04-07  H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfslock.init (restart): Just do stop and start.

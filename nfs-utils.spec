@@ -53,10 +53,12 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/{/sbin,/usr/sbin}
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/{man5,man8}
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
 mkdir -p $RPM_BUILD_ROOT/var/lib/nfs
 make install_prefix=$RPM_BUILD_ROOT MANDIR=$RPM_BUILD_ROOT%{_mandir} SBINDIR=$RPM_BUILD_ROOT%{_prefix}/sbin install
 install -s -m 755 tools/rpcdebug/rpcdebug $RPM_BUILD_ROOT/sbin
 install -m 755 etc/redhat/nfs.init $RPM_BUILD_ROOT/etc/rc.d/init.d/nfs
+install -m 755 etc/redhat/nfs $RPM_BUILD_ROOT/etc/sysconfig/nfs
 install -m 755 etc/redhat/nfslock.init $RPM_BUILD_ROOT/etc/rc.d/init.d/nfslock
 touch $RPM_BUILD_ROOT/var/lib/nfs/rmtab
 mv $RPM_BUILD_ROOT/usr/sbin/{rpc.lockd,rpc.statd} $RPM_BUILD_ROOT/sbin
@@ -87,6 +89,7 @@ fi
 %defattr(-,root,root)
 %config /etc/rc.d/init.d/nfs
 %dir /var/lib/nfs
+%config(noreplace) /etc/sysconfig/nfs
 %config(noreplace) /var/lib/nfs/xtab
 %config(noreplace) /var/lib/nfs/etab
 %config(noreplace) /var/lib/nfs/rmtab
