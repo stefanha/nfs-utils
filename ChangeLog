@@ -1,3 +1,11 @@
+2001-09020 NeilBrown <neilb@cse.unsw.edu.au>
+	    Anne Milicia <milicia@missioncriticallinux.com>
+
+	* support/export/client.c (client_lookup) call gethostbyadd
+	to make sure that we have a canonical hostname, even for
+	dotted-quads
+	* utils/exportfs/exportfs.c (exportfs) Likewise
+	
 2001-09-12 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* support/nfs/exports.c (putexportent): \octal quote any spaces

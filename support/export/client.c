@@ -42,12 +42,22 @@ client_lookup(char *hname)
 	htype = client_gettype(hname);
 
 	if (htype == MCL_FQDN) {
+		struct hostent *hp2;
 		hp = gethostbyname(hname);
 		if (hp == NULL || hp->h_addrtype != AF_INET) {
 			xlog(L_ERROR, "%s has non-inet addr", hname);
 			return NULL;
 		}
-		hp = hostent_dup (hp);
+		/* make sure we have canonical name */
+		hp2 = hostent_dup(hp);
+		hp = gethostbyaddr(hp2->h_addr, hp2->h_length,
+				   hp2->h_addrtype);
+		if (hp) {
+			free(hp2);
+			hp = hostent_dup(hp);
+		} else
+			hp = hp2;
+
 		hname = (char *) hp->h_name;
 
 		for (clp = clientlist[htype]; clp; clp = clp->m_next) {

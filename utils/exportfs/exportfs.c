@@ -228,7 +228,14 @@ exportfs(char *arg, char *options, int verbose)
 
 	if ((htype = client_gettype(hname)) == MCL_FQDN &&
 	    (hp = gethostbyname(hname)) != NULL) {
-		hp = hostent_dup (hp);
+		struct hostent *hp2 = hostent_dup (hp);
+		hp = gethostbyaddr(hp2->h_addr, hp2->h_length,
+				   hp2->h_addrtype);
+		if (hp) {
+			free(hp2);
+			hp = hostent_dup(hp);
+		} else
+			hp = hp2;
 		exp = export_find(hp, path);
 	} else {
 		exp = export_lookup(hname, path);
