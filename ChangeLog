@@ -1,6 +1,16 @@
 2002-09-02 Juan Gomez <juang@us.ibm.com>
 	NeilBrown <neilb@cse.unsw.edu.au>
 
+	Add -N option to statd to run in notify-only mode.
+
+	* utils/statd/statd.h: uncomment MODE_NOTIFY_ONLY
+	* utils/statd/statd.man: document -N
+	* utils/statd/statd.c: enabled -N, largely exists but needed to be
+	uncommented and completed
+	
+2002-09-02 Juan Gomez <juang@us.ibm.com>
+	NeilBrown <neilb@cse.unsw.edu.au>
+
 	statd to have " -P directory" arg to use that directory instead
 	of /var/lib/nfs.  This is useful for fail-over clusters.
 	

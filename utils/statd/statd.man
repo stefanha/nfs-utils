@@ -95,6 +95,12 @@ If this option is not specified the default of
 .BR /var/lib/nfs
 is used.
 .TP
+.B -N
+Causes statd to run in the notify-only mode. When started in this mode, the
+statd program will check its state directory, send notifications to any
+monitored nodes, and exit once the notifications have been sent. This mode is
+used to enable Highly Available NFS implementations (i.e. HA-NFS).
+.TP
 .B -?
 Causes
 .B rpc.statd

@@ -55,6 +55,7 @@ static struct option longopts[] =
 	{ "port", 1, 0, 'p' },
 	{ "name", 1, 0, 'n' },
 	{ "state-directory-path", 1, 0, 'P' },
+	{ "notify-mode", 0, 0, 'N' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -112,11 +113,11 @@ static void log_modes(void)
 		strcat(buf,"No-Daemon ");
 	if (run_mode & MODE_LOG_STDERR)
 		strcat(buf,"Log-STDERR ");
-	/* future: IP aliasing
+
 	if (run_mode & MODE_NOTIFY_ONLY)
 	{
 		strcat(buf,"Notify-Only ");
-	} */
+	}
 	log(L_WARNING,buf);
 	/* future: IP aliasing
 	if (run_mode & MODE_NOTIFY_ONLY)
@@ -141,6 +142,7 @@ usage()
 	fprintf(stderr,"      -V, -v, --version    Display version information and exit.\n");
 	fprintf(stderr,"      -n, --name           Specify a local hostname.\n");
 	fprintf(stderr,"      -P                   State directory path.\n");
+	fprintf(stderr,"      -N                   Run in notify only mode.\n");
 }
 
 /* 
@@ -174,7 +176,7 @@ int main (int argc, char **argv)
 	MY_NAME = NULL;
 
 	/* Process command line switches */
-	while ((arg = getopt_long(argc, argv, "h?vVFdn:p:o:P:", longopts, NULL)) != EOF) {
+	while ((arg = getopt_long(argc, argv, "h?vVFNdn:p:o:P:", longopts, NULL)) != EOF) {
 		switch (arg) {
 		case 'V':	/* Version */
 		case 'v':
@@ -182,6 +184,9 @@ int main (int argc, char **argv)
 			exit(0);
 		case 'F':	/* Foreground/nodaemon mode */
 			run_mode |= MODE_NODAEMON;
+			break;
+		case 'N':
+			run_mode |= MODE_NOTIFY_ONLY;
 			break;
 		case 'd':	/* No daemon only - log to stderr */
 			run_mode |= MODE_LOG_STDERR;
@@ -308,18 +313,19 @@ int main (int argc, char **argv)
 		notify_hosts ();	/* Send out notify requests */
 		++restart;
 
-		/* future: IP aliasing 
+		/* this registers both UDP and TCP services */
 		if (!(run_mode & MODE_NOTIFY_ONLY)) {
 			rpc_init("statd", SM_PROG, SM_VERS, sm_prog_1, port);
-		} */
-		/* this registers both UDP and TCP services */
-		rpc_init("statd", SM_PROG, SM_VERS, sm_prog_1, port);
+		} 
 
 		/*
 		 * Handle incoming requests:  SM_NOTIFY socket requests, as
 		 * well as callbacks from lockd.
 		 */
 		my_svc_run();	/* I rolled my own, Olaf made it better... */
+
+		if ((run_mode & MODE_NOTIFY_ONLY))
+			break;			
 	}
 	return 0;
 }

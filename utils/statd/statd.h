@@ -73,7 +73,7 @@ stat_chge		SM_stat_chge;
 extern int run_mode;
 #define MODE_NODAEMON 1		/* No-daemon/foreground mode. */
 #define MODE_LOG_STDERR 2	/* in foreground mode, log to stderr */
-/*#define MODE_NOTIFY_ONLY 4*/	/* Send SM_NOTIFY to everyone monitored on
+#define MODE_NOTIFY_ONLY 4	/* Send SM_NOTIFY to everyone monitored on
 				   a single interface/alias */
 /* LH - notify_only mode would be for notifying hosts on an IP alias
  * that just came back up, for ex, when failing over a HA service to
