@@ -42,6 +42,7 @@ static struct option longopts[] =
 	{ "version", 0, 0, 'v' },
 	{ "outgoing-port", 1, 0, 'o' },
 	{ "port", 1, 0, 'p' },
+	{ "name", 1, 0, 'n' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -126,6 +127,7 @@ usage()
 	fprintf(stderr,"      -p, --port           Port to listen on\n");
 	fprintf(stderr,"      -o, --outgoing-port  Port for outgoing connections\n");
 	fprintf(stderr,"      -V, -v, --version    Display version information and exit.\n");
+	fprintf(stderr,"      -n, --name           Specify a local hostname.\n");
 }
 
 /* 
@@ -155,8 +157,11 @@ int main (int argc, char **argv)
 		version_p = VERSION;
 	}
 	
+	/* Set hostname */
+	MY_NAME = NULL;
+
 	/* Process command line switches */
-	while ((arg = getopt_long(argc, argv, "h?vVFdp:o:", longopts, NULL)) != EOF) {
+	while ((arg = getopt_long(argc, argv, "h?vVFdn:p:o:", longopts, NULL)) != EOF) {
 		switch (arg) {
 		case 'V':	/* Version */
 		case 'v':
@@ -185,6 +190,9 @@ int main (int argc, char **argv)
 				usage();
 				exit(1);
 			}
+			break;
+		case 'n':	/* Specify local hostname */
+			MY_NAME = xstrdup(optarg);
 			break;
 		case '?':	/* heeeeeelllllllpppp? heh */
 		case 'h':

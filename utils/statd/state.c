@@ -56,7 +56,7 @@ change_state (void)
   if (close (fd) == -1)
     log (L_ERROR, "close (%s): %s", SM_STAT_PATH, strerror (errno));
 
-  if (!restart) {
+  if (MY_NAME == NULL) {
     char fullhost[SM_MAXSTRLEN + 1];
     struct hostent *hostinfo;
 

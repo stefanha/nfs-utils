@@ -1,3 +1,17 @@
+2001-08-17  Ragnar Kjørstad <nfs@ragnark.vestdata.no>
+	    H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfslock.init (STATDARG): New. Pass it to rpc.statd.
+
+	* utils/statd/statd.c (longopts): Add "name".
+	(usage): Add "-n/--name".
+	(main): Set MY_NAME with "-n/--name".
+
+	* utils/statd/state.c (change_state): Set MY_NAME only if it
+	is NULL.
+	
+	* utils/statd/statd.man: Updated for "-n/--name".
+
 2001-07-26  H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec (Release): Set to 8.

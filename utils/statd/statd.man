@@ -8,7 +8,7 @@
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
-.B "/sbin/rpc.statd [-F] [-d] [-?] [-o " port "] [-p " port "] [-V]"
+.B "/sbin/rpc.statd [-F] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-V]"
 .SH DESCRIPTION
 The
 .B rpc.statd
@@ -51,6 +51,17 @@ instead. This option is mainly for debugging purposes, and may only
 be used in conjunction with the
 .B -F
 parameter.
+.TP
+.BI "\-n," "" " \-\-name " name 
+specify a name for
+.B rpc.statd
+to use as the local hostname. By default,
+.BR rpc.statd
+will call
+.BR gethostname (2)
+to get the local hostname. Specifying
+a local hostname may be useful for machines with more than one
+interfaces.
 .TP
 .BI "\-o," "" " \-\-outgoing\-port "  port
 specify a port for
