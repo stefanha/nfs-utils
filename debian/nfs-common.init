@@ -48,11 +48,11 @@ case "$1" in
 	then
 	    printf " lockd"
 	    start-stop-daemon --stop --oknodo --quiet \
-		--exec $PREFIX/sbin/rpc.lockd
+		--name rpc.lockd --user 0
 	fi
 	printf " statd"
 	start-stop-daemon --stop --oknodo --quiet \
-	    --exec $PREFIX/sbin/rpc.statd
+	    --name rpc.statd --user 0
 	echo "."
 	;;
 

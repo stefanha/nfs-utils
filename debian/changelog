@@ -3,7 +3,7 @@ nfs-utils (1:0.3.3-5) unstable; urgency=high
   * Keep NFS fully operational during upgrade.  (closes: #76544)
   * When calling update-rc.d, send stdout to /dev/null, but not stderr.
 
- -- Chip Salzenberg <chip@debian.org>  Thu, 13 Dec 2001 18:30:36 -0800
+ -- Chip Salzenberg <chip@debian.org>  Thu, 13 Dec 2001 18:50:47 -0800
 
 nfs-utils (1:0.3.3-4) unstable; urgency=high
 

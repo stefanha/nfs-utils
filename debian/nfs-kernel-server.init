@@ -49,10 +49,10 @@ case "$1" in
   stop)
 	printf "Stopping $DESC: mountd"
 	start-stop-daemon --stop --oknodo --quiet \
-	    --exec $PREFIX/sbin/rpc.mountd
+	    --name rpc.mountd --user 0
 	printf " nfsd"
 	start-stop-daemon --stop --oknodo --quiet \
-	    --name nfsd --user root --signal 2
+	    --name nfsd --user 0 --signal 2
 	echo "."
 
 	printf "Unexporting directories for $DESC..."
