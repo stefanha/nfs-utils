@@ -3,7 +3,7 @@
 # nfslock       This shell script takes care of starting and stopping
 #               the NFS file locking service.
 #
-# chkconfig: 345 60 20
+# chkconfig: 345 60 86
 # description: NFS is a popular protocol for file sharing across \
 #	       TCP/IP networks. This service provides NFS file \
 #	       locking functionality.

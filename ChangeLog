@@ -1,3 +1,8 @@
+2001-03-09  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfslock.init: Changed chkconfig line to 60 86.
+	* etc/nodist/nfs-client: Likewise.
+
 2001-02-26  Chip Salzenberg  <chip@valinux.com>
 
 	* debian/changelog: Version 0.3.1-1.
