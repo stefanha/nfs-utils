@@ -1,7 +1,7 @@
 2003-03-30  NeilBrown <neilb@cse.unsw.edu.au>
 
 	* tools/rpcgen/rpc_main.c(find_cpp): removed
-	* tools/rpcgen/rpc_main.c(open_input): use execvp to find "ccp", 
+	* tools/rpcgen/rpc_main.c(open_input): use execvp to find "cpp", 
 	then try hard-coded paths.
 	
 2003-03-26  Chip Salzenberg  <chip@pobox.com>
