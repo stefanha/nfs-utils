@@ -37,14 +37,13 @@ If there is no NFS patch for the kernel you are interested in, you have
 to make a patch closest to your kernel version and apply it by hand.
 
 There is a Linux NFS kernel source tree for Linux 2.3, linux-2.3, on
-the Linux NFS CVS server. However, it is not maintained. We will need
-all the help we can get. To contribute to the Linux NFS project, please
-go to
+the Linux NFS CVS server. We will need all the help we can get. To
+contribute to the Linux NFS project, please go to
 
 http://www.linuxnfs.sourceforge.org
 
 and login as "beta" with password "beta4u". You register yourself.
-please send an email to nfs-admin@linuxnfs.sourceforge.org with
+Please send an email to nfs-admin@linuxnfs.sourceforge.org with
 
 1. Your user id on www.linuxnfs.sourceforge.org.
 2. The area in NFS you'd like to work on.
@@ -58,7 +57,7 @@ http://lists.varesearch.com/lists/listinfo/nfs/
 You can subscribe it and search the mailing list archive via a web
 browser.
 
-The nfs-utils package is avaible from the CVS server:
+The nfs-utils package is available from the CVS server:
 
 # cvs -z 3 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co nfs-utils
 

@@ -222,7 +222,7 @@ pdefine(char *name, char *num)
 static void
 puldefine(char *name, char *num)
 {
-	f_print(fout, "#define %s ((u_long)%s)\n", name, num);
+	f_print(fout, "#define %s ((u_int32_t)%s)\n", name, num);
 }
 
 static int

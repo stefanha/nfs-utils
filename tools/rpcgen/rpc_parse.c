@@ -564,8 +564,8 @@ get_type(char **prefixp, char **typep, defkind dkind)
 		*typep = "short";
 		(void) peekscan(TOK_INT, &tok);
 		break;
-	case TOK_LONG:
-		*typep = "long";
+	case TOK_INT32:
+		*typep = "int32_t";
 		(void) peekscan(TOK_INT, &tok);
 		break;
 	case TOK_VOID:
@@ -604,9 +604,9 @@ unsigned_dec(char **typep)
 		*typep = "u_short";
 		(void) peekscan(TOK_INT, &tok);
 		break;
-	case TOK_LONG:
+	case TOK_INT32:
 		get_token(&tok);
-		*typep = "u_long";
+		*typep = "u_int32_";
 		(void) peekscan(TOK_INT, &tok);
 		break;
 	case TOK_INT:

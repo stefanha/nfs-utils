@@ -382,7 +382,7 @@ static token symbols[] = {
 			  {TOK_INT, "int"},
 			  {TOK_UNSIGNED, "unsigned"},
 			  {TOK_SHORT, "short"},
-			  {TOK_LONG, "long"},
+			  {TOK_INT32, "int32"},
 			  {TOK_FLOAT, "float"},
 			  {TOK_DOUBLE, "double"},
 			  {TOK_STRING, "string"},

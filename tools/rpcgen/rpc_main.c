@@ -426,12 +426,12 @@ c_initialize(void)
   /* add all the starting basic types */
 
   add_type(1,"int");
-  add_type(1,"long");
+  add_type(1,"int32_t");
   add_type(1,"short");
   add_type(1,"bool");
 
   add_type(1,"u_int");
-  add_type(1,"u_long");
+  add_type(1,"u_int32_t");
   add_type(1,"u_short");
 
 }

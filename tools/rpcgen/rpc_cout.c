@@ -170,7 +170,7 @@ print_header(definition *def)
 	if (Inline == 0)
 		return;
 	/* May cause lint to complain. but  ... */
-	f_print(fout, "\t register long *buf;\n\n");
+	f_print(fout, "\t register int32_t *buf;\n\n");
 }
 
 static void
@@ -668,14 +668,14 @@ emit_single_in_line(declaration *decl, int flag, relation rel)
 	{
 		free(upp_case);
 		freed=1;
-		upp_case="LONG";
+		upp_case="INT32";
 	}
 
 	if(strcmp(upp_case,"U_INT") == 0)
 	{
 		free(upp_case);
 		freed=1;
-		upp_case="U_LONG";
+		upp_case="U_INT32";
 	}
 
 

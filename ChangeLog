@@ -1,3 +1,24 @@
+Thu Oct 28 12:55:42 1999  H.J. Lu <hjl@lucon.org>
+
+	* README: Fix a few typos.
+
+	* tools/rpcgen/rpc_cout.c (print_header): Use int32_t instead
+	of long.
+	* tools/rpcgen/rpc_hout.c (pdefine): Likewise.
+	* tools/rpcgen/rpc_main.c (c_initialize): Likewise.
+	* tools/rpcgen/rpc_parse.c (get_type): Likewise.
+	(unsigned_dec): Likewise.
+	* tools/rpcgen/rpc_scan.c (symbols): Likewise.
+	* tools/rpcgen/rpc_util.c (tokstrings): Likewise.
+
+	* tools/rpcgen/rpc_cout.c (emit_single_in_line): Use INT32
+	instead of LONG.
+	* tools/rpcgen/rpc_parse.c (get_type): Likewise.
+	(unsigned_dec): Likewise.
+	* tools/rpcgen/rpc_scan.c (symbols): Likewise.
+	* tools/rpcgen/rpc_scan.h (tok_kind): Likewise.
+	* tools/rpcgen/rpc_util.c (tokstrings): Likewise.
+
 Thu Oct 28 11:27:51 EST 1999 Neil Brown <neilb@cse.unsw.edu.au>
 
         * support/include/nfs/export.h addedd NFSEXP_NOSUBTREECHECK
@@ -8,7 +29,6 @@ Thu Oct 28 11:27:51 EST 1999 Neil Brown <neilb@cse.unsw.edu.au>
         * support/export/rmtab.c: rmtab_read didn't quite do the right
           thing if a pathname from rmtab was a subdirectory of an export-point
 
-	
 Tue Oct 26 17:22:40 1999  H.J. Lu <hjl@lucon.org>
 
 	* README: Updated ftp site.
