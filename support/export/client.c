@@ -230,6 +230,104 @@ client_find(struct hostent *hp)
 }
 
 /*
+ * Find client name given an IP address
+ * This is found by gathering all known names that match that IP address,
+ * sorting them and joining them with '+'
+ *
+ */
+static char *add_name(char *old, char *add);
+
+char *
+client_compose(struct in_addr addr)
+{
+	struct hostent *he = NULL;
+	char *name = NULL;
+	int i;
+
+	if (clientlist[MCL_WILDCARD] || clientlist[MCL_NETGROUP])
+		he = get_reliable_hostbyaddr((const char*)&addr, sizeof(addr), AF_INET);
+	if (he == NULL)
+		he = get_hostent((const char*)&addr, sizeof(addr), AF_INET);
+
+	for (i = 0 ; i < MCL_MAXTYPES; i++) {
+		nfs_client	*clp;
+		for (clp = clientlist[i]; clp ; clp = clp->m_next) {
+			if (!client_check(clp, he))
+				continue;
+			name = add_name(name, clp->m_hostname);
+		}
+	}
+	return name;
+}
+
+int 
+client_member(char *client, char *name)
+{
+	/* check if "client" (a ',' separated list of names)
+	 * contains 'name' as a member 
+	 */
+	int l = strlen(name);
+	while (*client) {
+		if (strncmp(client, name, l) == 0 &&
+		    (client[l] == ',' || client[l] == '\0'))
+			return 1;
+		client = strchr(client, ',');
+		if (client == NULL)
+			return 0;
+		client++;
+	}
+	return 0;
+}
+
+
+int 
+name_cmp(char *a, char *b)
+{
+	/* compare strings a and b, but only upto ',' in a */
+	while (*a && *b && *a != ',' && *a == *b)
+		a++, b++;
+	if (!*b && (!*a || !a == ',') )
+		return 0;
+	if (!*b) return 1;
+	if (!*a || *a == ',') return -1;
+	return *a - *b;
+}
+
+static char *
+add_name(char *old, char *add)
+{
+	int len = strlen(add)+2;
+	char *new;
+	char *cp;
+	if (old) len += strlen(old);
+	
+	new = malloc(len);
+	if (!new) {
+		free(old);
+		return NULL;
+	}
+	cp = old;
+	while (cp && *cp && name_cmp(cp, add) < 0) {
+		/* step cp forward over a name */
+		char *e = strchr(cp, ',');
+		if (e)
+			cp = e+1;
+		else
+			cp = cp + strlen(cp);
+	}
+	strncpy(new, old, cp-old);
+	new[cp-old] = 0;
+	if (cp != old && !*cp)
+		strcat(new, ",");
+	strcat(new, add);
+	if (cp && *cp) {
+		strcat(new, ",");
+		strcat(new, cp);
+	}
+	return new;
+}
+
+/*
  * Match a host (given its hostent record) to a client record. This
  * is usually called from mountd.
  */

@@ -24,9 +24,17 @@
 #include "mountd.h"
 #include "rpcmisc.h"
 
+extern void	cache_open(void);
+extern struct nfs_fh_len *cache_get_filehandle(nfs_export *exp, int len);
+extern void cache_export(nfs_export *exp);
+
+extern void my_svc_run(void);
+
 static void		usage(const char *, int exitcode);
 static exports		get_exportlist(void);
 static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, int *, int v3);
+
+int new_cache = 0;
 
 static struct option longopts[] =
 {
@@ -182,7 +190,7 @@ mount_pathconf_2_svc(struct svc_req *rqstp, dirpath *path, ppathcnf *res)
 	}
 
 	/* Now authenticate the intruder... */
-	if (!(exp = auth_authenticate("mount", sin, p))) {
+	if (!(exp = auth_authenticate("pathconf", sin, p))) {
 		return 1;
 	} else if (stat(p, &stb) < 0) {
 		xlog(L_WARNING, "can't stat exported dir %s: %s",
@@ -264,6 +272,20 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 	} else if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
 		xlog(L_WARNING, "%s is not a directory or regular file", p);
 		*error = NFSERR_NOTDIR;
+	} else if (new_cache) {
+		/* This will be a static private nfs_export with just one
+		 * address.  We feed it to kernel then extract the filehandle,
+		 * 
+		 */
+		struct nfs_fh_len  *fh;
+
+		cache_export(exp);
+		fh = cache_get_filehandle(exp, v3?64:32);
+		if (fh == NULL) 
+			*error = NFSERR_ACCES;
+		else
+			*error = NFS_OK;
+		return fh;
 	} else {
 		struct nfs_fh_len  *fh;
 
@@ -491,6 +513,10 @@ main(int argc, char **argv)
 			(void) close(fd);
 	}
 
+	new_cache = check_new_cache();
+	if (new_cache)
+		cache_open();
+
 	if (nfs_version & 0x1)
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS,
 			 mount_dispatch, port);
@@ -529,7 +555,7 @@ main(int argc, char **argv)
 		xlog_background();
 	}
 
-	svc_run();
+	my_svc_run();
 
 	xlog(L_ERROR, "Ack! Gack! svc_run returned!\n");
 	exit(1);

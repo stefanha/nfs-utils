@@ -31,6 +31,8 @@ enum auth_error
 static void		auth_fixpath(char *path);
 static char	*export_file = NULL;
 
+extern int new_cache;
+
 void
 auth_init(char *exports)
 {
@@ -66,22 +68,60 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 {
 	nfs_export		*exp;
 
-	if (!(exp = export_find(hp, path))) {
-		*error = no_entry;
-		return NULL;
-	}
-	if (!exp->m_mayexport) {
+	if (new_cache) {
+		static nfs_export my_exp;
+		static nfs_client my_client;
+		int i;
+		/* return static nfs_export with details filled in */
+		if (my_client.m_naddr != 1 ||
+		    my_client.m_addrlist[0].s_addr != caller->sin_addr.s_addr) {
+			/* different client to last time, so do a lookup */
+			char *n;
+			my_client.m_naddr = 0;
+			my_client.m_addrlist[0] = caller->sin_addr;
+			n = client_compose(caller->sin_addr);
+			if (!n)
+				return NULL;
+			strcpy(my_client.m_hostname, *n?n:"DEFAULT");
+			free(n);
+			my_client.m_naddr = 1;
+		}
+
+		my_exp.m_client = &my_client;
+
+		exp = NULL;
+		for (i = 0; !exp && i < MCL_MAXTYPES; i++) 
+			for (exp = exportlist[i]; exp; exp = exp->m_next) {
+				if (!client_member(my_client.m_hostname, exp->m_client->m_hostname))
+					continue;
+				if (strcmp(path, exp->m_export.e_path))
+					continue;
+				break;
+			}
 		*error = not_exported;
-		return NULL;
-	}
+		if (!exp)
+			return exp;
 
-	if (!(exp->m_export.e_flags & NFSEXP_INSECURE_PORT) &&
-	    (ntohs(caller->sin_port) <  IPPORT_RESERVED/2 ||
-	     ntohs(caller->sin_port) >= IPPORT_RESERVED)) {
-		*error = illegal_port;
-		return NULL;
-	}
+		my_exp.m_export = exp->m_export;
+		exp = &my_exp;
 
+	} else {
+		if (!(exp = export_find(hp, path))) {
+			*error = no_entry;
+			return NULL;
+		}
+		if (!exp->m_mayexport) {
+			*error = not_exported;
+			return NULL;
+		}
+
+		if (!(exp->m_export.e_flags & NFSEXP_INSECURE_PORT) &&
+		    (ntohs(caller->sin_port) <  IPPORT_RESERVED/2 ||
+		     ntohs(caller->sin_port) >= IPPORT_RESERVED)) {
+			*error = illegal_port;
+			return NULL;
+		}
+	}
 	*error = success;
 
 	return exp;

@@ -1,5 +1,21 @@
 2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
 
+	* support/export/client.c: Add client_compose, client_member to
+	handle new composite client names
+	* support/include/exportfs.h: Declare above functions.
+	* utils/mountd/auth.c: use client_compose to determine calling
+	client if new cache is being used.
+	* utils/mountd/auth.c: call cache_export to export a filesystem if
+	new_cache, check if new cache is used, and call my_svc_run instead
+	of svc_run
+	* utils/mountd/svc_run.c: new file defining my_svc_run
+	* utils/mountd/cache.c: new file for handling cache upcalls.
+	* support/nfs/cacheio.c(check_new_cache): new function to check if
+	new cache should be used.
+	
+	
+2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/include/nfs/export.h: New CROSSMNT distinct from NOHIDE
 	* support/nfs/exports.c: Make CROSSMNT distinct from NOHIDE
 	* utils/exportfs/exportfs.c(dump): ditto

@@ -19,6 +19,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <time.h>
 
 void qword_add(char **bpp, int *lp, char *str)
 {
@@ -213,4 +217,16 @@ int readline(int fd, char **buf, int *lenp)
 	(*buf)[len-1] = 0;
 	return 1;
 }
+
+
+/* Check if we should use the new caching interface
+ * This succeeds iff the "nfsd" filesystem is mounted on
+ * /proc/fs/nfs
+ */
+int
+check_new_cache(void)
+{
+	struct stat stb;
+	return (stat("/proc/fs/nfs/filehandle", &stb) == 0);
+}	
 
