@@ -107,8 +107,10 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
 
    fp = setmntent(MNTTAB, "r");
    while ((mnt = getmntent(fp)) != (struct mntent *)0) {
-      if (stat(mnt->mnt_dir, &stm) == -1
-	  || stat(pathname, &stn) == -1)
+      if (stat(mnt->mnt_dir, &stm) == -1)
+	  continue;
+
+      if (stat(pathname, &stn) == -1)
 	  break;
       else if (stm.st_dev != stn.st_dev)
 	  continue;
