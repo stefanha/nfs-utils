@@ -1,3 +1,9 @@
+2000-11-10  H.J. Lu <hjl@lucon.org>
+
+	* nfs-utils.spec.in: Don't use libtool.
+	Add ChangeLog and COPYING to doc.
+	* nfs-utils.spec: Rebuild.
+
 2000-11-09  H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfs.init (start): Back out the last change.

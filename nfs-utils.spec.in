@@ -1,3 +1,6 @@
+# We don't use libtool. 
+%define __libtoolize :
+
 Summary: NFS utlilities and supporting daemons for the kernel NFS server.
 Name: nfs-utils
 Version: @VERSION@
@@ -89,4 +92,4 @@ fi
 /usr/sbin/showmount
 %{_mandir}/man?/*
 %config /etc/rc.d/init.d/nfslock
-%doc README
+%doc README ChangeLog COPYING
