@@ -1,3 +1,9 @@
+2002-05-06 Tom McNeal <trmcneal@attbi.com>
+	NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/nfsstat/nfsstat.c: Handle differing format for
+	   /proc/net/rpc/nfsd between pre and post 2.4.0
+	
 2002-04-09  NeilBrown <neilb@cse.unsw.edu.au>
 	James Pearson <james-p@moving-picture.com>
 

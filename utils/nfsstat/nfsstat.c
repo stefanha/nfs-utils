@@ -20,8 +20,8 @@
 
 static unsigned int	svcv2info[19];	/* NFSv2 call counts ([0] == 18) */
 static unsigned int	cltv2info[19];	/* NFSv2 call counts ([0] == 18) */
-static unsigned int	svcv3info[22];	/* NFSv3 call counts ([0] == 22) */
-static unsigned int	cltv3info[22];	/* NFSv3 call counts ([0] == 22) */
+static unsigned int	svcv3info[23];	/* NFSv3 call counts ([0] == 22) */
+static unsigned int	cltv3info[23];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	svcnetinfo[4];	/* 0  # of received packets
 					 * 1  UDP packets
 					 * 2  TCP packets
@@ -47,13 +47,22 @@ static unsigned int	cltrpcinfo[3];	/* 0  total # of RPC calls
 static unsigned int	svcrcinfo[8];	/* 0  repcache hits
 					 * 1  repcache hits
 					 * 2  uncached reqs
-					 *
-					 * including fh info:
+					 * (for pre-2.4 kernels:)
 					 * 3  FH lookups
 					 * 4  'anon' FHs
 					 * 5  noncached non-directories
 					 * 6  noncached directories
 					 * 7  stale
+					 */
+
+static unsigned int	svcfhinfo[6];	/* (for kernels >= 2.4.0)
+					 * 0  stale
+					 * 1  FH lookups
+					 * 2  'anon' FHs
+					 * 3  noncached non-directories
+					 * 4  noncached directories
+					 * leave hole to relocate stale for order
+					 *    compatability.
 					 */
 
 static const char *	nfsv2name[18] = {
@@ -73,15 +82,13 @@ typedef struct statinfo {
 	char		*tag;
 	int		nrvals;
 	unsigned int *	valptr;
-
-	/* Filled in by parse_statfile */
-	int *		foundp;
 } statinfo;
 
 static statinfo		svcinfo[] = {
 	{ "net",	4,	svcnetinfo	},
 	{ "rpc",	5,	svcrpcinfo	},
-	{ "rc",		8,	svcrcinfo	},	/* including fh_* */
+	{ "rc",		8,	svcrcinfo	},
+	{ "fh",		5,	svcfhinfo	},
 	{ "proc2",	19,	svcv2info	},
 	{ "proc3",	23,	svcv3info	},
 	{ NULL,		0,	0		}
@@ -100,6 +107,9 @@ static void		print_numbers(const char *, unsigned int *,
 static void		print_callstats(const char *, const char **,
 					unsigned int *, unsigned int);
 static int		parse_statfile(const char *, struct statinfo *);
+
+static statinfo		*get_stat_info(const char *, struct statinfo *);
+
 
 #define PRNT_CALLS	0x0001
 #define PRNT_RPC	0x0002
@@ -200,11 +210,24 @@ main(int argc, char **argv)
 			svcrcinfo, 3
 			);
 		}
+
+		/*
+		 * 2.2 puts all fh-related info after the 'rc' header
+		 * 2.4 puts all fh-related info after the 'fh' header, but relocates
+		 *     'stale' to the start :-(  We keep it at the end.
+		 */
 		if (opt_prt & PRNT_FH) {
-			print_numbers(
-			"Server file handle cache:\n"
-			"lookup     anon       ncachendir ncachedir  stale\n",
-			svcrcinfo + 3, 5);
+			if (get_stat_info("fh", svcinfo)) {	/* >= 2.4 */
+				svcfhinfo[5]=svcfhinfo[0]; /* relocate 'stale' */
+				print_numbers(
+					"Server file handle cache:\n"
+					"lookup     anon       ncachedir ncachedir  stale\n",
+					svcfhinfo + 1, 5);
+			} else					/* < 2.4 */
+				print_numbers(
+					"Server file handle cache:\n"
+					"lookup     anon       ncachedir ncachedir  stale\n",
+					svcrcinfo + 3, 5);
 		}
 		if (opt_prt & PRNT_CALLS) {
 			print_callstats(
@@ -250,6 +273,19 @@ main(int argc, char **argv)
 	return 0;
 }
 
+static statinfo *
+get_stat_info(const char *sp, struct statinfo *statp)
+{
+	struct statinfo *ip;
+
+	for (ip = statp; ip->tag; ip++) {
+		if (!strcmp(sp, ip->tag))
+			return ip;
+	}
+
+	return NULL;
+}
+
 static void
 print_numbers(const char *hdr, unsigned int *info, unsigned int nr)
 {
@@ -285,6 +321,7 @@ print_callstats(const char *hdr, const char **names,
 	printf("\n");
 }
 
+
 static int
 parse_statfile(const char *name, struct statinfo *statp)
 {
@@ -308,12 +345,11 @@ parse_statfile(const char *name, struct statinfo *statp)
 			*next++ = '\0';
 		if (!(sp = strtok(line, " \t")))
 			continue;
-		for (ip = statp; ip->tag; ip++) {
-			if (!strcmp(sp, ip->tag))
-				break;
-		}
-		if (!ip->tag)
+
+		ip = get_stat_info(sp, statp);
+		if (!ip)
 			continue;
+
 		cnt = ip->nrvals;
 
 		for (i = 0; i < cnt; i++) {
