@@ -1,4 +1,18 @@
-Wed Mar  8 09:42:43 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
+2000-03-13 H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfsd.init: Updated.
+
+	* etc/redhat/nfslock.init: Updated.
+
+	* nfs-utils.spec.in: Updated.
+
+	* configure.in (VERSION): Set to "0.1.7".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+	* README: Updated.
+
+Wed Mar  8 09:42:43 2000 Neil Brown <neilb@cse.unsw.edu.au>
 
 	* utils/exportfs/exportfs.c (dump): Included printing of
 	   nohide, no_subtree_check, and insecure_locks
@@ -26,7 +40,7 @@ Wed Mar  8 09:42:43 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
 	it can distinguish EOF from \377.
 	* support/include/xio.h (xungetc): Adjust prototype.
 
-Fri Feb  4 23:42:23 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
+Fri Feb  4 23:42:23 2000 Neil Brown <neilb@cse.unsw.edu.au>
 
 	* support/include/nfs/export.h: added NFSEXP_NOAUTHNLM
 	* support/nfs/exports.c: added handling for NFSEXP_NOAUTHNLM
