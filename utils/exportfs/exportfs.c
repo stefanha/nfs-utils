@@ -42,12 +42,14 @@ main(int argc, char **argv)
 	int	f_reexport = 0;
 	int	f_ignore = 0;
 	int	i, c;
+	int	new_cache = 0;
+	int	force_flush = 0;
 
 	xlog_open("exportfs");
 
 	export_errno = 0;
 
-	while ((c = getopt(argc, argv, "aio:ruv")) != EOF) {
+	while ((c = getopt(argc, argv, "aio:ruvf")) != EOF) {
 		switch(c) {
 		case 'a':
 			f_all = 1;
@@ -67,6 +69,9 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			f_verbose = 1;
+			break;
+		case 'f':
+			force_flush = 1;
 			break;
 		default:
 			usage();
@@ -92,6 +97,8 @@ main(int argc, char **argv)
 		return 0;
 	}
 
+	new_cache = check_new_cache();
+
 	if (f_export && ! f_ignore)
 		export_read(_PATH_EXPORTS);
 	if (f_export) {
@@ -116,10 +123,15 @@ main(int argc, char **argv)
 				unexportfs(argv[i], f_verbose);
 		rmtab_read();
 	}
-	xtab_mount_read();
-	exports_update(f_verbose);
+	if (!new_cache) {
+		xtab_mount_read();
+		exports_update(f_verbose);
+	}
 	xtab_export_write();
-	xtab_mount_write();
+	if (new_cache)
+		cache_flush(force_flush);
+	if (!new_cache)
+		xtab_mount_write();
 
 	return export_errno;
 }
@@ -267,19 +279,22 @@ unexportfs(char *arg, int verbose)
 					  hname)))
 			continue;
 		if (verbose) {
+#if 0
 			if (exp->m_exported) {
 				printf("unexporting %s:%s from kernel\n",
 				       exp->m_client->m_hostname,
 				       exp->m_export.e_path);
 			}
-			else {
+			else
+#endif
 				printf("unexporting %s:%s\n",
 					exp->m_client->m_hostname, 
 					exp->m_export.e_path);
-			}
 		}
+#if 0
 		if (exp->m_exported && !export_unexport(exp))
 			error(exp, errno);
+#endif
 		exp->m_xtabent = 0;
 		exp->m_mayexport = 0;
 	}

@@ -129,6 +129,7 @@ void qword_eol(FILE *f);
 int readline(int fd, char **buf, int *lenp);
 int qword_get(char **bpp, char *dest, int bufsize);
 int qword_get_int(char **bpp, int *anint);
+void cache_flush(int force);
 int check_new_cache(void);
 
 /* lockd. */

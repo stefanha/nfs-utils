@@ -18,6 +18,8 @@
 #include "xio.h"
 #include "xlog.h"
 
+static void cond_rename(char *newfile, char *oldfile);
+
 static int
 xtab_read(char *xtab, int is_export)
 {
@@ -104,7 +106,7 @@ xtab_write(char *xtab, char *xtabtmp, int is_export)
 	}
 	endexportent();
 
-	rename(xtabtmp, xtab);
+	cond_rename(xtabtmp, xtab);
 
 	xfunlock(lockid);
 
@@ -142,3 +144,46 @@ xtab_append(nfs_export *exp)
 	exp->m_xtabent = 1;
 }
 
+/*
+ * rename newfile onto oldfile unless
+ * they are identical 
+ */
+static void cond_rename(char *newfile, char *oldfile)
+{
+	int nfd, ofd;
+	char nbuf[4096], obuf[4096];
+	int ncnt, ocnt;
+
+	nfd = open(newfile, 0);
+	if (nfd < 0)
+		return;
+	ofd = open(oldfile, 0);
+	if (ofd < 0) {
+		close(nfd);
+		rename(newfile, oldfile);
+		return;
+	}
+
+	do {
+		ncnt = read(nfd, nbuf, sizeof(nbuf));
+		if (ncnt < 0)
+			break;
+		ocnt = read(ofd, obuf, sizeof(obuf));
+		if (ocnt < 0)
+			break;
+		if (ncnt != ocnt)
+			break;
+		if (ncnt == 0) {
+			close(nfd);
+			close(ofd);
+			unlink(newfile);
+			return;
+		}
+	} while (memcmp(obuf, nbuf, ncnt) == 0);
+
+	/* some mis-match */
+	close(nfd);
+	close(ofd);
+	rename(newfile, oldfile);
+	return;
+}

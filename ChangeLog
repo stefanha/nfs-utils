@@ -1,5 +1,19 @@
 2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
 
+	* utils/exportfs/exportfs.c: Use check_new_cache and cache_flush
+	 Don't actually talk to kernel when new cache is in effect, except
+	 to flush
+	* utils/exportfs/exportfs.c: add -f option to fully flush cache.
+	* support/export/xtab.c: Only rename new xtab into place if it has
+	 changed, thus preserving modify date for exportfs to use when
+	 flushing.
+	* support/nfs/cacheio.c: Add cache_flush
+	* support/export/xtab.c: Only rename new xtab into place if it has
+	 changed, thus preserving modify date for exportfs to use when
+	 flushing.
+	
+2003-05-21  NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/export/client.c: Add client_compose, client_member to
 	handle new composite client names
 	* support/include/exportfs.h: Declare above functions.
