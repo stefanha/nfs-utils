@@ -1,3 +1,8 @@
+2001-02-17  Patrick J. LoPresti <patl@curl.com>
+
+	* utils/statd/log.c (log_init): Use LOG_DAEMON instead of
+	LOG_LOCAL5.
+
 2001-02-14  H.J. Lu <hjl@lucon.org>
 
 	* utils/statd/rmtcall.c: Include <time.h>.
