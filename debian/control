@@ -1,0 +1,38 @@
+Source: nfs-utils
+Priority: standard
+Section: net
+Maintainer: Chip Salzenberg <chip@debian.org>
+Standards-Version: 3.1.1.1
+
+Package: nfs-kernel-server
+Architecture: any
+Depends: nfs-common (>= 1:0.1.5), ${shlibs:Depends}
+Provides: knfs, nfs-server
+Conflicts: knfs, nfs-server
+Replaces: knfs, nfs-server
+Description: Kernel NFS server support
+ Use this package if you have a fairly recent kernel (2.2.13 or better)
+ and you want to use the kernel-mode NFS server.  The user-mode NFS
+ server in the "nfs-server" package is slower but more featureful and
+ easier to debug than the kernel-mode server.
+ .
+ Upstream: SourceForge project "nfs", CVS module nfs-utils.
+
+Package: nhfsstone
+Architecture: any
+Depends: nfs-common, ${shlibs:Depends}
+Description: NFS benchmark program.
+ .
+ Upstream: SourceForge project "nfs", CVS module nfs-utils.
+
+Package: nfs-common
+Architecture: any
+Depends: ${shlibs:Depends}
+Provides: nfs-client
+Conflicts: nfs-client
+Replaces: nfs-client
+Description: NFS support files common to client and server
+ Use this package on any machine that does NFS either as client or
+ server.  Programs included: lockd, statd, showmount, and nfsstat.
+ .
+ Upstream: SourceForge project "nfs", CVS module nfs-utils.

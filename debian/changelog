@@ -1,0 +1,121 @@
+nfs-utils (1:0.1.9.1-2) frozen unstable; urgency=medium
+
+  * Upstream fixes from H.J. Lu and Neil Brown.
+
+ -- Chip Salzenberg <chip@valinux.com>  Wed, 25 Aug 2000 10:30:00 -0700
+
+nfs-utils (1:0.1.9.1-1) frozen unstable; urgency=high
+
+  * New upstream version, fixes more logging errors.
+  * Fix Debian distribution list.
+
+ -- Chip Salzenberg <chip@valinux.com>  Wed,  5 Jul 2000 15:00:00 -0800
+
+nfs-utils (1:0.1.8.2-2) unstable; urgency=high
+
+  * Fix serious logging error in statd.
+
+ -- Chip Salzenberg <chip@valinux.com>  Wed, 28 Jun 2000 23:00:00 -0800
+
+nfs-utils (1:0.1.8.2-1) unstable; urgency=low
+
+  * New upstream version.
+  * During startup, start daemons before running exportfs.
+
+ -- Chip Salzenberg <chip@valinux.com>  Wed, 28 Jun 2000 15:00:00 -0800
+
+nfs-utils (1:0.1.8.1-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Chdir to / before spawning daemons. (closes: #60837, #64857)
+  * Follow policy for init messages. (closes: #59184, #65519)
+
+ -- Chip Salzenberg <chip@valinux.com>  Mon, 12 Jun 2000 22:30:00 -0800
+
+nfs-utils (1:0.1.8-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Chip Salzenberg <chip@valinux.com>  Sun,  4 Jun 2000 13:30:00 -0800
+
+nfs-utils (1:0.1.7.1-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Use fewer sockets in mountd by sharing RPC transports,
+    even when it is run without '-p'.
+
+ -- Chip Salzenberg <chip@valinux.com>  Sat, 29 Apr 2000 20:45:00 -0800
+
+nfs-utils (1:0.1.6-3) frozen unstable; urgency=medium
+
+  * Fix kernel server shutdown order: mountd, nfsd, exportfs.
+  * Upstream:  Fix 'mountd -p'.  Use fewer UDP sockets
+    by sharing RPC transports.  Display more mount flags.
+
+ -- Chip Salzenberg <chip@valinux.com>  Mon, 13 Mar 2000 14:45:00 -0800
+
+nfs-utils (1:0.1.6-2) frozen unstable; urgency=medium
+
+  * Split off nhfsstone into its own package, since it has
+    helper scripts and most people won't use it.
+  * Also include nhfsstone's helpers: nhfs{run,nums,graph}.
+  * Install man page for nhfsstone. (closes: #55194)
+  * Always run lockd on non-module kernels. (closes: #57841)
+  * Make init scripts config files. (closes: #55193)
+  * Handle "force-reload" in nfs-common's init script. (ditto)
+  * Fix line numbers in error messages. (closes: #57717)
+  * Write man page for rpc.lockd. (closes: #55192)
+  * Fix typo in exports(5) man page. (closes: #46933)
+  * Add /usr/doc -> /usr/share doc links. (closes: #54983)
+  * Add copyright file. (closes: #55195)
+  * Refresh sources from upstream.
+  * Refine dependencies.
+
+ -- Chip Salzenberg <chip@valinux.com>  Sat, 26 Feb 2000 02:00:00 -0800
+
+nfs-utils (1:0.1.6-1) unstable; urgency=high
+
+  * New upstream version.
+  * Make nfs-kernel-server conflict with and replace knfs.
+
+ -- Chip Salzenberg <chip@valinux.com>  Wed, 12 Jan 2000 19:30:00 -0800
+
+nfs-utils (1:0.1.5-2) unstable; urgency=high
+
+  * Rename packages to "nfs-common" and "nfs-kernel-server".
+    (Previous package names were only temporary anyway.)
+  * Prepend "1:" to version, to override existing nfs-common.
+  * Remove rpc.rquotad -- it's already packaged in "quota".
+
+ -- Chip Salzenberg <chip@valinux.com>  Wed, 29 Dec 1999 17:00:00 -0800
+
+nfs-utils (0.1.5-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Allow for some kernels not requiring rpc.lockd.
+
+ -- Chip Salzenberg <chip@valinux.com>  Sun, 19 Dec 1999 11:40:00 -0800
+
+nfs-utils (0.1.4-1) unstable; urgency=low
+
+  * New upstream version.
+  * Don't disable NFSv3 by default.
+
+ -- Chip Salzenberg <chip@valinux.com>  Fri, 10 Dec 1999 23:00:00 -0800
+
+nfs-utils (0.1.3-2) unstable; urgency=low
+
+  * Conflict with standard NFS packages.
+
+ -- Chip Salzenberg <chip@valinux.com>  Fri,  3 Dec 1999 22:00:00 -0800
+
+nfs-utils (0.1.3-1) unstable; urgency=low
+
+  * New upstream version.
+  * Start following CVS tree at SourceForge.
+
+ -- Chip Salzenberg <chip@valinux.com>  Fri,  3 Dec 1999 20:00:00 -0800
+
+Local variables:
+mode: debian-changelog
+End:

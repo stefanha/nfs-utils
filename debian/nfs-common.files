@@ -1,0 +1,5 @@
+usr/sbin/nfsstat
+usr/share/man/man8/*lockd*
+usr/share/man/man8/*statd*
+usr/share/man/man8/nfsstat*
+usr/share/man/man8/showmount*

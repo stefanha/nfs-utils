@@ -1,4 +1,10 @@
+2000-08-25  Chip Salzenberg  <chip@valinux.com>
+
+	* debian/*: Complete Debian build support.
+	* etc/debian/*: Remove.
+
 2000-08-24  Neil Brown <neilb@cse.unsw.edu.au>
+
 	* support/export/client.c(client_check): removed the "dot+1" as a
 	  ypdomain argument to innetgr as this is entirely bogus.
 	  It should always be NULL.

@@ -1,0 +1,4 @@
+etc/init.d
+sbin
+usr/sbin
+var/lib/nfs
