@@ -1,3 +1,7 @@
+1999-12-04  Chip Salzenberg  <chip@valinux.com>
+
+	* rules.mk: Call $(MAKE) with $(MFLAGS).
+
 Mon Nov 29 11:17:35 1999  H.J. Lu <hjl@lucon.org>
 
 	* tools/rpcgen/rpc_main.c (h_output): Generate IXDR_GET_INT32,

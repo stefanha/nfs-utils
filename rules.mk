@@ -13,7 +13,8 @@ ifneq ($(SUBDIRS),)
 $(ALLTARGETS)::
 	@set -e; for d in $(SUBDIRS); do \
 		echo "Making $@ in $$d"; \
-		$(MAKE) --no-print-directory TOP=../$(TOP) -C $$d $@; \
+		$(MAKE) $(MFLAGS) --no-print-directory \
+			-C $$d TOP=../$(TOP) $@; \
 	done
 endif
 
