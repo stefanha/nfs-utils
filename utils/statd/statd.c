@@ -76,7 +76,7 @@ main (int argc, char **argv)
     setsid ();
     chdir (DIR_BASE);
 
-    for (filedes = 0; filedes < OPEN_MAX; filedes++) {
+    for (filedes = 0; filedes < sysconf (_SC_OPEN_MAX); filedes++) {
       close (filedes);
     }
   }
