@@ -17,7 +17,7 @@
 #include "exportfs.h"
 #include "xio.h"
 
-static int	expsetup(struct nfsctl_export *exparg, nfs_export *exp);
+static int	expsetup(struct nfsctl_export *exparg, nfs_export *exp, int unexport);
 static int	cltsetup(struct nfsctl_client *cltarg, nfs_client *clp);
 
 int
@@ -34,7 +34,7 @@ export_export(nfs_export *exp)
 			return 0;
 		clp->m_exported = 1;
 	}
-	if (!expsetup(&exparg, exp))
+	if (!expsetup(&exparg, exp, 0))
 		return 0;
 	if (nfsexport(&exparg) < 0)
 		return 0;
@@ -47,7 +47,7 @@ export_unexport(nfs_export *exp)
 {
 	struct nfsctl_export	exparg;
 
-	if (!expsetup(&exparg, exp) || nfsunexport(&exparg) < 0)
+	if (!expsetup(&exparg, exp, 1) || nfsunexport(&exparg) < 0)
 		return 0;
 	exp->m_exported = 0;
 	return 1;
@@ -82,7 +82,7 @@ cltsetup(struct nfsctl_client *cltarg, nfs_client *clp)
 }
 
 static int
-expsetup(struct nfsctl_export *exparg, nfs_export *exp)
+expsetup(struct nfsctl_export *exparg, nfs_export *exp, int unexport)
 {
 	nfs_client		*clp = exp->m_client;
 	struct stat		stb;
@@ -103,7 +103,8 @@ expsetup(struct nfsctl_export *exparg, nfs_export *exp)
 		sizeof (exparg->ex_client) - 1);
 	str_tolower(exparg->ex_client);
 	exparg->ex_flags    = exp->m_export.e_flags;
-	exparg->ex_dev      = stb.st_dev;
+	exparg->ex_dev      = (!unexport && (exp->m_export.e_flags & NFSEXP_FSID)) ?
+				exp->m_export.e_fsid : stb.st_dev;
 	exparg->ex_ino      = stb.st_ino;
 	exparg->ex_anon_uid = exp->m_export.e_anonuid;
 	exparg->ex_anon_gid = exp->m_export.e_anongid;

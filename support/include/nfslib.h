@@ -72,6 +72,7 @@ struct exportent {
 	int		e_nsquids;
 	int *		e_sqgids;
 	int		e_nsqgids;
+	int		e_fsid;
 };
 
 struct rmtabent {

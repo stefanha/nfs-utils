@@ -176,7 +176,9 @@ putexportent(struct exportent *ep)
 		"no_" : "");
 	fprintf(fp, "%ssecure_locks,", (ep->e_flags & NFSEXP_NOAUTHNLM)?
 		"in" : "");
-
+	if (ep->e_flags & NFSEXP_FSID) {
+		fprintf(fp, "fsid=%d,", ep->e_fsid);
+	}
 	fprintf(fp, "mapping=");
 	switch (ep->e_maptype) {
 	case CLE_MAP_IDENT:
@@ -287,6 +289,8 @@ static int
 parseopts(char *cp, struct exportent *ep)
 {
 	int	had_sync_opt = 0;
+	char 	*flname = efname?efname:"command line";
+	int	flline = efp?efp->x_line:0;
 
 	squids = ep->e_squids; nsquids = ep->e_nsquids;
 	sqgids = ep->e_sqgids; nsqgids = ep->e_nsqgids;
@@ -360,11 +364,25 @@ parseopts(char *cp, struct exportent *ep)
 			ep->e_maptype = CLE_MAP_IDENT;
 		else if (strcmp(opt, "map_daemon") == 0)	/* old style */
 			ep->e_maptype = CLE_MAP_UGIDD;
-		else if (strncmp(opt, "anonuid=", 8) == 0)
-			ep->e_anonuid = atoi(opt+8);
-		else if (strncmp(opt, "anongid=", 8) == 0)
-			ep->e_anongid = atoi(opt+8);
-		else if (strncmp(opt, "squash_uids=", 12) == 0) {
+		else if (strncmp(opt, "anonuid=", 8) == 0) {
+			char *oe;
+			ep->e_anonuid = strtol(opt+8, &oe, 10);
+			if (opt[8]=='\0' || *oe != '\0') {
+				xlog(L_ERROR, "%s: %d: bad anonuid \"%s\"\n",
+				     flname, flline, opt);	
+				free(opt);
+				return -1;
+			}
+		} else if (strncmp(opt, "anongid=", 8) == 0) {
+			char *oe;
+			ep->e_anongid = strtol(opt+8, &oe, 10);
+			if (opt[8]=='\0' || *oe != '\0') {
+				xlog(L_ERROR, "%s: %d: bad anongid \"%s\"\n",
+				     flname, flline, opt);	
+				free(opt);
+				return -1;
+			}
+		} else if (strncmp(opt, "squash_uids=", 12) == 0) {
 			if (parsesquash(opt+12, &squids, &nsquids, &cp) < 0) {
 				free(opt);
 				return -1;
@@ -374,9 +392,19 @@ parseopts(char *cp, struct exportent *ep)
 				free(opt);
 				return -1;
 			}
+		} else if (strncmp(opt, "fsid=", 5) == 0) {
+			char *oe;
+			ep->e_fsid = strtoul(opt+5, &oe, 0);
+			if (opt[5]=='\0' || *oe != '\0') {
+				xlog(L_ERROR, "%s: %d: bad fsid \"%s\"\n",
+				     flname, flline, opt);	
+				free(opt);
+				return -1;
+			}
+			ep->e_flags |= NFSEXP_FSID;
 		} else {
 			xlog(L_ERROR, "%s:%d: unknown keyword \"%s\"\n",
-					efname, efp->x_line, opt);
+					flname, flline, opt);
 			ep->e_flags |= NFSEXP_ALLSQUASH | NFSEXP_READONLY;
 			free(opt);
 			return -1;
@@ -501,7 +529,7 @@ getexport(char *exp, int len)
 	xskip(efp, " \t");
 	if ((ok = xgettok(efp, 0, exp, len)) < 0)
 		xlog(L_ERROR, "%s:%d: syntax error",
-			efname, efp->x_line);
+			efname?"command line":efname, efp->x_line);
 	return ok;
 }
 
@@ -509,6 +537,6 @@ static void
 syntaxerr(char *msg)
 {
 	xlog(L_ERROR, "%s:%d: syntax error: %s",
-			efname, efp->x_line, msg);
+			efname, efp?efp->x_line:0, msg);
 }
 
