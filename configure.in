@@ -4,7 +4,7 @@ AC_INIT(rules.mk)
 AC_PREFIX_DEFAULT(/usr)
 
 # The nfs-utils version
-VERSION="0.1.7.5"
+VERSION="0.1.8"
 AC_SUBST(VERSION)
 
 dnl *************************************************************

@@ -1,5 +1,13 @@
 2000-05-31  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "0.1.8".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+	* README: Updated.
+
+2000-05-31  H.J. Lu <hjl@lucon.org>
+
 	* configure.in (VERSION): Set to "0.1.7.5".
 	* configure: Regenerated.
 	* nfs-utils.spec: Updated.
