@@ -32,7 +32,7 @@ slink_safe_rename(const char * oldpath, const char * newpath)
 	int r;
 	struct stat s;
 	char slink_path[PATH_MAX];
-	char real_newpath = newpath;
+	const char *real_newpath = newpath;
 
 	if ((lstat(newpath, &s) == 0) && S_ISLNK(s.st_mode)) {
 		/* New path is a symbolic link, do not destroy but follow */
