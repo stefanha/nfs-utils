@@ -90,7 +90,7 @@ log(int level, char *fmt, ...)
     buffer[1023]=0;
 
     if (level < L_DEBUG) {
-    	syslog(level, buffer);
+    	syslog(level, "%s", buffer);
     }
 
     if (opt_debug) {
