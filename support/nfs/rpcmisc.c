@@ -127,7 +127,6 @@ int sig;
 {
 	(void) signal(sig, closedown);
 	if (_rpcsvcdirty == 0) {
-		extern fd_set svc_fdset;
 		static int size;
 		int i, openfd;
 

@@ -632,7 +632,6 @@ write_timeout_func(void)
 	f_print(fout, "closedown()\n");
 	f_print(fout, "{\n");
 	f_print(fout, "\tif (_rpcsvcdirty == 0) {\n");
-	f_print(fout, "\t\textern fd_set svc_fdset;\n");
 	f_print(fout, "\t\tstatic int size;\n");
 	f_print(fout, "\t\tint i, openfd;\n");
 	if (tirpcflag && pmflag) {

@@ -1,3 +1,10 @@
+2001-04-01  Chip Salzenberg  <chip@valinux.com>
+
+	* tools/rpcgen/rpc_svcout.c (write_timeout_func): Remove
+	redundant, and sometimes broken, declaration of svc_fdset;
+	it may be a macro.
+	* support/nfs/rpcmisc.c (closedown): Likewise.
+	
 2001-03-21  H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec: Regenerated.
