@@ -189,7 +189,8 @@ void nfsd_fh(FILE *f)
 		goto out;
 	}
 
-	cache_export_ent(dom, found);
+	if (found)
+		cache_export_ent(dom, found);
 
 	qword_print(f, dom);
 	qword_printint(f, fsidtype);
