@@ -1,7 +1,8 @@
 nfs-utils (1:1.0.5-2) unstable; urgency=low
 
-  * Use po-debconf.  Patch from Andre Luis Lopes <andrelop@ig.com.br>.
-    (closes: #187866)
+  * Use po-debconf.  Patch from Andre Luis Lopes <andrelop@ig.com.br>,
+    with improved French from Christian Perrier <bubulle@debian.org>.
+    (closes: #187866, #202196)
 
  -- 
 
