@@ -27,7 +27,6 @@
 #ifdef _LIBC
 # include <libintl.h>
 #else
-# include "config.h"
 # ifndef _
 #  define _(s)			(s)
 # endif
@@ -35,7 +34,6 @@
 # define __close(f)		close ((f))
 #endif
 
-#if !defined HAVE_SVCTCP_SOCKET || !defined HAVE_SVCUDP_SOCKET
 static int
 svc_socket (u_long number, int type, int protocol, int reuse)
 {
@@ -116,9 +114,7 @@ svc_socket (u_long number, int type, int protocol, int reuse)
 
   return sock;
 }
-#endif
 
-#ifndef HAVE_SVCTCP_SOCKET
 /*
  * Create and bind a TCP socket based on program number
  */
@@ -127,9 +123,7 @@ svctcp_socket (u_long number, int reuse)
 {
   return svc_socket (number, SOCK_STREAM, IPPROTO_TCP, reuse);
 }
-#endif
 
-#ifndef HAVE_SVCUDP_SOCKET
 /*
  * Create and bind a UDP socket based on program number
  */
@@ -138,7 +132,6 @@ svcudp_socket (u_long number, int reuse)
 {
   return svc_socket (number, SOCK_DGRAM, IPPROTO_UDP, reuse);
 }
-#endif
 
 #ifdef TEST
 static int
