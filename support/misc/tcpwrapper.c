@@ -221,9 +221,9 @@ u_long  prognum;
 char   *text;
 {
     char   *procname;
-    char    procbuf[4 * sizeof(u_long)];
+    char    procbuf[16 + 4 * sizeof(u_long)];
     char   *progname;
-    char    progbuf[4 * sizeof(u_long)];
+    char    progbuf[16 + 4 * sizeof(u_long)];
     struct rpcent *rpc;
 
     /*
@@ -242,16 +242,18 @@ char   *text;
 	} else if ((rpc = getrpcbynumber((int) prognum))) {
 	    progname = rpc->r_name;
 	} else {
-	    sprintf(progname = progbuf, "%lu", prognum);
+	    snprintf(progname = progbuf, sizeof (progbuf),
+		     "prog (%lu)", prognum);
 	}
 
 	/* Try to map procedure number to name. */
 
-	sprintf(procname = procbuf, "%lu", (u_long) procnum);
+	snprintf(procname = procbuf, sizeof (procbuf),
+		 "proc (%lu)", (u_long) procnum);
 
 	/* Write syslog record. */
 
-	syslog(severity, "connect from %s to %s(%s)%s",
+	syslog(severity, "connect from %s to %s in %s%s",
 	       inet_ntoa(addr->sin_addr), procname, progname, text);
 	exit(0);
     }
