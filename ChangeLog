@@ -1,5 +1,13 @@
 2002-04-07  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "1.0.1".
+	* configure: Regenerated.
+	* nfs-utils.spec: Likewise.
+
+	* README: Updated for 1.0.1.
+
+2002-04-07  H.J. Lu <hjl@lucon.org>
+
 	* etc/redhat/nfs.init: Read /etc/sysconfig/nfsd for NFS tuning.
 
 2002-02-28   Steven Whitehouse <steve@gw.chygwyn.com>

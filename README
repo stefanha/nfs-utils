@@ -1,4 +1,4 @@
-This is version 1.0 of nfs-utils, the Linux NFS utility package.
+This is version 1.0.1 of nfs-utils, the Linux NFS utility package.
 
 
 0. PROJECT RESOURCES
@@ -27,7 +27,7 @@ have been tested on RedHat 6.2 and 7.1.
 
 On RedHat 6.2 and 7.1, you can use
 
-    # rpm -ta nfs-utils-1.0.tar.gz
+    # rpm -ta nfs-utils-1.0.1.tar.gz
 
 to build the source and binary RPMs.
 
