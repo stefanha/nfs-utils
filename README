@@ -1,5 +1,5 @@
-This is the Linux NFS utility package version 0.1. It is based on knfsd
-1.4.7.
+This is the Linux NFS utility package version 0.1.1. It is based on
+knfsd 1.4.7.
 
 WARNING: The NFS servers in Linux 2.2 to 2.2.12 are not compatible with
 other NFS client implemenations. If you plan to use Linux 2.2.x as an
@@ -15,7 +15,13 @@ without password if it is your first time.
 
 3. Check out the current Linux 2.2 NFS kernel:
 
+a. From the NFS V2 branch:
+
 # cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co -r linux-2-2-nfsv2 linux-2.2
+
+b. From the main trunk:
+
+# cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co linux-2.2
 
 4. If you don't want to use the current NFS kernel, you can find out
 for which kernels the NFS patch is available:
@@ -58,9 +64,10 @@ The nfs-utils package is avaible from the CVS server:
 
 will get the latest version.
 
-The tar file is at
+The files are
 
-ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.tar.gz
+ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.1.tar.gz
+ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1-0.1.1.diff.gz
 
 To compile, just do
 
@@ -75,7 +82,7 @@ They are tested on RedHat 6.1.
 
 On RedHat 6.1, you can use
 
-# rpm -ta nfs-utils-0.1.tar.gz
+# rpm -ta nfs-utils-0.1.1.tar.gz
 
 to build the source and binary RPMs.
 
@@ -89,4 +96,4 @@ Thanks.
 
 H.J.
 hjl@lucon.org
-10/18/99
+10/21/99
