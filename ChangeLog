@@ -1,3 +1,8 @@
+2000-03-21 Michael Weiser <michael@weiser.saale-net.de>
+
+	* support/nfs/exports.c (parsesquash): Correctly set the
+	return pointer.
+
 Tue Mar 21 11:38:48 EST 2000 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* support/include/nfs/nfs.h: Removed knowledge of internals of
@@ -21,7 +26,7 @@ Tue Mar 21 11:38:48 EST 2000 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* support/nfs/rpcmisc.c (rpc_init): Share transports.
 
-Mon Mar 13 18:31:33 2000 H.J. Lu <hjl@lucon.org>
+2000-03-13 H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfsd.init: Updated.
 

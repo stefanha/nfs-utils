@@ -394,8 +394,8 @@ parsesquash(char *list, int **idp, int *lenp, char **ep)
 		cp++;
 	} while(1);
 
-	if (*cp == ',') *ep = cp+1;
-	
+	if (**ep == ',') (*ep)++;
+
 	*lenp = len;
 	*idp = id;
 	return 1;
