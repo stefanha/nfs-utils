@@ -12,5 +12,5 @@ include $(TOP)rules.mk
 
 install::
 	for s in $(SCRIPTS); do \
-	    $(INSTALLBIN) $(PROGRAM) $(SBINDIR)/$(PREFIX)$k$$s; \
+	    $(INSTALLBIN) $$s $(SBINDIR)/$(PREFIX)$k$$s; \
 	done
