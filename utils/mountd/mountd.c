@@ -531,7 +531,8 @@ main(int argc, char **argv)
 		}
 	}
 	/* Initialize logging. */
-/*	xlog_open("mountd"); */
+	if (!foreground) xlog_stderr(0);
+	xlog_open("mountd");
 
 	sa.sa_handler = SIG_IGN;
 	sa.sa_flags = 0;
@@ -589,7 +590,6 @@ main(int argc, char **argv)
 			if (fd > 2) (void) close(fd);
 		}
 		setsid();
-		xlog_background();
 	}
 
 	my_svc_run();

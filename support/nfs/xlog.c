@@ -29,12 +29,12 @@
 
 #undef	VERBOSE_PRINTF
 
-static int  foreground = 1;		/* not a daemon initially	*/
+static int  log_stderr = 1;
+static int  log_syslog = 1;
 static int  logging = 0;		/* enable/disable DEBUG logs	*/
 static int  logmask = 0;		/* What will be logged		*/
 static char log_name[256];		/* name of this program		*/
 static int  log_pid = -1;		/* PID of this program		*/
-static FILE *log_fp = (FILE *)NULL;	/* fp for the log file		*/
 
 static void	xlog_toggle(int sig);
 static struct xlog_debugfac	debugnames[] = {
@@ -50,11 +50,6 @@ void
 xlog_open(char *progname)
 {
 	openlog(progname, LOG_PID, LOG_DAEMON);
-	if (foreground) {
-		log_fp = stderr;
-		if (log_fp != NULL)
-			setbuf(log_fp, NULL);
-	}
 
 	strncpy(log_name, progname, sizeof (log_name) - 1);
 	log_name [sizeof (log_name) - 1] = '\0';
@@ -65,9 +60,15 @@ xlog_open(char *progname)
 }
 
 void
-xlog_background(void)
+xlog_stderr(int on)
 {
-	foreground = 0;
+	log_stderr = on;
+}
+
+void
+xlog_syslog(int on)
+{
+	log_syslog = on;
 }
 
 static void
@@ -126,17 +127,13 @@ xlog_enabled(int fac)
 }
 
 
-/* Write something to the system logfile. */
+/* Write something to the system logfile and/or stderr */
 void
 xlog(int kind, const char *fmt, ...)
 {
 	char		buff[1024];
 	va_list		args;
-	int		logged = 1, n;
-#ifdef VERBOSE_PRINTF
-	time_t		now;
-	struct tm	*tm;
-#endif
+	int		n;
 
 	if (!(kind & (L_ALL)) && !(logging && (kind & logmask)))
 		return;
@@ -148,40 +145,44 @@ xlog(int kind, const char *fmt, ...)
 	if ((n = strlen(buff)) > 0 && buff[n-1] == '\n')
 		buff[--n] = '\0';
 
-	switch (kind) {
-	case L_FATAL:
-		syslog(LOG_ERR, "%s", buff);
-		break;
-	case L_ERROR:
-		syslog(LOG_ERR, "%s", buff);
-		break;
-	case L_WARNING:
-		syslog(LOG_WARNING, "%s", buff);
-		break;
-	case L_NOTICE:
-		syslog(LOG_NOTICE, "%s", buff);
-		break;
-	default:
-		logged = 0;
-		break;
-	}
-	if (!logged || foreground) {
-		if (!logged && log_fp == NULL) {
-			syslog(LOG_DEBUG, "%s", buff);
-		} else if (log_fp != NULL) {
-#ifdef VERBOSE_PRINTF
-			time(&now);
-			tm = localtime(&now);
-			fprintf(log_fp, "%s[%d] %02d/%02d/%02d %02d:%02d %s\n",
-					log_name, log_pid,
-					tm->tm_mon + 1, tm->tm_mday,
-					tm->tm_year, tm->tm_hour, tm->tm_min,
-					buff);
-#else
-			fprintf(log_fp, "%s: %s\n", log_name, buff);
-#endif
+	if (log_syslog) {
+		switch (kind) {
+		case L_FATAL:
+			syslog(LOG_ERR, "%s", buff);
+			break;
+		case L_ERROR:
+			syslog(LOG_ERR, "%s", buff);
+			break;
+		case L_WARNING:
+			syslog(LOG_WARNING, "%s", buff);
+			break;
+		case L_NOTICE:
+			syslog(LOG_NOTICE, "%s", buff);
+			break;
+		default:
+			if (!log_stderr)
+				syslog(LOG_DEBUG, "%s", buff);
+			break;
 		}
 	}
+
+	if (log_stderr) {
+#ifdef VERBOSE_PRINTF
+		time_t		now;
+		struct tm	*tm;
+
+		time(&now);
+		tm = localtime(&now);
+		fprintf(stderr, "%s[%d] %04d-%02d-%02d %02d:%02d:%02d %s\n",
+				log_name, log_pid,
+				tm->tm_year+1900, tm->tm_mon + 1, tm->tm_mday,
+				tm->tm_hour, tm->tm_min, tm->tm_sec,
+				buff);
+#else
+		fprintf(stderr, "%s: %s\n", log_name, buff);
+#endif
+	}
+
 	if (kind == L_FATAL)
 		exit(1);
 }
