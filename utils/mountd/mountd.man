@@ -44,7 +44,6 @@ For every mount request received from an NFS client,
 adds an entry to the
 .B /var/lib/nfs/rmtab
 file. When receiving an unmount request, that entry is removed.
-user level part of the NFS service.
 .P
 However, this file is mostly ornamental. One, the client can continue
 to use the file handle even after calling
