@@ -104,7 +104,7 @@ hostent_dup (struct hostent *hp)
   char **sp;
   struct hostent *cp;
 
-  for (sp = hp->h_aliases; *sp; sp++)
+  for (sp = hp->h_aliases; sp && *sp; sp++)
     {
       num_aliases++;
       len_aliases += align (strlen (*sp) + 1, ALIGNMENT)
@@ -130,14 +130,14 @@ hostent_dup (struct hostent *hp)
   cp->h_aliases = (char **) &(((char *) cp) [pos]);
   pos += num_aliases * sizeof (char *);
   for (sp = hp->h_aliases, i = 0; i < num_aliases; i++, sp++)
-    if (*sp)
+    if (sp && *sp)
       {
 	cp->h_aliases [i] = (char *) &(((char *) cp) [pos]);
 	strcpy (cp->h_aliases [i], *sp);
 	pos += align (strlen (*sp) + 1, ALIGNMENT);
       }
     else
-      cp->h_aliases [i] = *sp;
+      cp->h_aliases [i] = NULL;
 
   pos = len_ent + len_name + len_aliases;
   cp->h_addr_list = (char **) &(((char *) cp) [pos]);
