@@ -1,3 +1,9 @@
+2005-03-06  G. Allen Morris III <gam3@gam3.net>
+	* support/nfs/cacheio.c(readline): Could not real lines greater
+	than 128 bytes. [1157791] 
+	* utils/exportfs/exports.man: Added a SEE ALSO section and
+	fixed 2 typos. [1018450]
+
 2005-02-28  Trond Myklebust <trond.myklebust@fys.uio.no>
 	* utils/statd/rmtcall.c(statd_get_socket): If a port number is
 	explicitly given, make sure to try to bind to that.
