@@ -27,7 +27,7 @@ Description: NFS benchmark program.
 
 Package: nfs-common
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: portmap, ${shlibs:Depends}
 Provides: nfs-client
 Conflicts: nfs-client
 Replaces: nfs-client
