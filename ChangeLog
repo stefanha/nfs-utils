@@ -1,5 +1,10 @@
 Mon Nov 29 11:17:35 1999  H.J. Lu <hjl@lucon.org>
 
+	* tools/rpcgen/rpc_main.c (h_output): Generate IXDR_GET_INT32,
+	IXDR_PUT_INT32, IXDR_GET_U_INT32 and IXDR_PUT_U_INT32.
+
+Mon Nov 29 11:17:35 1999  H.J. Lu <hjl@lucon.org>
+
 	* nfs-utils.spec (Version): Set to 0.1.3.
 
 	* configure.in (VERSION): Set to "nfs-utils 0.1.3".

@@ -488,6 +488,19 @@ h_output(char *infile, char *define, int extend, char *outfile)
 
 	f_print(fout, "#include <rpc/rpc.h>\n\n");
 
+	f_print(fout, "#ifndef IXDR_GET_INT32\n");
+	f_print(fout, "#define IXDR_GET_INT32(buf) IXDR_GET_LONG((buf))\n");
+	f_print(fout, "#endif\n");
+	f_print(fout, "#ifndef IXDR_PUT_INT32\n");
+	f_print(fout, "#define IXDR_PUT_INT32(buf, v) IXDR_PUT_LONG((buf), (v))\n");
+	f_print(fout, "#endif\n");
+	f_print(fout, "#ifndef IXDR_GET_U_INT32\n");
+	f_print(fout, "#define IXDR_GET_U_INT32(buf) IXDR_GET_U_LONG((buf))\n");
+	f_print(fout, "#endif\n");
+	f_print(fout, "#ifndef IXDR_PUT_U_INT32\n");
+	f_print(fout, "#define IXDR_PUT_U_INT32(buf, v) IXDR_PUT_U_LONG((buf), (v))\n");
+	f_print(fout, "#endif\n");
+
 	tell = ftell(fout);
 	/* print data definitions */
 	while ((def = get_definition()) != NULL) {
