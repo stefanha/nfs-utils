@@ -18,6 +18,7 @@
 #include <rpc/rpc.h>
 #include <rpc/pmap_clnt.h>
 #include <rpcmisc.h>
+#include <sys/resource.h>
 #include <grp.h>
 #include "statd.h"
 #include "version.h"
@@ -209,6 +210,7 @@ int main (int argc, char **argv)
 	int pid;
 	int arg;
 	int port = 0, out_port = 0;
+	struct rlimit rlim;
 
 	int pipefds[2] = { -1, -1};
 	char status;
@@ -318,6 +320,21 @@ int main (int argc, char **argv)
 	if (!(run_mode & MODE_NODAEMON)) {
 		run_mode &= ~MODE_LOG_STDERR;	/* Never log to console in
 						   daemon mode. */
+	}
+
+	if (getrlimit (RLIMIT_NOFILE, &rlim) != 0)
+		fprintf(stderr, "%s: getrlimit (RLIMIT_NOFILE) failed: %s\n",
+				argv [0], strerror(errno));
+	else {
+		/* glibc sunrpc code dies if getdtablesize > FD_SETSIZE */
+		if (rlim.rlim_cur > FD_SETSIZE) {
+			rlim.rlim_cur = FD_SETSIZE;
+
+			if (setrlimit (RLIMIT_NOFILE, &rlim) != 0) {
+				fprintf(stderr, "%s: setrlimit (RLIMIT_NOFILE) failed: %s\n",
+					argv [0], strerror(errno));
+			}
+		}
 	}
 
 #ifdef SIMULATIONS

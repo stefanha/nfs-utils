@@ -504,18 +504,21 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (descriptors) {
-		if (getrlimit (RLIMIT_NOFILE, &rlim) != 0) {
-			fprintf(stderr, "%s: getrlimit (RLIMIT_NOFILE) failed: %s\n",
+	if (getrlimit (RLIMIT_NOFILE, &rlim) != 0)
+		fprintf(stderr, "%s: getrlimit (RLIMIT_NOFILE) failed: %s\n",
 				argv [0], strerror(errno));
-			exit(1);
-		}
+	else {
+		/* glibc sunrpc code dies if getdtablesize > FD_SETSIZE */
+		if (descriptors == 0 && rlim.rlim_cur > FD_SETSIZE)
+			descriptors = FD_SETSIZE;
+		if (descriptors) {
 
-		rlim.rlim_cur = descriptors;
-		if (setrlimit (RLIMIT_NOFILE, &rlim) != 0) {
-			fprintf(stderr, "%s: setrlimit (RLIMIT_NOFILE) failed: %s\n",
-				argv [0], strerror(errno));
-			exit(1);
+			rlim.rlim_cur = descriptors;
+			if (setrlimit (RLIMIT_NOFILE, &rlim) != 0) {
+				fprintf(stderr, "%s: setrlimit (RLIMIT_NOFILE) failed: %s\n",
+					argv [0], strerror(errno));
+				exit(1);
+			}
 		}
 	}
 	/* Initialize logging. */
