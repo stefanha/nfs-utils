@@ -1,5 +1,10 @@
 2001-06-27  H.J. Lu <hjl@lucon.org>
 
+	* utils/rquotad/rquota_server.c: Don't call statfs () for
+	the block size. Use BLOCK_SIZE instead.
+
+2001-06-27  H.J. Lu <hjl@lucon.org>
+
 	* config.mk.in (CC_FOR_BUILD): Renamed from BUILD_CC.
 	(CFLAGS_FOR_BUILD): New. Don't use @CFLAGS@.
 
