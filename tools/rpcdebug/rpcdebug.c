@@ -9,6 +9,10 @@
  * allocated via vmalloc.
  *
  * Copyright (C) 1996, 1997, Olaf Kirch <okir@monad.swb.de>
+ *           (C) 2004 <frederic.jolly@bull.ext.net>
+ *
+ * 06/15/2004: updated for NFSv4
+ *
  */
 
 #include "config.h"
@@ -21,17 +25,23 @@
 #include <string.h>
 #include <fcntl.h>
 #include <ctype.h>
+/* RPC debug flags
+   #include <sunrpc/debug.h> */
+/* NFS debug flags
+   #include <nfs_fs.h> */
+/* NFSD and NLM debug flags
+   #include <nfsd/debug.h> */
 #include <nfs/debug.h>
 
 static int		verbose = 0;
+static char*            cdename;
 
-static int		find_sysname(char *module);
 static unsigned int	find_flag(char **module, char *name);
 static unsigned int	get_flags(char *);
 static unsigned int	set_flags(char *, unsigned int value);
 static void		print_flags(FILE *, char *, unsigned int, int);
 static char *		strtolower(char *str);
-static void		usage(int excode);
+static void		usage(int excode, char *module);
 
 int
 main(int argc, char **argv)
@@ -42,13 +52,27 @@ main(int argc, char **argv)
 	char *		module = NULL;
 	int		c;
 
+	cdename = malloc(strlen(basename(argv[0])));
+	if (cdename == NULL) {
+	  fprintf(stderr, "failed in malloc\n");
+	  exit(1);
+        }
+	strcpy(cdename, basename(argv[0]));
+
+	if (!strcmp(cdename, "nfsdebug")) {
+	  module = "nfs";
+	}
+	else if (!strcmp(cdename, "nfsddebug")) {
+	  module = "nfsd";
+	}
+
 	while ((c = getopt(argc, argv, "chm:sv")) != EOF) {
 		switch (c) {
 		case 'c':
 			opt_c = 1;
 			break;
 		case 'h':
-			usage(0);
+			usage(0, module);
 		case 'm':
 			module = optarg;
 			break;
@@ -59,15 +83,27 @@ main(int argc, char **argv)
 			verbose++;
 			break;
 		default:
-			fprintf(stderr, "rpcdebug: unknown option -%c\n",
-						optopt);
-			usage(1);
+		        fprintf(stderr, "%s: unknown option -%c\n", cdename, optopt);
+			usage(1, module);
 		}
 	}
 
 	if (opt_c + opt_s > 1) {
 		fprintf(stderr, "You can use at most one of -c and -s\n");
-		usage(1);
+		usage(1, module);
+	}
+
+	if (!module) {
+		fprintf(stderr, "%s: no module name specified.\n", cdename);
+		usage(1, module);
+	}
+
+	if (strcmp(module, "nfsd") &&
+	    strcmp(module, "nfs") &&
+	    strcmp(module, "nlm") &&
+	    strcmp(module, "rpc")) {
+	        fprintf(stderr, "%s: unknown module: %s\n", cdename, module);
+		usage(1, module);
 	}
 
 	if (argc == optind) {
@@ -79,12 +115,6 @@ main(int argc, char **argv)
 			opt_s = 1;
 	}
 
-	if (!module) {
-		fprintf(stderr, "rpcdebug: no module name specified, and "
-				"could not be inferred.\n");
-		usage(1);
-	}
-
 	oflags = get_flags(module);
 
 	if (opt_c) {
@@ -93,14 +123,16 @@ main(int argc, char **argv)
 		oflags = set_flags(module, oflags | flags);
 	}
 	print_flags(stdout, module, oflags, 0);
+	if (verbose) {
+	        fprintf(stdout, "\nModule     Valid flags\n");
+	        print_flags(stdout, module, ~(unsigned int) 0, 1);
+	}
 
 	return 0;
 }
 
 #define FLAG(mname, fname)	\
       { #mname, #fname, mname##DBG_##fname }
-#define SHORTFLAG(mname, fname, dbgname)	\
-      { #mname, #fname, mname##DBG_##dbgname }
 
 static struct flagmap {
 	char *		module;
@@ -126,10 +158,11 @@ static struct flagmap {
 	FLAG(NFS,	LOOKUPCACHE),
 	FLAG(NFS,	PAGECACHE),
 	FLAG(NFS,	PROC),
+	FLAG(NFS,       XDR),
+	FLAG(NFS,       FILE),
+	FLAG(NFS,       ROOT),
+	//	FLAG(NFS,       CALLBACK),
 	FLAG(NFS,	ALL),
-	SHORTFLAG(NFS,	dir,	DIRCACHE),
-	SHORTFLAG(NFS,	lookup,	LOOKUPCACHE),
-	SHORTFLAG(NFS,	page,	PAGECACHE),
 
 	/* nfsd */
 	FLAG(NFSD,	SOCK),
@@ -152,6 +185,7 @@ static struct flagmap {
 	FLAG(NLM,	MONITOR),
 	FLAG(NLM,	CLNTSUBS),
 	FLAG(NLM,	SVCSUBS),
+	FLAG(NLM,       HOSTCACHE),
 	FLAG(NLM,	ALL),
 
       { NULL,		NULL,		0 }
@@ -170,12 +204,12 @@ find_flag(char **module, char *name)
 			continue;
 		if (value) {
 			fprintf(stderr,
-				"rpcdebug: ambiguous symbol name %s.\n"
+				"%s: ambiguous symbol name %s.\n"
 				"This name is used by more than one module, "
 				"please specify the module name using\n"
 				"the -m option.\n",
-				name);
-			usage(1);
+				cdename, name);
+			exit(1);
 		}
 		value = flagmap[i].value;
 		if (*module)
@@ -186,12 +220,12 @@ find_flag(char **module, char *name)
 	if (!value) {
 		if (*module)
 			fprintf(stderr,
-				"rpcdebug: unknown module or flag %s/%s\n",
-				*module, name);
+				"%s: unknown module or flag %s/%s\n",
+				cdename, *module, name);
 		else
 			fprintf(stderr,
-				"rpcdebug: unknown flag %s\n",
-				name);
+				"%s: unknown flag %s\n",
+				cdename, name);
 		exit(1);
 	}
 
@@ -202,11 +236,13 @@ find_flag(char **module, char *name)
 static unsigned int
 get_flags(char *module)
 {
-	char	buffer[256], *sp;
-	int	sysfd, len, namelen;
+	char	buffer[256], filename[256];
+	int	sysfd, len;
 
-	if ((sysfd = open("/proc/net/rpc/debug", O_RDONLY)) < 0) {
-		perror("/proc/net/rpc/debug");
+	snprintf(filename, 256, "/proc/sys/sunrpc/%s_debug", module);
+
+	if ((sysfd = open(filename, O_RDONLY)) < 0) {
+		perror(filename);
 		exit(1);
 	}
 	if ((len = read(sysfd, buffer, sizeof(buffer))) < 0) {
@@ -216,27 +252,20 @@ get_flags(char *module)
 	close(sysfd);
 	buffer[len - 1] = '\0';
 
-	namelen = strlen(module);
-	for (sp = strtok(buffer, " \t"); sp; sp = strtok(NULL, " \t")) {
-		if (!strncmp(sp, module, namelen) && sp[namelen] == '=') {
-
-			return strtoul(sp + namelen + 1, NULL, 0);
-		}
-	}
-
-	fprintf(stderr, "Unknown module %s\n", module);
-	exit(1);
+	return strtoul(buffer, NULL, 0);
 }
 
 static unsigned int
 set_flags(char *module, unsigned int value)
 {
-	char	buffer[64];
+	char	buffer[64], filename[256];
 	int	sysfd, len, ret;
 
-	len = sprintf(buffer, "%s=%u\n", module, value);
-	if ((sysfd = open("/proc/net/rpc/debug", O_WRONLY)) < 0) {
-		perror("/proc/net/rpc/debug");
+	snprintf(filename, 256, "/proc/sys/sunrpc/%s_debug", module);
+
+	len = sprintf(buffer, "%d", value);
+	if ((sysfd = open(filename, O_WRONLY)) < 0) {
+		perror(filename);
 		exit(1);
 	}
 	if ((ret = write(sysfd, buffer, len)) < 0) {
@@ -251,22 +280,6 @@ set_flags(char *module, unsigned int value)
 	return value;
 }
 
-static int
-find_sysname(char *module)
-{
-	char	procname[1024];
-	int	fd;
-
-	module = strtolower(module);
-
-	sprintf(procname, "/proc/sys/sunrpc/%s_debug", module);
-	if ((fd = open(procname, O_RDWR)) < 0) {
-		perror(procname);
-		exit(1);
-	}
-
-	return fd;
-}
 
 static char *
 strtolower(char *str)
@@ -293,7 +306,6 @@ print_flags(FILE *ofp, char *module, unsigned int flags, int show_all)
 			fprintf(ofp, "<no flags set>\n");
 			return;
 		}
-		/* printf(" <%x>", flags); */
 	}
 
 	for (i = 0, shown = 0; flagmap[i].module; i++) {
@@ -319,15 +331,21 @@ print_flags(FILE *ofp, char *module, unsigned int flags, int show_all)
 }
 
 static void
-usage(int excode)
+usage(int excode, char *module)
 {
-	fprintf(stderr, "usage: rpcdebug [-m module] [-cs] flags ...\n");
+        if (module)
+	  fprintf(stderr, "usage: %s [-v] [-h] [-s flags...|-c flags...]\n", cdename);
+	else
+	  fprintf(stderr, "usage: %s [-v] [-h] [-m module] [-s flags...|-c flags...]\n", cdename);
+	fprintf(stderr, "       set or cancel debug flags.\n");
 	if (verbose) {
-		fprintf(stderr, "\nModule     Valid flags\n");
-		print_flags(stderr, NULL, ~(unsigned int) 0, 1);
+	  fprintf(stderr, "\nModule     Valid flags\n");
+	  print_flags(stderr, module, ~(unsigned int) 0, 1);
 	} else {
-		fprintf(stderr,
-		    "       (use rpcdebug -vh to get a list of valid flags)\n");
+	  if (module)
+	    fprintf(stderr, "       (use %s -vh to get a list of valid flags)\n", cdename);
+	  else
+	    fprintf(stderr, "       (use %s -vh to get a list of modules and valid flags)\n", cdename);
 	}
 	exit (excode);
 }

@@ -1,3 +1,12 @@
+2004-11-22 "J. Bruce Fields" <bfields@fieldses.org>
+
+	* tools/rpcdebug/rpcdebug.c: support aliases "nfsdebug" and
+	"nfsddebug" and update flag names.
+	* configure.in, nodist/* redhat/* nfs-utils.spec*: remove redhat
+	specific files (as no-one actually uses them, especially not
+	redhat), and the nodist /etc files (as they drift out-of-date, and
+	the debian directory provides a suitable example.
+	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/exportfs/nfsd.man: corrected typo in .BR macro usage -
