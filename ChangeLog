@@ -2,8 +2,10 @@
 
 	* utils/lockd/lockd.man: Create.
 	* utils/lockd/Makefile: Install it.
+	* utils/nhfsstone/nhfs{run,nums,graph}.man: Create.
 	* utils/nhfsstone/nhfsstone.man: Change suffix from ".1".
-	* utils/nhfsstone/Makefile: Install it.
+	* utils/nhfsstone/Makefile: Install the helper scripts ann
+	  all four man pages.
 	* utils/exportfs/exports.man: Fix typo.
 
 2000-02-26  Chip Salzenberg  <chip@valinux.com>
