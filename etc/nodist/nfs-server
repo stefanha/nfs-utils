@@ -50,10 +50,15 @@ start)
     $EXPORTFS -r
     echo "done."
 
+    echo -n "Starting $NFSD: "
+    startdaemon $PREFIX$NFSD $RPCNFSDCOUNT
+
     if /usr/sbin/rpcinfo -u localhost nfs 3 &>/dev/null 
     then
         RPCMOUNTDOPTS="$RPCMOUNTDOPTS --no-nfs-version 3"
     fi
+    echo -n "Starting $MOUNTD: "
+    startdaemon $MOUNTD $RPCMOUNTDOPTS
 
     # Start rquotad if it is set
     if [ -n "$RQUOTAD" ]
@@ -61,11 +66,6 @@ start)
         echo -n "Starting $RQUOTAD: "
         startdaemon $RQUOTAD
     fi
-
-    echo -n "Starting $MOUNTD: "
-    startdaemon $MOUNTD $RPCMOUNTDOPTS
-    echo -n "Starting $NFSD: "
-    startdaemon $PREFIX$NFSD $RPCNFSDCOUNT
 
     # if this lock file doesn't exist, init won't even try to run
     # the shutdown script for this service on RedHat systems!
