@@ -206,6 +206,7 @@ exportfs(char *arg, char *options, int verbose)
 		} else
 			hp = hp2;
 		exp = export_find(hp, path);
+		hname = hp->h_name;
 	} else {
 		exp = export_lookup(hname, path, 0);
 	}
