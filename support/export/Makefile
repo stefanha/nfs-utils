@@ -25,3 +25,6 @@ clean distclean::
 
 install::
 	@:
+
+predep:: $(RPCHDRS) $(RPCSRCS)
+	$(LN_S) ../export/mount.h ../include/mount.h

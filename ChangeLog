@@ -2,6 +2,12 @@
 
 	Release 1.0.6
 
+	* rules.mk: Add dep: rule when no OBJS, so "make dep" works in
+	support/include, and depend in "predep"
+	* support/export/Makefile, tools/rpcgen/Makefile,
+	utils/statd/Makefile: add "predep" rule so that "make dep" works.
+	* Makefile: allow a simple "make" to run ./configure and "make dep"
+	if needed.
 	* configure.in, nfs-utils.spec: Update version to 1.0.4
 	* run autoconf
 	

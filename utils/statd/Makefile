@@ -56,3 +56,5 @@ clean::
 
 distclean::
 	$(RM) $(RPCHDRS) $(RPCSRCS) $(SIMHDRS) $(SIMSRCS)
+
+predep:: $(RPCHDRS) $(RPCSRCS)

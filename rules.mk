@@ -118,8 +118,11 @@ endif
 # Handling of dependencies
 ##################################################################
 ifneq ($(OBJS),)
-depend dep::
+predep::
+depend dep:: predep
 	$(CC) $(CFLAGS) -M $(OBJS:.o=.c) > .depend
+else
+depend dep::
 endif
 
 ifeq (.depend,$(wildcard .depend))

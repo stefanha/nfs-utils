@@ -55,3 +55,5 @@ all::	$(TOOL)
 
 install::
 	@:
+
+predep::all
