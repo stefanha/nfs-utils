@@ -29,7 +29,7 @@ xfopen(char *fname, char *type)
 		return NULL;
 	xfp = (XFILE *) xmalloc(sizeof(*xfp));
 	xfp->x_fp = fp;
-	xfp->x_line = 0;
+	xfp->x_line = 1;
 
 	return xfp;
 }
