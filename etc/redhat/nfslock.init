@@ -45,7 +45,7 @@ case "$1" in
 	if [ -n "$pidlist" ]; then
 		pid=
 		for apid in $pidlist ; do
-			[ -d /proc/$apid ] && pid="$pid $apid"
+			[ -f /proc/$apid/exe ] && pid="$pid $apid"
 		done
 		if [ -n "$pid" ]; then
 			echo -n "Shutting down NFS lockd: "
