@@ -1,3 +1,7 @@
+2000-10-18  Scott McDermott <mcdermot@questra.com>
+
+	* utils/exportfs/exports.man: Updated for CIDR netmask.
+
 2000-10-17  Scott McDermott <mcdermot@questra.com>
 
 	* support/export/client.c (client_init): Support CIDR netmask

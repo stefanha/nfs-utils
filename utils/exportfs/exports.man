@@ -46,7 +46,11 @@ above pattern does not include hosts such as \fIa.b.cs.foo.edu\fR.
 You can also export directories to all hosts on an IP (sub-) network
 simultaneously. This is done by specifying an IP address and netmask pair
 as
-.IR address/netmask .
+.IR address/netmask
+where the netmask can be specified in dotted-decimal format, or as a
+contiguous mask length (for example, either `/255.255.252.0' or `/22' appended
+to the network base address result in identical subnetworks with 10 bits of
+host).
 .TP
 '''.B =public
 '''This is a special ``hostname'' that identifies the given directory name
