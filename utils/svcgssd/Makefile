@@ -10,12 +10,20 @@ LIBDEPS	= $(TOP)support/lib/librpc.a $(TOP)support/lib/libgssapi.a
 LIBS	= -Wl,-rpath=$(KRBDIR)/lib -lrpc -lgssapi -ldl $(KRBLIB) -lnfsidmap
 MAN8	= svcgssd
 
-predep ::
-	- ln ../gssd/err_util.c
-	- ln ../gssd/gss_util.c
-	- ln ../gssd/gss_oids.c
-	- ln ../gssd/context.c
-	- ln ../gssd/context_heimdal.c
+LINKED	= err_util.c gss_util.c gss_oids.c context.c context_heimdal.c
+
+predep :: $(LINKED)
+
+$(LINKED) :
+	ln -s ../gssd/$@ .
+
+distclean ::
+	for f in $(LINKED); do \
+	    if [ -L "$$f" ]; then \
+		echo "rm -f $$f"; \
+		rm -f "$$f"; \
+	    fi; \
+	done
 
 include $(TOP)rules.mk
 
