@@ -512,11 +512,17 @@ main(int argc, char **argv)
 		/* Now we remove ourselves from the foreground.
 		   Redirect stdin/stdout/stderr first. */
 		{
-			int fd = open("/dev/null", O_RDWR);
+			int fd, fdmax;
+
+			fd = open("/dev/null", O_RDWR);
 			(void) dup2(fd, 0);
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			if (fd > 2) (void) close(fd);
+
+			fdmax = sysconf (_SC_OPEN_MAX);
+			for (fd = 3; fd < fdmax; fd++) {
+				close (fd);
+			}
 		}
 		setsid();
 		xlog_background();

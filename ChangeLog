@@ -1,6 +1,7 @@
 2001-10-08  Chip Salzenberg  <chip@pobox.com>
 
-	* utils/Makefile.in: Remove Makefile in target 'distclean'.
+	* utils/mountd/mountd.c (main): When daemonizing, close all fds > 2.
+	* utils/Makefile.in: Remove old Makefile in target 'distclean'.
 	* utils/mountd/mountd.man: Update paths to /var/lib.
 	* debian/*: Version 0.3.3-1, with Debian-specific fixes.
 
