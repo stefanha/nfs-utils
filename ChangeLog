@@ -1,3 +1,11 @@
+Fri Feb  4 23:42:23 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
+
+	* support/include/nfs/export.h: added NFSEXP_NOAUTHNLM
+	* support/nfs/exports.c: added handling for NFSEXP_NOAUTHNLM
+	* utils/exportfs/exports.man: added documentation for no_auth_nlm.
+
+	This is for supporting a new option introduced in 2.3.42
+
 Thu Feb  3 14:55:48 2000 H.J. Lu <hjl@lucon.org>
 
 	* COPYING: Added. GPL.

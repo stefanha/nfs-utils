@@ -151,6 +151,8 @@ putexportent(struct exportent *ep)
 				"" : "no_");
 	fprintf(fp, "%ssubtree_check,", (ep->e_flags & NFSEXP_NOSUBTREECHECK)?
 		"no_" : "");
+	fprintf(fp, "%ssecure_locks,", (ep->e_flags & NFSEXP_NOAUTHNLM)?
+		"in" : "");
 
 	fprintf(fp, "mapping=");
 	switch (ep->e_maptype) {
@@ -307,6 +309,14 @@ parseopts(char *cp, struct exportent *ep)
 			ep->e_flags &= ~NFSEXP_NOSUBTREECHECK;
 		else if (strcmp(opt, "no_subtree_check") == 0)
 			ep->e_flags |= NFSEXP_NOSUBTREECHECK;
+		else if (strcmp(opt, "auth_nlm") == 0)
+			ep->e_flags &= ~NFSEXP_NOAUTHNLM;
+		else if (strcmp(opt, "no_auth_nlm") == 0)
+			ep->e_flags |= NFSEXP_NOAUTHNLM;
+		else if (strcmp(opt, "secure_locks") == 0)
+			ep->e_flags &= ~NFSEXP_NOAUTHNLM;
+		else if (strcmp(opt, "insecure_locks") == 0)
+			ep->e_flags |= NFSEXP_NOAUTHNLM;
 		else if (strncmp(opt, "mapping=", 8) == 0)
 			ep->e_maptype = parsemaptype(opt+8);
 		else if (strcmp(opt, "map_identity") == 0)	/* old style */

@@ -8,7 +8,7 @@ exports \- NFS file systems being exported (for Kernel based NFS)
 The file
 .I /etc/exports
 serves as the access control list for file systems which may be
-exported to NFS clients.  It it used by
+exported to NFS clients.  It is used by
 .IR exportfs (8)
 to give information to
 .IR mountd (8)
@@ -124,6 +124,13 @@ However, some NFS clients do not cope well with this situation as, for
 instance, it is then possible for two files in the one apparent
 filesystem to have the same inode number.
 
+The
+.I nohide
+option is currently only effective on
+.I "single host
+exports.  It does not work reliably with netgroup, subnet, or wildcard
+exports. 
+
 This option can be very useful in some situations, but it should be
 used with due care, and only after confirming that the client system
 copes with the situation effectively.
@@ -164,6 +171,28 @@ exported with subtree checks enabled.
 The default of having subtree checks enabled, can be explicitly
 requested with
 .IR subtree_check .
+
+.TP
+.IR insecure_locks
+.TP
+.IR no_auth_nlm
+This option (the two names are synonymous) tells the NFS server not to require authentication of
+locking requests (i.e. requests which use the NLM protocol).  Normally
+the NFS server will require a lock request to hold a credential for a
+user who has read access to the file.  With this flag no access checks
+will be performed.
+
+Early NFS client implementations did not send credentials with lock
+requests, and many current NFS clients still exist which are based on
+the old implementations.  Use this flag if you find that you can only
+lock files which are world readable.
+
+The default behaviour of requiring authentication for NLM requests can
+be explicitly requested with either of the synonymous
+.IR auth_nlm ,
+or
+.IR secure_locks .
+
 '''.TP
 '''.I noaccess
 '''This makes everything below the directory inaccessible for the named
