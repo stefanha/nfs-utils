@@ -315,6 +315,7 @@ int cache_process_req(fd_set *readfds)
 		    FD_ISSET(fileno(cachelist[i].f), readfds)) {
 			cnt++;
 			cachelist[i].cache_handle(cachelist[i].f);
+			FD_CLR(fileno(cachelist[i].f), readfds);
 		}
 	}
 	return cnt;

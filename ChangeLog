@@ -1,4 +1,9 @@
 2004-08-31 NeilBrown <neilb@cse.unsw.edu.au>
+	* utils/mountd/cache.c(cache_process_req): clear fd after
+	processing so as not to confused libc/sunrpc into thinking
+	it need to do something with that fd.
+	
+2004-08-31 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* debian/nfs-kernel-server.init(start,stop) mount the nfsd
 	filesystem, if available, before starting nfs services, and 
