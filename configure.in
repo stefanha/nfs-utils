@@ -10,6 +10,11 @@ AC_SUBST(VERSION)
 dnl *************************************************************
 dnl * Define the set of applicable options
 dnl *************************************************************
+AC_ARG_WITH(release,
+	[  --with-release=XXX      set release to XXX [1]],
+	RELEASE=$withval,
+	RELEASE=1)
+	AC_SUBST(RELEASE)
 AC_ARG_WITH(statedir,
 	[  --with-statedir=/foo    use state dir /foo [/var/lib/nfs]],
 	statedir=$withval,
