@@ -158,7 +158,11 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	struct in_addr	addr = caller->sin_addr;
 	enum auth_error	error;
 
-	if (path [0] != '/') return exp;
+	if (path [0] != '/') {
+		xlog(L_WARNING, "bad path in %s request from %s: \"%s\"",
+		     what, inet_ntoa(addr), path);
+		return exp;
+	}
 
 	strncpy(epath, path, sizeof (epath) - 1);
 	epath[sizeof (epath) - 1] = '\0';

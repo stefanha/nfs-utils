@@ -1,3 +1,8 @@
+2000-11-27  Tobias Ringstrom <tori@tellus.mine.nu>
+
+	* utils/mountd/auth.c (auth_authenticate): Log the bad path
+	warning.
+
 2000-11-24  Neil Brown <neilb@cse.unsw.edu.au>
 
         * support/nfs/exports.c (getexportent):  Check for host name without option,
