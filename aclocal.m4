@@ -129,7 +129,7 @@ define(AC_TCP_WRAPPER,
       int allow_severity = 0;],
       [return hosts_ctl ("nfsd", "", "")],
       knfsd_cv_tcp_wrapper=yes, knfsd_cv_tcp_wrapper=no)
-   LDFLAGS="$old_LDFLAGS"])
+   LIBS="$old_LIBS"])
   AC_MSG_RESULT($knfsd_cv_tcp_wrapper)
   if test "$knfsd_cv_tcp_wrapper" = yes; then
     CFLAGS="$CFLAGS -DHAVE_TCP_WRAPPER"
