@@ -155,8 +155,6 @@ print_generic_header(char *procname, int pointerp)
 static void
 print_header(definition *def)
 {
-	decl_list      *dl;
-
 	print_generic_header(def->def_name,
 		def->def_kind != DEF_TYPEDEF ||
 		!isvectordef(def->def.ty.old_type, def->def.ty.rel));
