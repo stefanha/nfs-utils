@@ -1,3 +1,9 @@
+2002-09-15  Chip Salzenberg  <chip@pobox.com>
+
+	* support/nfs/rpcmisc.c (rpc_init): Allow stdin to be a non-INET
+	socket, as occurs when run from sshd.
+	* debian/changelog: Version 1.0.2-1.
+
 2002-09-12  H.J. Lu <hjl@lucon.org>
 
 	* support/nfs/svc_socket.c: Remove HAVE_SVCTCP_SOCKET and

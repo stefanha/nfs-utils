@@ -1,10 +1,11 @@
-nfs-utils (1:1.0.2-1) unstable; urgency=low
+nfs-utils (1:1.0.2-1) unstable; urgency=high
 
   * New upstream version:
     > Allow program stdin to be a non-INET socket.  (closes: #142557)
   * Start nfs-common after nfs-kernel-server so that the server is running
-    when statd restarts.  In postinst, remove bad rc.d links from old
-    packages.  From Philippe Troin <phil@fifi.org>.  (closes: #160800)
+    when statd restarts; without this change, a rebooting server may make
+    clients lose mounts.  (This postinst removes bad rc.d links from old
+    packages.)  From Philippe Troin <phil@fifi.org>.  (closes: #160800)
   * Make init scripts exit with non-zero status when daemons don't start.
   * Add titles to templates where I forgot them.  (closes: #158489)
   * Add /etc/default/{nfs-common,nfs-kernel-server} so setting random
@@ -14,7 +15,7 @@ nfs-utils (1:1.0.2-1) unstable; urgency=low
   * Use invoke-rc.d to avoid premature daemon starts.  (closes: 158574)
   * Change priority of nfs-kernel-server to 'optional'.
 
- --
+ -- Chip Salzenberg <chip@debian.org>  Sun, 15 Sep 2002 22:00:27 -0400
 
 nfs-utils (1:1.0.1-1) unstable; urgency=low
 
