@@ -27,6 +27,8 @@ fi
 [ -x /usr/sbin/exportfs ] || exit 0
 [ -s /etc/exports ] || exit 0
 
+RQUOTAD=`type -path rpc.rquotad`	# Remote quota server
+
 # Number of servers to be started up by default
 RPCNFSDCOUNT=8
 # Default to NFS version 3.
@@ -37,9 +39,11 @@ case "$1" in
   start)
 	# Start daemons.
 	action "Starting NFS services: " /usr/sbin/exportfs -r
-	echo -n "Starting NFS quotas: "
-	daemon rpc.rquotad
-	echo
+	if [ -n "$RQUOTAD" ]; then
+		echo -n "Starting NFS quotas: "
+		daemon rpc.rquotad
+		echo
+	fi
 	echo -n "Starting NFS daemon: "
 	daemon rpc.nfsd $RPCNFSDCOUNT
 	echo

@@ -1,5 +1,9 @@
 2001-06-27  H.J. Lu <hjl@lucon.org>
 
+	* etc/redhat/nfs.init: Run rpc.rquotad only if it exists.
+
+2001-06-27  H.J. Lu <hjl@lucon.org>
+
 	* utils/rquotad/rquota_server.c: Don't call statfs () for
 	the block size. Use BLOCK_SIZE instead.
 
