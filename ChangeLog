@@ -1,3 +1,11 @@
+2001-09-24  H.J. Lu <hjl@lucon.org>
+
+	* configure.in (VERSION): Set to "0.3.3".
+	* configure: Regenerated.
+	* nfs-utils.spec: Likewise.
+
+	* README: Updated for 0.3.3.
+
 2001-09-20 NeilBrown <neilb@cse.unsw.edu.au>
 
 	Arrange that "exportfs -au" never does DNS lookup:
