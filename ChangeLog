@@ -1,3 +1,9 @@
+2004-12-17 NeilBrown <neilb@cse.unsw.edu.au>
+	Release 1.0.7
+
+	* config.mk, configure.in: update version number, run autoconf
+	* configure.in: require nfsidmap.h if gss is enabled.
+	
 2004-12-10 NeilBrown <neilb@cse.unsw.edu.au>
 	Release 1.0.7-pre2
 	
