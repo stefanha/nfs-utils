@@ -1,3 +1,8 @@
+2000-05-01  H.J. Lu <hjl@lucon.org>
+
+	* utils/rquotad/rquota_server.c (getquotainfo): Call stat ()
+	to check for the mounting point.
+
 2000-04-29  Chip Salzenberg  <chip@valinux.com>
 	    Neil Brown  <neilb@cse.unsw.edu.au>
 

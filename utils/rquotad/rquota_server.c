@@ -71,9 +71,9 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
    struct mntent *mnt;
    char *pathname, *qfpathname;
    int fd, err, id, type;
-   struct stat st;
+   struct stat stm, stn;
    struct statfs stf;
-   
+
    /*
     * First check authentication.
     */
@@ -107,15 +107,17 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
 
    fp = setmntent(MNTTAB, "r");
    while ((mnt = getmntent(fp)) != (struct mntent *)0) {
-      if (strcasecmp (mnt->mnt_dir, pathname))
-         continue;
+      if (stat(mnt->mnt_dir, &stm) == -1
+	  || stat(pathname, &stn) == -1)
+	  break;
+      else if (stm.st_dev != stn.st_dev)
+	  continue;
 
       if (mnt->mnt_fsname [0] != '/'
 	  || strcasecmp (mnt->mnt_type, MNTTYPE_NFS) == 0
 	  || strcasecmp (mnt->mnt_type, MNTTYPE_AUTOFS) == 0
 	  || strcasecmp (mnt->mnt_type, MNTTYPE_SWAP) == 0
-	  || strcasecmp (mnt->mnt_type, MNTTYPE_IGNORE) == 0
-	  || stat(pathname, &st) == -1)
+	  || strcasecmp (mnt->mnt_type, MNTTYPE_IGNORE) == 0)
          break;
 
       if (statfs(pathname, &stf) == -1) {
