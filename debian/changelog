@@ -1,3 +1,10 @@
+nfs-utils (1:1.0.6-3) unstable; urgency=medium
+
+  * Remove obsolete debconf-related files in debian/rules, because source
+    diffs don't implement removals.  (closes: #239331)
+
+ -- Chip Salzenberg <chip@debian.org>  Wed, 24 Mar 2004 18:09:21 -0500
+
 nfs-utils (1:1.0.6-2) unstable; urgency=medium
 
   * Upstream CVS sync.

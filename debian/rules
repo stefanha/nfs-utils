@@ -13,6 +13,13 @@ DEBTMP	:= $(shell pwd)/debian/tmp
 
 build: build-stamp
 build-stamp:
+	# Debian source diffs don't reflect removals.
+	# This kludge will suffice until the next upstream version. *sigh*
+	rm -f debian/nfs-common.config		\
+	      debian/nfs-common.templates	\
+	      debian/nfs-kernel-server.config	\
+	      debian/nfs-kernel-server.templates
+
 	dh_testdir
 	# Add here commands to compile the package.
 	$(SETGCC) ./configure \
