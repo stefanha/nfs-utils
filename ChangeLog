@@ -1,4 +1,11 @@
 2003-08-04 NeilBrown <neilb@cse.unsw.edu.au>
+	* support/include/nfs/export.h, support/nfs/exports.c,
+	utils/exportfs/exports.c, utils/mountd/mountd.c:  change
+	NFSEXP_CROSSMNT to NFSEXP_CROSSMOUNT to avoid confusion with older
+	meaning. Also remove meaningless
+	NFSEXP_{UIDMAP,KERBEROS,SUNSECURE}
+	
+2003-08-04 NeilBrown <neilb@cse.unsw.edu.au>
 	* support/export/xtab.c, support/include/nfslib.h,
 	support/nfs/cacheio.c, support/nfs/nfssvc.c,
 	utils/exportfs/exportfs.c, utils/exportfs/exportfs.man,

@@ -173,7 +173,7 @@ putexportent(struct exportent *ep)
 				"" : "no_");
 	fprintf(fp, "%shide,", (ep->e_flags & NFSEXP_NOHIDE)?
 				"no" : "");
-	fprintf(fp, "%scrossmnt,", (ep->e_flags & NFSEXP_CROSSMNT)?
+	fprintf(fp, "%scrossmnt,", (ep->e_flags & NFSEXP_CROSSMOUNT)?
 				"" : "no");
 	fprintf(fp, "%ssecure,", (ep->e_flags & NFSEXP_INSECURE_PORT)?
 				"in" : "");
@@ -347,9 +347,9 @@ parseopts(char *cp, struct exportent *ep, int warn)
 		else if (!strcmp(opt, "hide"))
 			ep->e_flags &= ~NFSEXP_NOHIDE;
 		else if (!strcmp(opt, "crossmnt"))
-			ep->e_flags |= NFSEXP_CROSSMNT;
+			ep->e_flags |= NFSEXP_CROSSMOUNT;
 		else if (!strcmp(opt, "nocrossmnt"))
-			ep->e_flags &= ~NFSEXP_CROSSMNT;
+			ep->e_flags &= ~NFSEXP_CROSSMOUNT;
 		else if (!strcmp(opt, "wdelay"))
 			ep->e_flags |= NFSEXP_GATHERED_WRITES;
 		else if (!strcmp(opt, "no_wdelay"))

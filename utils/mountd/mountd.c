@@ -283,7 +283,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 		     p, strerror(errno));
 		*error = NFSERR_NOENT;
 	} else if (estb.st_dev != stb.st_dev
-		   /* && (!new_cache || !(exp->m_export.e_flags & NFSEXP_CROSSMNT)) */
+		   /* && (!new_cache || !(exp->m_export.e_flags & NFSEXP_CROSSMOUNT)) */
 		) {
 		xlog(L_WARNING, "request to export directory %s below nearest filesystem %s",
 		     p, exp->m_export.e_path);

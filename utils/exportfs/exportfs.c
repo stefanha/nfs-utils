@@ -373,7 +373,7 @@ dump(int verbose)
 				c = dumpopt(c, "wdelay");
 			if (ep->e_flags & NFSEXP_NOHIDE)
 				c = dumpopt(c, "nohide");
-			if (ep->e_flags & NFSEXP_CROSSMNT)
+			if (ep->e_flags & NFSEXP_CROSSMOUNT)
 				c = dumpopt(c, "crossmnt");
 			if (ep->e_flags & NFSEXP_INSECURE_PORT)
 				c = dumpopt(c, "insecure");
