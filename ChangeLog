@@ -1,3 +1,7 @@
+2003-09-12  Chip Salzenberg  <chip@pobox.com>
+
+	* debian/changelog: Version 1.0.6-1.
+
 2003-09-12 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/mountd/mountd.c(main): Impose FD_SETSIZE as an upper limit
