@@ -12,9 +12,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>
+#include <syslog.h>
 #include "nfslib.h"
 
 static void	usage(const char *);
@@ -22,7 +24,7 @@ static void	usage(const char *);
 int
 main(int argc, char **argv)
 {
-	int	count = 1, c, error, port;
+	int	count = 1, c, error, port, fd;
 
 	port = 2049;
 
@@ -62,8 +64,28 @@ main(int argc, char **argv)
 		}
 	}
 
-	if ((error = nfssvc(port, count)) < 0)
-		perror("nfssvc");
+	/* KLUDGE ALERT:
+	   Some kernels let nfsd kernel threads inherit open files
+	   from the program that spawns them (i.e. us).  So close
+	   everything before spawning kernel threads.  --Chip */
+	fd = open("/dev/null", O_RDWR);
+	if (fd == -1)
+		perror("/dev/null");
+	else {
+		(void) dup2(fd, 0);
+		(void) dup2(fd, 1);
+		(void) dup2(fd, 2);
+	}
+	fd = sysconf(_SC_OPEN_MAX);
+	while (--fd > 2)
+		(void) close(fd);
+
+	if ((error = nfssvc(port, count)) < 0) {
+		int e = errno;
+		openlog("nfsd", LOG_PID, LOG_DAEMON);
+		syslog(LOG_ERR, "nfssvc: %s", strerror(e));
+		closelog();
+	}
 
 	return (error != 0);
 }

@@ -25,9 +25,7 @@
   * authorized by the /etc/hosts.{allow,deny} files. The local system is
   * always treated as an authorized host. The access control tables are never
   * consulted for requests from the local system, and are always consulted
-  * for requests from other hosts. Access control is based on IP addresses
-  * only; attempts to map an address to a host name might cause the
-  * portmapper to hang.
+  * for requests from other hosts.
   * 
   * Author: Wietse Venema (wietse@wzv.win.tue.nl), dept. of Mathematics and
   * Computing Science, Eindhoven University of Technology, The Netherlands.

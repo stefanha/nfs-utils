@@ -115,9 +115,7 @@ statd: .bar.com
 
 You have to use the daemon name 
 .B statd
-for the daemon name (even if the binary has a different name). For the
-client names you can only use the keyword ALL or IP addresses (NOT
-host or domain names).
+for the daemon name (even if the binary has a different name).
 
 For further information please have a look at the
 .BR tcpd (8),

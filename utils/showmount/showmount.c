@@ -154,9 +154,8 @@ char **argv;
 		break;
 	}
 
-	if (hostname[0] >= '0' && hostname[0] <= '9') {
+	if (inet_aton(hostname, &server_addr.sin_addr.s_addr)) {
 		server_addr.sin_family = AF_INET;
-		server_addr.sin_addr.s_addr = inet_addr(hostname);
 	}
 	else {
 		if ((hp = gethostbyname(hostname)) == NULL) {
