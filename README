@@ -1,4 +1,4 @@
-This is the Linux NFS utility package version 0.2.1.
+This is the Linux NFS utility package version 0.3.
 
 The nfs-utils package is available via the Linux NFS web page is at
 
@@ -17,7 +17,7 @@ and 7.0. They are tested on RedHat 6.2 and 7.0.
 
 On RedHat 6.2 and 7.0, you can use
 
-# rpm -ta nfs-utils-0.2.1.tar.gz
+# rpm -ta nfs-utils-0.3.tar.gz
 
 to build the source and binary RPMs.
 
@@ -35,4 +35,4 @@ Thanks.
 
 H.J.
 hjl@lucon.org
-09/27/2000
+01/25/2001

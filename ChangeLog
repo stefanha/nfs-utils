@@ -1,5 +1,13 @@
 2001-01-25  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "0.3".
+	* configure: Regenerated.
+	* nfs-utils.spec: Likewise.
+
+	* README: Updated for 0.3.
+
+2001-01-25  H.J. Lu <hjl@lucon.org>
+
 	* utils/lockd/lockd.c (main): Ignore errno == EINVAL.
 
 2001-01-20  Chip Salzenberg  <chip@valinux.com>
