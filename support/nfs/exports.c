@@ -39,7 +39,7 @@ static int	*squids = NULL, nsquids = 0,
 
 static int	getexport(char *exp, int len);
 static int	getpath(char *path, int len);
-static int	parseopts(char *cp, struct exportent *ep);
+static int	parseopts(char *cp, struct exportent *ep, int warn);
 static int	parsesquash(char *list, int **idp, int *lenp, char **ep);
 static int	parsenum(char **cpp);
 static int	parsemaptype(char *type);
@@ -61,7 +61,7 @@ setexportent(char *fname, char *type)
 }
 
 struct exportent *
-getexportent(int fromkernel)
+getexportent(int fromkernel, int fromexports)
 {
 	static struct exportent	ee;
 	char		exp[512];
@@ -127,7 +127,7 @@ getexportent(int fromkernel)
 	strncpy(ee.e_hostname, exp, sizeof (ee.e_hostname) - 1);
 	ee.e_hostname[sizeof (ee.e_hostname) - 1] = '\0';
 
-	if (parseopts(opt, &ee) < 0)
+	if (parseopts(opt, &ee, fromexports) < 0)
 		return NULL;
 
 	/* resolve symlinks */
@@ -269,7 +269,7 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_path[sizeof (ee.e_path) - 1] = '\0';
 	strncpy (ee.m_path, ee.e_path, sizeof (ee.m_path) - 1);
 	ee.m_path [sizeof (ee.m_path) - 1] = '\0';
-	if (parseopts(options, &ee) < 0)
+	if (parseopts(options, &ee, 0) < 0)
 		return NULL;
 	return &ee;
 }
@@ -277,7 +277,7 @@ mkexportent(char *hname, char *path, char *options)
 int
 updateexportent(struct exportent *eep, char *options)
 {
-	if (parseopts(options, eep) < 0)
+	if (parseopts(options, eep, 0) < 0)
 		return 0;
 	return 1;
 }
@@ -286,7 +286,7 @@ updateexportent(struct exportent *eep, char *options)
  * Parse option string pointed to by cp and set mount options accordingly.
  */
 static int
-parseopts(char *cp, struct exportent *ep)
+parseopts(char *cp, struct exportent *ep, int warn)
 {
 	int	had_sync_opt = 0;
 	char 	*flname = efname?efname:"command line";
@@ -420,7 +420,7 @@ parseopts(char *cp, struct exportent *ep)
 	ep->e_nsqgids = nsqgids;
 
 out:
-	if (!had_sync_opt)
+	if (warn && !had_sync_opt)
 		xlog(L_WARNING, "No 'sync' or 'async' option specified for export \"%s:%s\".\n"
 				"  Assuming default behaviour ('sync').\n"
 		     		"  NOTE: this default has changed from previous versions\n",

@@ -1,3 +1,8 @@
+2002-05-29 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* let parseopts know if /etc/exports was being read or not, 
+	and have it only print "no sync or async" warning in that case.
+	
 2002-05-06 Tom McNeal <trmcneal@attbi.com>
 	NeilBrown <neilb@cse.unsw.edu.au>
 
