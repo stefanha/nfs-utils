@@ -1,4 +1,4 @@
-2000-10-24  Lon Hohberger <lon@users.sourceforge.net>
+2000-10-24  Lon Hohberger <hohberger@missioncriticallinux.com>
 
 	* utils/statd/callback.c: Fix bug preventing callbacks to local lockd.
 	* utils/statd/rmtcall.c: Add some IP address paranoia when doing
@@ -18,12 +18,12 @@
 	* aclocal.m4 (AC_TCP_WRAPPER): Fix a typo.
 	* configure: Rebuilt.
 
-2000-10-06  Lon Hohberger <lon@users.sourceforge.net>
+2000-10-06  Lon Hohberger <hohberger@missioncriticallinux.com>
 
 	* utils/statd/statd.man: Change "/var/lib/nfs/sm/state" to
 	"/var/lib/nfs/state".
 
-2000-10-05  Lon Hohberger <lon@users.sourceforge.net>
+2000-10-05  Lon Hohberger <hohberger@missioncriticallinux.com>
 
 	* utils/statd/statd.h (run_mode): New global bitmask of runtime
 	behaviors: fg/bg, logging, etc.
