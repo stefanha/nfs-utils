@@ -1,3 +1,17 @@
+2004-09-06 Paul Clements <paul.clements@steeleye.com>
+	Neil Brown <neilb@cse.unsw.edu.au>
+
+	* utils/mountd/mountd.c(main): support --ha-callout (-H) for
+	specifying a callout program
+	* utils/mountd/rmtab.c: Call ha_callout on mount/unmount
+	* utils/statd/monitor.c: Call ha_callout on add/del client
+	* utils/statd/rmtcall.c: as above
+	* utils/statd/statd.c: handle --ha-callout (-H)
+	* utils/statd/svc_run.c: call notify_hosts is we have received a
+	sighup
+	* support/include/ha-callout.h: define ha_callout function
+	 
+	
 2004-08-31 NeilBrown <neilb@cse.unsw.edu.au>
 	* utils/mountd/cache.c(cache_process_req): clear fd after
 	processing so as not to confused libc/sunrpc into thinking

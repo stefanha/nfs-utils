@@ -19,6 +19,7 @@
 #include "misc.h"
 #include "statd.h"
 #include "notlist.h"
+#include "ha-callout.h"
 
 notify_list *		rtnl = NULL;	/* Run-time notify list. */
 
@@ -177,6 +178,8 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		goto failure;
 	}
 	free(path);
+	/* PRC: do the HA callout: */
+	ha_callout("add-client", mon_name, my_name, -1);
 	nlist_insert(&rtnl, clnt);
 	close(fd);
 
@@ -232,6 +235,10 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			/* Match! */
 			dprintf(N_DEBUG, "UNMONITORING %s for %s",
 					mon_name, my_name);
+
+			/* PRC: do the HA callout: */
+			ha_callout("del-client", mon_name, my_name, -1);
+
 			nlist_free(&rtnl, clnt);
 			xunlink(SM_DIR, mon_name, 1);
 
@@ -276,6 +283,8 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 				sizeof (mon_name) - 1);
 			mon_name[sizeof (mon_name) - 1] = '\0';
 			temp = NL_NEXT(clnt);
+			/* PRC: do the HA callout: */
+			ha_callout("del-client", mon_name, argp->my_name, -1);
 			nlist_free(&rtnl, clnt);
 			xunlink(SM_DIR, mon_name, 1);
 			++count;

@@ -48,6 +48,11 @@ int	run_mode = 0;		/* foreground logging mode */
 char *name_p = NULL;
 char *version_p = NULL;
 
+/* PRC: a high-availability callout program can be specified with -H
+ * When this is done, the program will receive callouts whenever clients
+ * are added or deleted to the notify list */
+char *ha_callout_prog = NULL;
+
 static struct option longopts[] =
 {
 	{ "foreground", 0, 0, 'F' },
@@ -59,6 +64,7 @@ static struct option longopts[] =
 	{ "name", 1, 0, 'n' },
 	{ "state-directory-path", 1, 0, 'P' },
 	{ "notify-mode", 0, 0, 'N' },
+	{ "ha-callout", 1, 0, 'H' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -100,6 +106,13 @@ killer (int sig)
 		pmap_unset (SM_PROG, SM_VERS);
 
 	exit (0);
+}
+
+static void
+sigusr (int sig)
+{
+	dprintf (N_DEBUG, "Caught signal %d, re-reading notify list.", sig);
+	re_notify = 1;
 }
 
 /*
@@ -148,6 +161,7 @@ usage()
 	fprintf(stderr,"      -n, --name           Specify a local hostname.\n");
 	fprintf(stderr,"      -P                   State directory path.\n");
 	fprintf(stderr,"      -N                   Run in notify only mode.\n");
+	fprintf(stderr,"      -H                   Specify a high-availability callout program.\n");
 }
 
 static const char *pidfile = "/var/run/rpc.statd.pid";
@@ -236,7 +250,7 @@ int main (int argc, char **argv)
 	MY_NAME = NULL;
 
 	/* Process command line switches */
-	while ((arg = getopt_long(argc, argv, "h?vVFNdn:p:o:P:", longopts, NULL)) != EOF) {
+	while ((arg = getopt_long(argc, argv, "h?vVFNH:dn:p:o:P:", longopts, NULL)) != EOF) {
 		switch (arg) {
 		case 'V':	/* Version */
 		case 'v':
@@ -300,6 +314,13 @@ int main (int argc, char **argv)
 				sprintf(SM_DIR, "%s/sm", DIR_BASE );
 				sprintf(SM_BAK_DIR, "%s/sm.bak", DIR_BASE );
 				sprintf(SM_STAT_PATH, "%s/state", DIR_BASE );
+			}
+			break;
+		case 'H': /* PRC: specify the ha-callout program */
+			if ((ha_callout_prog = xstrdup(optarg)) == NULL) {
+				fprintf(stderr, "%s: xstrdup(%s) failed!\n",
+					argv[0], optarg);
+				exit(1);
 			}
 			break;
 		case '?':	/* heeeeeelllllllpppp? heh */
@@ -397,6 +418,8 @@ int main (int argc, char **argv)
 	signal (SIGHUP, killer);
 	signal (SIGINT, killer);
 	signal (SIGTERM, killer);
+	/* PRC: trap SIGUSR1 to re-read notify list from disk */
+	signal(SIGUSR1, sigusr);
 	/* WARNING: the following works on Linux and SysV, but not BSD! */
 	signal(SIGCHLD, SIG_IGN);
 

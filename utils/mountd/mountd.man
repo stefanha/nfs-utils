@@ -2,7 +2,8 @@
 .\" mountd(8)
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
-.TH rpc.mountd 8 "25 Aug 2000"
+.\" Modified by Paul Clements, 2004.
+.TH rpc.mountd 8 "31 Aug 2004"
 .SH NAME
 rpc.mountd \- NFS mount daemon
 .SH SYNOPSIS
@@ -97,6 +98,26 @@ Force
 .B rpc.mountd
 to bind to the specified port num, instead of using the random port
 number assigned by the portmapper.
+.TP
+.B \-H " or " \-\-ha-callout prog
+Specify a high availability callout program, which will receive callouts
+for all client mount and unmount requests. This allows 
+.B rpc.mountd
+to be used in a High Availability NFS (HA-NFS) environment. This callout is not
+needed (and should not be used) with 2.6 and later kernels (instead,
+mount the nfsd filesystem on
+.B /proc/fs/nfsd
+).
+The program will be called with 4 arguments.
+The first will be
+.B mount
+or
+.B unmount
+depending on the reason for the callout.
+The second will be the name of the client performing the mount.
+The third will be the path that the client is mounting.
+The last is the number of concurrent mounts that we believe the client
+has of that path.
 .TP
 .B \-V " or " \-\-nfs-version
 This option can be used to request that

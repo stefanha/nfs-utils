@@ -60,6 +60,7 @@ static int	svc_stop = 0;
  * requests are put.
  */
 notify_list *	notify = NULL;
+int	re_notify = 0;
 
 /*
  * Jump-off function.
@@ -86,6 +87,10 @@ my_svc_run(void)
 	for (;;) {
 		if (svc_stop)
 			return;
+		if (re_notify) {
+			notify_hosts();
+			re_notify = 0;
+		}
 
 		/* Ah, there are some notifications to be processed */
 		while (notify && NL_WHEN(notify) <= time(&now)) {

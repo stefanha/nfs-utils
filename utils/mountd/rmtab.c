@@ -19,6 +19,7 @@
 #include "exportfs.h"
 #include "xio.h"
 #include "mountd.h"
+#include "ha-callout.h"
 
 #include <limits.h> /* PATH_MAX */
 
@@ -61,6 +62,8 @@ mountlist_add(char *host, const char *path)
 			    host) == 0
 		    && strcmp(rep->r_path, path) == 0) {
 			rep->r_count++;
+			/* PRC: do the HA callout: */
+			ha_callout("mount", rep->r_client, rep->r_path, rep->r_count);
 			putrmtabent(rep, &pos);
 			endrmtabent();
 			xfunlock(lockid);
@@ -75,6 +78,8 @@ mountlist_add(char *host, const char *path)
 	xe.r_path [sizeof (xe.r_path) - 1] = '\0';
 	xe.r_count = 1;
 	if (setrmtabent("a")) {
+		/* PRC: do the HA callout: */
+		ha_callout("mount", xe.r_client, xe.r_path, xe.r_count);
 		putrmtabent(&xe, NULL);
 		endrmtabent();
 	}
@@ -103,8 +108,11 @@ mountlist_del(char *hname, const char *path)
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		match = !strcmp (rep->r_client, hname)
 			&& !strcmp(rep->r_path, path);
-		if (match)
+		if (match) {
 			rep->r_count--;
+			/* PRC: do the HA callout: */
+			ha_callout("unmount", rep->r_client, rep->r_path, rep->r_count);
+		}
 		if (!match || rep->r_count)
 			fputrmtabent(fp, rep, NULL);
 	}

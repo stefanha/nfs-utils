@@ -36,6 +36,11 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, int *, int v3)
 
 int new_cache = 0;
 
+/* PRC: a high-availability callout program can be specified with -H
+ * When this is done, the program will receive callouts whenever clients
+ * send mount or unmount requests -- the callout is not needed for 2.6 kernel */
+char *ha_callout_prog = NULL;
+
 static struct option longopts[] =
 {
 	{ "foreground", 0, 0, 'F' },
@@ -48,6 +53,7 @@ static struct option longopts[] =
 	{ "version", 0, 0, 'v' },
 	{ "port", 1, 0, 'p' },
 	{ "no-tcp", 0, 0, 'n' },
+	{ "ha-callout", 1, 0, 'H' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -444,7 +450,7 @@ main(int argc, char **argv)
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;
-	while ((c = getopt_long(argc, argv, "o:n:Fd:f:p:P:hN:V:v", longopts, NULL)) != EOF)
+	while ((c = getopt_long(argc, argv, "o:n:Fd:f:p:P:hH:N:V:v", longopts, NULL)) != EOF)
 		switch (c) {
 		case 'o':
 			descriptors = atoi(optarg);
@@ -462,6 +468,9 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			export_file = optarg;
+			break;
+		case 'H': /* PRC: specify a high-availability callout program */
+			ha_callout_prog = optarg;
 			break;
 		case 'h':
 			usage(argv [0], 0);
@@ -596,6 +605,7 @@ usage(const char *prog, int n)
 "Usage: %s [-F|--foreground] [-h|--help] [-v|--version] [-d kind|--debug kind]\n"
 "	[-o num|--descriptors num] [-f exports-file|--exports-file=file]\n"
 "	[-p|--port port] [-V version|--nfs-version version]\n"
-"	[-N version|--no-nfs-version version] [-n|--no-tcp]\n", prog);
+"	[-N version|--no-nfs-version version] [-n|--no-tcp]\n"
+"	[-H ha-callout-prog]\n", prog);
 	exit(n);
 }

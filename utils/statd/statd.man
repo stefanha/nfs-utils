@@ -4,11 +4,12 @@
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
 .\" Modified by Jeffrey A. Uphoff, 1999, 2002.
 .\" Modified by Lon Hohberger, 2000.
-.TH rpc.statd 8 "16 Sep 2002"
+.\" Modified by Paul Clements, 2004.
+.TH rpc.statd 8 "31 Aug 2004"
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
-.B "/sbin/rpc.statd [-F] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-V]"
+.B "/sbin/rpc.statd [-F] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-H " prog "] [-V]"
 .SH DESCRIPTION
 The
 .B rpc.statd
@@ -101,6 +102,19 @@ statd program will check its state directory, send notifications to any
 monitored nodes, and exit once the notifications have been sent. This mode is
 used to enable Highly Available NFS implementations (i.e. HA-NFS).
 .TP
+.BI "\-H, " "" " \-\-ha-callout " prog
+Specify a high availability callout program, which will receive callouts
+for all client monitor and unmonitor requests. This allows
+.B rpc.statd
+to be used in a High Availability NFS (HA-NFS) environment. The
+program will be run with 3 arguments:  The first is either
+.B add-client
+or
+.B del-client
+depending on the reason for the callout.
+The second will be the name of the client.
+The third will be the name of the server as known to the client.
+.TP
 .B -?
 Causes
 .B rpc.statd
@@ -135,6 +149,15 @@ and
 .BR hosts_access (5)
 manual pages.
 
+.SH SIGNALS
+.BR SIGUSR1
+causes
+.B rpc.statd
+to re-read the notify list from disk
+and send notifications to clients. This can be used in High Availability NFS
+(HA-NFS) environments to notify clients to reacquire file locks upon takeover
+of an NFS export from another server.
+
 .SH FILES
 .BR /var/lib/nfs/state
 .br
@@ -153,3 +176,5 @@ Olaf Kirch <okir@monad.swb.de>
 H.J. Lu <hjl@gnu.org>
 .br
 Lon Hohberger <hohberger@missioncriticallinux.com>
+.br
+Paul Clements <paul.clements@steeleye.com>

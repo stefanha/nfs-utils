@@ -38,6 +38,7 @@
 #include "statd.h"
 #include "notlist.h"
 #include "log.h"
+#include "ha-callout.h"
 
 #define MAXMSGSIZE	(2048 / sizeof(unsigned int))
 
@@ -414,6 +415,8 @@ process_notify_list(void)
 			note(N_ERROR,
 				"Can't notify %s, giving up.",
 					NL_MON_NAME(entry));
+			/* PRC: do the HA callout */
+			ha_callout("del-client", NL_MON_NAME(entry), NL_MY_NAME(entry), -1);
 			xunlink(SM_BAK_DIR, NL_MON_NAME(entry), 0);
 			nlist_free(&notify, entry);
 		}
