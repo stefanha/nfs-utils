@@ -117,10 +117,10 @@ AC_CHECK_LIB(socket, main, [LIBSOCKET="-lnsl"])
 AC_CHECK_LIB(nsl, main,	[LIBNSL="-lnsl"])
 AC_CHECK_LIB(crypt, crypt, [LIBCRYPT="-lcrypt"])
 if test "$enable_nfsv4" = yes; then
-    AC_CHECK_LIB(event, event_dispatch)
-    AC_CHECK_LIB(nfsidmap, nfs4_init_name_mapping)
-    AC_CHECK_HEADERS(event.h)
-    AC_CHECK_HEADERS(nfsidmap.h)
+    AC_CHECK_LIB(event, event_dispatch, , [AC_MSG_ERROR(libevent needed for nfsv4 support)])
+    AC_CHECK_LIB(nfsidmap, nfs4_init_name_mapping, ,[AC_MSG_ERROR(libnfsidmap needed for nfsv4 support)])
+    AC_CHECK_HEADERS(event.h, ,[AC_MSG_ERROR(libevent needed for nfsv4 support)])
+    AC_CHECK_HEADERS(nfsidmap.h, ,[AC_MSG_ERROR(libnfsidmap needed for nfsv4 support)])
 fi
 if test "$knfsd_cv_glibc2" = no; then
     AC_CHECK_LIB(bsd, daemon, [LIBBSD="-lbsd"])
@@ -204,8 +204,9 @@ if test "$enable_gss" = yes; then
   done
   dnl We didn't find a usable Kerberos environment
   if test "x$KRBDIR" = "x"; then
+    AC_MSG_RESULT("no")
     if test "x$krb5_with" = "x"; then
-      AC_MSG_ERROR(Kerberos v5 with GSS support not found)
+      AC_MSG_ERROR(Kerberos v5 with GSS support not found: consider --disable-gss or --with-krb5=)
     else
       AC_MSG_ERROR(Kerberos v5 with GSS support not found at $krb5_with)
     fi

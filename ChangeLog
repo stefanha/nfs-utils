@@ -1,3 +1,9 @@
+2004-12-10 Neil Brown <neilb@cse.unsw.edu.au>
+	* README : note dependancy on kerberos, libevent, and nfsidmap
+	* configure.in : fail if --enable-nfsv4 and libevent or
+	libnfsidmap are missing.
+	* configuyre.in: improve message if krb5 support is missing
+	
 2004-12-06 Paul Clements <paul.clements@steeleye.com>	
 	* support/include/ha-callout.h: get return status from waitpid
 	correctly. 
