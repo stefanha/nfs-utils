@@ -17,15 +17,18 @@ and to the kernel based NFS file server daemon
 .PP
 The file format is similar to the SunOS
 .I exports
-file, except that several additional options are permitted.  Each line
-contains an export point and a list of machine or netgroup names allowed
-to mount the file system at that point.  An optional parenthesized list
-of export parameters may follow each machine name.  Blank lines are
-ignored, and a # introduces a comment to the end of the line. Entries may
-be continued across newlines using a backslash. If export name contains spaces
-it should be quoted using double-quotes. You can also specify spaces
-or any other unusual characters in the export path name using a
-backslash followed by the character code as 3 octal digits.
+file. Each line contains an export point and a whitespace-separated list
+of clients allowed to mount the file system at that point. Each listed
+client may be immediately followed by a parenthesized, comma-separated
+list of export options for that client. No whitespace is permitted
+between a client and its option list.
+.PP
+Blank lines are ignored.  A pound sign ("#") introduces a comment to the
+end of the line. Entries may be continued across newlines using a
+backslash. If an export name contains spaces it should be quoted using
+double quotes. You can also specify spaces or other unusual character in
+the export name using a backslash followed by the character code as three
+octal digits.
 .PP
 .SS Machine Name Formats
 NFS clients may be specified in a number of ways:
@@ -53,7 +56,8 @@ as
 where the netmask can be specified in dotted-decimal format, or as a
 contiguous mask length (for example, either `/255.255.252.0' or `/22' appended
 to the network base address result in identical subnetworks with 10 bits of
-host).
+host). Wildcard characters generally do not work on IP addresses, though they
+may work by accident when reverse DNS lookups fail.
 .TP
 '''.B =public
 '''This is a special ``hostname'' that identifies the given directory name

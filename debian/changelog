@@ -1,3 +1,17 @@
+nfs-utils (1:0.3.3-6) unstable; urgency=low
+
+  * Upstream fixes:
+    > Ignore case when comparing host names.
+    > Use all addresses of multi-homed hosts in export processing.
+    > When reading /proc/fs/nfs/exports, assume noasync and nowgather;
+      older kernels did so, while newer kernels report them explicitly.
+    > Remove man page refs to "hosts_allow(5)".  (closes: #122540)
+    > In exports.5: Emphasize the need for options to immediately follow
+      client names.  Explain that wildcards don't usually work on addresses,
+      but may work when reverse DNS fails. (closes: #118040, #116039)
+
+ --
+
 nfs-utils (1:0.3.3-5) unstable; urgency=high
 
   * Keep NFS fully operational during upgrade.  (closes: #76544)

@@ -67,8 +67,7 @@ You have to use the daemon name
 for the daemon name (even if the binary has a different name).
 
 For further information please have a look at the
-.BR tcpd (8),
-.BR hosts_allow (5)
+.BR tcpd (8)
 and
 .BR hosts_access (5)
 manual pages.
