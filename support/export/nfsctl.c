@@ -10,6 +10,7 @@
 
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include "nfslib.h"
@@ -92,6 +93,7 @@ expsetup(struct nfsctl_export *exparg, nfs_export *exp)
 	if (exp->m_export.e_maptype != CLE_MAP_IDENT) {
 		xlog(L_ERROR, "%s: unsupported mapping; kernel supports only 'identity' (default)",
 		     exp->m_export.m_path);
+		errno = EINVAL;
 		return 0;
 	}
 	memset(exparg, 0, sizeof(*exparg));
