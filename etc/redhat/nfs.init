@@ -67,9 +67,11 @@ case "$1" in
 	echo -n "Shutting down NFS daemon: "
 	killproc nfsd
 	echo
-	echo -n "Shutting down NFS quotas: "
-	killproc rpc.rquotad
-	echo
+	if [ -n "$RQUOTAD" ]; then
+		echo -n "Shutting down NFS quotas: "
+		killproc rpc.rquotad
+		echo
+	fi
 	# Do it the last so that clients can still access the server
 	# when the server is running.
 	action "Shutting down NFS services: " /usr/sbin/exportfs -au
@@ -78,7 +80,9 @@ case "$1" in
   status)
 	status rpc.mountd
 	status nfsd
-	status rpc.rquotad
+	if [ -n "$RQUOTAD" ]; then
+		status rpc.rquotad
+	fi
 	;;
   restart)
 	$0 stop
