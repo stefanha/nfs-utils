@@ -2,6 +2,8 @@
  * Copyright (C) 1996, 1999 Olaf Kirch
  * Modified by Jeffrey A. Uphoff, 1997-1999.
  * Modified by H.J. Lu, 1998.
+ * Modified by Lon Hohberger, Oct. 2000
+ *   - Bugfix handling client responses.
  *
  * NSM for Linux.
  */
@@ -238,7 +240,10 @@ recv_rply(int sockfd, struct sockaddr_in *sin, u_long *portp)
 	}
 
 	for (lp = notify; lp != NULL; lp = lp->next) {
-		if (lp->xid != xid)
+		/* LH - this was a bug... it should have been checking
+		 * the xid from the response message from the client,
+		 * not the static, internal xid */
+		if (lp->xid != mesg.rm_xid)
 			continue;
 		if (lp->addr.s_addr != sin->sin_addr.s_addr) {
 			char addr [18];
