@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1995, 1997-1999 Jeffrey A. Uphoff
  * Modified by Olaf Kirch, Oct. 1996.
+ * Modified by Lon Hohberger, Oct. 2000.
  *
  * NSM for Linux.
  */
@@ -10,7 +11,7 @@
 #include "notlist.h"
 
 /* Callback notify list. */
-notify_list *cbnl = NULL;
+/* notify_list *cbnl = NULL; ... never used */
 
 
 /* 
@@ -28,8 +29,11 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 	dprintf(L_DEBUG, "Received SM_NOTIFY from %s, state: %d",
 				argp->mon_name, argp->state);
 
-	if ((lp = rtnl) != NULL) {
-		log(L_WARNING, "SM_NOTIFY from %s--nobody looking!",
+	/* quick check - don't bother if we're not monitoring anyone */
+	/* LH - this was != MULL, meaning that if anyone _was_ in our RTNL,
+	 * we'd never pass this point. */
+	if (!(lp = rtnl)) {
+		log(L_WARNING, "SM_NOTIFY from %s while not monitoring any hosts.",
 				argp->mon_name, argp->state);
 		return ((void *) &result);
 	}
