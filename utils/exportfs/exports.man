@@ -335,7 +335,7 @@ which is the default setting.
 '''# Mapping for client foobar:
 '''#    remote     local
 '''uid  0-99       -       # squash these
-'''uid  100-500    1000    # map 100-500 to 1000-1500
+'''uid  100-500    1000    # map 100-500 to 1000-1400
 '''gid  0-49       -       # squash these
 '''gid  50-100     700     # map 50-100 to 700-750
 '''.fi
