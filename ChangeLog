@@ -1,9 +1,27 @@
+Tue Mar 21 11:38:48 EST 2000 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* support/include/nfs/nfs.h: Removed knowledge of internals of
+	     kernel filehandles (which can change) and defined nfs_fh_size
+	     which has variable size
+	
+	* support/nfs/getfh.c: defined getfh_size to use new syscall to
+	     get variable sized file handles, and change getfh{,old} to
+	     use nfs_fh_size	    
+	
+	* utils/mountd/mountd.c: use nfd_fh_size and call getfh_size for
+	     NFSv3 file handles
+
+	* tools/Makefile, tools/nlmtest/nlmtest.c
+	     nlmtest.c depended on internel format of file handles, so now
+	     doesn't work.
+
+	
 2000-03-12  Chip Salzenberg  <chip@valinux.com>
 	    Neil Brown  <neilb@cse.unsw.edu.au>
 
 	* support/nfs/rpcmisc.c (rpc_init): Share transports.
 
-Wed Mar  8 09:42:43 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
+Mon Mar 13 18:31:33 2000 H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfsd.init: Updated.
 

@@ -7,35 +7,16 @@
 #include <rpcsvc/nfs_prot.h>
 #include <nfs/export.h>
 
-struct dentry;
+#define	NFS3_FHSIZE	64
+#define	NFS_FHSIZE	32
 
-/*
- * This is the new "dentry style" Linux NFSv2 file handle.
- *
- * The xino and xdev fields are currently used to transport the
- * ino/dev of the exported inode.
- */
-struct nfs_fhbase {
-	struct dentry *	fb_dentry;	/* dentry cookie */
-	u_int32_t		fb_ino;		/* our inode number */
-	u_int32_t		fb_dirino;	/* dir inode number */
-	u_int32_t		fb_dev;		/* our device */
-	u_int32_t		fb_xdev;
-	u_int32_t		fb_xino;
+struct nfs_fh_len {
+	int		fh_size;
+	u_int8_t	fh_handle[NFS3_FHSIZE];
 };
-
-#define NFS_FH_PADDING		(NFS_FHSIZE - sizeof(struct nfs_fhbase))
-struct knfs_fh {
-	struct nfs_fhbase	fh_base;
-	u_int8_t			fh_cookie[NFS_FH_PADDING];
+struct nfs_fh_old {
+	u_int8_t	fh_handle[NFS_FHSIZE];
 };
-
-#define fh_dcookie		fh_base.fb_dentry
-#define fh_ino			fh_base.fb_ino
-#define fh_dirino		fh_base.fb_dirino
-#define fh_dev			fh_base.fb_dev
-#define fh_xdev			fh_base.fb_xdev
-#define fh_xino			fh_base.fb_xino
 
 /*
  * Version of the syscall interface
@@ -53,6 +34,7 @@ struct knfs_fh {
 #define NFSCTL_UGIDUPDATE	5	/* update a client's uid/gid map. */
 #define NFSCTL_GETFH		6	/* get an fh (used by mountd) */
 #define NFSCTL_GETFD		7	/* get an fh by path (used by mountd) */
+#define NFSCTL_GETFS		8	/* get an fh by path with max size (used by mountd) */
 
 /* Above this is for lockd. */
 #define NFSCTL_LOCKD		0x10000
@@ -113,6 +95,13 @@ struct nfsctl_fdparm {
 	int			gd_version;
 };
 
+/* GETFS - GET Filehandle with Size */
+struct nfsctl_fsparm {
+	struct sockaddr		gd_addr;
+	char			gd_path[NFS_MAXPATHLEN+1];
+	int			gd_maxlen;
+};
+
 /*
  * This is the argument union.
  */
@@ -125,7 +114,7 @@ struct nfsctl_arg {
 		struct nfsctl_uidmap	u_umap;
 		struct nfsctl_fhparm	u_getfh;
 		struct nfsctl_fdparm	u_getfd;
-		unsigned int		u_debug;
+		struct nfsctl_fsparm	u_getfs;
 	} u;
 #define ca_svc		u.u_svc
 #define ca_client	u.u_client
@@ -133,13 +122,13 @@ struct nfsctl_arg {
 #define ca_umap		u.u_umap
 #define ca_getfh	u.u_getfh
 #define ca_getfd	u.u_getfd
+#define ca_getfs	u.u_getfs
 #define ca_authd	u.u_authd
-#define ca_debug	u.u_debug
 };
 
 union nfsctl_res {
-	struct knfs_fh		cr_getfh;
-	unsigned int		cr_debug;
+	struct nfs_fh_old	cr_getfh;
+	struct nfs_fh_len	cr_getfs;
 };
 
 #endif /* _NFS_NFS_H */

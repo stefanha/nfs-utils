@@ -24,7 +24,7 @@
 
 static void		usage(const char *, int exitcode);
 static exports		get_exportlist(void);
-static struct knfs_fh *	get_rootfh(struct svc_req *, dirpath *, int *);
+static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, int *, int v3);
 
 static struct option longopts[] =
 {
@@ -65,11 +65,11 @@ mount_null_1_svc(struct svc_req *rqstp, void *argp, void *resp)
 bool_t
 mount_mnt_1_svc(struct svc_req *rqstp, dirpath *path, fhstatus *res)
 {
-	struct knfs_fh	*fh;
+	struct nfs_fh_len *fh;
 
 	xlog(D_CALL, "MNT1(%s) called", *path);
-	if ((fh = get_rootfh(rqstp, path, &res->fhs_status)) != NULL)
-		memcpy(&res->fhstatus_u.fhs_fhandle, fh, 32);
+	if ((fh = get_rootfh(rqstp, path, &res->fhs_status, 0)) != NULL)
+		memcpy(&res->fhstatus_u.fhs_fhandle, fh->fh_handle, 32);
 	return 1;
 }
 
@@ -203,22 +203,22 @@ bool_t
 mount_mnt_3_svc(struct svc_req *rqstp, dirpath *path, mountres3 *res)
 {
 	static int	flavors[] = { AUTH_NULL, AUTH_UNIX };
-	struct knfs_fh	*fh;
+	struct nfs_fh_len *fh;
 
 	xlog(D_CALL, "MNT3(%s) called", *path);
-	if ((fh = get_rootfh(rqstp, path, (int *) &res->fhs_status)) != NULL) {
+	if ((fh = get_rootfh(rqstp, path, (int *) &res->fhs_status, 1)) != NULL) {
 		struct mountres3_ok	*ok = &res->mountres3_u.mountinfo;
 
-		ok->fhandle.fhandle3_len = 32;
-		ok->fhandle.fhandle3_val = (char *) fh;
+		ok->fhandle.fhandle3_len = fh->fh_size;
+		ok->fhandle.fhandle3_val = fh->fh_handle;
 		ok->auth_flavors.auth_flavors_len = 2;
 		ok->auth_flavors.auth_flavors_val = flavors;
 	}
 	return 1;
 }
 
-static struct knfs_fh *
-get_rootfh(struct svc_req *rqstp, dirpath *path, int *error)
+static struct nfs_fh_len *
+get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 {
 	struct sockaddr_in *sin = svc_getcaller(rqstp->rq_xprt);
 	struct stat	stb;
@@ -252,19 +252,23 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error)
 		xlog(L_WARNING, "%s is not a directory or regular file", p);
 		*error = NFSERR_NOTDIR;
 	} else {
-		struct knfs_fh	*fh;
+		struct nfs_fh_len  *fh;
 
 		if (!exp->m_exported)
 			export_export(exp);
 		if (!exp->m_xtabent)
 			xtab_append(exp);
 
-		/* We first try the new nfs syscall. */
-		fh = getfh ((struct sockaddr *) sin, p);
-		if (fh == NULL && errno == EINVAL)
-			/* Let's try the old one. */
-			fh = getfh_old ((struct sockaddr *) sin,
-				    stb.st_dev, stb.st_ino);
+		if (v3)
+			fh = getfh_size ((struct sockaddr *) sin, p, 64);
+		if (!v3 || (fh == NULL && errno == EINVAL)) {
+			/* We first try the new nfs syscall. */
+			fh = getfh ((struct sockaddr *) sin, p);
+			if (fh == NULL && errno == EINVAL)
+				/* Let's try the old one. */
+				fh = getfh_old ((struct sockaddr *) sin,
+						stb.st_dev, stb.st_ino);
+		}
 		if (fh != NULL) {
 			mountlist_add(exp, p);
 			*error = NFS_OK;
@@ -424,7 +428,7 @@ main(int argc, char **argv)
 		usage(argv [0], 1);
 
 	/* Initialize logging. */
-	xlog_open("mountd");
+/*	xlog_open("mountd"); */
 
 	sa.sa_handler = SIG_IGN;
 	sa.sa_flags = 0;

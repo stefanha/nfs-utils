@@ -116,8 +116,9 @@ int			nfsaddclient(struct nfsctl_client *clp);
 int			nfsdelclient(struct nfsctl_client *clp);
 int			nfsexport(struct nfsctl_export *exp);
 int			nfsunexport(struct nfsctl_export *exp);
-struct knfs_fh *	getfh_old(struct sockaddr *addr, dev_t dev, ino_t ino);
-struct knfs_fh *	getfh(struct sockaddr *addr, const char *);
+struct nfs_fh_len *	getfh_old(struct sockaddr *addr, dev_t dev, ino_t ino);
+struct nfs_fh_len *	getfh(struct sockaddr *addr, const char *);
+struct nfs_fh_len *	getfh_size(struct sockaddr *addr, const char *, int size);
 
 /* lockd. */
 int			lockdsvc();

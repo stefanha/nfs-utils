@@ -234,7 +234,7 @@ makefileh(struct netobj *fh)
 {
 	static struct knfs_fh	f;
 	struct stat		stb;
-
+#error this needs updating if it is still wanted
 	memset(&f, 0, sizeof(f));
 #if 0
 	if (stat(NLMTEST_DIR, &stb) < 0) {

@@ -2,6 +2,7 @@
 # Various debugging/testing tools
 #
 
-SUBDIRS	= rpcgen getiversion getkversion nlmtest rpcdebug locktest
+SUBDIRS	= rpcgen getiversion getkversion  rpcdebug locktest
+# nlmtest doesn't work 
 
 include $(TOP)rules.mk

@@ -17,11 +17,12 @@
 #include <errno.h>
 #include "nfslib.h"
 
-struct knfs_fh *
+struct nfs_fh_len *
 getfh_old (struct sockaddr *addr, dev_t dev, ino_t ino)
 {
-	static union nfsctl_res	res;
+	union nfsctl_res	res;
 	struct nfsctl_arg	arg;
+	static struct nfs_fh_len rfh;
 
 	arg.ca_version = NFSCTL_VERSION;
 	arg.ca_getfh.gf_version = 2;	/* obsolete */
@@ -32,14 +33,17 @@ getfh_old (struct sockaddr *addr, dev_t dev, ino_t ino)
 	if (nfsctl(NFSCTL_GETFH, &arg, &res) < 0)
 		return NULL;
 
-	return &res.cr_getfh;
+	rfh.fh_size = 32;
+	memcpy(rfh.fh_handle, &res.cr_getfh, 32);
+	return &rfh;
 }
 
-struct knfs_fh *
+struct nfs_fh_len *
 getfh(struct sockaddr *addr, const char *path)
 {
-        static union nfsctl_res res;
+	static union nfsctl_res res;
         struct nfsctl_arg       arg;
+	static struct nfs_fh_len rfh;
 
         arg.ca_version = NFSCTL_VERSION;
         arg.ca_getfd.gd_version = 2;    /* obsolete */
@@ -51,5 +55,26 @@ getfh(struct sockaddr *addr, const char *path)
         if (nfsctl(NFSCTL_GETFD, &arg, &res) < 0)
                 return NULL;
 
-        return &res.cr_getfh;
+	rfh.fh_size = 32;
+	memcpy(rfh.fh_handle, &res.cr_getfh, 32);
+	return &rfh;
+}
+
+struct nfs_fh_len *
+getfh_size(struct sockaddr *addr, const char *path, int size)
+{
+        static union nfsctl_res res;
+        struct nfsctl_arg       arg;
+
+        arg.ca_version = NFSCTL_VERSION;
+        strncpy(arg.ca_getfs.gd_path, path,
+		sizeof(arg.ca_getfs.gd_path) - 1);
+	arg.ca_getfs.gd_path[sizeof (arg.ca_getfs.gd_path) - 1] = '\0';
+        memcpy(&arg.ca_getfs.gd_addr, addr, sizeof(struct sockaddr_in));
+	arg.ca_getfs.gd_maxlen = size;
+
+        if (nfsctl(NFSCTL_GETFS, &arg, &res) < 0)
+                return NULL;
+
+        return &res.cr_getfs;
 }
