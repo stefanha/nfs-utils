@@ -111,7 +111,8 @@ killer (int sig)
 static void
 sigusr (int sig)
 {
-	dprintf (N_DEBUG, "Caught signal %d, re-reading notify list.", sig);
+	dprintf (N_DEBUG, "Caught signal %d, re-notifying (state %d).", sig,
+								MY_STATE);
 	re_notify = 1;
 }
 

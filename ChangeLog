@@ -1,4 +1,12 @@
-2004-12-07 Marc Eshel <eshel@almaden.ibm.com>
+2004-12-06 Paul Clements <paul.clements@steeleye.com>	
+	* support/include/ha-callout.h: get return status from waitpid
+	correctly. 
+	* utils/statd/statd.c(sigusr): print current start when re-reading
+	notify list due to SIGUSR1
+	* utils/statd/svc_run.c(my_svc_run): call change_state when
+	re-notifying clients.
+	
+2004-12-06 Marc Eshel <eshel@almaden.ibm.com>
 	* utils/statd/svc_run.c(my_svc_run): allow loop to exit when in
 	MODE_NOTIFY_ONLY
 	*utils/statd/rmtcall.c(statd_get_socket): if a hostname is given

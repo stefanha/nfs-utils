@@ -39,7 +39,7 @@ ha_callout(char *event, char *arg1, char *arg2, int arg3)
 			exit(2);
 		case -1: perror("fork");
 			break;
-		default: ret = waitpid(pid, NULL, 0);
+		default: pid = waitpid(pid, &ret, 0);
   	}
 
 #ifdef dprintf

@@ -88,6 +88,9 @@ my_svc_run(void)
 		if (svc_stop)
 			return;
 		if (re_notify) {
+			change_state();
+			dprintf(N_DEBUG, "Notifying...(new state %d)",
+								MY_STATE);
 			notify_hosts();
 			re_notify = 0;
 		}
