@@ -1,5 +1,7 @@
 2005-04-06  Chip Salzenberg  <chip@pobox.com>
 
+	* config.guess, config.sub: Update.
+
 	* support/rpc/svc_auth_gss.c (_svcauth_gss): Avoid using a cast as
 	an lvalue, as it is non-portable.
 
