@@ -23,43 +23,9 @@ LOCKD="lockd"		# Lockd
 # User daemons and options
 STATD="rpc.statd"	# NLM Server
 
-
-# We need rpc.lockd on kernels < 2.2.18 if Trond Myklebust and Dave Higgens'
-# NFS patches have not been applied.
-lockd_not_needed()
-{
-    if [ "`uname`" = "Linux" ]; then 
-
-        os_rel=`uname -r`
-
-        # This messily chops up the linux version number and turns it into
-        # a comparable integer.
-        # 
-        # printf  value                         description
-        # %d      `echo $os_rel | cut -f1 -d.`  Major Linux release #
-        # %02d    `echo $os_rel | cut -f2 -d.`  Minor Linux release #
-        # %02d    `echo $os_rel | cut -f3 -d.`  Patchlevel
-        #
-        linux_version_code=`printf "%d%02d%02d" \`echo $os_rel | cut -f1 -d.\` \`echo $os_rel | cut -f2 -d.\` \`echo $os_rel | cut -f3 -d.\``
-	return $((linux_version_code < 20218))
-    fi
-
-    # On non-Linux systems, assume that lockd is always required.
-    return 1
-}
-
 # We use "type -path" instead of "which" since it's internal to bash.
 [ -x "`type -path $STATD`" ] || exit 0
-
-# Check to see if we need lockd (ie, nfsd doesn't handle spawning and
-# maintaining it)
-if lockd_not_needed
-then
-    unset LOCKD
-else
-    # We need it.  Make sure we have it.
-    [ -x "`type -path $PREFIX$LOCKD`" ] || exit 0
-fi
+[ -x "`type -path $PREFIX$LOCKD`" ] || exit 0
 
 # Handle how we were called.
 case "$1" in
@@ -68,11 +34,8 @@ start)
     echo -n "Starting $STATD: "
     startdaemon $STATD
 
-    if [ -n "$LOCKD" ]
-    then
-        echo -n "Starting $LOCKD: "
-        startdaemon $PREFIX$LOCKD
-    fi
+    echo -n "Starting $LOCKD: "
+    startdaemon $PREFIX$LOCKD
 
     # if this lock file doesn't exist, init won't even try to run
     # the shutdown script for this service on RedHat systems!
@@ -84,10 +47,8 @@ stop)
     echo -n "Stopping $STATD: "
     stopdaemon $STATD
 
-    if [ -n "$LOCKD" ]; then 
-        echo -n "Stopping $LOCKD: "
-        stopdaemon $LOCKD
-    fi
+    echo -n "Stopping $LOCKD: "
+    stopdaemon $LOCKD
 
     rm -f /var/lock/subsys/$SCRIPT_NAME 
     ;;
@@ -99,10 +60,7 @@ restart)
 
 status)
     daemonstatus $STATD
-
-    if [ -n "$LOCKD" ]; then
-        daemonstatus $LOCKD
-    fi
+    daemonstatus $LOCKD
 
     exit 0
     ;;
