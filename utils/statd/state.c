@@ -34,7 +34,7 @@ change_state (void)
     die ("read (%s): %s", SM_STAT_PATH, strerror (errno));
 
   if (size != 0 && size != sizeof MY_STATE) {
-    log (L_ERROR, "Error in status file format...correcting.");
+    note (N_ERROR, "Error in status file format...correcting.");
 
     if (close (fd) == -1)
       die ("close (%s): %s", SM_STAT_PATH, strerror (errno));
@@ -42,7 +42,7 @@ change_state (void)
     if ((fd = creat (SM_STAT_PATH, S_IRUSR | S_IWUSR)) == -1)
       die ("creat (%s): %s", SM_STAT_PATH, strerror (errno));
   }
-  log (L_DEBUG, "New state: %u", (++MY_STATE % 2) ? MY_STATE : ++MY_STATE);
+  note (N_DEBUG, "New state: %u", (++MY_STATE % 2) ? MY_STATE : ++MY_STATE);
 
   if (lseek (fd, 0, SEEK_SET) == -1)
     die ("lseek (%s): %s", SM_STAT_PATH, strerror (errno));
@@ -51,10 +51,10 @@ change_state (void)
     die ("write (%s): %s", SM_STAT_PATH, strerror (errno));
 
   if (fsync (fd) == -1)
-    log (L_ERROR, "fsync (%s): %s", SM_STAT_PATH, strerror (errno));
+    note (N_ERROR, "fsync (%s): %s", SM_STAT_PATH, strerror (errno));
 
   if (close (fd) == -1)
-    log (L_ERROR, "close (%s): %s", SM_STAT_PATH, strerror (errno));
+    note (N_ERROR, "close (%s): %s", SM_STAT_PATH, strerror (errno));
 
   if (MY_NAME == NULL) {
     char fullhost[SM_MAXSTRLEN + 1];
@@ -64,7 +64,7 @@ change_state (void)
       die ("gethostname: %s", strerror (errno));
 
     if ((hostinfo = gethostbyname (fullhost)) == NULL)
-      log (L_ERROR, "gethostbyname error for %s", fullhost);
+      note (N_ERROR, "gethostbyname error for %s", fullhost);
     else {
       strncpy (fullhost, hostinfo->h_name, sizeof (fullhost) - 1);
       fullhost[sizeof (fullhost) - 1] = '\0';
@@ -122,5 +122,5 @@ shuffle_dirs (void)
     free(dst);
   }
   if (closedir (nld) == -1)
-    log (L_ERROR, "closedir (%s): %s", SM_DIR, strerror (errno));
+    note (N_ERROR, "closedir (%s): %s", SM_DIR, strerror (errno));
 }

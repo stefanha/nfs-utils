@@ -58,7 +58,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 */
 	caller = svc_getcaller(rqstp->rq_xprt)->sin_addr;
 	if (caller.s_addr != htonl(INADDR_LOOPBACK)) {
-		log(L_WARNING,
+		note(N_WARNING,
 			"Call to statd from non-local host %s",
 			inet_ntoa(caller));
 		goto failure;
@@ -77,7 +77,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	if (id->my_prog != 100021 ||
 	    (id->my_proc != 16 && id->my_proc != 24))
 	{
-		log(L_WARNING,
+		note(N_WARNING,
 			"Attempt to register callback to %d/%d",
 			id->my_prog, id->my_proc);
 		goto failure;
@@ -87,7 +87,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 *	Again, specific to the linux kernel lockd.
 	 */
 	if (!inet_aton(mon_name, &mon_addr)) {
-		log(L_WARNING,
+		note(N_WARNING,
 			"Attempt to register host %s (not a dotted quad)",
 			mon_name);
 		goto failure;
@@ -100,15 +100,15 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 
 	/* must check for /'s in hostname!  See CERT's CA-96.09 for details. */
 	if (strchr(mon_name, '/')) {
-		log(L_CRIT, "SM_MON request for hostname containing '/': %s",
+		note(N_CRIT, "SM_MON request for hostname containing '/': %s",
 			mon_name);
-		log(L_CRIT, "POSSIBLE SPOOF/ATTACK ATTEMPT!");
+		note(N_CRIT, "POSSIBLE SPOOF/ATTACK ATTEMPT!");
 		goto failure;
 	} else if (gethostbyname(mon_name) == NULL) {
-		log(L_WARNING, "gethostbyname error for %s", mon_name);
+		note(N_WARNING, "gethostbyname error for %s", mon_name);
 		goto failure;
 	} else if (!(hostinfo = gethostbyname(my_name))) {
-		log(L_WARNING, "gethostbyname error for %s", my_name);
+		note(N_WARNING, "gethostbyname error for %s", my_name);
 		goto failure;
 	} else
 		my_addr = *(struct in_addr *) hostinfo->h_addr;
@@ -134,7 +134,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 				NL_MY_PROG(temp) == id->my_prog &&
 				NL_MY_VERS(temp) == id->my_vers) {
 				/* Hey!  We already know you guys! */
-				dprintf(L_DEBUG,
+				dprintf(N_DEBUG,
 					"Duplicate SM_MON request for %s "
 					"from procedure on %s",
 					mon_name, my_name);
@@ -153,7 +153,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 * doesn't fail.  (I should probably fix this assumption.)
 	 */
 	if (!(clnt = nlist_new(my_name, mon_name, 0))) {
-		log(L_WARNING, "out of memory");
+		note(N_WARNING, "out of memory");
 		goto failure;
 	}
 
@@ -171,7 +171,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	sprintf(path, "%s/%s", SM_DIR, mon_name);
 	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
 		/* Didn't fly.  We won't monitor. */
-		log(L_ERROR, "creat(%s) failed: %m", path);
+		note(N_ERROR, "creat(%s) failed: %m", path);
 		nlist_free(NULL, clnt);
 		free(path);
 		goto failure;
@@ -182,11 +182,11 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 
 	result.res_stat = STAT_SUCC;
 	result.state = MY_STATE;
-	dprintf(L_DEBUG, "MONITORING %s for %s", mon_name, my_name);
+	dprintf(N_DEBUG, "MONITORING %s for %s", mon_name, my_name);
 	return (&result);
 
 failure:
-	log(L_WARNING, "STAT_FAIL to %s for SM_MON of %s", my_name, mon_name);
+	note(N_WARNING, "STAT_FAIL to %s for SM_MON of %s", my_name, mon_name);
 	return (&result);
 }
 
@@ -212,7 +212,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 
 	/* Check if we're monitoring anyone. */
 	if (!(clnt = rtnl)) {
-		log(L_WARNING,
+		note(N_WARNING,
 			"Received SM_UNMON request from %s for %s while not "
 			"monitoring any hosts.", my_name, argp->mon_name);
 		return (&result);
@@ -230,7 +230,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			NL_MY_PROG(clnt) == id->my_prog &&
 			NL_MY_VERS(clnt) == id->my_vers) {
 			/* Match! */
-			dprintf(L_DEBUG, "UNMONITORING %s for %s",
+			dprintf(N_DEBUG, "UNMONITORING %s for %s",
 					mon_name, my_name);
 			nlist_free(&rtnl, clnt);
 			xunlink(SM_DIR, mon_name, 1);
@@ -240,7 +240,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			clnt = NL_NEXT(clnt);
 	}
 
-	log(L_WARNING, "Received erroneous SM_UNMON request from %s for %s",
+	note(N_WARNING, "Received erroneous SM_UNMON request from %s for %s",
 		my_name, mon_name);
 	return (&result);
 }
@@ -256,7 +256,7 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 	result.state = MY_STATE;
 
 	if (!(clnt = rtnl)) {
-		log(L_WARNING, "Received SM_UNMON_ALL request from %s "
+		note(N_WARNING, "Received SM_UNMON_ALL request from %s "
 			"while not monitoring any hosts", argp->my_name);
 		return (&result);
 	}
@@ -269,7 +269,7 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 			char            mon_name[SM_MAXSTRLEN + 1];
 			notify_list	*temp;
 
-			dprintf(L_DEBUG,
+			dprintf(N_DEBUG,
 				"UNMONITORING (SM_UNMON_ALL) %s for %s",
 				NL_MON_NAME(clnt), NL_MY_NAME(clnt));
 			strncpy(mon_name, NL_MON_NAME(clnt),
@@ -285,7 +285,7 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 	}
 
 	if (!count) {
-		dprintf(L_DEBUG, "SM_UNMON_ALL request from %s with no "
+		dprintf(N_DEBUG, "SM_UNMON_ALL request from %s with no "
 			"SM_MON requests from it.", argp->my_name);
 	}
 

@@ -25,12 +25,12 @@ sm_stat_1_svc (struct sm_name *argp, struct svc_req *rqstp)
   static sm_stat_res result;
 
   if (gethostbyname (argp->mon_name) == NULL) {
-    log (L_WARNING, "gethostbyname error for %s", argp->mon_name);
+    note (N_WARNING, "gethostbyname error for %s", argp->mon_name);
     result.res_stat = STAT_FAIL;
-    dprintf (L_DEBUG, "STAT_FAIL for %s", argp->mon_name);
+    dprintf (N_DEBUG, "STAT_FAIL for %s", argp->mon_name);
   } else {
     result.res_stat = STAT_SUCC;
-    dprintf (L_DEBUG, "STAT_SUCC for %s", argp->mon_name);
+    dprintf (N_DEBUG, "STAT_SUCC for %s", argp->mon_name);
   }
   result.state = MY_STATE;
   return(&result);

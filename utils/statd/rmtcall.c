@@ -56,7 +56,7 @@ statd_get_socket(int port)
 		return sockfd;
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		log(L_CRIT, "Can't create socket: %m");
+		note(N_CRIT, "Can't create socket: %m");
 		return -1;
 	}
 
@@ -66,7 +66,7 @@ statd_get_socket(int port)
 	sin.sin_family = AF_INET;
 	sin.sin_port = port;
 	if (bindresvport(sockfd, &sin) < 0) {
-		dprintf(L_WARNING,
+		dprintf(N_WARNING,
 			"process_hosts: can't bind to reserved port\n");
 	}
 
@@ -90,7 +90,7 @@ try_to_resolve(notify_list *lp)
 	else
 		hname = NL_MY_NAME(lp);
 	if (!inet_aton(hname, &(NL_ADDR(lp)))) {
-		log(L_ERROR, "%s is not an dotted-quad address", hname);
+		note(N_ERROR, "%s is not an dotted-quad address", hname);
 		NL_TIMES(lp) = 0;
 		return 0;
 	}
@@ -113,7 +113,7 @@ try_to_resolve(notify_list *lp)
 	else
 		hname = NL_MY_NAME(lp);
 
-	dprintf(L_DEBUG, "Trying to resolve %s.", hname);
+	dprintf(N_DEBUG, "Trying to resolve %s.", hname);
 	if (!(hp = gethostbyname(hname))) {
 		herror("gethostbyname");
 		NL_TIMES(lp) -= 1;
@@ -121,7 +121,7 @@ try_to_resolve(notify_list *lp)
 	}
 
 	if (hp->h_addrtype != AF_INET) {
-		log(L_ERROR, "%s is not an AF_INET address", hname);
+		note(N_ERROR, "%s is not an AF_INET address", hname);
 		NL_TIMES(lp) = 0;
 		return 0;
 	}
@@ -130,7 +130,7 @@ try_to_resolve(notify_list *lp)
 	 * alternation because one interface might be down/unreachable. */
 	NL_ADDR(lp) = *(struct in_addr *) hp->h_addr;
 
-	dprintf(L_DEBUG, "address of %s is %s", hname, inet_ntoa(NL_ADDR(lp)));
+	dprintf(N_DEBUG, "address of %s is %s", hname, inet_ntoa(NL_ADDR(lp)));
 	return 1;
 }
 #endif
@@ -181,7 +181,7 @@ xmit_call(int sockfd, struct sockaddr_in *sin,
 
 	/* Encode the RPC header part and payload */
 	if (!xdr_callmsg(xdrs, &mesg) || !func(xdrs, obj)) {
-		dprintf(L_WARNING, "xmit_mesg: can't encode RPC message!\n");
+		dprintf(N_WARNING, "xmit_mesg: can't encode RPC message!\n");
 		xdr_destroy(xdrs);
 		return 0;
 	}
@@ -191,9 +191,9 @@ xmit_call(int sockfd, struct sockaddr_in *sin,
 
 	if ((err = sendto(sockfd, msgbuf, msglen, 0,
 			(struct sockaddr *) sin, sizeof(*sin))) < 0) {
-		dprintf(L_WARNING, "xmit_mesg: sendto failed: %m");
+		dprintf(N_WARNING, "xmit_mesg: sendto failed: %m");
 	} else if (err != msglen) {
-		dprintf(L_WARNING, "xmit_mesg: short write: %m\n");
+		dprintf(N_WARNING, "xmit_mesg: short write: %m\n");
 	}
 
 	xdr_destroy(xdrs);
@@ -213,7 +213,7 @@ recv_rply(int sockfd, struct sockaddr_in *sin, u_long *portp)
 	/* Receive message */
 	if ((msglen = recvfrom(sockfd, msgbuf, sizeof(msgbuf), 0,
 			(struct sockaddr *) sin, &alen)) < 0) {
-		dprintf(L_WARNING, "recv_rply: recvfrom failed: %m");
+		dprintf(N_WARNING, "recv_rply: recvfrom failed: %m");
 		return NULL;
 	}
 
@@ -225,18 +225,18 @@ recv_rply(int sockfd, struct sockaddr_in *sin, u_long *portp)
 	mesg.rm_reply.rp_acpt.ar_results.proc = (xdrproc_t) xdr_void;
 
 	if (!xdr_replymsg(xdrs, &mesg)) {
-		log(L_WARNING, "recv_rply: can't decode RPC message!\n");
+		note(N_WARNING, "recv_rply: can't decode RPC message!\n");
 		goto done;
 	}
 
 	if (mesg.rm_reply.rp_stat != 0) {
-		log(L_WARNING, "recv_rply: [%s] RPC status %d\n", 
+		note(N_WARNING, "recv_rply: [%s] RPC status %d\n", 
 				inet_ntoa(sin->sin_addr),
 				mesg.rm_reply.rp_stat);
 		goto done;
 	}
 	if (mesg.rm_reply.rp_acpt.ar_stat != 0) {
-		log(L_WARNING, "recv_rply: [%s] RPC status %d\n",
+		note(N_WARNING, "recv_rply: [%s] RPC status %d\n",
 				inet_ntoa(sin->sin_addr),
 				mesg.rm_reply.rp_acpt.ar_stat);
 		goto done;
@@ -253,13 +253,13 @@ recv_rply(int sockfd, struct sockaddr_in *sin, u_long *portp)
 			strncpy (addr, inet_ntoa(lp->addr),
 				 sizeof (addr) - 1);
 			addr [sizeof (addr) - 1] = '\0';
-			dprintf(L_WARNING, "address mismatch: "
+			dprintf(N_WARNING, "address mismatch: "
 				"expected %s, got %s\n",
 				addr, inet_ntoa(sin->sin_addr));
 		}
 		if (lp->port == 0) {
 			if (!xdr_u_long(xdrs, portp)) {
-				log(L_WARNING, "recv_rply: [%s] "
+				note(N_WARNING, "recv_rply: [%s] "
 					"can't decode reply body!\n",
 					inet_ntoa(sin->sin_addr));
 				lp = NULL;
@@ -290,7 +290,7 @@ process_entry(int sockfd, notify_list *lp)
 	if (lp->addr.s_addr == INADDR_ANY && !try_to_resolve(lp))
 		return NL_TIMES(lp);
 	if (NL_TIMES(lp) == 0) {
-		log(L_DEBUG, "Cannot notify %s, giving up.\n",
+		note(N_DEBUG, "Cannot notify %s, giving up.\n",
 					inet_ntoa(NL_ADDR(lp)));
 		return 0;
 	}
@@ -328,14 +328,14 @@ process_entry(int sockfd, notify_list *lp)
 		memcpy(new_status.priv, NL_PRIV(lp), SM_PRIV_SIZE);
 		break;
 	default:
-		log(L_ERROR, "notify_host: unknown notify type %d",
+		note(N_ERROR, "notify_host: unknown notify type %d",
 				NL_TYPE(lp));
 		return 0;
 	}
 
 	lp->xid = xmit_call(sockfd, &sin, prog, vers, proc, func, objp);
 	if (!lp->xid) {
-		log(L_WARNING, "notify_host: failed to notify %s\n",
+		note(N_WARNING, "notify_host: failed to notify %s\n",
 				inet_ntoa(lp->addr));
 	}
 	NL_TIMES(lp) -= 1;
@@ -368,15 +368,15 @@ process_reply(FD_SET_TYPE *rfds)
 			nlist_insert_timer(&notify, lp);
 			return 1;
 		}
-		log(L_WARNING, "recv_rply: [%s] service %d not registered",
+		note(N_WARNING, "recv_rply: [%s] service %d not registered",
 			inet_ntoa(lp->addr),
 			NL_TYPE(lp) == NOTIFY_REBOOT? SM_PROG : NL_MY_PROG(lp));
 	} else if (NL_TYPE(lp) == NOTIFY_REBOOT) {
-		dprintf(L_DEBUG, "Notification of %s succeeded.",
+		dprintf(N_DEBUG, "Notification of %s succeeded.",
 			NL_MON_NAME(lp));
 		xunlink(SM_BAK_DIR, NL_MON_NAME(lp), 0);
 	} else {
-		dprintf(L_DEBUG, "Callback to %s (for %d) succeeded.",
+		dprintf(N_DEBUG, "Callback to %s (for %d) succeeded.",
 			NL_MY_NAME(lp), NL_MON_NAME(lp));
 	}
 	nlist_free(&notify, lp);
@@ -404,14 +404,14 @@ process_notify_list(void)
 			nlist_remove(&notify, entry);
 			nlist_insert_timer(&notify, entry);
 		} else if (NL_TYPE(entry) == NOTIFY_CALLBACK) {
-			log(L_ERROR,
+			note(N_ERROR,
 				"Can't callback %s (%d,%d), giving up.",
 					NL_MY_NAME(entry),
 					NL_MY_PROG(entry),
 					NL_MY_VERS(entry));
 			nlist_free(&notify, entry);
 		} else {
-			log(L_ERROR,
+			note(N_ERROR,
 				"Can't notify %s, giving up.",
 					NL_MON_NAME(entry));
 			xunlink(SM_BAK_DIR, NL_MON_NAME(entry), 0);

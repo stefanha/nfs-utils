@@ -20,23 +20,23 @@ void	log_init();
 void	log_background(void);
 void	log_enable(int facility);
 int	log_enabled(int facility);
-void	log(int level, char *fmt, ...);
+void	note(int level, char *fmt, ...);
 void	die(char *fmt, ...);
 
 /*
  * Map per-application severity to system severity. What's fatal for
  * lockd is merely an itching spot from the universe's point of view.
  */
-#define L_CRIT		LOG_CRIT
-#define L_FATAL		LOG_ERR
-#define L_ERROR		LOG_WARNING
-#define L_WARNING	LOG_NOTICE
-#define L_DEBUG		LOG_DEBUG
+#define N_CRIT		LOG_CRIT
+#define N_FATAL		LOG_ERR
+#define N_ERROR		LOG_WARNING
+#define N_WARNING	LOG_NOTICE
+#define N_DEBUG		LOG_DEBUG
 
 #ifdef DEBUG
-#define dprintf		log
+#define dprintf		note
 #else
-#define dprintf		if (run_mode & MODE_LOG_STDERR) log
+#define dprintf		if (run_mode & MODE_LOG_STDERR) note
 #endif
 
 #endif /* _LOCKD_LOG_H_ */

@@ -72,7 +72,7 @@ simulate_mon (char *calling, char *monitoring, char *as, char *proggy,
   sm_stat_res *result;
   mon mon;
 
-  dprintf (L_DEBUG, "Calling %s (as %s) to monitor %s", calling, as,
+  dprintf (N_DEBUG, "Calling %s (as %s) to monitor %s", calling, as,
 	   monitoring);
 
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
@@ -92,11 +92,11 @@ simulate_mon (char *calling, char *monitoring, char *as, char *proggy,
   free (mon.mon_id.my_id.my_name);
 
   if (result->res_stat != STAT_SUCC) {
-    log (L_FATAL, "SM_MON request failed, state: %d", result->state);
+    note (N_FATAL, "SM_MON request failed, state: %d", result->state);
     exit (0);
   } else {
-    dprintf (L_DEBUG, "SM_MON result successful, state: %d\n", result->state);
-    dprintf (L_DEBUG, "Waiting for callback.");
+    dprintf (N_DEBUG, "SM_MON result successful, state: %d\n", result->state);
+    dprintf (N_DEBUG, "Waiting for callback.");
     daemon_simulator ();
     exit (0);
   }
@@ -109,7 +109,7 @@ simulate_unmon (char *calling, char *unmonitoring, char *as, char *proggy)
   sm_stat *result;
   mon_id mon_id;
 
-  dprintf (L_DEBUG, "Calling %s (as %s) to unmonitor %s", calling, as,
+  dprintf (N_DEBUG, "Calling %s (as %s) to unmonitor %s", calling, as,
 	   unmonitoring);
 
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
@@ -125,7 +125,7 @@ simulate_unmon (char *calling, char *unmonitoring, char *as, char *proggy)
     die ("%s", clnt_sperror (client, "sm_unmon_1"));
 
   free (mon_id.my_id.my_name);
-  dprintf (L_DEBUG, "SM_UNMON request returned state: %d\n", result->state);
+  dprintf (N_DEBUG, "SM_UNMON request returned state: %d\n", result->state);
   exit (0);
 }
 
@@ -136,7 +136,7 @@ simulate_unmon_all (char *calling, char *as, char *proggy)
   sm_stat *result;
   my_id my_id;
 
-  dprintf (L_DEBUG, "Calling %s (as %s) to unmonitor all hosts", calling, as);
+  dprintf (N_DEBUG, "Calling %s (as %s) to unmonitor all hosts", calling, as);
 
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
     die ("%s", clnt_spcreateerror ("clnt_create"));
@@ -150,7 +150,7 @@ simulate_unmon_all (char *calling, char *as, char *proggy)
     die ("%s", clnt_sperror (client, "sm_unmon_all_1"));
 
   free (my_id.my_name);
-  dprintf (L_DEBUG, "SM_UNMON_ALL request returned state: %d\n", result->state);
+  dprintf (N_DEBUG, "SM_UNMON_ALL request returned state: %d\n", result->state);
   exit (0);
 }
 
@@ -184,10 +184,10 @@ simulate_stat (char *calling, char *monitoring)
     die ("%s", clnt_sperror (client, "sm_stat_1"));
 
   if (result->res_stat == STAT_SUCC)
-    dprintf (L_DEBUG, "STAT_SUCC from %s for %s, state: %d", calling,
+    dprintf (N_DEBUG, "STAT_SUCC from %s for %s, state: %d", calling,
 	     monitoring, result->state);
   else
-    dprintf (L_DEBUG, "STAT_FAIL from %s for %s, state: %d", calling,
+    dprintf (N_DEBUG, "STAT_FAIL from %s for %s, state: %d", calling,
 	     monitoring, result->state);
 
   exit (0);
@@ -196,7 +196,7 @@ simulate_stat (char *calling, char *monitoring)
 static void
 sim_killer (int sig)
 {
-  log (L_FATAL, "Simulator caught signal %d, un-registering and exiting.", sig);
+  note (N_FATAL, "Simulator caught signal %d, un-registering and exiting.", sig);
   pmap_unset (sim_port, SIM_SM_VERS);
   exit (0);
 }
@@ -219,7 +219,7 @@ sim_sm_mon_1_svc (struct status *argp, struct svc_req *rqstp)
 {
   static char *result;
 
-  dprintf (L_DEBUG, "Recieved state %d for mon_name %s (opaque \"%s\")",
+  dprintf (N_DEBUG, "Recieved state %d for mon_name %s (opaque \"%s\")",
 	   argp->state, argp->mon_name, argp->priv);
   svc_exit ();
   return ((void *)&result);

@@ -19,7 +19,7 @@ sm_simu_crash_1_svc (void *argp, struct svc_req *rqstp)
 {
   static char *result = NULL;
 
-  log (L_WARNING, "*** SIMULATING CRASH! ***");
+  note (N_WARNING, "*** SIMULATING CRASH! ***");
   my_svc_exit ();
 
   if (rtnl)

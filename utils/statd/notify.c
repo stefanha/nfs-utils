@@ -54,10 +54,10 @@ notify_hosts(void)
 		 || matchhostname(de->d_name, "localhost")) {
 			char *fname;
 			fname=xmalloc(strlen(SM_BAK_DIR)+sizeof(de->d_name)+2);
-			dprintf(L_DEBUG, "We're on our own notify list?!?");
+			dprintf(N_DEBUG, "We're on our own notify list?!?");
 			sprintf(fname, "%s/%s",  SM_BAK_DIR, de->d_name);
 			if (unlink(fname)) 
-				log(L_ERROR, "unlink(%s): %s", 
+				note(N_ERROR, "unlink(%s): %s", 
 					fname, strerror(errno));
 			free(fname);
 			continue;

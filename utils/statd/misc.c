@@ -64,10 +64,10 @@ xunlink (char *path, char *host, short int check)
 
   if (!check || !nlist_gethost(rtnl, host, 0)) {
     if (unlink (tozap) == -1)
-      log (L_ERROR, "unlink (%s): %s", tozap, strerror (errno));
+      note (N_ERROR, "unlink (%s): %s", tozap, strerror (errno));
     else
-      dprintf (L_DEBUG, "Unlinked %s", tozap);
+      dprintf (N_DEBUG, "Unlinked %s", tozap);
   }
   else
-    dprintf (L_DEBUG, "Not unlinking %s--host still monitored.", tozap);
+    dprintf (N_DEBUG, "Not unlinking %s--host still monitored.", tozap);
 }

@@ -36,7 +36,7 @@ void log_init()
 
 	mypid = getpid();
 
-	log(L_WARNING,"Version %s Starting",version_p);
+	note(N_WARNING,"Version %s Starting",version_p);
 }
 
 void log_background(void)
@@ -54,7 +54,7 @@ void die(char *fmt, ...)
 	va_end(ap);
 	buffer[1023]=0;
 
-	log(L_FATAL, "%s", buffer);
+	note(N_FATAL, "%s", buffer);
 
 #ifndef DEBUG
 	exit (2);
@@ -63,7 +63,7 @@ void die(char *fmt, ...)
 #endif
 }
 
-void log(int level, char *fmt, ...)
+void note(int level, char *fmt, ...)
 {
 	char	buffer[1024];
 	va_list	ap;
@@ -73,7 +73,7 @@ void log(int level, char *fmt, ...)
 	va_end(ap);
 	buffer[1023]=0;
 
-	if ((!(run_mode & MODE_LOG_STDERR)) && (level < L_DEBUG)) {
+	if ((!(run_mode & MODE_LOG_STDERR)) && (level < N_DEBUG)) {
 		syslog(level, "%s", buffer);
 	} else if (run_mode & MODE_LOG_STDERR) {
 		/* Log everything, including dprintf() stuff to stderr */
