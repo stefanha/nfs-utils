@@ -2,7 +2,7 @@ Summary: The utilities for Linux NFS client and server.
 Name: nfs-utils
 Version: @VERSION@
 Release: 1
-Source0: ftp://ftp.valinux.com/pub/support/hjl/nfs/%{name}-%{version}.tar.gz
+Source0: ftp://nfs.sourceforge.net/pub/nfs/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Obsoletes: nfs-server nfs-server-clients knfsd knfsd-clients knfsd-lock
 Provides: nfs-server nfs-server-clients knfsd knfsd-clients knfsd-lock
