@@ -2,8 +2,8 @@
 .\" exportfs(8)
 .\" 
 .\" Copyright (C) 1995 Olaf Kirch <okir@monad.swb.de>
-.\" Modifications 1999 Neil Brown <neilb@cse.unsw.edu.au>
-.TH exportfs 8 "7 Sep 1999"
+.\" Modifications 1999-2003 Neil Brown <neilb@cse.unsw.edu.au>
+.TH exportfs 8 "18 July 2003"
 .SH NAME
 exportfs \- maintain list of NFS exported file systems
 .SH SYNOPSIS
@@ -14,6 +14,8 @@ exportfs \- maintain list of NFS exported file systems
 .BI "/usr/sbin/exportfs [-av] -u [" "client:/path" " ..]
 .br
 .BI "/usr/sbin/exportfs [-v]
+.br
+.BI "/usr/sbin/exportfs -f"
 .br
 .SH DESCRIPTION
 The
@@ -39,7 +41,30 @@ without modifying
 using
 .BR exportfs .
 .P
-Any export requests which identify a specific host (rather than a
+.B exportfs
+and it's partner program
+.B mountd
+work in one of two modes, a legacy mode which applies to 2.4 and
+earlier versions of the Linux kernel, and a new mode which applies to
+2.6 and later versions providing the
+.B nfsd
+virtual filesystem has been mounted at
+.BR /proc/fs/nfs .
+If this filesystem is not mounted in 2.6, the legacy mode is used.
+.P
+In the new mode,
+.B exportfs
+does not give any information to the kernel but only provides it to
+.B mountd
+through the
+.B /var/lib/nfs/xtab
+file.
+.B mountd
+will listen to requests from the kernel and will provide information
+as needed.
+.P
+In the legacy mode,
+any export requests which identify a specific host (rather than a
 subnet or netgroup etc) are entered directly into the kernel's export
 table as well as being written to
 .BR /var/lib/nfs/xtab .
@@ -71,9 +96,14 @@ with /etc/exports. It removes entries in /var/lib/nfs/xtab
 which are deleted from /etc/exports, and remove any entries from the
 kernel export table which are no longer valid.
 .TP
-.TP
 .B -u
 Unexport one or more directories.
+.TP
+.B -f
+In 'new' mode, flush everything out of the kernels export table. Any
+clients that are active will get new entries added by
+.B mountd
+when they make their next request.
 .TP
 .B -v
 Be verbose. When exporting or unexporting, show what's going on. When

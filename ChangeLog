@@ -1,3 +1,23 @@
+2003-07-18 NeilBrown <neilb@cse.unsw.edu.au>
+
+	Release 1.0.5:
+	 1.0.4 was a bit of a brown-paper-bag-release because of the extra
+	 'free' in auth.c.  So I'm releasing this just a few days later.
+
+	* support/nfs/cacheio.c(cache_flush): Correct test for 'open
+	failed'
+	* utils/exportfs/exportfs.c(main): If "-f" given as lone option,
+	check if new_cache is enabled, error if not, flush and exit if it
+	is. 
+	* utils/exportfs/exportfs.man: Explain -f option and explain the
+	two different modes that exportfs can work in.
+	* utils/mountd/mountd.c: Do not change RLIMIT_NOFILE if the -o
+	option wasn't given.
+	* utils/mountd/mountd.man: Record the change if default behaviour
+	for RLIMIT_NOFILE.
+	* configure.in, nfs-utils.spec: update version to 1.0.5 and
+	run autoconf
+	
 2003-07-15 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/mountd/mountd.c(main): getopt string fix for 'o'

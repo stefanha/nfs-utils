@@ -91,16 +91,22 @@ main(int argc, char **argv)
 		fprintf(stderr, "exportfs: -r and -u are incompatible.\n");
 		return 1;
 	}
+	new_cache = check_new_cache();
 	if (optind == argc && ! f_all) {
 		if (force_flush) {
-			cache_flush(1);
+			if (new_cache)
+				cache_flush(1);
+			else {
+				fprintf(stderr, "exportfs: -f: only available with new cache controls: mount /proc/fs/nfs first\n");
+				exit(1);
+			}
+			return 0;
 		} else {
 			xtab_export_read();
 			dump(f_verbose);
 			return 0;
 		}
 	}
-	new_cache = check_new_cache();
 
 	if (f_export && ! f_ignore)
 		export_read(_PATH_EXPORTS);

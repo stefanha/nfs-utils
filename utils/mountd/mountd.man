@@ -74,7 +74,7 @@ Display usage message.
 .TP
 .B \-o num " or " \-\-descriptors num
 Set the limit of the number of open file descriptors to num. The
-default is 256.
+default is to leave the limit unchanged.
 .TP
 .B \-N " or " \-\-no-nfs-version
 This option can be used to request that

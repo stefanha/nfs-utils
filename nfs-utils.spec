@@ -6,7 +6,7 @@
 
 Summary: NFS utlilities and supporting daemons for the kernel NFS server.
 Name: nfs-utils
-Version: 1.0.4
+Version: 1.0.5
 Release: 1
 Source0: ftp://nfs.sourceforge.net/pub/nfs/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons

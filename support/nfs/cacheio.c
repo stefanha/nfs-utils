@@ -260,7 +260,7 @@ cache_flush(int force)
 		int fd;
 		sprintf(path, "/proc/net/rpc/%s/flush", cachelist[c]);
 		fd = open(path, O_RDWR);
-		if (fd) {
+		if (fd >= 0) {
 			write(fd, stime, strlen(stime));
 			close(fd);
 		}
