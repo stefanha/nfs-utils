@@ -3,7 +3,7 @@ nfs-utils (1:1.0.5-3) unstable; urgency=high
   * Upstream CVS sync:
     > Fix crash on invalid reverse DNS.  (closes: #209318)
 
- -- Chip Salzenberg <chip@debian.org>  Tue,  9 Sep 2003 13:53:54 -0400
+ -- Chip Salzenberg <chip@debian.org>  Tue,  9 Sep 2003 14:02:46 -0400
 
 nfs-utils (1:1.0.5-2) unstable; urgency=low
 
