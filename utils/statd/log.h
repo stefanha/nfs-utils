@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1995 Olaf Kirch
  * Modified by Jeffrey A. Uphoff, 1996, 1997, 1999.
+ * Modified by Lon Hohberger, Oct. 2000
  *
  * NSM for Linux.
  */
@@ -15,7 +16,7 @@
 
 #include <syslog.h>
 
-void	log_init(char *name);
+void	log_init();
 void	log_background(void);
 void	log_enable(int facility);
 int	log_enabled(int facility);
@@ -35,7 +36,7 @@ void	die(char *fmt, ...);
 #ifdef DEBUG
 #define dprintf		log
 #else
-#define dprintf		if (0) log
+#define dprintf		if (run_mode & MODE_LOG_STDERR) log
 #endif
 
 #endif /* _LOCKD_LOG_H_ */
