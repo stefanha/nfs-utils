@@ -1,3 +1,17 @@
+nfs-utils (1:0.3.3-4) unstable; urgency=high
+
+  * High priority due to changes in previous version.
+  * Upstream fixes:
+    > Close filehandles in nfsd before spawing kernel threads.  This is a
+      workaround for a kernel bug.  (closes: #121213)
+    > Document that both host names *and* addresses are checked with tcpwrappers.
+      This is a doc update, not a change.  (closes: #108493)
+    > Don't assume that strings starting with digits are IP addresses;
+      host names are allowed to start with digits.  (closes: #68977)
+  * German template for nfs-common.  (closes: #120939)
+
+ -- Chip Salzenberg <chip@debian.org>  Mon, 26 Nov 2001 11:50:43 -0800
+
 nfs-utils (1:0.3.3-3) unstable; urgency=low
 
   * Upstream fixes:

@@ -7,6 +7,7 @@
 	* support/misc/tcpwrapper.c, utils/mountd/mountd.man,
 	utils/rquotad/rquotad.man, utils/statd/statd.man: Fix comments and
 	man pages: We check host names *and* addresses with tcpwrappers.
+	* debian/changelog: Version 0.3.3-4.
 
 2001-11-21  Chip Salzenberg  <chip@pobox.com>
 
