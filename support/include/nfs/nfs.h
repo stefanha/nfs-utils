@@ -58,11 +58,22 @@ struct nfsctl_client {
 	unsigned char		cl_fhkey[NFSCLNT_KEYMAX];
 };
 
+/* IN 2.5.6? __kernel_dev_t changed size, and __kernel_old_dev_t was left
+ * with the old value.  We need to make sure we use the right one.
+ *
+ */
+#include <linux/version.h>
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,5,70)
+# define __nfsd_dev_t  __kernel_old_dev_t
+#else
+# define __nfsd_dev_t  __kernel_dev_t
+#endif
+
 /* EXPORT/UNEXPORT */
 struct nfsctl_export {
 	char			ex_client[NFSCLNT_IDMAX+1];
 	char			ex_path[NFS_MAXPATHLEN+1];
-	__kernel_dev_t		ex_dev;
+	__nfsd_dev_t		ex_dev;
 	__kernel_ino_t		ex_ino;
 	int			ex_flags;
 	__kernel_uid_t		ex_anon_uid;
@@ -83,7 +94,7 @@ struct nfsctl_uidmap {
 /* GETFH */
 struct nfsctl_fhparm {
 	struct sockaddr		gf_addr;
-	__kernel_dev_t		gf_dev;
+	__nfsd_dev_t		gf_dev;
 	__kernel_ino_t		gf_ino;
 	int			gf_version;
 };

@@ -1,5 +1,12 @@
 2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
 
+	* support/include/nfs/nfs.h: Make sure correct __kernel_dev_t is
+	used as the size was changed somewhere in 2.5.60-2.5.70.  Without
+	this nfs-utils compiles against 2.6 headers will not work on a
+	2.4 kernel.	
+	
+2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/nfs/nfssvc.c(nfssvc): If /proc/fs/nfs/threads exists,
 	set number of threads by writing to there.  This means it will
 	still work when the syscall interface goes away in 2.7.
