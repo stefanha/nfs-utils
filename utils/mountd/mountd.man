@@ -2,7 +2,7 @@
 .\" mountd(8)
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
-.TH rpc.mountd 8 "31 May 1999"
+.TH rpc.mountd 8 "25 Aug 2000"
 .SH NAME
 rpc.mountd \- NFS mount daemon
 .SH SYNOPSIS
@@ -48,38 +48,87 @@ user level part of the NFS service.
 .P
 However, this file is mostly ornamental. One, the client can continue
 to use the file handle even after calling
-.BR rpc.mountd 's
+.B rpc.mountd 's
 UMOUNT procedure. And two, if a client reboots without notifying
-.BR rpc.mountd ,
+.B rpc.mountd ,
 a stale entry will remain in
 .BR rmtab .
 .SH OPTIONS
 .TP
-.\" This file isn't touched by mountd at all--even though it
-.\" accepts the option.
-.\" .BR \-f " or " \-\-exports-file
-.\" This option specifies the exports file, listing the clients that this
-.\" server is prepared to serve and parameters to apply to each
-.\" such mount (see
-.\" .BR exports (5)).
-.\" By default, export information is read from
-.\" .IR /etc/exports .
+.B \-d " or " \-\-debug
+Turn on debugging.
 .TP
-.BR \-N " or " \-\-no-nfs-version
+.B \-F " or " \-\-foreground
+Run in foreground (do not daemonize)
+.TP
+.B \-f " or " \-\-exports-file
+This option specifies the exports file, listing the clients that this
+server is prepared to serve and parameters to apply to each
+such mount (see
+.BR exports (5)).
+By default, export information is read from
+.IR /etc/exports .
+.TP
+.B \-h " or " \-\-help
+Display usage message.
+.TP
+.B \-N " or " \-\-no-nfs-version
 This option can be used to request that
 .B rpc.mountd
-does not offer certain versions of NFS. The current version of
+do not offer certain versions of NFS. The current version of
 .B rpc.mountd
 can support both NFS version 2 and the newer version 3. If the
 NFS kernel module was compiled without support for NFSv3,
 .B rpc.mountd
 must be invoked with the option
-.BR "\-\-no-nfs-version 3" .
+.B "\-\-no-nfs-version 3" .
 .TP
-.BR \-v " or " \-\-version
+.B \-P
+Ignored (compatibility with unfsd??).
+.TP
+.B \-p " or " \-\-port
+Force
+.B rpc.mountd
+to bind to the specified port, instead of using the random port
+number assigned by the portmapper.
+.TP
+.B \-V " or " \-\-nfs-version
+This option can be used to request that
+.B rpc.mountd
+offer certain versions of NFS. The current version of
+.B rpc.mountd
+can support both NFS version 2 and the newer version 3.
+.TP
+.B \-v " or " \-\-version
 Print the version of
 .B rpc.mountd
 and exit.
+
+.SH TCP_WRAPPERS SUPPORT
+This
+.B rpc.mountd
+version is protected by the
+.B tcp_wrapper
+library. You have to give the clients access to
+.B rpc.mountd
+if they should be allowed to use it. To allow connects from clients of
+the .bar.com domain you could use the following line in /etc/hosts.allow:
+
+mountd: .bar.com
+
+You have to use the daemon name 
+.B mountd
+for the daemon name (even if the binary has a different name). For the
+client names you can only use the keyword ALL or IP addresses (NOT
+host or domain names).
+
+For further information please have a look at the
+.BR tcpd (8),
+.BR hosts_allow (5)
+and
+.BR hosts_access (5)
+manual pages.
+
 .SH SEE ALSO
 .BR rpc.nfsd (8),
 .BR exportfs (8),

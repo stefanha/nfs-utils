@@ -6,6 +6,10 @@
 
 #include "config.h"
 
+#ifdef HAVE_TCP_WRAPPER
+#include "tcpwrapper.h"
+#endif
+
 #include "mountd.h"
 #include "rpcmisc.h"
 
@@ -64,6 +68,15 @@ mount_dispatch(struct svc_req *rqstp, SVCXPRT *transp)
 {
 	union mountd_arguments 	argument;
 	union mountd_results	result;
+
+#ifdef HAVE_TCP_WRAPPER
+	/* remote host authorization check */
+	if (!check_default("mountd", svc_getcaller(transp),
+			   rqstp->rq_proc, MOUNTPROG)) {
+		svcerr_auth (transp, AUTH_FAILED);
+		return;
+	}
+#endif
 
 	rpc_dispatch(rqstp, transp, dtable, number_of(dtable),
 			&argument, &result);

@@ -229,6 +229,8 @@ char   *text;
     /*
      * Fork off a process or the portmap daemon might hang while
      * getrpcbynumber() or syslog() does its thing.
+     *
+     * Don't forget to wait for the children, too...
      */
 
     if (fork() == 0) {

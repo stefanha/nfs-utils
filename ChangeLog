@@ -1,3 +1,30 @@
+2000-08-25  Ion Badulescu  <ionut@cs.columbia.edu>
+
+ 	* utils/rquotad/rquotad.man, utils/statd/statd.man,
+	utils/mountd/mountd.man: updated
+        
+	* utils/mountd/Makefile (LIBS): added -lmisc $(LIBWRAP) $(LIBNSL)
+	* utils/rquotad/Makefile: fix comment
+
+	* support/misc/tcpwrapper.c (logit): added comment about waiting
+	for the children after fork()
+	
+	* utils/mountd/mountd.c (main): ignore SIGCHLD to prevent leaving
+	zombies behind (from logit()'s fork)
+	* utils/rquotad/rquota_svc.c (main): ditto
+	* utils/statd/statd.c (main): ditto
+
+	* utils/rquotad/rquota_svc.c (rquotaprog_1): pass RQUOTAPROG
+	to check_default instead of 0, for prognum
+
+	* utils/statd/statd.c (sm_prog_1_wrapper): pass SM_PROG
+	to check_default instead of 0, for prognum
+
+	* utils/mountd/mount_dispatch.c: Include "tcpwrapper.h" if
+	HAVE_TCP_WRAPPER is defined.
+	(mount_dispatch): Call check_default () if HAVE_TCP_WRAPPER is
+	defined. Reject an RPC call if check_default () fails.
+
 2000-08-25  H.J. Lu <hjl@lucon.org>
 
 	* support/include/tcpwrapper.h: New for the tcp wrapper

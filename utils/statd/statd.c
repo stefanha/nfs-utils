@@ -36,7 +36,7 @@ sm_prog_1_wrapper (struct svc_req *rqstp, register SVCXPRT *transp)
 {
   /* remote host authorization check */
   if (!check_default("statd", svc_getcaller(transp),
-		     rqstp->rq_proc, (u_long) 0)) {
+		     rqstp->rq_proc, SM_PROG)) {
     svcerr_auth (transp, AUTH_FAILED);
     return;
   }
@@ -104,6 +104,8 @@ main (int argc, char **argv)
   signal (SIGHUP, killer);
   signal (SIGINT, killer);
   signal (SIGTERM, killer);
+  /* WARNING: the following works on Linux and SysV, but not BSD! */
+  signal(SIGCHLD, SIG_IGN);
 
   for (;;) {
     pmap_unset (SM_PROG, SM_VERS);

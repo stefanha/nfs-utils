@@ -3,7 +3,7 @@
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
 .\" Modified by Jeffrey A. Uphoff, 1999.
-.TH rpc.statd 8 "11 June 1999"
+.TH rpc.statd 8 "20 Aug 2000"
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
@@ -36,6 +36,32 @@ forks and puts itself in the background when started. The
 .B -F
 argument tells it to remain in the foreground. This option is
 mainly for debugging purposes.
+
+.SH TCP_WRAPPERS SUPPORT
+This
+.B rpc.statd
+version is protected by the
+.B tcp_wrapper
+library. You have to give the clients access to
+.B rpc.statd
+if they should be allowed to use it. To allow connects from clients of
+the .bar.com domain you could use the following line in /etc/hosts.allow:
+
+statd: .bar.com
+
+You have to use the daemon name 
+.B statd
+for the daemon name (even if the binary has a different name). For the
+client names you can only use the keyword ALL or IP addresses (NOT
+host or domain names).
+
+For further information please have a look at the
+.BR tcpd (8),
+.BR hosts_allow (5)
+and
+.BR hosts_access (5)
+manual pages.
+
 .SH FILES
 .BR /var/lib/nfs/sm/state
 .br

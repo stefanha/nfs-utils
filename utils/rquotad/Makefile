@@ -1,5 +1,5 @@
 #
-# Makefile for rpc.mountd
+# Makefile for rpc.rquotad
 #
 
 PROGRAM	= rquotad

@@ -1,5 +1,5 @@
-.\"@(#)rquotad.8c"
-.TH RQUOTAD 8C"
+.\"@(#)rquotad.8"
+.TH RQUOTAD 8 "25 Aug 2000"
 .SH NAME
 rquotad, rpc.rquotad \- remote quota server
 .SH SYNOPSIS
@@ -13,7 +13,7 @@ rquotad, rpc.rquotad \- remote quota server
 .IX  "quotas"  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
 .IX  "file system"  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
 .IX  "remote procedure call services"  "rquotad"  ""  "\fLrquotad\fP \(em remote quota server"
-.B rquotad
+.BR rquotad
 is an
 .BR rpc (3N)
 server which returns quotas for a user of a local file system
@@ -22,20 +22,52 @@ which is mounted by a remote machine over the
 The results are used by
 .BR quota (1)
 to display user quotas for remote file systems.
+
 The
-.B rquotad
+.BR rquotad
 daemon is normally started at boottime from the
 .BR rc.net
-script
+script (on systems with BSD'ish scripts, e.g. Slackware), or from the
+.BR nfs
+script in
+.BR /etc/rc.d/init.d/
+or
+.BR /etc/init.d/
+(on systems with SysV'ish scripts, e.g. RedHat, SuSE, etc).
+
+.SH TCP_WRAPPERS SUPPORT
+This
+.BR rpc.rquotad
+version is protected by the
+.BR tcp_wrapper
+library. You have to give the clients access to
+.BR rpc.rquotad
+if they should be allowed to use it. To allow connects from clients of
+the .bar.com domain you could use the following line in /etc/hosts.allow:
+
+mountd: .bar.com
+
+You have to use the daemon name 
+.BR rquotad
+for the daemon name (even if the binary has a different name). For the
+client names you can only use the keyword ALL or IP addresses (NOT
+host or domain names).
+
+For further information please have a look at the
+.BR tcpd (8),
+.BR hosts_allow (5)
+and
+.BR hosts_access (5)
+manual pages.
+
 .SH FILES
-.PD 0
-.TP 20
-.B quotas
-quota file at the file system root
+.BR quota.user ,
+.BR quota.group
+-- quota files locate in the file system's root
 .PD
 .SH "SEE ALSO"
-.BR quota (1),
+.BR quota (8),
 .BR rpc (3N),
-.BR nfs (4P),
+.BR nfs (5),
 .BR services (5)
-.BR inetd (8C),
+.BR inetd (8),
