@@ -80,6 +80,7 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 			my_client.m_naddr = 0;
 			my_client.m_addrlist[0] = caller->sin_addr;
 			n = client_compose(caller->sin_addr);
+			*error = unknown_host;
 			if (!n)
 				return NULL;
 			strcpy(my_client.m_hostname, *n?n:"DEFAULT");
