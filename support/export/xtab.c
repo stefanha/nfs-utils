@@ -32,7 +32,7 @@ xtab_read(char *xtab, int is_export)
 	if ((lockid = xflock(xtab, "r")) < 0)
 		return 0;
 	setexportent(xtab, "r");
-	while ((xp = getexportent()) != NULL) {
+	while ((xp = getexportent(is_export==0)) != NULL) {
 		if (!(exp = export_lookup(xp->e_hostname, xp->e_path, is_export != 1)) &&
 		    !(exp = export_create(xp, is_export!=1))) {
 			continue;

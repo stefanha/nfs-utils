@@ -61,7 +61,7 @@ setexportent(char *fname, char *type)
 }
 
 struct exportent *
-getexportent(void)
+getexportent(int fromkernel)
 {
 	static struct exportent	ee;
 	char		exp[512];
@@ -74,6 +74,15 @@ getexportent(void)
 
 	freesquash();
 	ee.e_flags = EXPORT_DEFAULT_FLAGS;
+	/* some kernels assume the default is sync rather than
+	 * async.  More recent kernels always report one or other,
+	 * but this test makes sure we assume same as kernel
+	 * Ditto for wgather
+	 */
+	if (fromkernel) {
+		ee.e_flags &= ~NFSEXP_ASYNC;
+		ee.e_flags &= ~NFSEXP_GATHERED_WRITES;
+	}
 	ee.e_maptype = CLE_MAP_IDENT;
 	ee.e_anonuid = -2;
 	ee.e_anongid = -2;

@@ -70,7 +70,7 @@ client_lookup(char *hname, int canonical)
 		}
 	} else {
 		for (clp = clientlist[htype]; clp; clp = clp->m_next) {
-			if (strcmp(hname, clp->m_hostname)==0)
+			if (strcasecmp(hname, clp->m_hostname)==0)
 				break;
 		}
 	}

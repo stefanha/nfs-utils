@@ -1,3 +1,14 @@
+2001-12-20  NeilBrown <neilb@cse.unsw.edu.au>
+
+	* support/export/client.c (client_lookup): use strcasecmp when
+	comparing host names
+	* support/nfs/export.c (getexportent): add fromkernel arg and use
+	different defaults as kernels prior to 2.4.11 assume different
+	defaults in /proc/fs/nfs/exports
+	* support/include/nfslib.h, support/export/export.c,
+	support/export/xtab.c:  support extra "fromkernel" arg for
+	getexportent. 
+	
 2001-12-13  Chip Salzenberg  <chip@pobox.com>
 
 	* debian/changelog: Version 0.3.3-5.

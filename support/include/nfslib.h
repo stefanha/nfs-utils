@@ -84,7 +84,7 @@ struct rmtabent {
  * configuration file parsing
  */
 void			setexportent(char *fname, char *type);
-struct exportent *	getexportent(void);
+struct exportent *	getexportent(int);
 void			putexportent(struct exportent *xep);
 void			endexportent(void);
 struct exportent *	mkexportent(char *hname, char *path, char *opts);

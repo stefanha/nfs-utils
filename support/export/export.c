@@ -32,7 +32,7 @@ export_read(char *fname)
 	nfs_export		*exp;
 
 	setexportent(fname, "r");
-	while ((eep = getexportent()) != NULL) {
+	while ((eep = getexportent(0)) != NULL) {
 	  exp = export_lookup(eep->e_hostname, eep->e_path, 0);
 	  if (!exp)
 	    export_create(eep,0);
