@@ -1,3 +1,16 @@
+nfs-utils (1:0.2.1-2) unstable; urgency=high
+
+  * On shutdown, kill user-mode lockd, not kernel-mode lockd thread.
+  * Big upstream fix:
+     > statd: Repair memory leaks and corruptions.
+  * Other upstream patches:
+     > exportfs: Support CIDR netmasks (e.g. "1.2.3.4/24").
+     > statd: Fix callbacks to local lockd; Be paranoid about IP addresses
+       when doing callbacks to local lockd; Add debugging features; Make
+       logs more readable.
+
+ -- Chip Salzenberg <chip@valinux.com>  Thu,  2 Nov 2000 18:10:36 -0800
+
 nfs-utils (1:0.2.1-1) unstable; urgency=low
 
   * New upstream w/minor fixes.
