@@ -4,8 +4,8 @@ Version: 0.1
 Release: 1
 Source0: ftp://ftp.valinux.com/pub/support/hjl/nfs/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
-Obsoletes: nfs-server nfs-server-clients knfsd knfsd-client knfsd-lock
-Provides: nfs-server nfs-server-clients knfsd knfsd-client knfsd-lock
+Obsoletes: nfs-server nfs-server-clients knfsd knfsd-clients knfsd-lock
+Provides: nfs-server nfs-server-clients knfsd knfsd-clients knfsd-lock
 Copyright: GPL
 ExcludeArch: armv4l
 Buildroot: /var/tmp/%{name}-root
