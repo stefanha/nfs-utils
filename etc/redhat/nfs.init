@@ -77,9 +77,21 @@ case "$1" in
 	case $MOUNTD_NFS_V2 in
 	auto|AUTO)
 	    # Let's see if we support NFS version 2.
+	    ClearAddr=
+	    if [ -f /proc/net/rpc/auth.unix.ip/channel ] ; then
+	       if   grep -s 127.0.0.1 /proc/net/rpc/auth.unix.ip/content > /dev/null ; then
+		    : address already known
+	       else
+                    echo nfsd 127.0.0.1 2147483647 localhost > /proc/net/rpc/auth.unix.ip/channel
+		    ClearAddr=yes
+	      fi
+	    fi
 	    /usr/sbin/rpcinfo -u localhost nfs 2 &>/dev/null
 	    if [ $? -ne 0 ]; then
 		MOUNTD_OPTIONS="$MOUNTD_OPTIONS --no-nfs-version 2"
+	    fi
+	    if [ -n "$ClearAddr" ]; then
+                  echo nfsd 127.0.0.1 1  > /proc/net/rpc/auth.unix.ip/channel
 	    fi
 	    ;;
 	no|NO)

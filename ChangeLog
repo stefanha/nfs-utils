@@ -1,3 +1,9 @@
+2003-06-16  NeilBrown	<neilb@cse.unsw.edu.au>
+
+	* debian/nfs-kernel-server.init,etc/nodist/nfs-server,
+	etc/redhat/nfs.init: when checking if V3 is supported, make sure
+	nfs server 'knows' about 127.0.0.1 first.
+	
 2003-06-10  Chip Salzenberg  <chip@pobox.com>
 
 	* support/nfs/xlog.c (xlog): Fix off-by-one buffer overflow bug.
