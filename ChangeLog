@@ -1,3 +1,10 @@
+2003-06-24 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* support/nfs/nfsexport.c(exp_unexp): When unexporting filesystems
+	via /rpc/net/rpc/nfsd*/channel, set the expiry date to 1, not
+	'forever', so things disappear out of the cache rather than just
+	be ignored. 
+	
 2003-06-16  "J. Bruce Fields" <bfields@fieldses.org>
 
 	* utils/mountd/cache.c(nfsd_fh): don't export the export_ent

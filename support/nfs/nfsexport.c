@@ -42,13 +42,15 @@ exp_unexp(struct nfsctl_export *exp, int export)
 	if (f == NULL) return -1;
 	qword_print(f, exp->ex_client);
 	qword_print(f, exp->ex_path);
-	qword_printint(f, 0x7fffffff);
 	if (export) {
+		qword_printint(f, 0x7fffffff);
 		qword_printint(f, exp->ex_flags);
 		qword_printint(f, exp->ex_anon_uid);
 		qword_printint(f, exp->ex_anon_gid);
 		qword_printint(f, exp->ex_dev);
-	}
+	} else
+		qword_printint(f, 1);
+
 	qword_eol(f);
 	fclose(f);
 
@@ -61,9 +63,12 @@ exp_unexp(struct nfsctl_export *exp, int export)
 		qword_printint(f,1);
 		fsid = exp->ex_dev;
 		qword_printhex(f, (char*)&fsid, 4);
-		qword_printint(f, 0x7fffffff);
-		if (export)
+		if (export) {
+			qword_printint(f, 0x7fffffff);
 			qword_print(f, exp->ex_path);
+		} else
+			qword_printint(f, 1);
+
 		qword_eol(f);
 	}
 	qword_print(f,exp->ex_client);
@@ -73,9 +78,11 @@ exp_unexp(struct nfsctl_export *exp, int export)
 	inode = stb.st_ino; memcpy(fsidstr+4, &inode, 4);
 	
 	qword_printhex(f, fsidstr, 8);
-	qword_printint(f, 0x7fffffff);
-	if (export)
+	if (export) {
+		qword_printint(f, 0x7fffffff);
 		qword_print(f, exp->ex_path);
+	} else
+		qword_printint(f, 1);
 	qword_eol(f);
 	fclose(f);
 	return 0;
