@@ -1,5 +1,11 @@
 2000-02-26  Chip Salzenberg  <chip@valinux.com>
 
+	* config.mk.in (INSTALLSUID): Strip ("-s").
+	(INSTALLSCRIPT): Define.
+	* utils/nhfsstone/Makefile: Use it.
+
+2000-02-26  Chip Salzenberg  <chip@valinux.com>
+
 	* utils/lockd/lockd.man: Create.
 	* utils/lockd/Makefile: Install it.
 	* utils/nhfsstone/nhfs{run,nums,graph}.man: Create.
