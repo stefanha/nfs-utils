@@ -45,12 +45,13 @@ case "$1" in
 	echo -n "Starting NFS daemon: "
 	daemon rpc.nfsd $RPCNFSDCOUNT
 	echo
+	# Do it the last so that all clients mounting points are
+	# exported. FIXME: Why?
 	action "Starting NFS services: " /usr/sbin/exportfs -r
 	touch /var/lock/subsys/nfs
 	;;
   stop)
 	# Stop daemons.
-	action "Shutting down NFS services: " /usr/sbin/exportfs -au
 	echo -n "Shutting down NFS mountd: "
 	killproc rpc.mountd
 	echo
@@ -60,6 +61,9 @@ case "$1" in
 	echo -n "Shutting down NFS quotas: "
 	killproc rpc.rquotad
 	echo
+	# Do it the last so that clients can still access the server
+	# when the server is running.
+	action "Shutting down NFS services: " /usr/sbin/exportfs -au
 	rm -f /var/lock/subsys/nfs
 	;;
   status)

@@ -1,3 +1,9 @@
+2000-07-03  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfs.init: Run /usr/sbin/exportfs last during
+	stop to ensure all clients can still access the server
+	before it is shutdown.
+
 2000-06-28  Chip Salzenberg  <chip@valinux.com>
 
 	* utils/statd/log.c (log): Call syslog with format string.
@@ -14,7 +20,7 @@
 2000-06-27  H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfs.init: Run /usr/sbin/exportfs last during
-	startup to ensure all exiting clients are exported.
+	startup to ensure all existing clients are exported.
 
 	* configure.in (VERSION): Set to "0.1.8.2".
 	* configure: Regenerated.
