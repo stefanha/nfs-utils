@@ -2,6 +2,7 @@
  * Copyright (C) 1995 Olaf Kirch
  * Modified by Jeffrey A. Uphoff, 1995, 1997, 1999.
  * Modified by H.J. Lu, 1998.
+ * Modified by Lon Hohberger, Oct. 2000
  *
  * NSM for Linux.
  */
@@ -22,88 +23,69 @@
 #include <time.h>
 #include <sys/types.h>
 #include "log.h"
+#include "statd.h"
 
-static char	progname[256];
 static pid_t	mypid;
-                                /* Turns on logging to console/stderr. */
+								/* Turns on logging to console/stderr. */
 static int	opt_debug = 0;	/* Will be command-line option, eventually */
 
-void
-log_init(char *name)
+void log_init()
 {
-    char	*sp;
+	if (!(run_mode & MODE_LOG_STDERR)) 
+		openlog(name_p, LOG_PID, LOG_LOCAL5);
 
-    openlog(name, LOG_PID, LOG_LOCAL5);
-    if ((sp = strrchr(name, '/')) != NULL)
-	name = ++sp;
-    strncpy(progname, name, sizeof (progname) - 1);
-    progname[sizeof (progname) - 1] = '\0';
-    mypid = getpid();
+	mypid = getpid();
+
+	log(L_WARNING,"Version %s Starting",version_p);
 }
 
-void
-log_background(void)
+void log_background(void)
 {
-    /* NOP */
+	/* NOP */
 }
 
-void
-log_enable(int level)
+void die(char *fmt, ...)
 {
-    opt_debug = 1;
-}
+	char	buffer[1024];
+	va_list	ap;
 
-int
-log_enabled(int level)
-{
-    return opt_debug;
-}
+	va_start(ap, fmt);
+	vsnprintf (buffer, 1024, fmt, ap);
+	va_end(ap);
+	buffer[1023]=0;
 
-void
-die(char *fmt, ...)
-{
-    char	buffer[1024];
-    va_list	ap;
-
-    va_start(ap, fmt);
-    vsnprintf (buffer, 1024, fmt, ap);
-    va_end(ap);
-    buffer[1023]=0;
-
-    log(L_FATAL, "%s", buffer);
+	log(L_FATAL, "%s", buffer);
 
 #ifndef DEBUG
-    exit (2);
+	exit (2);
 #else
-    abort();	/* make a core */
+	abort();	/* make a core */
 #endif
 }
 
-void
-log(int level, char *fmt, ...)
+void log(int level, char *fmt, ...)
 {
-    char	buffer[1024];
-    va_list	ap;
+	char	buffer[1024];
+	va_list	ap;
 
-    va_start(ap, fmt);
-    vsnprintf (buffer, 1024, fmt, ap);
-    va_end(ap);
-    buffer[1023]=0;
+	va_start(ap, fmt);
+	vsnprintf (buffer, 1024, fmt, ap);
+	va_end(ap);
+	buffer[1023]=0;
 
-    if (level < L_DEBUG) {
-    	syslog(level, "%s", buffer);
-    }
+	if ((!(run_mode & MODE_LOG_STDERR)) && (level < L_DEBUG)) {
+		syslog(level, "%s", buffer);
+	} else if (run_mode & MODE_LOG_STDERR) {
+		/* Log everything, including dprintf() stuff to stderr */
+		time_t		now;
+		struct tm *	tm;
 
-    if (opt_debug) {
-        time_t		now;
-        struct tm *	tm;
-
-        time(&now);
-        tm = localtime(&now);
-        fprintf (stderr, "%02d.%02d.%02d %02d:%02d:%02d %s[%d]: %s\n",
-			tm->tm_mday, tm->tm_mon, tm->tm_year,
+		time(&now);
+		tm = localtime(&now);
+		fprintf (stderr, "%02d/%02d/%04d %02d:%02d:%02d %s[%d]: %s\n",
+			tm->tm_mon + 1, tm->tm_mday, tm->tm_year + 1900,
 			tm->tm_hour, tm->tm_min, tm->tm_sec,
-			progname, mypid,
+			name_p, mypid,
 			buffer);
-    }
+	}
 }
