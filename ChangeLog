@@ -1,5 +1,11 @@
 2000-05-18  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "0.1.7.4".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+2000-05-18  H.J. Lu <hjl@lucon.org>
+
 	* etc/redhat/nfs.init (restart): Just do stop and start.
 
 2000-05-09  Jay Weber <jweber@valinux.com>
