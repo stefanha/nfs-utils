@@ -1,0 +1,24 @@
+.\"
+.\" lockd(8)
+.\"
+.\" Copyright (C) 2000 Chip Salzenberg <chip@valinux.com>
+.\"
+.TH rpc.lockd 8 "25 Feb 2000"
+.SH NAME
+rpc.lockd \- start kernel lockd process
+.SH SYNOPSIS
+.B "/usr/sbin/rpc.lockd
+.SH DESCRIPTION
+The
+.B rpc.lockd
+program starts the NFS lock manager (NLM) on kernels that don't start
+it automatically.  However, since most kernels \fIdo\fR start it
+automatically,
+.BR rpc.lockd .
+is usually not required.  Even so, running it anyway is harmless.
+.SH SEE ALSO
+.BR rpc.statd (8),
+.BR  rpc.nfsd (8)
+.SH AUTHORS
+.br
+H.J. Lu <hjl@valinux.com>
