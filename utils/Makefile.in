@@ -8,3 +8,6 @@ SUBDIRS	= exportfs mountd nfsd statd nfsstat @RQUOTAD@ showmount \
 include $(TOP)rules.mk
 
 # .EXPORT_ALL_VARIABLES:
+
+distclean::
+	rm -f Makefile

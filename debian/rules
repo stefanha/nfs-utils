@@ -64,9 +64,13 @@ binary-arch: build
 	dh_strip
 	dh_compress
 	dh_fixperms
+	dh_installdebconf
 	dh_installdeb
 #	dh_makeshlibs
 	dh_shlibdeps
+	# Hackery Begins Here #
+	perl -pi -e 's/2\.2\.4-2/2.2.4-1/g' debian/*substvars
+	# Hackery Ends Here #
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
