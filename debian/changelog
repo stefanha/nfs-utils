@@ -1,3 +1,14 @@
+nfs-utils (1:0.2.1-5) unstable; urgency=low
+
+  * Fix statd callback protection ("--secure-statd") to
+     1. work with current kernels as far as possible, and
+     2. allow for Trond's recent NFS patches, which change the
+        static callback RPC procedure.
+  * Store return values of getc and getopt in int variables:
+    they can return EOF, which requires an int. (From NMU)
+  
+ -- Chip Salzenberg <chip@debian.org>  Sat, 20 Jan 2001 20:03:07 -0800
+
 nfs-utils (1:0.2.1-4) unstable; urgency=medium
 
   * Warn about common errors in /etc/exports.  (closes: #66421)

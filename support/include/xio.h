@@ -18,7 +18,7 @@ int	xflock(char *fname, char *type);
 void	xfunlock(int lockid);
 void	xfclose(XFILE *xfp);
 int	xgettok(XFILE *xfp, char sepa, char *tok, int len);
-char	xgetc(XFILE *xfp);
+int	xgetc(XFILE *xfp);
 void	xungetc(int c, XFILE *xfp);
 void	xskip(XFILE *xfp, char *str);
 char	xskipcomment(XFILE *xfp);

@@ -121,7 +121,7 @@ int main (int argc, char **argv)
 {
 	extern char *optarg;
 	int pid;
-	char arg;
+	int arg;
 	
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
