@@ -114,8 +114,14 @@ endrmtabent(void)
 void
 fendrmtabent(FILE *fp)
 {
-	if (fp)
+	if (fp) {
+		/* If it was written to, we really want
+		 * to flush to disk before returning
+		 */
+		fflush(fp);
+		fdatasync(fileno(fp));
 		fclose(fp);
+	}
 }
 
 void
