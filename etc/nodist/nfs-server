@@ -46,6 +46,10 @@ DESC="NFS kernel daemon"
 # Handle how we were called.
 case "$1" in
 start)
+    if [ -d /proc/fs/nfsd -a ! -f /proc/fs/nfsd/exports ] ;
+    then
+         /bin/mount -t nfsd nfsd /proc/fs/nfsd
+    fi
     echo -n "Exporting directories for $DESC..."
     $EXPORTFS -r
     echo "done."
@@ -97,12 +101,14 @@ stop)
 
     echo "Unexporting directories for $DESC..."
     $EXPORTFS -au
+    if [ -f /proc/fs/nfsd/exports ] ; then /bin/umount -t nfsd nfsd /proc/fs/nfsd ; fi
     rm -f /var/lock/subsys/$SCRIPT_NAME 
     echo "done."
     ;;
 
 restart)
     $0 stop
+    sleep 1
     $0 start
     ;;
 

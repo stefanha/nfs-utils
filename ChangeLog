@@ -1,3 +1,12 @@
+2004-08-31 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* debian/nfs-kernel-server.init(start,stop) mount the nfsd
+	filesystem, if available, before starting nfs services, and 
+	unmount it afterwards.
+	* etc/nodist/nfs-server: ditto
+	* etc/redhat/nfs.init: likewise
+	* etc/redhat/nfs: add "MOUNT_NFSD" flag to control above.
+	
 2004-06-08 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/exportfs/exportfs.c: Don't rmtab_read if new_cache, it

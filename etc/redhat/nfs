@@ -29,3 +29,6 @@
 # TUNE_QUEUE to yes will set the values to 256kb.
 # TUNE_QUEUE="yes"
 # NFS_QS=262144
+
+# Mount /proc/fs/nfsd (2.6 kernel only)
+MOUNT_NFSD="yes"

@@ -50,9 +50,13 @@ if [ "$TUNE_QUEUE" = "yes" ]; then
     [ -z "$NFS_QS" ] && NFS_QS=262144
 fi
 
+
 # See how we were called.
 case "$1" in
   start)
+	if [ -d /proc/fs/nfsd -a "$MOUNT_NFSD" = "yes" ] ; then
+	    /bin/mount -t nfsd nfsd /proc/fs/nfsd
+	fi
 	# Start daemons.
 	# Apply input queue increase for nfs server
 	if [ "$TUNE_QUEUE" = "yes" ]; then
@@ -144,6 +148,9 @@ case "$1" in
 	# Do it the last so that clients can still access the server
 	# when the server is running.
 	action "Shutting down NFS services: " /usr/sbin/exportfs -au
+	if [ -d /proc/fs/nfsd -a "$MOUNT_NFSD" = "yes" ] ; then
+		/bin/umount /proc/fs/nfsd
+	fi
 	rm -f /var/lock/subsys/nfs
 	;;
   status)
