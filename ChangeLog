@@ -1,3 +1,11 @@
+Sun Dec 19 09:22:28 1999  H.J. Lu <hjl@lucon.org>
+
+	* configure.in (VERSION): Set to "0.1.5".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+	* README: Updated.
+
 Mon Dec 13 13:40:20 1999  H.J. Lu <hjl@lucon.org>
 
 	* utils/rquotad/hasquota.c (hasquota): Malloc one more char
