@@ -86,14 +86,15 @@ On RedHat 6.1, you can use
 
 to build the source and binary RPMs.
 
-If your mount from util-linux is too old, you will need 2 patches:
+If your mount from util-linux is too old, you will need 3 patches:
 
 ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.9o-mount-nfsv3.patch
 ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.9w-mount-nfsv3try.patch
+ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.10f-mount-rpc.patch
 
 Thanks.
 
 
 H.J.
 hjl@lucon.org
-03/13/2000
+04/25/2000
