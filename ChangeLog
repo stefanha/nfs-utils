@@ -1,6 +1,12 @@
-2000-09-09  Jay Weber <jweber@valinux.com>
+2000-05-18  H.J. Lu <hjl@lucon.org>
 
-	* added support for ext3 recognition in rquotad
+	* etc/redhat/nfs.init (restart): Just do stop and start.
+
+2000-05-09  Jay Weber <jweber@valinux.com>
+
+	* utils/rquotad/hasquota.c: added support for ext3 recognition
+	in rquotad.
+	* utils/rquotad/mntent.h: Likewise.
 
 2000-05-01  H.J. Lu <hjl@lucon.org>
 

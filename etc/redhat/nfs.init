@@ -68,13 +68,8 @@ case "$1" in
 	status rpc.rquotad
 	;;
   restart)
-	echo -n "Restarting NFS services: "
-	echo -n "rpc.mountd "
-	killproc rpc.mountd
-	daemon rpc.mountd $RPCMOUNTDOPTS
-	/usr/sbin/exportfs -r
-	touch /var/lock/subsys/nfs
-	echo "done."
+	$0 stop
+	$0 start
 	;;
   reload)
 	/usr/sbin/exportfs -r
@@ -99,4 +94,3 @@ case "$1" in
 esac
 
 exit 0
-
