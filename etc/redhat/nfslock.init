@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# nfslock       This shell script takes care of starting and stopping
+#               the NFS file locking service.
+#
+# chkconfig: 345 60 20
+# description: NFS is a popular protocol for file sharing across \
+#	       TCP/IP networks. This service provides NFS file \
+#	       locking functionality.
+# probe: true
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+if [ ! -f /etc/sysconfig/network ]; then
+    exit 0
+fi
+
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+[ -x /usr/sbin/rpc.lockd ] || exit 0
+[ -x /usr/sbin/rpc.statd ] || exit 0
+
+# See how we were called.
+case "$1" in
+  start)
+	# Start daemons.
+	echo "Starting NFS file locking services: "
+	echo -n "Starting NFS lockd: "
+	daemon rpc.lockd
+	echo
+	echo -n "Starting NFS statd: "
+	daemon rpc.statd
+	echo
+	touch /var/lock/subsys/nfslock
+	;;
+  stop)
+	# Stop daemons.
+	echo "Shutting down NFS file locking services: "
+	echo -n "Shutting down NFS lockd: "
+	killproc lockd
+	echo
+	echo -n "Shutting down NFS statd: "
+	killproc rpc.statd
+	echo
+	rm -f /var/lock/subsys/nfslock
+	;;
+  status)
+	status lockd
+	status rpc.statd
+	;;
+  restart)
+	echo -n "Restarting NFS file locking services: "
+	echo -n "rpc.lockd "
+	killproc lockd
+	daemon rpc.lockd
+	echo -n "rpc.statd "
+	killproc rpc.statd
+	daemon rpc.statd
+	touch /var/lock/subsys/nfslock
+	echo "done."
+	;;
+  probe)
+	if [ ! -f /var/lock/subsys/nfslock ] ; then
+	  echo start; exit 0
+	fi
+	/sbin/pidof rpc.statd >/dev/null 2>&1; STATD="$?"
+	/sbin/pidof lockd >/dev/null 2>&1; LOCKD="$?"
+	if [ $STATD = 1 -o $LOCKD = 1 ] ; then
+	  echo restart; exit 0
+	fi
+	;;
+  *)
+	echo "Usage: nfslock {start|stop|status|restart}"
+	exit 1
+esac
+
+exit 0

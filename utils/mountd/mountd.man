@@ -1,0 +1,92 @@
+.\"
+.\" mountd(8)
+.\"
+.\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
+.TH rpc.mountd 8 "31 May 1999"
+.SH NAME
+rpc.mountd \- NFS mount daemon
+.SH SYNOPSIS
+.BI "/usr/sbin/rpc.mountd [" options "]"
+.SH DESCRIPTION
+The
+.B rpc.mountd
+program implements the NFS mount protocol. When receiving a MOUNT
+request from an NFS client, it checks the request against the list of
+currently exported file systems. If the client is permitted to mount
+the file system,
+.B rpc.mountd
+obtains a file handle for requested directory and returns it to
+the client.
+.SS Exporting NFS File Systems
+Making file systems available to NFS clients is called
+.IR exporting .
+.P
+Usually, a file system and the hosts it should be made available to
+are listed in the
+.B /etc/exports
+file, and invoking
+.B exportfs -a
+whenever the system is booted. The
+.BR exportfs (8)
+command makes export information available to both the kernel NFS
+server module and the
+.B rpc.mountd
+daemon.
+.P
+Alternatively, you can export individual directories temporarily 
+using
+.BR exportfs 's
+.IB host : /directory
+syntax.
+.SS The rmtab File
+For every mount request received from an NFS client,
+.B rpc.mountd
+adds an entry to the
+.B /var/state/nfs/rmtab
+file. When receiving an unmount request, that entry is removed.
+user level part of the NFS service.
+.P
+However, this file is mostly ornamental. One, the client can continue
+to use the file handle even after calling
+.BR rpc.mountd 's
+UMOUNT procedure. And two, if a client reboots without notifying
+.BR rpc.mountd ,
+a stale entry will remain in
+.BR rmtab .
+.SH OPTIONS
+.TP
+.\" This file isn't touched by mountd at all--even though it
+.\" accepts the option.
+.\" .BR \-f " or " \-\-exports-file
+.\" This option specifies the exports file, listing the clients that this
+.\" server is prepared to serve and parameters to apply to each
+.\" such mount (see
+.\" .BR exports (5)).
+.\" By default, export information is read from
+.\" .IR /etc/exports .
+.TP
+.BR \-N " or " \-\-no-nfs-version
+This option can be used to request that
+.B rpc.mountd
+does not offer certain versions of NFS. The current version of
+.B rpc.mountd
+can support both NFS version 2 and the newer version 3. If the
+NFS kernel module was compiled without support for NFSv3,
+.B rpc.mountd
+must be invoked with the option
+.BR "\-\-no-nfs-version 3" .
+.TP
+.BR \-v " or " \-\-version
+Print the version of
+.B rpc.mountd
+and exit.
+.SH SEE ALSO
+.BR rpc.nfsd (8),
+.BR exportfs (8),
+.BR exports (5),
+.BR rpc.rquotad (8).
+.SH FILES
+.BR /etc/exports ,
+.BR /var/state/nfs/xtab .
+.SH AUTHOR
+Olaf Kirch, H. J. Lu, G. Allan Morris III, and a host of others.

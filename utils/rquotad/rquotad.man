@@ -1,0 +1,41 @@
+.\"@(#)rquotad.8c"
+.TH RQUOTAD 8C"
+.SH NAME
+rquotad, rpc.rquotad \- remote quota server
+.SH SYNOPSIS
+.B /usr/etc/rpc.rquotad
+.SH DESCRIPTION
+.LP
+.IX  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
+.IX  daemons  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
+.IX  "user quotas"  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
+.IX  "disk quotas"  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
+.IX  "quotas"  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
+.IX  "file system"  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
+.IX  "remote procedure call services"  "rquotad"  ""  "\fLrquotad\fP \(em remote quota server"
+.B rquotad
+is an
+.BR rpc (3N)
+server which returns quotas for a user of a local file system
+which is mounted by a remote machine over the
+.SM NFS\s0.
+The results are used by
+.BR quota (1)
+to display user quotas for remote file systems.
+The
+.B rquotad
+daemon is normally started at boottime from the
+.BR rc.net
+script
+.SH FILES
+.PD 0
+.TP 20
+.B quotas
+quota file at the file system root
+.PD
+.SH "SEE ALSO"
+.BR quota (1),
+.BR rpc (3N),
+.BR nfs (4P),
+.BR services (5)
+.BR inetd (8C),

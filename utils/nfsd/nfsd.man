@@ -1,0 +1,46 @@
+.\"
+.\" nfsd(8)
+.\"
+.\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
+.TH rpc.nfsd 8 "31 May 1999"
+.SH NAME
+rpc.nfsd \- NFS server process
+.SH SYNOPSIS
+.BI "/usr/sbin/rpc.nfsd [-p " port "] " nproc
+.SH DESCRIPTION
+The
+.B rpc.nfsd
+program implements the user level part of the NFS service. The
+main functionality is handled by the
+.B nfsd.o
+kernel module; the user space program merely starts the specified
+number of kernel threads.
+.P
+The
+.B rpc.mountd
+server provides an ancially service needed to satisfy mount requests
+by NFS clients.
+.SH OPTIONS
+.TP
+.BI \-p " port"
+specify a diferent port to listen on for NFS requests. By default,
+.B rpc.nfsd
+will listen on port 2049.
+.TP
+.I nproc
+specify the number of NFS server threads. By default, just one
+thread is started. However, for optimum performance several threads
+should be used. The actual figure depends on the number of and the work
+load created by the NFS clients, but a useful starting point is
+8 threads. Effects of modifying that number can be checked using
+the
+.BR nfsstat (8)
+program.
+.SH SEE ALSO
+.BR rpc.mountd (8),
+.BR exportfs (8),
+.BR rpc.rquotad (8),
+.BR nfsstat (8).
+.SH AUTHOR
+Olaf Kirch, Bill Hawes, H. J. Lu, G. Allan Morris III,
+and a host of others.

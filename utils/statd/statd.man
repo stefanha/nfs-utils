@@ -1,0 +1,53 @@
+.\"
+.\" statd(8)
+.\"
+.\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
+.\" Modified by Jeffrey A. Uphoff, 1999.
+.TH rpc.statd 8 "11 June 1999"
+.SH NAME
+rpc.statd \- NSM status monitor
+.SH SYNOPSIS
+.B "/usr/sbin/rpc.statd [-F]
+.SH DESCRIPTION
+The
+.B rpc.statd
+server implements the NSM (Network Status Monitor) RPC protocol.
+This service is somewhat misnomed, since it doesn't actually provide
+active monitoring as one might suspect; instead, NSM implements a
+reboot notification service. It is used by the NFS file locking service,
+.BR rpc.lockd ,
+to implement lock recovery when the NFS server machine crashes and
+reboots.
+.SS Operation
+For each NFS client or server machine to be monitored,
+.B rpc.statd
+creates a file in
+.BR /var/lib/nfs/sm .
+When starting, it iterates through these files and notifies the
+peer
+.B rpc.statd
+on those machines.
+.SH OPTIONS
+.TP
+.B -F
+By default,
+.B rpc.statd
+forks and puts itself in the background when started. The
+.B -F
+argument tells it to remain in the foreground. This option is
+mainly for debugging purposes.
+.SH FILES
+.BR /var/lib/nfs/sm/state
+.br
+.BR /var/lib/nfs/sm/*
+.br
+.BR /var/lib/nfs/sm.bak/*
+.SH SEE ALSO
+.BR rpc.nfsd(8)
+.SH AUTHORS
+.br
+Jeff Uphoff <juphoff@transmeta.com>
+.br
+Olaf Kirch <okir@monad.swb.de>
+.br
+H.J. Lu <hjl@gnu.org>

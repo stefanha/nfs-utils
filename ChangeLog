@@ -1,0 +1,178 @@
+Mon Oct 18 14:56:22 1999  H.J. Lu <hjl@lucon.org>
+
+	* Initial version 0.1 released.
+
+	* configure.in (VERSION): Set to "nfs-utils 0.1".
+	* configure: Regenerated.
+
+Mon Oct 18 14:54:57 1999  H.J. Lu <hjl@lucon.org>
+
+	* utils/mountd/mountd.c (get_exportlist): Cleanup.
+
+	* utils/exportfs/exportfs.c (unexport_all): Unexport from
+	kernel only if the entry is exported to kernel.
+	(unexportfs): Likewise.
+
+Wed Sep 08 16:49:32 1999  Neil Brown <neilb@cse.unsw.edu.au>
+
+1/ utils/mountd/rmtab.c::mountlist_list
+
+     This routine stats the rmtab file to see if it has changed.  It
+     if has, it cleans up it's old copy of the data. But it still
+     always re-read the file, thus returning multiple copies of the
+     data on consecutive calls without intervening changes.
+     "Showmount -a" didn't show this as it appears to sort/unique the
+     data, but 'strace showmount -a' showed that the size of the
+     datagram that it received grew.
+
+     I moved the getrmtabent loop inside the mtime test.
+
+2/ utils/exportfs/exportfs.c
+   
+     Many routines used the m_path field of m_export instead of
+     e_path.
+     According to the comment in nfslib.h, m_path should only
+     be used when processing a mount request (i.e. in mountd)
+     where the mountpoint may be a subdirectory of the export point.
+
+     I changed all occurances of m_path to e_path
+
+
+3/ utils/exportfs/exportfs.c:main
+
+      extra arguments are not meaningful with -a or -r, but
+      exportfs accepted them and then ignored the -a/-r, expect that
+      -r would still unexport everything first.
+
+      I generate an error if there are extra args and f_all
+
+4/ utils/exportfs/exportfs.c:main
+     extract dump out as a special case.
+
+5/ utils/exportfs/exportfs.c
+     made f_reexport a local variable.
+
+
+6/ utils/exportfs/exportfs.c:main,exportall
+
+    support/export/rmtab.c
+       only  mayexport on newly created entries, don't set xtabent at all
+
+7/ support/include/nfslib.h
+
+      add #define _PATH_PROC_EXPORTS to be /proc/fs/nds/exports
+
+8/ support/export/xtab.c
+
+      xtab_mount_read loads data from _PATH_PROC_EXPORTS if it exists,
+      else from xtab
+
+
+9/ support/export/xtab.c
+
+      xtab_mount_read now sets m_exported, and NOT
+	xtabent and mayexport
+
+      removed the append arguement from xtab_write as it was
+	never used.
+
+      added is_export flag to xtab_write similar to xtab_read
+	if is_export, only write entries with m_xtabent or m_addxtab
+	if !is_export, only write entries with m_exported
+     
+10/ support/export/export.c::export_allowed_internal
+
+      added test for exp->m_mayexport, as the export tree
+	may have entries that are no longer allowed to be exported,
+	and so shouldn't caused deduced exported by rmtab_read
+
+11/ utils/exportfs/exportfs.c::main
+	error checking of flags.
+
+12/ utils/exportfs/exportfs.c
+
+	total rewrite of export and unexport logic.
+	We now:
+	-  build an exportslist of valid exports, based on
+	   current etab file  and arguments,
+        -  read rmtab to instantiate relevant wild card entries
+	-  read etab to find out what is currently exported
+	-  synchronise intention with reality
+	-  write out etab and xtab
+
+13/  various
+	discard the m_addxtab flag
+	add m_changed flag so we know what to report in exportfs
+
+14/ utils/mountd/auth.c:auth_authenticate
+
+	the value returned by gethostbyaddr was trusted.
+
+	It now follows this with a call to gethostbyname
+	and checks that the address is in the list.
+
+15/ support/export/nfsctl.c::cltsetup,expsetup
+
+	force client names to lowercase as kernel is
+	sensitive to case
+
+16/ quietened a few compiler warnings
+
+17/ support/export/client:client_lookup
+
+     look for pre-existing client with same name before creating
+	a new one.
+
+18/ support/include/exportfs.h
+
+     The ordering of the MCL_* enum was:
+	ANONYMOUS, FQDN, SUBNETWORK, WILDCARD, NETGROUP
+
+     I moved ANONYMOUS to the end.
+
+     The ordering is significant when an export entry is being searched for to 
+	match a given address.  There are two problems with ANONYMOUS being first.
+
+	1/ if a directory is exported rw to a couple of hosts and ro to everyone else,
+	   then the ro case will always be found first and the privileged hosts won't get
+	   their privilege
+	2/ When mountd gets a request to mount an ANONYMOUSly exported tree, it creates a FQDN
+	   export entry for the specific host, and writes it to xtab.
+	   When another request comes from the same host, the ANONYMOUS entry is found again, 
+	   before the new FQDN entry, so it creates another FQDN entry and writes it to xtab
+	   again.  If causes bloat in xtab.
+
+      Putting ANONYMOUS at the end reflects it's nature as a catch-all
+
+19/ utils/exportfs/exportfs.man
+	many updates to the man page to reflect changes to the code
+
+-----------------------
+
+
+
+TODO:
+
+- allow exportfs to modify rmtab file
+- make sure kernel never gets two clients with same IP address
+    - possible kernel should reject
+    - needs to be some way to lookup client in kernel by IP address
+- maybe get kernel to do case-insensitive comparisons on client names
+- remove unused clients from kernel
+
+- change etab to xtab and xtab to xtab.active
+
+- timestamp and/or statd-stamp in rmtab for removing old entries.
+
+Mon Oct 18 11:48:07 1999  H.J. Lu <hjl@lucon.org>
+
+	* linux-nfs: New directory.
+	* linux-nfs/ChangeLog: Moved from ..
+	* linux-nfs/INSTALL: Likewise.
+	* linux-nfs/KNOWNBUGS: Likewise.
+	* linux-nfs/NEW: Likewise.
+	* linux-nfs/README: Likewise.
+	* linux-nfs/THANKS: Likewise.
+	* linux-nfs/TODO: Likewise.
+
+	* Starting from knfsd 1.4.7.

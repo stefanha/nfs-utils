@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# nfs           This shell script takes care of starting and stopping
+#               the NFS services.
+#
+# chkconfig: - 60 20
+# description: NFS is a popular protocol for file sharing across TCP/IP \
+#              networks. This service provides NFS server functionality, \
+#              which is configured via the /etc/exports file.
+# probe: true
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+if [ ! -f /etc/sysconfig/network ]; then
+    exit 0
+fi
+
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+[ -x /usr/sbin/rpc.nfsd ] || exit 0
+[ -x /usr/sbin/rpc.mountd ] || exit 0
+[ -x /usr/sbin/exportfs ] || exit 0
+[ -s /etc/exports ] || exit 0
+
+# Number of servers to be started uo by default
+RPCNFSDCOUNT=8
+# No NFS V3.
+RPCMOUNTDOPTS="--no-nfs-version 3"
+
+# See how we were called.
+case "$1" in
+  start)
+	# Start daemons.
+	action "Starting NFS services: " /usr/sbin/exportfs -r
+	echo -n "Starting NFS quotas: "
+	daemon rpc.rquotad
+	echo
+	echo -n "Starting NFS mountd: "
+	daemon rpc.mountd $RPCMOUNTDOPTS
+	echo
+	echo -n "Starting NFS daemon: "
+	daemon rpc.nfsd $RPCNFSDCOUNT
+	echo
+	touch /var/lock/subsys/nfs
+	;;
+  stop)
+	# Stop daemons.
+	action "Shutting down NFS services: " /usr/sbin/exportfs -au
+	echo -n "Shutting down NFS mountd: "
+	killproc rpc.mountd
+	echo
+	echo -n "Shutting down NFS daemon: "
+	killproc nfsd
+	echo
+	echo -n "Shutting down NFS quotas: "
+	killproc rpc.rquotad
+	echo
+	rm -f /var/lock/subsys/nfs
+	;;
+  status)
+	status rpc.mountd
+	status nfsd
+	status rpc.rquotad
+	;;
+  restart)
+	echo -n "Restarting NFS services: "
+	echo -n "rpc.mountd "
+	killproc rpc.mountd
+	daemon rpc.mountd $RPCMOUNTDOPTS
+	/usr/sbin/exportfs -r
+	touch /var/lock/subsys/nfs
+	echo "done."
+	;;
+  reload)
+	/usr/sbin/exportfs -r
+	touch /var/lock/subsys/nfs
+	;;
+  probe)
+	if [ ! -f /var/lock/subsys/nfs ] ; then
+	  echo start; exit 0
+	fi
+	/sbin/pidof rpc.mountd >/dev/null 2>&1; MOUNTD="$?"
+	/sbin/pidof nfsd >/dev/null 2>&1; NFSD="$?"
+	if [ $MOUNTD = 1 -o $NFSD = 1 ] ; then
+	  echo restart; exit 0
+	fi
+	if [ /etc/exports -nt /var/lock/subsys/nfs ] ; then
+	  echo reload; exit 0
+	fi
+	;;
+  *)
+	echo "Usage: nfs {start|stop|status|restart|reload}"
+	exit 1
+esac
+
+exit 0
+

@@ -1,0 +1,74 @@
+.\"
+.\" nfsstat(8)
+.\" 
+.\" Copyright (C) 1996 Olaf Kirch <okir@monad.swb.de>
+.TH nfsstat 8 "8 May 1996"
+.SH NAME
+nfsstat \- print NFS statistics
+.SH SYNOPSIS
+.BI "/usr/sbin/nfsstat [-anrcsz] [-o " "facility" "] ...
+.SH DESCRIPTION
+The
+.B nfsstat
+command retrieves and pretty-prints NFS kernel statistics. Currently, only
+server-side statistics are supported, because the NFS client does not yet
+collect any data.
+.SH OPTIONS
+.TP
+.B -s
+Print only server-side statistics. The default is to print both server and
+client statistics.
+.TP
+.B -c
+Print only client-side statistics.
+.TP
+.B -n
+Print only NFS statistics. The default is to print both NFS and RPC
+information.
+.TP
+.B -r
+Print only RPC statistics.
+.TP
+.B -z
+Zero the kernel statistics counters.
+This option is not currently supported.
+.TP
+.BI -o " facility
+Display statistics for the specified facility, which must be one of:
+.RS
+.TP
+.B nfs
+NFS protocol information, split up by RPC call.
+.TP
+.B rpc
+General RPC information.
+.TP
+.B net
+Network layer statistics, such as the number of received packets, number
+of TCP connections, etc.
+.TP
+.B fh
+Usage information on the server's file handle cache, including the
+total number of lookups, and the number of hits and misses.
+.TP
+.B rc
+Usage information on the server's request reply cache, including the
+total number of lookups, and the number of hits and misses.
+.RE
+.SH EXAMPLES
+.\" --------------------- FILES ----------------------------------
+.SH FILES
+.TP
+.B /proc/net/rpc/nfsd
+.BR procfs -based
+interface to kernel NFS server statistics.
+.TP
+.B /proc/net/rpc/nfs
+.BR procfs -based
+interface to kernel NFS client statistics.
+.\" -------------------- SEE ALSO --------------------------------
+.SH SEE ALSO
+.BR rpc.nfsd (8).
+.\" -------------------- AUTHOR ----------------------------------
+.SH AUTHOR
+Olaf Kirch, <okir@monad.swb.de>

@@ -1,0 +1,26 @@
+#ifndef _NSF_EXPORT_H
+#define _NSF_EXPORT_H
+
+/*
+ * Important limits for the exports stuff.
+ */
+#define NFSCLNT_IDMAX		1024
+#define NFSCLNT_ADDRMAX		16
+#define NFSCLNT_KEYMAX		32
+
+/*
+ * Export flags.
+ */
+#define NFSEXP_READONLY		0x0001
+#define NFSEXP_INSECURE_PORT	0x0002
+#define NFSEXP_ROOTSQUASH	0x0004
+#define NFSEXP_ALLSQUASH	0x0008
+#define NFSEXP_ASYNC		0x0010
+#define NFSEXP_GATHERED_WRITES	0x0020
+#define NFSEXP_UIDMAP		0x0040
+#define NFSEXP_KERBEROS		0x0080		/* not available */
+#define NFSEXP_SUNSECURE	0x0100
+#define NFSEXP_CROSSMNT		0x0200		/* not available */
+#define NFSEXP_ALLFLAGS		0x03FF
+
+#endif /* _NSF_EXPORT_H */
