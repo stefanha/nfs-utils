@@ -1,3 +1,16 @@
+2002-02-280   Steven Whitehouse <steve@gw.chygwyn.com>
+	      NeilBrown <neilb@cse.unsw.edu.au>
+
+	Add support for fsid=nn export option so that device
+	numbers don't go in filehandles.
+	* support/export/nfsctl.c(expsetup): if exporting and NFSEXP_FSID
+	is set, pass the fsid in-place of the device number
+	* support/nfs/exports.c: parse and print fsid= option.
+	Also check if efname has been set, and use "command line"
+	instead in error messages.
+	Also, use strtol instead of atoi for anon[ug]id= so that
+	bad numbers cause errors.
+	
 2002-01-17   Adrian Drzewiecki <drze@MissionCriticalLinux.com>
 	     NeilBrown <neilb@cse.unsw.edu.au>
 
