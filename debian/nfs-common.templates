@@ -7,3 +7,7 @@ Description-de: statd benutzt tcpwrappers
  Der statd-Daemon benutzt tcpwrappers fЭr die Zugriffskontrolle. Um
  diesen zu konfigurieren, benutzen Sie den Namen "statd" in den Dateien
  /etc/hosts.allow und /etc/hosts.deny.
+Description-ru: statd использует tcp-врапперы
+ Демон  statd  использует  tcp-врапперы  для управления доступом. Чтобы
+ настроить  враппер,   используйте   имя  программы  "statd"  в  файлах
+ /etc/hosts.allow и /etc/hosts.deny.

@@ -1,3 +1,18 @@
+nfs-utils (1:1.0.1-1) unstable; urgency=low
+
+  * New upstream version:
+    > BIG CHANGE: Exports default to "sync", that is, synchronous writes.
+      This is safer but MUCH SLOWER than the old default of "async".
+      All exports should be marked as either "sync" or "async" to avoid a
+      warning from exportfs.
+  * Patches from CVS through 2002-08-26.
+  * Let init script start statd on a specific port.  (closes: #144344)
+  * Fix typo in debconf message about tcpwrappers.  (closes: #128709)
+  * Fix typo in rpc.nfsd(8).  (closes: #152556)
+  * Add Russian templates.  (closes: #136599, #136932)
+
+ -- Chip Salzenberg <chip@debian.org>  Mon, 26 Aug 2002 12:17:57 -0400
+
 nfs-utils (1:1.0-2) unstable; urgency=low
 
   * Fail an export if its mapping option is unsupported.  (closes: #85678)

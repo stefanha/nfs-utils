@@ -18,7 +18,7 @@ number of kernel threads.
 .P
 The
 .B rpc.mountd
-server provides an ancially service needed to satisfy mount requests
+server provides an ancillary service needed to satisfy mount requests
 by NFS clients.
 .SH OPTIONS
 .TP

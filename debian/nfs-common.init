@@ -11,6 +11,10 @@
 
 PREFIX=
 
+# Should rpc.statd listen on a specific port?
+# If so, set this variable to a statd argument like: "--port 1000".
+STATDPORT=""
+
 NEED_LOCKD=yes
 if test -f /proc/ksyms
 then
@@ -32,7 +36,7 @@ case "$1" in
 	printf "Starting $DESC:"
 	printf " statd"
 	start-stop-daemon --start --quiet \
-	    --exec $PREFIX/sbin/rpc.statd
+	    --exec $PREFIX/sbin/rpc.statd -- $STATDPORT
 	if [ "$NEED_LOCKD" = yes ]
 	then
 	    printf " lockd"
