@@ -2,7 +2,7 @@ Template: nfs-kernel-server/tcpwrappers-mountd
 Type: note
 Description: in /etc/hosts.{allow,deny}, replace "rpc.mountd" with "mountd"
  The mount daemon uses tcpwrappers to control access.  To configure it, use
- program name "mount" in /etc/hosts.allow and /etc/hosts.deny.
+ program name "mountd" in /etc/hosts.allow and /etc/hosts.deny.
  .
  Older versions of nfs-kernel-server included a mount daemon that called
  itself "rpc.mountd".  Therefore, you should replace all occurrences of
