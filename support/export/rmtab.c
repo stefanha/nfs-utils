@@ -37,12 +37,12 @@ rmtab_read(void)
 			/* see if the entry already exists, otherwise this was an instantiated
 			 * wild card, and we must add it
 			 */
-			exp = export_lookup(rep->r_client, xp->e_path);
+			exp = export_lookup(rep->r_client, xp->e_path, 0);
 			if (!exp) {
 				strncpy (xp->e_hostname, rep->r_client,
 					 sizeof (xp->e_hostname) - 1);
 				xp->e_hostname[sizeof (xp->e_hostname) -1] = '\0';
-				exp = export_create(xp);
+				exp = export_create(xp, 0);
 			}
 			free (hp);
 

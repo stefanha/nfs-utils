@@ -32,8 +32,12 @@ static int	client_checkaddr(nfs_client *clp, struct in_addr addr);
 nfs_client	*clientlist[MCL_MAXTYPES] = { NULL, };
 
 
+/* if canonical is set, then we *know* this is already a canonical name
+ * so hostname lookup is avoided.
+ * This is used when reading /proc/fs/nfs/exports
+ */
 nfs_client *
-client_lookup(char *hname)
+client_lookup(char *hname, int canonical)
 {
 	nfs_client	*clp = NULL;
 	int		htype;
@@ -41,7 +45,7 @@ client_lookup(char *hname)
 
 	htype = client_gettype(hname);
 
-	if (htype == MCL_FQDN) {
+	if (htype == MCL_FQDN && !canonical) {
 		struct hostent *hp2;
 		hp = gethostbyname(hname);
 		if (hp == NULL || hp->h_addrtype != AF_INET) {

@@ -1,4 +1,40 @@
-2001-09020 NeilBrown <neilb@cse.unsw.edu.au>
+2001-09-20 NeilBrown <neilb@cse.unsw.edu.au>
+
+	Arrange that "exportfs -au" never does DNS lookup:
+	
+	* support/export/client.c (client_lookup) : add "canonical"
+	flag which says that the hostname is known to be canonical, so
+	don't do a lookup
+
+	* support/export/export.c (export_create) : add "canonical"
+	flag to be passed down to client_lookup
+	* support/export/export.c (export_lookup) : Likewise
+
+	* support/export/xtab.c (xtab_read) : pass appropriate
+	"canonical" flag to export_lookup and export_create:
+	set if reading list of filesystems currently exports
+	(is_export != 1). 
+
+	* support/export/export.c (export_read) : pass 0 as 
+	"canonical" flag to export_lookup and export_create
+	* support/export/rmtab.s (rmtab_read) : Likewise
+
+	* support/include/exportfs.h : redeclare various routines
+	to have "canonical" flag
+
+	* utils/exportfs/exportfs.c (main) : redo logic for 
+	"-au" to read in what is currently exported, but never even 
+	look at what "should" be exported.
+
+	* utils/exportfs/exportfs.c (unexportall) : remove this
+	routine. Functionality is completely included in
+	exports_update
+
+	* utils/exportfs/exportfs.c (exportfs) : set "canonical"
+	flag to zero in calls to export_lookup and export_create.
+
+	
+2001-09-20 NeilBrown <neilb@cse.unsw.edu.au>
 	    Anne Milicia <milicia@missioncriticallinux.com>
 
 	* support/export/client.c (client_lookup) call gethostbyadd

@@ -33,9 +33,9 @@ export_read(char *fname)
 
 	setexportent(fname, "r");
 	while ((eep = getexportent()) != NULL) {
-	  exp = export_lookup(eep->e_hostname, eep->e_path);
+	  exp = export_lookup(eep->e_hostname, eep->e_path, 0);
 	  if (!exp)
-	    export_create(eep);
+	    export_create(eep,0);
 	  else {
 	    if (exp->m_export.e_flags != eep->e_flags) {
 	      xlog(L_ERROR, "incompatible duplicated export entries:");
@@ -61,12 +61,12 @@ export_read(char *fname)
  * Create an in-core export struct from an export entry.
  */
 nfs_export *
-export_create(struct exportent *xep)
+export_create(struct exportent *xep, int canonical)
 {
 	nfs_client	*clp;
 	nfs_export	*exp;
 
-	if (!(clp = client_lookup(xep->e_hostname))) {
+	if (!(clp = client_lookup(xep->e_hostname, canonical))) {
 		/* bad export entry; complaint already logged */
 		return NULL;
 	}
@@ -203,12 +203,12 @@ export_allowed(struct hostent *hp, char *path)
 }
 
 nfs_export *
-export_lookup(char *hname, char *path)
+export_lookup(char *hname, char *path, int canonical)
 {
 	nfs_client	*clp;
 	nfs_export	*exp;
 
-	if (!(clp = client_lookup(hname)))
+	if (!(clp = client_lookup(hname, canonical)))
 		return NULL;
 	for (exp = exportlist[clp->m_type]; exp; exp = exp->m_next)
 		if (exp->m_client == clp && !strcmp(exp->m_export.e_path, path))

@@ -45,7 +45,7 @@ typedef struct mexport {
 extern nfs_client *		clientlist[MCL_MAXTYPES];
 extern nfs_export *		exportlist[MCL_MAXTYPES];
 
-nfs_client *			client_lookup(char *hname);
+nfs_client *			client_lookup(char *hname, int canonical);
 nfs_client *			client_find(struct hostent *);
 void				client_add(nfs_client *);
 nfs_client *			client_dup(nfs_client *, struct hostent *);
@@ -58,10 +58,10 @@ void				client_freeall(void);
 int				export_read(char *fname);
 void				export_add(nfs_export *);
 void				export_reset(nfs_export *);
-nfs_export *			export_lookup(char *hname, char *path);
+nfs_export *			export_lookup(char *hname, char *path, int caconical);
 nfs_export *			export_find(struct hostent *, char *path);
 struct exportent *		export_allowed(struct hostent *, char *path);
-nfs_export *			export_create(struct exportent *);
+nfs_export *			export_create(struct exportent *, int canonical);
 nfs_export *			export_dup(nfs_export *, struct hostent *);
 void				export_freeall(void);
 int				export_export(nfs_export *);

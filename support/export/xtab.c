@@ -33,8 +33,8 @@ xtab_read(char *xtab, int is_export)
 		return 0;
 	setexportent(xtab, "r");
 	while ((xp = getexportent()) != NULL) {
-		if (!(exp = export_lookup(xp->e_hostname, xp->e_path)) &&
-		    !(exp = export_create(xp))) {
+		if (!(exp = export_lookup(xp->e_hostname, xp->e_path, is_export != 1)) &&
+		    !(exp = export_create(xp, is_export!=1))) {
 			continue;
 		}
 		switch (is_export) {

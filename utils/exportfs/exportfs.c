@@ -24,7 +24,6 @@
 #include "xlog.h"
 
 static void	export_all(int verbose);
-static void	unexport_all(int verbose);
 static void	exportfs(char *arg, char *options, int verbose);
 static void	unexportfs(char *arg, int verbose);
 static void	exports_update(int verbose);
@@ -100,19 +99,21 @@ main(int argc, char **argv)
 			for (i = optind; i < argc ; i++)
 				exportfs(argv[i], options, f_verbose);
 	}
-	/* note: xtab_*_read does not update entries if they already exist,
-	 * so this will not lose new options
+	/* If we are unexporting everything, then
+	 * don't care about what should be exported, as that
+	 * may require DNS lookups..
 	 */
-	if (!f_reexport)
-		xtab_export_read();
-	if (!f_export) {
-		if (f_all)
-			unexport_all(f_verbose);
-		else
+	if (! ( !f_export && f_all)) {
+		/* note: xtab_*_read does not update entries if they already exist,
+		 * so this will not lose new options
+		 */
+		if (!f_reexport)
+			xtab_export_read();
+		if (!f_export)
 			for (i = optind ; i < argc ; i++)
 				unexportfs(argv[i], f_verbose);
+		rmtab_read();
 	}
-	rmtab_read();
 	xtab_mount_read();
 	exports_update(f_verbose);
 	xtab_export_write();
@@ -174,38 +175,6 @@ export_all(int verbose)
 		}
 	}
 }
-/*
- * unexport_all finds all entries that are mayexport, and
- *    marks them not xtabent and not mayexport
- */
-static void
-unexport_all(int verbose)
-{
-	nfs_export	*exp;
-	int		i;
-
-	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next)
-			if (exp->m_mayexport) {
-				if (verbose) {
-					if (exp->m_exported) {
-						printf("unexporting %s:%s from kernel\n",
-						       exp->m_client->m_hostname,
-						       exp->m_export.e_path);
-					}
-					else {
-						printf("unexporting %s:%s\n",
-						        exp->m_client->m_hostname, 
-							exp->m_export.e_path);
-					}
-				}
-				if (exp->m_exported && !export_unexport(exp))
-					error(exp, errno);
-				exp->m_xtabent = 0;
-				exp->m_mayexport = 0;
-			}
-	}
-}
 
 
 static void
@@ -238,12 +207,12 @@ exportfs(char *arg, char *options, int verbose)
 			hp = hp2;
 		exp = export_find(hp, path);
 	} else {
-		exp = export_lookup(hname, path);
+		exp = export_lookup(hname, path, 0);
 	}
 
 	if (!exp) {
 		if (!(eep = mkexportent(hname, path, options)) ||
-		    !(exp = export_create(eep))) {
+		    !(exp = export_create(eep, 0))) {
 			if (hp) free (hp);
 			return;
 		}
