@@ -1,3 +1,12 @@
+nfs-utils (1:1.0.6-1) unstable; urgency=low
+
+  * New upstream version:
+    > Workaround glibc bug with large fd rlimits.
+  * Japanese debconf translation from Kenshi Muto <kmuto@debian.org>.
+    (closes: #209370)
+
+ -- Chip Salzenberg <chip@debian.org>  Fri, 12 Sep 2003 12:47:58 -0400
+
 nfs-utils (1:1.0.5-3) unstable; urgency=high
 
   * Upstream CVS sync:
