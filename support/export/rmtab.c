@@ -25,28 +25,32 @@ rmtab_read(void)
 
 	setrmtabent("r");
 	while ((rep = getrmtabent(1)) != NULL) {
-		exp = export_lookup(rep->r_client, rep->r_path);
-		if (!exp) {
-			struct exportent	*xp;
-			struct hostent		*hp;
-			int			htype;
-
-			htype = client_gettype(rep->r_client);
-			if (htype == MCL_FQDN
-			    && (hp = gethostbyname (rep->r_client), hp)
-			    && (hp = hostent_dup (hp),
-				   xp = export_allowed (hp, rep->r_path))) {
+		struct exportent	*xp;
+		struct hostent		*hp = NULL;
+		int			htype;
+		
+		htype = client_gettype(rep->r_client);
+		if (htype == MCL_FQDN
+		    && (hp = gethostbyname (rep->r_client))
+		    && (hp = hostent_dup (hp),
+			xp = export_allowed (hp, rep->r_path))) {
+			/* see if the entry already exists, otherwise this was an instantiated
+			 * wild card, and we must add it
+			 */
+			exp = export_lookup(rep->r_client, xp->e_path);
+			if (!exp) {
 				strncpy (xp->e_hostname, rep->r_client,
 					 sizeof (xp->e_hostname) - 1);
 				xp->e_hostname[sizeof (xp->e_hostname) -1] = '\0';
 				exp = export_create(xp);
-				free (hp);
 			}
+			free (hp);
 
 			if (!exp)
 				continue;
 			exp->m_mayexport = 1;
-		}
+		} else if (hp) /* export_allowed failed */
+			free(hp);
 	}
 	if (errno == EINVAL) {
 		/* Something goes wrong. We need to fix the rmtab

@@ -141,12 +141,16 @@ putexportent(struct exportent *ep)
 	fprintf(fp, "%ssync,", (ep->e_flags & NFSEXP_ASYNC)? "a" : "");
 	fprintf(fp, "%swdelay,", (ep->e_flags & NFSEXP_GATHERED_WRITES)?
 				"" : "no_");
+	fprintf(fp, "%shide,", (ep->e_flags & NFSEXP_CROSSMNT)?
+				"no" : "");
 	fprintf(fp, "%ssecure,", (ep->e_flags & NFSEXP_INSECURE_PORT)?
 				"in" : "");
 	fprintf(fp, "%sroot_squash,", (ep->e_flags & NFSEXP_ROOTSQUASH)?
 				"" : "no_");
 	fprintf(fp, "%sall_squash,", (ep->e_flags & NFSEXP_ALLSQUASH)?
 				"" : "no_");
+	fprintf(fp, "%ssubtree_check,", (ep->e_flags & NFSEXP_NOSUBTREECHECK)?
+		"no_" : "");
 
 	fprintf(fp, "mapping=");
 	switch (ep->e_maptype) {
@@ -281,6 +285,10 @@ parseopts(char *cp, struct exportent *ep)
 			ep->e_flags &= ~NFSEXP_ASYNC;
 		else if (!strcmp(opt, "async"))
 			ep->e_flags |= NFSEXP_ASYNC;
+		else if (!strcmp(opt, "nohide"))
+			ep->e_flags |= NFSEXP_CROSSMNT;
+		else if (!strcmp(opt, "hide"))
+			ep->e_flags &= ~NFSEXP_CROSSMNT;
 		else if (!strcmp(opt, "wdelay"))
 			ep->e_flags |= NFSEXP_GATHERED_WRITES;
 		else if (!strcmp(opt, "no_wdelay"))
@@ -293,6 +301,10 @@ parseopts(char *cp, struct exportent *ep)
 			ep->e_flags |= NFSEXP_ALLSQUASH;
 		else if (strcmp(opt, "no_all_squash") == 0)
 			ep->e_flags &= ~NFSEXP_ALLSQUASH;
+		else if (strcmp(opt, "subtree_check") == 0)
+			ep->e_flags &= ~NFSEXP_NOSUBTREECHECK;
+		else if (strcmp(opt, "no_subtree_check") == 0)
+			ep->e_flags |= NFSEXP_NOSUBTREECHECK;
 		else if (strncmp(opt, "mapping=", 8) == 0)
 			ep->e_maptype = parsemaptype(opt+8);
 		else if (strcmp(opt, "map_identity") == 0)	/* old style */
