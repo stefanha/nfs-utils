@@ -1,3 +1,11 @@
+nfs-utils (1:1.0.3-1) unstable; urgency=low
+
+  * New upstream version:
+    > Support reading and writing export cache in /proc/rpc/*/channel,
+      as current syscall interface may not survive into 2.6 on all archs.
+
+ -- Chip Salzenberg <chip@debian.org>  Wed, 26 Mar 2003 11:38:52 -0500
+
 nfs-utils (1:1.0.2-2) unstable; urgency=medium
 
   * Upstream CVS sync:

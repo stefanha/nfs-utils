@@ -1,3 +1,7 @@
+2003-03-26  Chip Salzenberg  <chip@pobox.com>
+
+	* debian/changelog: Version 1.0.3-1.
+
 2003-03-26 NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/mountd/rmtab.c (slink_safe_rename): real_newpath should be
