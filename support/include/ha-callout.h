@@ -37,7 +37,7 @@ ha_callout(char *event, char *arg1, char *arg2, int arg3)
 	 * SIGCHLD temporarily
 	 */
 	newact.sa_handler = SIG_DFL;
-	newacc.sa_flags = 0;
+	newact.sa_flags = 0;
 	sigemptyset(&newact.sa_mask);
 	sigaction(SIGCHLD, &newact, &oldact);
 	pid = fork();

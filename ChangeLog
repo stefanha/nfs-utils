@@ -1,3 +1,8 @@
+2004-12-10 NeilBrown <neilb@cse.unsw.edu.au>
+	Release 1.0.7-pre2
+	
+	* config.mk, configure.in: update version number, run autoconf
+	
 2004-12-10 Neil Brown <neilb@cse.unsw.edu.au>
 	* README : note dependancy on kerberos, libevent, and nfsidmap
 	* configure.in : fail if --enable-nfsv4 and libevent or
