@@ -16,6 +16,11 @@
 	stop to ensure all clients can still access the server
 	before it is shutdown.
 
+2000-06-30  Jeff Uphoff <juphoff@transmeta.com>
+
+	* tools/rpcgen/rpc_svcout.c (write_msg_out): Generate syslog()
+ 	calls with format string.
+	
 2000-06-28  Chip Salzenberg  <chip@valinux.com>
 
 	* utils/statd/log.c (log): Call syslog with format string.
