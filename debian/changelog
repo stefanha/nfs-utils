@@ -10,7 +10,7 @@ nfs-utils (1:0.3.3-6) unstable; urgency=low
       client names.  Explain that wildcards don't usually work on addresses,
       but may work when reverse DNS fails. (closes: #118040, #116039)
 
- --
+ -- Chip Salzenberg <chip@debian.org>  Wed, 26 Dec 2001 18:54:35 -0800
 
 nfs-utils (1:0.3.3-5) unstable; urgency=high
 
