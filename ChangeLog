@@ -1,3 +1,7 @@
+2001-02-14  Chip Salzenberg  <chip@valinux.com>
+
+	* debian/control: Change priority of nhfsstone package to 'extra'.
+
 2001-02-12  Chip Salzenberg  <chip@valinux.com>
 
 	* debian/changelog: Version 0.3-2.
