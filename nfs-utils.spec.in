@@ -37,7 +37,6 @@ clients which are mounted on that host.
 %build
 %if %{_target_cpu} != %{_build_cpu}
 CC=%{__cc}; export CC
-CXX=%{__cxx}; export CXX
 BUILD_CC=gcc; export BUILD_CC
 %configure --build=%{__build_alias}
 %else
