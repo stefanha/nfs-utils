@@ -1,10 +1,18 @@
 2000-02-26  Chip Salzenberg  <chip@valinux.com>
 
+	* utils/lockd/lockd.man: Create.
+	* utils/lockd/Makefile: Install it.
+	* utils/nhfsstone/nhfsstone.man: Change suffix from ".1".
+	* utils/nhfsstone/Makefile: Install it.
+	* utils/exportfs/exports.man: Fix typo.
+
+2000-02-26  Chip Salzenberg  <chip@valinux.com>
+
 	* support/nfs/xio.c (xungetc): Decrement line number when
 	character to unget is newline.  Make first parameter int, so
 	it can distinguish EOF from \377.
 	* support/include/xio.h (xungetc): Adjust prototype.
-	
+
 Fri Feb  4 23:42:23 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
 
 	* support/include/nfs/export.h: added NFSEXP_NOAUTHNLM
