@@ -1552,9 +1552,9 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-    echo $ac_n "checking for nfs4_uid_to_name in -lnfsidmap""... $ac_c" 1>&6
-echo "configure:1557: checking for nfs4_uid_to_name in -lnfsidmap" >&5
-ac_lib_var=`echo nfsidmap'_'nfs4_uid_to_name | sed 'y%./+-%__p_%'`
+    echo $ac_n "checking for nfs4_init_name_mapping in -lnfsidmap""... $ac_c" 1>&6
+echo "configure:1557: checking for nfs4_init_name_mapping in -lnfsidmap" >&5
+ac_lib_var=`echo nfsidmap'_'nfs4_init_name_mapping | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1566,10 +1566,10 @@ cat > conftest.$ac_ext <<EOF
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char nfs4_uid_to_name();
+char nfs4_init_name_mapping();
 
 int main() {
-nfs4_uid_to_name()
+nfs4_init_name_mapping()
 ; return 0; }
 EOF
 if { (eval echo configure:1576: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -2274,7 +2274,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "config.mk nfs-utils.spec utils/Makefile support/include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "config.mk utils/Makefile support/include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -2387,7 +2387,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"config.mk nfs-utils.spec utils/Makefile"}
+CONFIG_FILES=\${CONFIG_FILES-"config.mk utils/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
