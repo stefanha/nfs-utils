@@ -1,19 +1,21 @@
 1999-11-24  Chip Salzenberg  <chip@valinux.com>
 
-	* utils/statd/monitor.c (sm_mon_1_svc): Accept lockd callbacks to
-	the new port 24 as well as the historical port 100021.
+	* utils/statd/monitor.c (sm_mon_1_svc): Accept lockd callbacks
+	to the new port 24 as well as the historical port 100021.
 
 Tue Nov 23 10:21:34 EST 1999 Neil Brown <neilb@cse.unsw.edu.au>
 
-	* etc/redhat/nfsd.init (stop) : moved exportfs -ua after stopping
-	       nfsd to stop spurious ESTALE on server shutdown.
+	* etc/redhat/nfsd.init (stop) : moved exportfs -ua after
+	stopping nfsd to stop spurious ESTALE on server shutdown.
 	
 Tue Nov 23 10:13:39 1999  Neil Brown <neilb@cse.unsw.edu.au>
 
-	* support/nfs/exports.c (parseopts): make copy of opt string before
-			'nul'ing out commas so that
-			exportfs -o option1,option2 hosta:/fs hostb:/fs
-                        applies both options to both exports
+	* support/nfs/exports.c (parseopts): make copy of opt string
+	before 'nul'ing out commas so that
+	
+	# exportfs -o option1,option2 hosta:/fs hostb:/fs
+
+        applies both options to both exports.
 
 Thu Oct 28 12:55:42 1999  H.J. Lu <hjl@lucon.org>
 
