@@ -1,3 +1,20 @@
+2001-03-10  Tavis Barr <tavis@boole.isetr.columbia.edu>
+
+	* utils/rquotad/rquotad.man: Updated for -p.
+	* utils/statd/statd.man: Likewise.
+
+2001-03-10  Ion Badulescu  <ionut@cs.columbia.edu>
+
+	* support/nfs/rpcmisc.[ch]: export makesock()
+
+	* utils/statd/statd.c: added longopts, added support for
+	specifying the port to bind to on the command line.
+
+	* utils/statd/statd.c: ditto, also specify port used for
+	outgoing connections.
+
+	* utils/statd/Makefile (LIBS): link with our own libnfs
+
 2001-03-09  H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfslock.init: Changed chkconfig line to 60 86.
@@ -203,7 +220,7 @@ o	* nfs-utils.spec: Likewise.
 	* utils/mountd/auth.c (auth_authenticate_internal): Make sure a
 	non-NULL hostent is always returned.
 
-2000-09-11  Ion Badulescu  <ionut@moisil.dev.hydraweb.com>
+2000-09-11  Ion Badulescu  <ionut@cs.columbia.edu>
 
 	* etc/redhat/nfslock.init: don't kill lockd processes that do not
 	have an executable (i.e. kernel threads)
@@ -230,7 +247,7 @@ o	* nfs-utils.spec: Likewise.
 
 2000-08-25  Ion Badulescu  <ionut@cs.columbia.edu>
 
- 	* utils/rquotad/rquotad.man, utils/statd/statd.man,
+	* utils/rquotad/rquotad.man, utils/statd/statd.man,
 	utils/mountd/mountd.man: updated
         
 	* utils/mountd/Makefile (LIBS): added -lmisc $(LIBWRAP) $(LIBNSL)
