@@ -22,16 +22,25 @@ if [ -f $DEFAULTFILE ]; then
     . $DEFAULTFILE
 fi
 
-# Determine whether lockd is required
+# Determine whether lockd daemon is required.
 case "$NEED_LOCKD" in
 yes|no)	;;
-*)  # We must be conservative and run lockd,
-    #  unless we can prove that it's not required.
-    NEED_LOCKD=yes
-    if test -f /proc/ksyms
-    then
-	grep -q lockdctl /proc/ksyms || NEED_LOCKD=no
-    fi
+*)  case `uname -r` in
+    '' | [01].* | 2.[0123].* )
+	# Older kernels may or may not need a lockd daemon.
+	# We must assume they do, unless we can prove otherwise.
+	# (A false positive here results only in a harmless message.)
+	NEED_LOCKD=yes
+	if test -f /proc/ksyms
+	then
+	    grep -q lockdctl /proc/ksyms || NEED_LOCKD=no
+	fi
+	;;
+
+    *)  # Modern kernels (>= 2.4) start a lockd thread automatically.
+	NEED_LOCKD=no
+	;;
+    esac
     ;;
 esac
 

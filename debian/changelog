@@ -1,3 +1,11 @@
+nfs-utils (1:1.0.6-2) unstable; urgency=low
+
+  * Test kernel version in init script; if kernel is 2.4 or later,
+    rpc.lockd is unnecessary.  Existing tests still apply to earlier
+    kernels.  (closes: #205867)
+
+ --
+
 nfs-utils (1:1.0.6-1) unstable; urgency=low
 
   * New upstream version:
