@@ -1,3 +1,8 @@
+2001-06-07  Lon H. Hohberger <hohberger@missioncriticallinux.com>
+
+	* etc/nodist/nfs-server: Fixed a bug where the script would
+	disable mounts from NFSv3 clients if NFSv3 is present.
+
 2001-06-05  H.J. Lu <hjl@lucon.org>
 
 	* utils/mountd/mountd.c (longopts): Add "descriptors/o".
