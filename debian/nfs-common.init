@@ -50,7 +50,7 @@ case "$1" in
 	then
 	    printf " lockd"
 	    start-stop-daemon --stop --oknodo --quiet \
-		--name lockd --user root --signal 9
+		--exec $PREFIX/sbin/rpc.lockd
 	fi
 	printf " statd"
 	start-stop-daemon --stop --oknodo --quiet \
