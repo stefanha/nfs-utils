@@ -29,30 +29,21 @@
 static int 
 slink_safe_rename(const char * oldpath, const char * newpath)
 {
-  int r;
-  struct stat s;
-  char slink_path[PATH_MAX];
-  char real_newpath = newpath;
+	int r;
+	struct stat s;
+	char slink_path[PATH_MAX];
+	char real_newpath = newpath;
 
-  if((lstat(newpath, &s) == 0) && (S_ISLNK(s.st_mode))) {
+	if ((lstat(newpath, &s) == 0) && S_ISLNK(s.st_mode)) {
+		/* New path is a symbolic link, do not destroy but follow */
+		if ((r = readlink(newpath, slink_path, PATH_MAX - 1)) == -1)
+			return -1;
+		slink_path[r] = '\0';
+		real_newpath = slink_path;
+	}
 
-    /* New path is a symbolic link, do not destroy but follow */
-
-    if((r = readlink(newpath, slink_path, PATH_MAX))==-1) {
-
-      return -1;
-
-    }
-
-    slink_path[ (r < PATH_MAX) ? (r + 1) : (PATH_MAX - 1)] = '\0';
-
-    real_newpath = slink_path;
-
-  }
-
-  return rename(oldpath, real_newpath);
-
-}/* static int slink_safe_rename() */
+	return rename(oldpath, real_newpath);
+}
 
 void
 mountlist_add(nfs_export *exp, const char *path)

@@ -1,3 +1,8 @@
+2002-11-27  Chip Salzenberg  <chip@pobox.com>
+
+	* utils/mountd/rmtab.c (slink_safe_rename): Fix off-by-one buffer
+	overflow bug.  Reformat per rest of source file.
+
 2002-11-19  NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/exportfs/exports.man: Correct notes about whether the wild
