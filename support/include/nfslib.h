@@ -125,7 +125,11 @@ struct nfs_fh_len *	getfh_size(struct sockaddr *addr, const char *, int size);
 /* lockd. */
 int			lockdsvc();
 
+#ifndef HAVE_SVCTCP_SOCKET
 extern			int svctcp_socket (u_long __number, int __reuse);
+#endif
+#ifndef HAVE_SVCUDP_SOCKET
 extern			int svcudp_socket (u_long __number, int __reuse);
+#endif
 
 #endif /* NFSLIB_H */
