@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#DEBHELPER#
+
 case "$1" in
     purge)
 	update-rc.d nfs-kernel-server remove >/dev/null 2>&1
