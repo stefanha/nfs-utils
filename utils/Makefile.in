@@ -3,7 +3,7 @@
 #
 
 SUBDIRS	= exportfs mountd nfsd statd nfsstat @RQUOTAD@ showmount \
-	  nhfsstone lockd @IDMAPD@
+	  nhfsstone lockd @IDMAPD@ @GSSD@ @SVCGSSD@
 
 include $(TOP)rules.mk
 

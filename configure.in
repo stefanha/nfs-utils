@@ -52,6 +52,22 @@ AC_ARG_ENABLE(nfsv4,
 	fi
 	AC_SUBST(IDMAPD)
 	AC_SUBST(enable_nfsv4)
+AC_ARG_ENABLE(gss,
+	[  --enable-gss           enable support for rpcsec_gss],
+	enable_gss=$enableval,
+	enable_gss=yes)
+	if test "$enable_gss" = yes; then
+		AC_DEFINE(GSS_SUPPORTED)
+		GSSD=gssd
+		SVCGSSD=svcgssd
+	else
+		enable_gss=
+		GSSD=
+		SVCGSSD=
+	fi
+	AC_SUBST(GSSD)
+	AC_SUBST(SVCGSSD)
+	AC_SUBST(enable_gss)
 AC_ARG_ENABLE(kprefix,
 	[  --enable-kprefix       install progs as rpc.knfsd etc],
 	test "$enableval" = "yes" && kprefix=k,
@@ -116,6 +132,94 @@ AC_SUBST(LIBBSD)
 
 AC_TCP_WRAPPER
 AC_SUBST(LIBWRAP)
+
+if test "$enable_gss" = yes; then
+  dnl Checks for Kerberos
+  dnl NOTE: while we intend to do generic gss-api, currently we
+  dnl have a requirement to get an initial Kerberos machine
+  dnl credential.  Thus, the requirement for Kerberos.
+  dnl The Kerberos gssapi library will be dynamically loaded?
+  AC_MSG_CHECKING(for Kerberos v5)
+  AC_ARG_WITH(krb5,
+  [  --with-krb5=DIR         use Kerberos v5 installation in DIR],
+  [ case "$withval" in
+    yes|no)
+       krb5_with=""
+       ;;
+    *)
+       krb5_with="$withval"
+       ;;
+    esac ]
+  )
+
+  for dir in $krb5_with /usr/kerberos /usr/local /usr/local/krb5 /usr/krb5 \
+             /usr/heimdal /usr/local/heimdal /usr/athena /usr ; do
+    dnl This ugly hack brought on by the split installation of
+    dnl MIT Kerberos on Fedora Core 1
+    K5CONFIG=""
+    if test -f $dir/bin/krb5-config; then
+      K5CONFIG=$dir/bin/krb5-config
+    elif test -f "/usr/kerberos/bin/krb5-config"; then
+      K5CONFIG="/usr/kerberos/bin/krb5-config"
+    fi
+    if test "$K5CONFIG" != ""; then
+      if test -f $dir/include/gssapi/gssapi_krb5.h -a \
+              \( -f $dir/lib/libgssapi_krb5.a -o \
+  	    -f $dir/lib/libgssapi_krb5.so \) ; then
+         AC_DEFINE(HAVE_KRB5)
+         KRBDIR="$dir"
+         K5VERS=`$K5CONFIG --version | awk '{split($4,v,"."); print v[[1]]v[[2]]v[[3]] }'`
+         AC_DEFINE_UNQUOTED(KRB5_VERSION,$K5VERS)
+         KRBLIB=`$K5CONFIG --libs gssapi`
+         if test $K5VERS -le 131; then
+           AC_DEFINE(USE_PRIVATE_KRB5_FUNCTIONS)
+         fi
+         AC_CHECK_LIB(gssapi_krb5, gss_krb5_export_lucid_sec_context,
+           AC_DEFINE(HAVE_LUCID_CONTEXT_SUPPORT),,$KRBLIB)
+         AC_CHECK_LIB(gssapi_krb5, gss_krb5_set_allowable_enctypes,
+           AC_DEFINE(HAVE_SET_ALLOWABLE_ENCTYPES),,$KRBLIB)
+         AC_CHECK_LIB(gssapi_krb5, gss_krb5_ccache_name,
+           AC_DEFINE(HAVE_GSS_KRB5_CCACHE_NAME),,$KRBLIB)
+         break
+      dnl The following ugly hack brought on by the split installation
+      dnl of Heimdal Kerberos on SuSe
+      elif test \( -f $dir/include/heim_err.h -o\
+      		 -f $dir/include/heimdal/heim_err.h \) -a \
+                -f $dir/lib/libroken.a; then
+         AC_DEFINE(HAVE_HEIMDAL)
+         KRBDIR="$dir"
+         K5VERS=`$K5CONFIG --version | head -1 | awk '{split($2,v,"."); print v[[1]]v[[2]]v[[3]] }'`
+         AC_DEFINE_UNQUOTED(KRB5_VERSION,$K5VERS)
+         KRBLIB=`$K5CONFIG --libs gssapi`
+         AC_CHECK_LIB(gssapi, gss_krb5_export_lucid_sec_context,
+           AC_DEFINE(HAVE_LUCID_CONTEXT_SUPPORT),,$KRBLIB)
+         AC_CHECK_LIB(gssapi, gss_krb5_set_allowable_enctypes,
+           AC_DEFINE(HAVE_SET_ALLOWABLE_ENCTYPES),,$KRBLIB)
+         AC_CHECK_LIB(gssapi, gss_krb5_ccache_name,
+           AC_DEFINE(HAVE_GSS_KRB5_CCACHE_NAME),,$KRBLIB)
+        break
+      fi
+      CFLAGS=$CFLAGS `K5CONFIG --cflags`
+    fi
+  done
+  dnl We didn't find a usable Kerberos environment
+  if test "x$KRBDIR" = "x"; then
+    if test "x$krb5_with" = "x"; then
+      AC_MSG_ERROR(Kerberos v5 with GSS support not found)
+    else
+      AC_MSG_ERROR(Kerberos v5 with GSS support not found at $krb5_with)
+    fi
+  fi
+  AC_MSG_RESULT($KRBDIR)
+  dnl If they specified a directory and it didn't work, give them a warning
+  if test "x$krb5_with" != "x" -a "$krb5_with" != "$KRBDIR"; then
+    AC_MSG_WARN(Using $KRBDIR instead of requested value of $krb5_with for Kerberos!)
+  fi
+
+  AC_SUBST([KRBDIR])
+  AC_SUBST([KRBLIB])
+  AC_SUBST([K5VERS])
+fi
 
 dnl *************************************************************
 dnl Check for headers

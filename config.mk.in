@@ -33,6 +33,9 @@ MANGROUP	= root
 LIBBSD		= @LIBBSD@
 LIBNSL		= @LIBNSL@
 LIBWRAP		= @LIBWRAP@
+KRBLIB		= @KRBLIB@
+KRBDIR		= @KRBDIR@
+KRB5_VERSION	= @K5VERS@
 
 ################# END OF USER SERVICEABLE PARTS ##################
 ALLTARGETS	= all clean distclean install installman \
@@ -58,6 +61,7 @@ INSTALL		= install
 MAN2PS		= groff -Tps -man
 
 AFLAGS		= -I$(TOP)support/include \
+		  -I$(KRBDIR)/include \
 		  -Wall $(ARCHFLAGS) -pipe
 ifdef KERNEL_INCDIR
 AFLAGS	       += -I$(KERNEL_INCDIR)

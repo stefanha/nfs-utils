@@ -1,0 +1,63 @@
+.\"
+.\" rpc.gssd(8)
+.\"
+.\" Copyright (C) 2003 J. Bruce Fields <bfields@umich.edu>
+.TH rpc.gssd 8 "17 Mar 2003"
+.SH NAME
+rpc.gssd \- rpcsec_gss daemon
+.SH SYNOPSIS
+.B "rpc.gssd [-f] [-k keytab] [-p pipefsdir] [-v]"
+.SH DESCRIPTION
+The rpcsec_gss protocol gives a means of using the gss-api generic security
+api to provide security for protocols using rpc (in particular, nfs).  Before
+exchanging any rpc requests using rpcsec_gss, the rpc client must first
+establish a security context.  The linux kernel's implementation of rpcsec_gss
+depends on the userspace daemon
+.B rpc.gssd
+to establish security contexts.  The
+.B rpc.gssd
+daemon uses files in the rpc_pipefs filesystem to communicate with the kernel.
+
+.SH OPTIONS
+.TP
+.B -f
+Runs
+.B rpc.gssd
+in the foreground and sends output to stderr (as opposed to syslogd)
+.TP
+.B -k keytab
+Tells
+.B rpc.gssd
+to use the keys for principals nfs/hostname in
+.I keytab
+to obtain machine credentials.
+The default value is "/etc/krb5.keytab".
+.\".TP
+.\".B -m
+.\"Ordinarily,
+.\".B rpc.gssd
+.\"looks for a cached ticket for user $UID in /tmp/krb5cc_$UID.
+.\"With the -m option, the user with uid 0 will be treated specially, and will
+.\"be mapped instead to the credentials for the principal nfs/hostname found in
+.\"the keytab file.
+.\"(This option is now the default and is ignored if specified.)
+.TP
+.B -p path
+Tells
+.B rpc.gssd
+where to look for the rpc_pipefs filesystem.  The default value is
+"/var/lib/nfs/rpc_pipefs".
+.TP
+.B -v
+Increases the verbosity of the output (can be specified multiple times).
+.SH SEE ALSO
+.BR rpc.svcgssd(8)
+.SH AUTHORS
+.br
+Dug Song <dugsong@umich.edu>
+.br
+Andy Adamson <andros@umich.edu>
+.br
+Marius Aamodt Eriksen <marius@umich.edu>
+.br
+J. Bruce Fields <bfields@umich.edu>
