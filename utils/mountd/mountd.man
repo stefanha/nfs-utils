@@ -42,7 +42,7 @@ syntax.
 For every mount request received from an NFS client,
 .B rpc.mountd
 adds an entry to the
-.B /var/state/nfs/rmtab
+.B /var/lib/nfs/rmtab
 file. When receiving an unmount request, that entry is removed.
 user level part of the NFS service.
 .P
@@ -143,6 +143,6 @@ manual pages.
 .BR rpc.rquotad (8).
 .SH FILES
 .BR /etc/exports ,
-.BR /var/state/nfs/xtab .
+.BR /var/lib/nfs/xtab .
 .SH AUTHOR
 Olaf Kirch, H. J. Lu, G. Allan Morris III, and a host of others.
