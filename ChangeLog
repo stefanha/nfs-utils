@@ -1,3 +1,9 @@
+2000-10-24  Lon Hohberger <lon@users.sourceforge.net>
+
+	* utils/statd/callback.c: Fix bug preventing callbacks to local lockd.
+	* utils/statd/rmtcall.c: Add some IP address paranoia when doing
+	callbacks to local lockd.
+
 2000-10-18  Scott McDermott <mcdermot@questra.com>
 
 	* utils/exportfs/exports.man: Updated for CIDR netmask.
@@ -12,6 +18,26 @@
 	* aclocal.m4 (AC_TCP_WRAPPER): Fix a typo.
 	* configure: Rebuilt.
 
+2000-10-06  Lon Hohberger <lon@users.sourceforge.net>
+
+	* utils/statd/statd.man: Change "/var/lib/nfs/sm/state" to
+	"/var/lib/nfs/state".
+
+2000-10-05  Lon Hohberger <lon@users.sourceforge.net>
+
+	* utils/statd/statd.h (run_mode): New global bitmask of runtime
+	behaviors: fg/bg, logging, etc.
+	* utils/statd/statd.c: New command line options: -V -h -? -d .
+	* utils/statd/statd.man: Update for changes to statd.
+
+	* utils/statd/log.h (log_init): Remove parameter of function; use
+	global variable "name_p" instead.
+	* utils/statd/log.c: Add support for logging to stderr.
+
+	* utils/statd/notlist.c: Partially rewrite notify list handling
+	functions.  Eliminate run-off-end-of-list bug when calling
+	nlist_insert_timer.  Add lots of comments.
+	
 2000-09-27  H.J. Lu <hjl@lucon.org>
 
 	* README: Updated for RedHat 7.0.
