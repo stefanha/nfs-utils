@@ -12,7 +12,8 @@
 
 	* README: Updated for 1.0.1.
 
-2002-04-07  H.J. Lu <hjl@lucon.org>
+2002-04-07  Sean O'Connell <sean@ee.duke.edu>
+	    H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfs.init: Read /etc/sysconfig/nfsd for NFS tuning.
 
