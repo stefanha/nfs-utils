@@ -1,3 +1,14 @@
+Thu Oct 28 11:27:51 EST 1999 Neil Brown <neilb@cse.unsw.edu.au>
+
+        * support/include/nfs/export.h addedd NFSEXP_NOSUBTREECHECK
+        * support/nfs/exports.c: added {no_,}subtree_check and changed
+          crossmnt to nohide
+        * utils/exportfs/exports.man: added no_subtree_check and nohide
+          and removed irrelevant stuff from unfsd.
+        * support/export/rmtab.c: rmtab_read didn't quite do the right
+          thing if a pathname from rmtab was a subdirectory of an export-point
+
+	
 Tue Oct 26 17:22:40 1999  H.J. Lu <hjl@lucon.org>
 
 	* README: Updated ftp site.
