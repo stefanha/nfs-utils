@@ -16,6 +16,7 @@
 #include "nfslib.h"
 #include "exportfs.h"
 #include "mountd.h"
+#include "xmalloc.h"
 
 enum auth_error
 {
@@ -83,9 +84,14 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 	else {
 		/* must make sure the hostent is authorative. */
 		char **sp;
-		struct hostent *forward;
+		struct hostent *forward = NULL;
+		char *tmpname;
 
-		forward = gethostbyname((*hpp)->h_name);
+		tmpname = xstrdup((*hpp)->h_name);
+		if (tmpname) {
+			forward = gethostbyname(tmpname);
+			free(tmpname);
+		}
 		if (forward) {
 			/* now make sure the "addr" is in the list */
 			for (sp = forward->h_addr_list ; *sp ; sp++) {

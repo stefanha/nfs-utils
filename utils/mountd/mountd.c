@@ -312,7 +312,7 @@ get_exportlist(void)
 				e = (struct exportnode *) xmalloc(sizeof(*e));
 				e->ex_next = elist;
 				e->ex_groups = NULL;
-				e->ex_dir = strdup(exp->m_export.m_path);
+				e->ex_dir = xstrdup(exp->m_export.m_path);
 				elist = e;
 			}
 

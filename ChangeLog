@@ -1,3 +1,11 @@
+Mon Jan 10 14:26:33 2000 H.J. Lu <hjl@lucon.org>
+
+	* utils/mountd/auth.c (auth_authenticate_internal): Call
+	xstrdup for hostname before passing it to gethostbyname.
+
+	* utils/mountd/mountd.c (get_exportlist): Use xstrdup instead
+	of strdup.
+
 Sun Dec 19 09:35:01 1999  H.J. Lu <hjl@lucon.org>
 
 	* README: Update the mailing list address.
