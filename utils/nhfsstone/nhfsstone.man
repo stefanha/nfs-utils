@@ -1,6 +1,6 @@
 .\" @(#)nhfsstone.man 1.13 89/10/05 Copyright (c) 1989, Legato Systems Inc
 .\" See DISCLAIMER file for restrictions
-.TH NHFSSTONE 1 "4 October 1989"
+.TH NHFSSTONE 8 "4 October 1989"
 .SH NAME
 nhfsstone \- Network File System benchmark program
 .SH SYNOPSIS
