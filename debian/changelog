@@ -1,4 +1,4 @@
-nfs-utils (1:0.3.3-6) unstable; urgency=low
+nfs-utils (1:0.3.3-6) unstable; urgency=high
 
   * Upstream fixes:
     > Ignore case when comparing host names.
