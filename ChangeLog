@@ -1,3 +1,8 @@
+2000-08-24  Neil Brown <neilb@cse.unsw.edu.au>
+	* support/export/client.c(client_check): removed the "dot+1" as a
+	  ypdomain argument to innetgr as this is entirely bogus.
+	  It should always be NULL.
+	
 2000-08-23  Neil Brown <neilb@cse.unsw.edu.au>
 
 	* support/export/xtab.c(xtab_read): introduce new mode for

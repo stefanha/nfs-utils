@@ -237,7 +237,7 @@ client_check(nfs_client *clp, struct hostent *hp)
 				return 0;
 
 			*dot = '\0';
-			match = innetgr(cname+1, hname, NULL, dot + 1);
+			match = innetgr(cname+1, hname, NULL, NULL);
 			*dot = '.';
 
 			return match;
