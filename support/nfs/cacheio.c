@@ -205,16 +205,17 @@ int readline(int fd, char **buf, int *lenp)
 	 */
 		char *new;
 		int nl;
-		*lenp += 128;
+		*lenp *= 2;
 		new = realloc(*buf, *lenp);
 		if (new == NULL)
 			return 0;
-		nl = read(fd, *buf +len, *lenp - len);
-		if (nl <= 0 )
+		*buf = new;
+		nl = read(fd, *buf + len, *lenp - len);
+		if (nl <= 0)
 			return 0;
-		new += nl;
+		len += nl;
 	}
-	(*buf)[len-1] = 0;
+	(*buf)[len-1] = '\0';
 	return 1;
 }
 
