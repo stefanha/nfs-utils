@@ -24,7 +24,7 @@ rmtab_read(void)
 	nfs_export		*exp;
 
 	setrmtabent("r");
-	while ((rep = getrmtabent(1)) != NULL) {
+	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		struct exportent	*xp;
 		struct hostent		*hp = NULL;
 		int			htype;
@@ -65,8 +65,8 @@ rmtab_read(void)
 			xfunlock(lockid);
 			return -1;
 		}
-		while ((rep = getrmtabent(0)) != NULL) {
-			fputrmtabent(fp, rep);
+		while ((rep = getrmtabent(0, NULL)) != NULL) {
+			fputrmtabent(fp, rep, NULL);
 		}
 		if (rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
 			xlog(L_ERROR, "couldn't rename %s to %s",

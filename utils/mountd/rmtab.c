@@ -24,14 +24,17 @@ mountlist_add(nfs_export *exp, const char *path)
 	struct rmtabent	xe;
 	struct rmtabent	*rep;
 	int		lockid;
+	long		pos;
 
 	if ((lockid = xflock(_PATH_RMTAB, "a")) < 0)
 		return;
-	setrmtabent("r");
-	while ((rep = getrmtabent(1)) != NULL) {
+	setrmtabent("r+");
+	while ((rep = getrmtabent(1, &pos)) != NULL) {
 		if (strcmp (rep->r_client,
 			    exp->m_client->m_hostname) == 0
 		    && strcmp(rep->r_path, path) == 0) {
+			rep->r_count++;
+			putrmtabent(rep, &pos);
 			endrmtabent();
 			xfunlock(lockid);
 			return;
@@ -43,8 +46,9 @@ mountlist_add(nfs_export *exp, const char *path)
 	xe.r_client [sizeof (xe.r_client) - 1] = '\0';
 	strncpy(xe.r_path, path, sizeof (xe.r_path) - 1);
 	xe.r_path [sizeof (xe.r_path) - 1] = '\0';
+	xe.r_count = 1;
 	if (setrmtabent("a")) {
-		putrmtabent(&xe);
+		putrmtabent(&xe, NULL);
 		endrmtabent();
 	}
 	xfunlock(lockid);
@@ -57,6 +61,7 @@ mountlist_del(nfs_export *exp, const char *path)
 	FILE		*fp;
 	char		*hname = exp->m_client->m_hostname;
 	int		lockid;
+	int		match;
 
 	if ((lockid = xflock(_PATH_RMTAB, "w")) < 0)
 		return;
@@ -69,10 +74,13 @@ mountlist_del(nfs_export *exp, const char *path)
 		xfunlock(lockid);
 		return;
 	}
-	while ((rep = getrmtabent(1)) != NULL) {
-		if (strcmp (rep->r_client, hname)
-		    || strcmp(rep->r_path, path))
-			fputrmtabent(fp, rep);
+	while ((rep = getrmtabent(1, NULL)) != NULL) {
+		match = !strcmp (rep->r_client, hname)
+			&& !strcmp(rep->r_path, path);
+		if (match)
+			rep->r_count--;
+		if (!match || rep->r_count)
+			fputrmtabent(fp, rep, NULL);
 	}
 	if (rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
 		xlog(L_ERROR, "couldn't rename %s to %s",
@@ -114,13 +122,13 @@ mountlist_del_all(struct sockaddr_in *sin)
 		free (hp);
 		return;
 	}
-	while ((rep = getrmtabent(1)) != NULL) {
+	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		if (strcmp(rep->r_client, hp->h_name) == 0 &&
 		    (exp = auth_authenticate("umountall", sin, rep->r_path))) {
 			export_reset(exp);
 			continue;
 		}
-		fputrmtabent(fp, rep);
+		fputrmtabent(fp, rep, NULL);
 	}
 	if (rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
 		xlog(L_ERROR, "couldn't rename %s to %s",
@@ -158,7 +166,7 @@ mountlist_list(void)
 		last_mtime = stb.st_mtime;
 
 		setrmtabent("r");
-		while ((rep = getrmtabent(1)) != NULL) {
+		while ((rep = getrmtabent(1, NULL)) != NULL) {
 			m = (mountlist) xmalloc(sizeof(*m));
 			m->ml_hostname = xstrdup(rep->r_client);
 			m->ml_directory = xstrdup(rep->r_path);

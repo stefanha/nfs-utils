@@ -1,3 +1,36 @@
+2000-05-31  H.J. Lu <hjl@lucon.org>
+
+	* configure.in (VERSION): Set to "0.1.7.5".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+	* support/include/nfslib.h (exportent): Add a new field,
+	r_count, to count the number of mounts from a client.
+	(getrmtabent): Take a new argument for position in file.
+	(putrmtabent): Likewise.
+	(fgetrmtabent): Likewise.
+	(fputrmtabent): Likewise.
+	* support/nfs/rmtab.c (getrmtabent): Handle the new argument
+	for position in file.
+	(fgetrmtabent): Likewise.
+	(putrmtabent): Likewise.
+	(fputrmtabent): Likewise.
+
+	* support/nfs/rmtab.c (fgetrmtabent): Get value for the new
+	field, r_count.
+
+	* support/export/rmtab.c (rmtab_read): Pass NULL as the new
+	argument to getrmtabent (), fgetrmtabent (), putrmtabent ()
+	and fputrmtabent ().
+	* utils/mountd/rmtab.c (mountlist_add): Likewise.
+	(mountlist_del): Likewise.
+	(mountlist_del_all): Likewise.
+	(mountlist_list): Likewise.
+
+	* utils/mountd/rmtab.c (mountlist_add): Increment "r_count"
+	for the existing entry and initialize "r_count" to 1.
+	(mountlist_del): Decrement "r_count".
+
 2000-05-18  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.1.7.4".

@@ -45,52 +45,63 @@ fsetrmtabent(char *fname, char *type)
 }
 
 struct rmtabent *
-getrmtabent(int log)
+getrmtabent(int log, long *pos)
 {
-	return fgetrmtabent(rmfp, log);
+	return fgetrmtabent(rmfp, log, pos);
 }
 
 struct rmtabent *
-fgetrmtabent(FILE *fp, int log)
+fgetrmtabent(FILE *fp, int log, long *pos)
 {
 	static struct rmtabent	re;
-	char	buf[2048], *sp;
+	char	buf[2048], *count, *host, *path;
 
 	errno = 0;
 	if (!fp)
 		return NULL;
 	do {
+		if (pos)
+			*pos = ftell (fp);
 		if (fgets(buf, sizeof(buf)-1, fp) == NULL)
 			return NULL;
-		if ((sp = strchr(buf, '\n')) != NULL)
-			*sp = '\0';
-		if (!(sp = strchr(buf, ':'))) {
+		host = buf;
+		if ((path = strchr(host, '\n')) != NULL)
+			*path = '\0';
+		if (!(path = strchr(host, ':'))) {
 			if (log)
 				xlog(L_ERROR, "malformed entry in rmtab file");
 			errno = EINVAL;
 			return NULL;
 		}
-		*sp++ = '\0';
+		*path++ = '\0';
+		count = strchr(path, ':');
+		if (count) {
+			*count++ = '\0';
+			re.r_count = strtol (count, NULL, 0);
+		}
+		else
+			re.r_count = 1;
 	} while (0);
-	strncpy(re.r_client, buf, sizeof (re.r_client) - 1);
+	strncpy(re.r_client, host, sizeof (re.r_client) - 1);
 	re.r_client[sizeof (re.r_client) - 1] = '\0';
-	strncpy(re.r_path, sp, sizeof (re.r_path) - 1);
+	strncpy(re.r_path, path, sizeof (re.r_path) - 1);
 	re.r_path[sizeof (re.r_path) - 1] = '\0';
 	return &re;
 }
 
 void
-putrmtabent(struct rmtabent *rep)
+putrmtabent(struct rmtabent *rep, long *pos)
 {
-	fputrmtabent(rmfp, rep);
+	fputrmtabent(rmfp, rep, pos);
 }
 
 void
-fputrmtabent(FILE *fp, struct rmtabent *rep)
+fputrmtabent(FILE *fp, struct rmtabent *rep, long *pos)
 {
-	if (!fp)
+	if (!fp || (pos && fseek (fp, *pos, SEEK_SET) != 0))
 		return;
-	fprintf(fp, "%s:%s\n", rep->r_client, rep->r_path);
+	fprintf(fp, "%s:%s:0x%.8x\n", rep->r_client, rep->r_path,
+		rep->r_count);
 }
 
 void

@@ -77,6 +77,7 @@ struct exportent {
 struct rmtabent {
 	char		r_client[NFSCLNT_IDMAX+1];
 	char		r_path[NFS_MAXPATHLEN+1];
+	int		r_count;
 };
 
 /*
@@ -92,13 +93,13 @@ void			dupexportent(struct exportent *dst,
 int			updateexportent(struct exportent *eep, char *options);
 
 int			setrmtabent(char *type);
-struct rmtabent *	getrmtabent(int log);
-void			putrmtabent(struct rmtabent *xep);
+struct rmtabent *	getrmtabent(int log, long *pos);
+void			putrmtabent(struct rmtabent *xep, long *pos);
 void			endrmtabent(void);
 void			rewindrmtabent(void);
 FILE *			fsetrmtabent(char *fname, char *type);
-struct rmtabent *	fgetrmtabent(FILE *fp, int log);
-void			fputrmtabent(FILE *fp, struct rmtabent *xep);
+struct rmtabent *	fgetrmtabent(FILE *fp, int log, long *pos);
+void			fputrmtabent(FILE *fp, struct rmtabent *xep, long *pos);
 void			fendrmtabent(FILE *fp);
 void			frewindrmtabent(FILE *fp);
 
