@@ -354,6 +354,8 @@ dump(int verbose)
 				c = dumpopt(c, "async");
 			if (ep->e_flags & NFSEXP_GATHERED_WRITES)
 				c = dumpopt(c, "wdelay");
+			if (ep->e_flags & NFSEXP_CROSSMNT)
+				c = dumpopt(c, "nohide");
 			if (ep->e_flags & NFSEXP_INSECURE_PORT)
 				c = dumpopt(c, "insecure");
 			if (ep->e_flags & NFSEXP_ROOTSQUASH)
@@ -362,6 +364,10 @@ dump(int verbose)
 				c = dumpopt(c, "no_root_squash");
 			if (ep->e_flags & NFSEXP_ALLSQUASH)
 				c = dumpopt(c, "all_squash");
+			if (ep->e_flags & NFSEXP_NOSUBTREECHECK)
+				c = dumpopt(c, "no_subtree_check");
+			if (ep->e_flags & NFSEXP_NOAUTHNLM)
+				c = dumpopt(c, "insecure_locks");
 			if (ep->e_maptype == CLE_MAP_UGIDD)
 				c = dumpopt(c, "mapping=ugidd");
 			else if (ep->e_maptype == CLE_MAP_FILE)

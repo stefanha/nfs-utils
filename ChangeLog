@@ -1,3 +1,8 @@
+Wed Mar  8 09:42:43 EST 2000 Neil Brown <neilb@cse.unsw.edu.au>
+
+	* utils/exportfs/exportfs.c (dump): Included printing of
+	   nohide, no_subtree_check, and insecure_locks
+
 2000-02-26  Chip Salzenberg  <chip@valinux.com>
 
 	* config.mk.in (INSTALLSUID): Strip ("-s").
@@ -10,7 +15,7 @@
 	* utils/lockd/Makefile: Install it.
 	* utils/nhfsstone/nhfs{run,nums,graph}.man: Create.
 	* utils/nhfsstone/nhfsstone.man: Change suffix from ".1".
-	* utils/nhfsstone/Makefile: Install the helper scripts ann
+	* utils/nhfsstone/Makefile: Install the helper scripts and
 	  all four man pages.
 	* utils/exportfs/exports.man: Fix typo.
 
