@@ -25,6 +25,7 @@
 #define NFSEXP_NOAUTHNLM	0x0800
 #define NFSEXP_FSID		0x2000
 #define	NFSEXP_CROSSMNT		0x4000
-#define NFSEXP_ALLFLAGS		0x7FFF
+#define NFSEXP_NOACL		0x8000 /* reserved for possible ACL related use */
+#define NFSEXP_ALLFLAGS		0xFFFF
 
 #endif /* _NSF_EXPORT_H */

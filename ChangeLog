@@ -1,3 +1,11 @@
+2003-07-15 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/mountd/mountd.c(main): getopt string fix for 'o'
+	* utils/mountd/auth.c(auth_authenticate): remove extra 'free'
+	* utils/exportfs/exportfs.c(main): make 'exportfs -f' just flush
+	the caches.
+	* support/include/nfs/export.h: Reserve a bit for possible ACL
+	related use.
 	
 2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
 

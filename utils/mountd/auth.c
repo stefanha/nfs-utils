@@ -166,7 +166,6 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 		if (p == epath) p++;
 		*p = '\0';
 	}
-	free(hp);
 
 	switch (error) {
 	case bad_path:
