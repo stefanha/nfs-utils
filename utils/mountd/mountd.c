@@ -18,6 +18,7 @@
 #include <getopt.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/resource.h>
 #include "xmalloc.h"
 #include "misc.h"
 #include "mountd.h"
@@ -30,6 +31,7 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, int *, int v3)
 static struct option longopts[] =
 {
 	{ "foreground", 0, 0, 'F' },
+	{ "descriptors", 0, 0, 'o' },
 	{ "debug", 1, 0, 'd' },
 	{ "help", 0, 0, 'h' },
 	{ "exports-file", 1, 0, 'f' },
@@ -390,13 +392,23 @@ main(int argc, char **argv)
 	char	*export_file = _PATH_EXPORTS;
 	int	foreground = 0;
 	int	port = 0;
+	int	descriptors = 256;
 	int	c;
 	struct sigaction sa;
+	struct rlimit rlim;
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;
-	while ((c = getopt_long(argc, argv, "Fd:f:p:P:hN:V:v", longopts, NULL)) != EOF)
+	while ((c = getopt_long(argc, argv, "o:Fd:f:p:P:hN:V:v", longopts, NULL)) != EOF)
 		switch (c) {
+		case 'o':
+			descriptors = atoi(optarg);
+			if (descriptors <= 0) {
+				fprintf(stderr, "%s: bad descriptors: %s\n",
+					argv [0], optarg);
+				usage(argv [0], 1);
+			}
+			break;
 		case 'F':
 			foreground = 1;
 			break;
@@ -444,6 +456,19 @@ main(int argc, char **argv)
 	if (chdir(NFS_STATEDIR)) {
 		fprintf(stderr, "%s: chdir(%s) failed: %s\n",
 			argv [0], NFS_STATEDIR, strerror(errno));
+		exit(1);
+	}
+
+	if (getrlimit (RLIMIT_NOFILE, &rlim) != 0) {
+		fprintf(stderr, "%s: getrlimit (RLIMIT_NOFILE) failed: %s\n",
+			argv [0], strerror(errno));
+		exit(1);
+	}
+
+	rlim.rlim_cur = descriptors;
+	if (setrlimit (RLIMIT_NOFILE, &rlim) != 0) {
+		fprintf(stderr, "%s: setrlimit (RLIMIT_NOFILE) failed: %s\n",
+			argv [0], strerror(errno));
 		exit(1);
 	}
 
@@ -507,9 +532,9 @@ static void
 usage(const char *prog, int n)
 {
 	fprintf(stderr,
-"Usage: %s [-Fhnv] [-d kind] [-f exports-file] [-V version]\n"
-"	[-N version] [--debug kind] [-p|--port port] [--help] [--version]\n"
-"	[--exports-file=file] [--nfs-version version]\n"
-"	[--no-nfs-version version] [--no-tcp]\n", prog);
+"Usage: %s [-F|--foreground] [-h|--help] [-v|--version] [-d kind|--debug kind]\n"
+"	[-o num|--descriptors num] [-f exports-file|--exports-file=file]\n"
+"	[-p|--port port] [-V version|--nfs-version version]\n"
+"	[-N version|--no-nfs-version version] [-n|--no-tcp]\n", prog);
 	exit(n);
 }

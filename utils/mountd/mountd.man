@@ -55,8 +55,8 @@ a stale entry will remain in
 .BR rmtab .
 .SH OPTIONS
 .TP
-.B \-d " or " \-\-debug
-Turn on debugging.
+.B \-d kind " or " \-\-debug kind
+Turn on debugging for kind.
 .TP
 .B \-F " or " \-\-foreground
 Run in foreground (do not daemonize)
@@ -71,6 +71,10 @@ By default, export information is read from
 .TP
 .B \-h " or " \-\-help
 Display usage message.
+.TP
+.B \-o num " or " \-\-descriptors num
+Set the limit of the number of open file descriptors to num. The
+default is 256.
 .TP
 .B \-N " or " \-\-no-nfs-version
 This option can be used to request that

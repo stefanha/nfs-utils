@@ -1,3 +1,12 @@
+2001-06-05  H.J. Lu <hjl@lucon.org>
+
+	* utils/mountd/mountd.c (longopts): Add "foreground/d".
+	(main): Support --foreground/-d to set the limit of the number
+	of open file descriptors.
+	(usage): Updated.
+
+	* utils/mountd/mountd.man: Updated for --foreground/-d.
+
 2001-06-04  H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec (Release): Set to 6.
