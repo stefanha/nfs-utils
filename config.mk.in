@@ -2,7 +2,7 @@
 # Configuration stuff for nfs-utils
 #
 
-VERSION		= @VERSION@
+VERSION		= nfs-utils @VERSION@
 
 prefix		= $(install_prefix)@prefix@
 exec_prefix	= $(install_prefix)@prefix@

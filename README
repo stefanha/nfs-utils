@@ -1,4 +1,4 @@
-This is the Linux NFS utility package version 0.1.3. It is based on
+This is the Linux NFS utility package version 0.1.4. It is based on
 knfsd 1.4.7.
 
 WARNING: The NFS servers in Linux 2.2 to 2.2.13 are not compatible with
@@ -65,8 +65,8 @@ will get the latest version.
 
 The files are
 
-ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/nfs-utils-0.1.3.tar.gz
-ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/nfs-utils-0.1.2-0.1.3.diff.gz
+ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/nfs-utils-0.1.4.tar.gz
+ftp://ftp.linuxnfs.sourceforge.org/pub/nfs/nfs-utils-0.1.3-0.1.4.diff.gz
 
 To compile, just do
 
@@ -81,7 +81,7 @@ They are tested on RedHat 6.1.
 
 On RedHat 6.1, you can use
 
-# rpm -ta nfs-utils-0.1.3.tar.gz
+# rpm -ta nfs-utils-0.1.4.tar.gz
 
 to build the source and binary RPMs.
 
@@ -95,4 +95,4 @@ Thanks.
 
 H.J.
 hjl@lucon.org
-11/29/99
+12/06/99
