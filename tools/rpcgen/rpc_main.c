@@ -45,6 +45,7 @@ static char sccsid[] = "@(#)rpc_main.c 1.30 89/03/30 (C) 1987 SMI";
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <errno.h>
 #include "rpc_parse.h"
 #include "rpc_util.h"
 #include "rpc_scan.h"
@@ -67,7 +68,6 @@ static char *	extendfile(char *file, char *ext);
 static void	open_output(char *infile, char *outfile);
 static void	add_warning(void);
 static void	clear_args(void);
-static void	find_cpp(void);
 static void	open_input(char *infile, char *define);
 static int	check_nettype(char *name, char **list_to_check);
 static void	c_output(char *infile, char *define, int extend, char *outfile);
@@ -293,26 +293,6 @@ clear_args(void)
   argcount = FIXEDARGS;
 }
 
-/* make sure that a CPP exists */
-static void
-find_cpp(void)
-{
-	struct stat     buf;
-
-	if (stat(CPP, &buf) < 0) {	/* SVR4 or explicit cpp does not exist */
-		if (cppDefined) {
-			fprintf(stderr, "cannot find C preprocessor: %s \n", CPP);
-			crash();
-		} else {	/* try the other one */
-			CPP = SUNOS_CPP;
-			if (stat(CPP, &buf) < 0) {	/* can't find any cpp */
-				fprintf(stderr, "cannot find any C preprocessor (cpp)\n");
-				crash();
-			}
-		}
-	}
-}
-
 /*
  * Open input file with given define for C-preprocessor 
  */
@@ -325,8 +305,7 @@ open_input(char *infile, char *define)
 	(void) pipe(pd);
 	switch (fork()) {
 	case 0:
-		find_cpp();
-		putarg(0, CPP);
+		putarg(0, "cpp");
 		putarg(1, CPPFLAGS);
 		addarg(define);
 		addarg(infile);
@@ -334,7 +313,15 @@ open_input(char *infile, char *define)
 		(void) close(1);
 		(void) dup2(pd[1], 1);
 		(void) close(pd[0]);
-		execv(arglist[0], arglist);
+		if (cppDefined)
+			execv(CPP, arglist);
+		else {
+			execvp("cpp", arglist);
+			if (errno == ENOENT)
+				execvp(SVR4_CPP, arglist);
+			if (errno == ENOENT)
+				execvp(SUNOS_CPP, arglist);
+		}
 		perror("execv");
 		exit(1);
 	case -1:
