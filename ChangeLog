@@ -1,3 +1,9 @@
+2000-04-29  Chip Salzenberg  <chip@valinux.com>
+	    Neil Brown  <neilb@cse.unsw.edu.au>
+
+	* Really re-use RPC ports.
+	  (Fixes earlier patch.  Sorry, Neil.)
+
 2000-04-26  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.1.7.1".
