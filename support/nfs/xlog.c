@@ -142,9 +142,9 @@ xlog(int kind, const char *fmt, ...)
 		return;
 
 	va_start(args, fmt);
-	vsnprintf(buff, sizeof (buff), fmt, args);
+	vsnprintf(buff, sizeof (buff) - 2, fmt, args);
 	va_end(args);
-	buff[sizeof (buff) - 1] = 0;
+	buff[sizeof (buff) - 2] = 0;
 
 	if ((n = strlen(buff)) > 0 && buff[n-1] != '\n') {
 		buff[n++] = '\n'; buff[n++] = '\0';

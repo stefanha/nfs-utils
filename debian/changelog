@@ -1,3 +1,10 @@
+nfs-utils (1:1.0.3-2) unstable; urgency=high
+
+  * Upstream CVS sync:
+    > Fix one-byte buffer overflow in logging code.
+
+ -- Chip Salzenberg <chip@debian.org>  Tue, 10 Jun 2003 11:11:56 -0400
+
 nfs-utils (1:1.0.3-1) unstable; urgency=low
 
   * New upstream version:

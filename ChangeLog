@@ -1,3 +1,8 @@
+2003-06-10  Chip Salzenberg  <chip@pobox.com>
+
+	* support/nfs/xlog.c (xlog): Fix off-by-one buffer overflow bug.
+	* debian/changelog: Version 1.0.3-2.
+
 2003-05-30 Michael Griffith <grif@michaelgriffith.com>
 	NeilBrown <neilb@cse.unsw.edu.au>
 
