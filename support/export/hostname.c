@@ -224,46 +224,45 @@ matchhostname (const char *h1, const char *h2)
 struct hostent *
 get_reliable_hostbyaddr(const char *addr, int len, int type)
 {
-	struct hostent *hp;
+	struct hostent *hp = NULL;
 
+	struct hostent *reverse;
+	struct hostent *forward;
 	char **sp;
-	struct hostent *forward = NULL;
-	char *tmpname;
 
-	hp = gethostbyaddr(addr, len , type);
-	if (!hp)
-		return hp;
+	reverse = gethostbyaddr (addr, len, type);
+	if (!reverse)
+		return NULL;
 
 	/* must make sure the hostent is authorative. */
 
-	hp = hostent_dup (hp);
-	tmpname = xstrdup((hp)->h_name);
-	if (tmpname) {
-		forward = gethostbyname(tmpname);
-		free(tmpname);
-	}
+	reverse = hostent_dup (reverse);
+	forward = gethostbyname (reverse->h_name);
+
 	if (forward) {
 		/* now make sure the "addr" is in the list */
 		for (sp = forward->h_addr_list ; *sp ; sp++) {
-			if (memcmp(*sp, addr, forward->h_length)==0)
+			if (memcmp (*sp, addr, forward->h_length) == 0)
 				break;
 		}
-		
-		if (!*sp) {
-			/* it was a FAKE */
-			xlog(L_WARNING, "Fake hostname %s for %s - forward lookup doesn't match reverse",
-			     forward->h_name, inet_ntoa(*(struct in_addr*)addr));
-			return NULL;
+
+		if (*sp) {
+			/* it's valid */
+			hp = hostent_dup (forward);
 		}
-		free (hp);
-		hp = hostent_dup (forward);
+		else {
+			/* it was a FAKE */
+			xlog (L_WARNING, "Fake hostname %s for %s - forward lookup doesn't match reverse",
+			      reverse->h_name, inet_ntoa(*(struct in_addr*)addr));
+		}
 	}
 	else {
 		/* never heard of it. misconfigured DNS? */
-		xlog(L_WARNING, "Fake hostname %s for %s - forward lookup doesn't exist",
-		     forward->h_name, inet_ntoa(*(struct in_addr*)addr));
-		return NULL;
+		xlog (L_WARNING, "Fake hostname %s for %s - forward lookup doesn't exist",
+		      reverse->h_name, inet_ntoa(*(struct in_addr*)addr));
 	}
+
+	free (reverse);
 	return hp;
 }
 

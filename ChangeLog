@@ -1,3 +1,8 @@
+2003-09-09  Chip Salzenberg  <chip@pobox.com>
+
+	* support/export/hostname.c (get_reliable_hostbyaddr): Fix crash
+	on invalid reverse DNS.
+
 2003-08-22  Chip Salzenberg  <chip@pobox.com>
 
 	* utils/statd/{log.h,log.c}: Rename log() to note() and L_* to
