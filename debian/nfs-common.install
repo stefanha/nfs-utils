@@ -1,1 +1,2 @@
 debian/idmapd.conf etc
+debian/gssapi_mech.conf etc

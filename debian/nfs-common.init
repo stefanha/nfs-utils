@@ -20,7 +20,10 @@ PREFIX=
 NEED_LOCKD=
 NEED_IDMAPD=yes
 IDMAPD_PIDFILE=/var/run/rpc.idmapd.pid
+NEED_GSSD=yes
+GSSD_PIDFILE=/var/run/rpc.gssd.pid
 PIPEFS_MOUNTPOINT=/var/lib/nfs/rpc_pipefs
+RPCGSSDOPTS=
 if [ -f $DEFAULTFILE ]; then
     . $DEFAULTFILE
 fi
@@ -51,6 +54,7 @@ esac
 [ -x $PREFIX/sbin/rpc.statd ] || exit 0
 [ -x $PREFIX/sbin/rpc.lockd ] || [ "$NEED_LOCKD" = no ] || exit 0
 [ -x /usr/sbin/rpc.idmapd ] || [ "$NEED_IDMAPD" = no ] || exit 0
+[ -x /usr/sbin/rpc.gssd ] || [ "$NEED_GSSD" = no ] || exit 0
 
 do_modprobe() {
 	modprobe -q $1 || true
@@ -83,15 +87,25 @@ case "$1" in
 	    start-stop-daemon --start --quiet \
 		--exec $PREFIX/sbin/rpc.lockd  || true
 	fi
-	if [ "$NEED_IDMAPD" = yes ]
+	if [ "$NEED_IDMAPD" = yes ] || [ "$NEED_GSSD" = yes ]
 	then
 	    do_modprobe nfs
 	    if do_mount rpc_pipefs $PIPEFS_MOUNTPOINT;
 	    then
-		printf " idmapd"
-		start-stop-daemon --start --quiet \
-			--make-pidfile --pidfile $IDMAPD_PIDFILE \
-			--exec /usr/sbin/rpc.idmapd
+	    	if [ "$NEED_IDMAPD" = yes ]
+		then
+		    printf " idmapd"
+		    start-stop-daemon --start --quiet \
+			    --make-pidfile --pidfile $IDMAPD_PIDFILE \
+			    --exec /usr/sbin/rpc.idmapd
+		fi
+		if [ "$NEED_GSSD" = yes ]
+		then
+		    printf " gssd"
+		    start-stop-daemon --start --quiet \
+			    --make-pidfile --pidfile $GSSD_PIDFILE \
+			    --exec /usr/sbin/rpc.gssd -- $RPCGSSDOPTS
+		fi
 	    fi
 	fi
 	echo "."
@@ -99,6 +113,13 @@ case "$1" in
 
   stop)
 	printf "Stopping $DESC:"
+	if [ "$NEED_GSSD" = yes ]
+	then
+	    printf " gssd"
+	    start-stop-daemon --stop --oknodo --quiet \
+		    --name rpc.gssd --user 0
+	    rm -f $GSSD_PIDFILE
+	fi
 	if [ "$NEED_IDMAPD" = yes ]
 	then
 	    printf " idmapd"

@@ -10,3 +10,7 @@ NEED_LOCKD=
 # If you are not using NFSv4 and wish to disable the idmapd daemon
 # then uncomment the following line
 # NEED_IDMAPD=no
+
+# If you are not running NFS with RPCSEC_GSS security, and wish to
+# disable the gssd client daemon then uncomment the following line
+# NEED_GSSD=no
