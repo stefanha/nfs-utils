@@ -1,3 +1,7 @@
+2004-12-03 Trond Myklebust <trond.myklebust@fys.uio.no>
+
+	* utils/statd/statd.c(main): ignore SIGPIPE
+	
 2004-11-22 "J. Bruce Fields" <bfields@fieldses.org>
 
 	* tools/rpcdebug/rpcdebug.c: support aliases "nfsdebug" and

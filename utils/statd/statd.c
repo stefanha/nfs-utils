@@ -422,6 +422,11 @@ int main (int argc, char **argv)
 	signal(SIGUSR1, sigusr);
 	/* WARNING: the following works on Linux and SysV, but not BSD! */
 	signal(SIGCHLD, SIG_IGN);
+	/*
+	 * Ignore SIGPIPE to avoid statd dying when peers close their
+	 * TCP connection while we're trying to reply to them.
+	 */
+	signal(SIGPIPE, SIG_IGN);
 
 	/* initialize out_port */
 	statd_get_socket(out_port);
