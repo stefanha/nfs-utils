@@ -1,8 +1,9 @@
 #!/bin/sh
 # nfs   This shell script starts and stops the nfs services in a distribution
 #       independent fashion.
-## description:  starts and stops nfs client services
-# chkconfig: 2345 99 01
+#
+# description:  starts and stops nfs client services
+# chkconfig: 2345 60 20
 #
 # Copyright (c) 2000-2001 Mission Critical Linux, Inc.
 #
