@@ -195,18 +195,14 @@ main(int argc, char **argv)
 		case 'f':
 			fg = 1;
 			break;
-		case 'd':
-			strlcpy(domain, optarg, sizeof(domain));
-			break;
 		case 'p':
 			strlcpy(pipefsdir, optarg, sizeof(pipefsdir));
 			break;
+		case 'd':
 		case 'U':
-			nobodyuser = optarg;
-			break;
 		case 'G':
-			nobodygroup = optarg;
-			break;
+			errx(1, "the -d, -U, and -G options have been removed;"
+				" please use the configuration file instead.");
 		case 'C':
 			serverstart = 0;
 			break;
@@ -294,7 +290,8 @@ main(int argc, char **argv)
 	if (nfsdret != 0 && fd == 0)
 		errx(1, "Neither NFS client nor NFSd found");
 
-	event_dispatch();
+	if (event_dispatch() < 0)
+		errx(1, "event_dispatch: returns errno %d (%s)", errno, strerror(errno));
 	/* NOTREACHED */
 	return 1;
 }
@@ -403,8 +400,8 @@ nfsdcb(int fd, short which, void *data)
 		goto out;
 
 	if ((len = read(ic->ic_fd, buf, sizeof(buf))) == -1) {
-		if (verbose > 0)
-			warn("read(%s)", ic->ic_path);
+		warnx("nfsdcb: read(%s) failed: errno %d (%s)",
+			ic->ic_path, errno, strerror(errno));
 		goto out;
 	}
 
@@ -415,11 +412,16 @@ nfsdcb(int fd, short which, void *data)
 	memset(&im, 0, sizeof(im));
 
 	/* Authentication name -- ignored for now*/
-	if (getfield(&bp, authbuf, sizeof(authbuf)) == -1)
+	if (getfield(&bp, authbuf, sizeof(authbuf)) == -1) {
+		warnx("nfsdcb: bad authentication name in upcall\n");
 		return;
-
-	if (getfield(&bp, typebuf, sizeof(typebuf)) == -1)
+	}
+	if (getfield(&bp, typebuf, sizeof(typebuf)) == -1) {
+		warnx("nfsdcb: bad type in upcall\n");
 		return;
+	}
+	if (verbose > 0)
+		warnx("nfsdcb: authbuf=%s authtype=%s", authbuf, typebuf);
 
 	im.im_type = strcmp(typebuf, "user") == 0 ?
 		IDMAP_TYPE_USER : IDMAP_TYPE_GROUP;
@@ -427,16 +429,22 @@ nfsdcb(int fd, short which, void *data)
 	switch (ic->ic_which) {
 	case IC_NAMEID:
 		im.im_conv = IDMAP_CONV_NAMETOID;
-		if (getfield(&bp, im.im_name, sizeof(im.im_name)) == -1)
+		if (getfield(&bp, im.im_name, sizeof(im.im_name)) == -1) {
+			warnx("nfsdcb: bad name in upcall\n");
 			return;
+		}
 		break;
 	case IC_IDNAME:
 		im.im_conv = IDMAP_CONV_IDTONAME;
-		if (getfield(&bp, buf1, sizeof(buf1)) == -1)
+		if (getfield(&bp, buf1, sizeof(buf1)) == -1) {
+			warnx("nfsdcb: bad id in upcall\n");
 			return;
+		}
 		if ((im.im_id = strtoul(buf1, (char **)NULL, 10)) == ULONG_MAX &&
-		    errno == ERANGE)
+		    errno == ERANGE) {
+			warnx("nfsdcb: id '%s' too big!\n", buf1);
 			return;
+		}
 
 		break;
 	default:
@@ -496,8 +504,9 @@ nfsdcb(int fd, short which, void *data)
 
 	bsiz = sizeof(buf) - bsiz;
 
-	if (atomicio(write, ic->ic_fd, buf, bsiz) != bsiz && verbose > 0)
-		warn("write(%s)", ic->ic_path);
+	if (atomicio(write, ic->ic_fd, buf, bsiz) != bsiz)
+		warnx("nfsdcb: write(%s) failed: errno %d (%s)",
+			ic->ic_path, errno, strerror(errno));
 
 out:
 	event_add(&ic->ic_event, NULL);
@@ -575,7 +584,9 @@ nfsdopenone(struct idmap_client *ic, short which, char *path)
 	snprintf(ic->ic_path, sizeof(ic->ic_path),
 		"%s/nfs4.%s/channel", path, whichstr);
 	if ((ic->ic_fd = open(ic->ic_path, O_RDWR, 0)) == -1) {
-		warn("%s", ic->ic_path);
+		if (verbose > 0)
+			warnx("Opening %s failed: errno %d (%s)",
+				ic->ic_path, errno, strerror(errno));
 		return (-1);
 	}
 
