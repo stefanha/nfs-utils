@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/quota.h>
+#include <sys/vfs.h>
 #include <dirent.h>
 #include <paths.h>
 #include <stdio.h>
@@ -71,7 +72,8 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
    char *pathname, *qfpathname;
    int fd, err, id, type;
    struct stat st;
-
+   struct statfs stf;
+   
    /*
     * First check authentication.
     */
@@ -116,12 +118,11 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
 	  || stat(pathname, &st) == -1)
          break;
 
-#if 0
-      result.getquota_rslt_u.gqr_rquota.rq_bsize = st.st_blksize;
-#else
-      /* All blocks reported are 512 Bytes blocks. */
-      result.getquota_rslt_u.gqr_rquota.rq_bsize = 512;
-#endif
+      if (statfs(pathname, &stf) == -1) {
+	  result.status = Q_EPERM;
+	  return (&result);
+      }
+      result.getquota_rslt_u.gqr_rquota.rq_bsize = stf.f_bsize;
 
       if (hasquota(mnt, type, &qfpathname)) {
          if ((err = quotactl(QCMD(Q_GETQUOTA, type), mnt->mnt_fsname,

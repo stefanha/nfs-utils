@@ -1,3 +1,12 @@
+Thu Feb  3 14:55:48 2000 H.J. Lu <hjl@lucon.org>
+
+	* COPYING: Added. GPL.
+
+Thu Feb 03 14:40:40 2000 Cristian Gafton <gafton@redhat.com>
+
+	* utils/rquotad/rquota_server.c (getquotainfo): Call statfs ()
+	to get the block size.
+
 Tue Jan 25 11:04:17 2000 H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec.in: Update ftp site.
