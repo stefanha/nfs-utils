@@ -545,7 +545,7 @@ fi
 
 
 # The nfs-utils version
-VERSION="1.0.6"
+VERSION="1.0.7-pre1"
 
 
 # Check whether --with-release or --without-release was given.
