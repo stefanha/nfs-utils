@@ -41,7 +41,7 @@ ifndef ARCHFLAGS
 .EXPORT:	ARCHFLAGS
 endif
 
-CC		= gcc
+CC		= @CC@
 AR		= ar
 LD		= ld
 RM		= rm -f

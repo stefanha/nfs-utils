@@ -1,5 +1,9 @@
 1999-12-04  Chip Salzenberg  <chip@valinux.com>
 
+	* config.mk.in: Use $(CC) as set by configure.
+
+1999-12-04  Chip Salzenberg  <chip@valinux.com>
+
 	* rules.mk: Call $(MAKE) with $(MFLAGS).
 
 Mon Nov 29 11:17:35 1999  H.J. Lu <hjl@lucon.org>
