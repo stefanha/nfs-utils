@@ -16,6 +16,9 @@
 	* utils/idmapd/idmapd.c: Reopen nfsd files on sighup.  Allows us
 	to start up client side only (even when nfsd module not loaded),
 	and then sighup later after insmodding nfsd module. 
+	* utils/idmapd/idmapd.c: Make sure we catch all errors on
+	daemonizing by waiting for child to report succesfull startup
+	using a pipe. 
 
 	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>

@@ -128,7 +128,8 @@ static void nfsdreopen(void);
 size_t  strlcat(char *, const char *, size_t);
 size_t  strlcpy(char *, const char *, size_t);
 ssize_t atomicio(ssize_t (*)(), int, void *, size_t);
-int     daemon(int, int);
+void    mydaemon(int, int);
+void    release_parent();
 
 static int verbose = 0;
 static char domain[512];
@@ -252,7 +253,7 @@ main(int argc, char **argv)
 		warnx("Using domain \"%s\"", domain);
 
 	if (!fg)
-		daemon(0, 0);
+		mydaemon(0, 0);
 
 	event_init();
 
@@ -293,6 +294,8 @@ main(int argc, char **argv)
 
 	if (nfsdret != 0 && fd == 0)
 		errx(1, "Neither NFS client nor NFSd found");
+
+	release_parent();
 
 	if (event_dispatch() < 0)
 		errx(1, "event_dispatch: returns errno %d (%s)", errno, strerror(errno));
@@ -819,4 +822,70 @@ getfield(char **bpp, char *fld, size_t fldsz)
 	*fld = '\0';
 
 	return (0);
+}
+/*
+ * mydaemon creates a pipe between the partent and child
+ * process. The parent process will wait until the
+ * child dies or writes a '1' on the pipe signaling
+ * that it started successfully.
+ */
+int pipefds[2] = { -1, -1};
+
+void
+mydaemon(int nochdir, int noclose)
+{
+	int pid, status, tempfd, fdmax, filedes;
+
+	if (pipe(pipefds) < 0)
+		err(1, "mydaemon: pipe() failed: errno %d (%s)\n", errno, strerror(errno));
+
+	if ((pid = fork ()) < 0)
+		err(1, "mydaemon: fork() failed: errno %d (%s)\n", errno, strerror(errno));
+
+	if (pid != 0) {
+		/*
+		 * Parent. Wait for status from child.
+		 */
+		close(pipefds[1]);
+		if (read(pipefds[0], &status, 1) != 1)
+			exit(1);
+		exit (0);
+	}
+	/* Child.	*/
+	close(pipefds[0]);
+	setsid ();
+	if (nochdir == 0) {
+		if (chdir ("/") == -1)
+			err(1, "mydaemon: chdir() failed: errno %d (%s)\n", errno, strerror(errno));
+	}
+
+	while (pipefds[1] <= 2) {
+		pipefds[1] = dup(pipefds[1]);
+		if (pipefds[1] < 0)
+			err(1, "mydaemon: dup() failed: errno %d (%s)\n", errno, strerror(errno));
+	}
+
+	if (noclose == 0) {
+		tempfd = open("/dev/null", O_RDWR);
+		close(0); dup2(tempfd, 0);
+		close(1); dup2(tempfd, 1);
+		close(2); dup2(tempfd, 2);
+		fdmax = sysconf (_SC_OPEN_MAX);
+		for (filedes = 3; filedes < fdmax; filedes++)
+			if (filedes != pipefds[1])
+				close (filedes);
+	}
+
+	return;
+}
+void
+release_parent()
+{
+	int status;
+
+	if (pipefds[1] > 0) {
+		write(pipefds[1], &status, 1);
+		close(pipefds[1]);
+		pipefds[1] = -1;
+	}
 }
