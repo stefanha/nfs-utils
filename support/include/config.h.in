@@ -9,14 +9,6 @@
  */
 #undef  HAVE_INNETGR
 
-/* Define this if you have svctcp_socket
- */
-#undef  HAVE_SVCTCP_SOCKET
-
-/* Define this if you have svcudp_socket
- */
-#undef  HAVE_SVCUDP_SOCKET
-
 /* Define this if you want NFSv3 support compiled in
  */
 #undef  NFS3_SUPPORTED

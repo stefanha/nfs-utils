@@ -1,5 +1,15 @@
 2002-09-12  H.J. Lu <hjl@lucon.org>
 
+	* configure.in: Remove checking svctcp_socket and svcudp_socket.
+	* configure: Regenerated.
+
+	* support/include/config.h.in (HAVE_SVCTCP_SOCKET): Removed.
+	(HAVE_SVCUDP_SOCKET): Removed.
+
+	* support/include/nfslib.h: Undo the last change.
+
+2002-09-12  H.J. Lu <hjl@lucon.org>
+
 	* support/include/nfslib.h (svctcp_socket): Protect it with
 	HAVE_SVCTCP_SOCKET.
 	(svcudp_socket): Protect it with HAVE_SVCUDP_SOCKET.

@@ -98,8 +98,6 @@ dnl *************************************************************
 dnl Check for functions
 dnl *************************************************************
 AC_HAVE_FUNCS(innetgr)
-AC_HAVE_FUNCS(svctcp_socket)
-AC_HAVE_FUNCS(svcudp_socket)
 
 dnl *************************************************************
 dnl Export some path names to config.h
