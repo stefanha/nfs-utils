@@ -1,4 +1,4 @@
-This is the Linux NFS utility package version 0.1.8.2.
+This is the Linux NFS utility package version 0.1.9.
 
 There is a Linux NFS mailing list at
 
@@ -14,8 +14,8 @@ will get the latest version.
 
 The files are
 
-ftp://nfs.sourceforge.net/pub/nfs/nfs-utils-0.1.8.2.tar.gz
-ftp://nfs.sourceforge.net/pub/nfs/nfs-utils-0.1.8-0.1.8.2.diff.gz
+ftp://nfs.sourceforge.net/pub/nfs/nfs-utils-0.1.9.tar.gz
+ftp://nfs.sourceforge.net/pub/nfs/nfs-utils-0.1.8.2-0.1.9.diff.gz
 
 To compile, just do
 
@@ -30,7 +30,7 @@ They are tested on RedHat 6.2.
 
 On RedHat 6.2, you can use
 
-# rpm -ta nfs-utils-0.1.8.2.tar.gz
+# rpm -ta nfs-utils-0.1.9.tar.gz
 
 to build the source and binary RPMs.
 
@@ -45,4 +45,4 @@ Thanks.
 
 H.J.
 hjl@lucon.org
-06/27/2000
+07/03/2000

@@ -1,5 +1,13 @@
 2000-07-03  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "0.1.9".
+	* configure: Regenerated.
+	* nfs-utils.spec: Updated.
+
+	* README: Updated.
+
+2000-07-03  H.J. Lu <hjl@lucon.org>
+
 	* etc/redhat/nfs.init: Run /usr/sbin/exportfs last during
 	stop to ensure all clients can still access the server
 	before it is shutdown.
