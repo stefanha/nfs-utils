@@ -69,5 +69,5 @@ manual pages.
 .BR quota (8),
 .BR rpc (3N),
 .BR nfs (5),
-.BR services (5)
-.BR inetd (8),
+.BR services (5),
+.BR inetd (8)
