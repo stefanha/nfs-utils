@@ -399,7 +399,7 @@ main(int argc, char **argv)
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;
-	while ((c = getopt_long(argc, argv, "o:Fd:f:p:P:hN:V:v", longopts, NULL)) != EOF)
+	while ((c = getopt_long(argc, argv, "on:Fd:f:p:P:hN:V:v", longopts, NULL)) != EOF)
 		switch (c) {
 		case 'o':
 			descriptors = atoi(optarg);

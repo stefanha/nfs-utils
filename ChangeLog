@@ -1,3 +1,16 @@
+2003-02-19 NeilBrown <neilb@cse.unsw.edu.au>	
+	Ben Leslie <benno@sesgroup.net>
+
+	* support/nfs/rpcmisc.c(rpc_init):  change test for ignoring
+	"defport" from (__rpcfdtype == 0) to (__rpcpmstart==0).  The
+	former would incorectly ignore defport if the application 
+	explicitly set __rpcfdtype.  The later is sufficient to avoid the
+	special handling in the case where stdin is an internet socket.
+
+	* utils/mountd/mountd.c(main): Add 'n' to option list in
+	getopt_long as this is a short form of --no-tcp which want being
+	checked.
+	
 2003-02-12  Chip Salzenberg  <chip@pobox.com>
 
 	* debian/changelog: Version 1.0.2-2.
