@@ -2,7 +2,7 @@
 .\" nfsstat(8)
 .\" 
 .\" Copyright (C) 1996 Olaf Kirch <okir@monad.swb.de>
-.TH nfsstat 8 "8 May 1996"
+.TH nfsstat 8 "05 Oct 2001"
 .SH NAME
 nfsstat \- print NFS statistics
 .SH SYNOPSIS
@@ -10,9 +10,7 @@ nfsstat \- print NFS statistics
 .SH DESCRIPTION
 The
 .B nfsstat
-command retrieves and pretty-prints NFS kernel statistics. Currently, only
-server-side statistics are supported, because the NFS client does not yet
-collect any data.
+displays statistics kept about NFS client and server activity.
 .SH OPTIONS
 .TP
 .B -s
@@ -28,10 +26,6 @@ information.
 .TP
 .B -r
 Print only RPC statistics.
-.TP
-.B -z
-Zero the kernel statistics counters.
-This option is not currently supported.
 .TP
 .BI -o " facility
 Display statistics for the specified facility, which must be one of:
