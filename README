@@ -1,4 +1,4 @@
-This is the Linux NFS utility package version 0.1.1. It is based on
+This is the Linux NFS utility package version 0.1.2. It is based on
 knfsd 1.4.7.
 
 WARNING: The NFS servers in Linux 2.2 to 2.2.12 are not compatible with
@@ -9,7 +9,7 @@ kernel from the Linux NFS CVS server:
 1. Set the environment variable, CVS_RSH, to ssh.
 2. Login to the Linux NFS CVS server:
 
-# cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs login
+# cvs -z 3 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs login
 
 without password if it is your first time.
 
@@ -17,11 +17,11 @@ without password if it is your first time.
 
 a. From the NFS V2 branch:
 
-# cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co -r linux-2-2-nfsv2 linux-2.2
+# cvs -z 3 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co -r linux-2-2-nfsv2 linux-2.2
 
 b. From the main trunk:
 
-# cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co linux-2.2
+# cvs -z 3 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co linux-2.2
 
 4. If you don't want to use the current NFS kernel, you can find out
 for which kernels the NFS patch is available:
@@ -31,7 +31,7 @@ for which kernels the NFS patch is available:
 
 Then generate the kernel patch:
 
-# cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs rdiff -ko -u -r linux-2-2-xx -r linux-2-2-xx-nfsv2-xxxxx linux-2.2
+# cvs -z 3 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs rdiff -ko -u -r linux-2-2-xx -r linux-2-2-xx-nfsv2-xxxxx linux-2.2
 
 If there is no NFS patch for the kernel you are interested in, you have
 to make a patch closest to your kernel version and apply it by hand.
@@ -60,14 +60,14 @@ browser.
 
 The nfs-utils package is avaible from the CVS server:
 
-# cvs -z 9 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co nfs-utils
+# cvs -z 3 -d:pserver:anonymous@cvs.linuxnfs.sourceforge.org:/cvsroot/nfs co nfs-utils
 
 will get the latest version.
 
 The files are
 
-ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.1.tar.gz
-ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1-0.1.1.diff.gz
+ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.2.tar.gz
+ftp://ftp.valinux.com/pub/support/hjl/nfs/nfs-utils-0.1.1-0.1.2.diff.gz
 
 To compile, just do
 
@@ -82,7 +82,7 @@ They are tested on RedHat 6.1.
 
 On RedHat 6.1, you can use
 
-# rpm -ta nfs-utils-0.1.1.tar.gz
+# rpm -ta nfs-utils-0.1.2.tar.gz
 
 to build the source and binary RPMs.
 
@@ -96,4 +96,4 @@ Thanks.
 
 H.J.
 hjl@lucon.org
-10/21/99
+10/25/99

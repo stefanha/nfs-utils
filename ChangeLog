@@ -1,3 +1,19 @@
+Mon Oct 25 18:12:45 1999  H.J. Lu <hjl@lucon.org>
+
+	* nfs-utils.spec (Version): Set to 0.1.2.
+
+	* configure.in (VERSION): Set to "nfs-utils 0.1.2".
+	* configure: Regenerated.
+
+	* README: Updated.
+
+Mon Oct 25 18:11:21 1999  H.J. Lu <hjl@lucon.org>
+
+	* utils/mountd/auth.c (auth_error): Add "no_forward_dns".
+	(auth_authenticate_internal): Check for NULL return on forward
+	DNS lookup.
+	(auth_authenticate): Handle "no_forward_dns".
+
 Thu Oct 21 16:22:06 1999  H.J. Lu <hjl@lucon.org>
 
 	* Version 0.1.1 released.
