@@ -73,11 +73,15 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport)
 				transp = last_transp;
 				goto udp_transport;
 			}
-			if ((sock = makesock(defport, IPPROTO_UDP)) < 0) {
+			if (defport == 0)
+				sock = RPC_ANYSOCK;
+			else if ((sock = makesock(defport, IPPROTO_UDP)) < 0) {
 				xlog(L_FATAL, "%s: cannot make a UDP socket\n",
 						name);
 			}
 		}
+		if (sock == RPC_ANYSOCK)
+			sock = svcudp_socket (prog, 1);
 		transp = svcudp_create(sock);
 		if (transp == NULL) {
 			xlog(L_FATAL, "cannot create udp service.");
@@ -99,11 +103,15 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport)
 				transp = last_transp;
 				goto tcp_transport;
 			}
-			if ((sock = makesock(defport, IPPROTO_TCP)) < 0) {
+			if (defport == 0)
+				sock = RPC_ANYSOCK;
+			else if ((sock = makesock(defport, IPPROTO_TCP)) < 0) {
 				xlog(L_FATAL, "%s: cannot make a TCP socket\n",
 						name);
 			}
 		}
+		if (sock == RPC_ANYSOCK)
+			sock = svctcp_socket (prog, 1);
 		transp = svctcp_create(sock, 0, 0);
 		if (transp == NULL) {
 			xlog(L_FATAL, "cannot create tcp service.");

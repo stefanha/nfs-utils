@@ -38,6 +38,7 @@
 #include <signal.h>
 #include <getopt.h>
 #include <rpcmisc.h>
+#include <nfslib.h>
 
 #ifdef __STDC__
 #define SIG_PF void(*)(int)
@@ -222,11 +223,20 @@ usage(const char *prog, int n)
   exit(n);
 }
 
+static void
+killer (int sig)
+{
+   (void) pmap_unset(RQUOTAPROG, RQUOTAVERS);
+   (void) pmap_unset(RQUOTAPROG, EXT_RQUOTAVERS);
+   syslog(LOG_ERR, "caught signal %d, un-registering and exiting.", sig);
+}
+
 int main(int argc, char **argv)
 {
    register SVCXPRT *transp;
    char c;
    int port = 0;
+   struct sigaction sa;
 
    (void) pmap_unset(RQUOTAPROG, RQUOTAVERS);
    (void) pmap_unset(RQUOTAPROG, EXT_RQUOTAVERS);
@@ -263,12 +273,20 @@ int main(int argc, char **argv)
    }
 
    /* WARNING: the following works on Linux and SysV, but not BSD! */
-   signal(SIGCHLD, SIG_IGN);
+   sa.sa_handler = SIG_IGN;
+   sa.sa_flags = 0;
+   sigemptyset(&sa.sa_mask);
+   sigaction(SIGCHLD, &sa, NULL);
+
+   sa.sa_handler = killer;
+   sigaction(SIGHUP, &sa, NULL);
+   sigaction(SIGINT, &sa, NULL);
+   sigaction(SIGTERM, &sa, NULL);
 
    if (port)
      transp = svcudp_create(makesock(port, IPPROTO_UDP));
    else
-     transp = svcudp_create(RPC_ANYSOCK);
+     transp = svcudp_create(svcudp_socket (RQUOTAPROG, 1));
    if (transp == NULL) {
       syslog(LOG_ERR, "cannot create udp service.");
       exit(1);

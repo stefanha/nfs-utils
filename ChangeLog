@@ -1,3 +1,28 @@
+2002-09-12  H.J. Lu <hjl@lucon.org>
+
+	* configure.in: Check svctcp_socket and svcudp_socket.
+	* configure: Regenerated.
+
+	* support/include/config.h.in (HAVE_SVCTCP_SOCKET): New.
+	(HAVE_SVCUDP_SOCKET): New.
+
+	* support/include/nfslib.h (svctcp_socket): New.
+	(svcudp_socket): New.
+
+	* support/nfs/Makefile (OBJS): Add svc_socket.o.
+
+	* support/nfs/svc_socket.c: New.
+
+	* support/nfs/rpcmisc.c (rpc_init): Call svctcp_socket and
+	svcudp_socket if port is unspecified.
+
+	* utils/nfsd/nfsd.c (main): Call getservbyname for port.
+
+	* utils/rquotad/rquota_svc.c: Include <nfslib.h>.
+	(killer): New. Signal handler to unregister.
+	(main): Use killer. Call svcudp_socket to get the default
+	socket.
+
 2002-09-02 Juan Gomez <juang@us.ibm.com>
 	NeilBrown <neilb@cse.unsw.edu.au>
 

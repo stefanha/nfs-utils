@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <syslog.h>
+#include <netdb.h>
 #include "nfslib.h"
 
 static void	usage(const char *);
@@ -25,10 +26,13 @@ int
 main(int argc, char **argv)
 {
 	int	count = 1, c, error, port, fd;
+	struct servent *ent;
 
-	port = 2049;
-
-	/* FIXME: Check for nfs in /etc/services */
+	ent = getservbyname ("nfs", "udp");
+	if (ent != NULL)
+		port = ntohs (ent->s_port);
+	else
+		port = 2049;
 
 	while ((c = getopt(argc, argv, "hp:P:")) != EOF) {
 		switch(c) {
