@@ -3,7 +3,7 @@ nfs-utils (1:0.3-2) unstable; urgency=low
   * Upstream:
     > Don't modify socket buffer sizes.
 
- -- Chip Salzenberg <chipdebian.org>  Mon, 12 Feb 2001 20:46:22 -0800
+ -- Chip Salzenberg <chip@debian.org>  Mon, 12 Feb 2001 20:46:22 -0800
 
 nfs-utils (1:0.3-1) unstable; urgency=low
 
