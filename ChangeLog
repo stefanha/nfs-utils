@@ -9,6 +9,22 @@
 	This is a 'pre-release' for 1.1.0  Hopefully 1.1.0 will be the
 	baseline for 2.6 and 2.8.  I.e. it should continue to work right
 	through the 2.8 (or 3.0) kernel series.  Previous releases wont.
+
+2003-07-04 NeilBrown <neilb@cse.unsw.edu.au>	
+	Steve Dickson <SteveD@redhat.com>
+
+	statd cleanup:
+	* utils/statd/statd.c: create a pidfile with pid of statd, and
+	truncate it when statd exists.
+	* utils/statd/statd.c: drop privs by setuid to owner of SM_DIR,
+	and warn if this is root.
+	* utils/statd/statd.c: when statd forks, connect child to parent
+	with a pipe, and send a byte down the pipe once the child is
+	working properly.
+	* Makefile: create and chown sm, sm.bak, state when "make install"
+	* configure.in: add --with-statduser= option which defaults to
+	"rpcuser" or "nobody"
+	* config.mk.in: pass "statduser" through to Makefile
 	
 2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
 

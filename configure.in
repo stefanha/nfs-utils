@@ -20,6 +20,15 @@ AC_ARG_WITH(statedir,
 	statedir=$withval,
 	statedir=/var/lib/nfs)
 	AC_SUBST(statedir)
+AC_ARG_WITH(statduser,
+	[  --with-statduser=rpcuser user for statd to run under [rpcuser or nobody]],
+	statduser=$withval,
+	if grep -s '^rpcuser:' /etc/passwd > /dev/null; then
+		statduser=rpcuser
+	else
+		statduser=nobody
+	fi)
+	AC_SUBST(statduser)
 AC_ARG_ENABLE(nfsv3,
 	[  --enable-nfsv3          enable support for NFSv3],
 	enable_nfsv3=$enableval,

@@ -20,3 +20,7 @@ install:: installman
 	touch $(STATEDIR)/xtab; chmod 644 $(STATEDIR)/xtab
 	touch $(STATEDIR)/etab; chmod 644 $(STATEDIR)/etab
 	touch $(STATEDIR)/rmtab; chmod 644 $(STATEDIR)/rmtab
+	mkdir -p $(STATEDIR)/sm $(STATEDIR)/sm.bak
+	touch $(STATEDIR)/state
+	chmod go-rwx $(STATEDIR)/sm $(STATEDIR)/sm.bak $(STATEDIR)/state
+	chown $(STATDUSER) $(STATEDIR)/sm $(STATEDIR)/sm.bak $(STATEDIR)/state

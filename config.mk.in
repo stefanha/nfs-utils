@@ -10,6 +10,7 @@ BINDIR		= @bindir@
 SBINDIR		= @sbindir@
 MANDIR		= @mandir@
 STATEDIR	= $(install_prefix)@statedir@
+STATDUSER	= @statduser@
 
 ##################################################################
 # This is the prefix that will be used for nfsd and mountd. Leave this

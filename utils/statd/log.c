@@ -32,7 +32,7 @@ static int	opt_debug = 0;	/* Will be command-line option, eventually */
 void log_init()
 {
 	if (!(run_mode & MODE_LOG_STDERR)) 
-		openlog(name_p, LOG_PID, LOG_DAEMON);
+		openlog(name_p, LOG_PID | LOG_NDELAY, LOG_DAEMON);
 
 	mypid = getpid();
 

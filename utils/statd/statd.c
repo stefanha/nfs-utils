@@ -12,11 +12,13 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <string.h>
 #include <getopt.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_clnt.h>
 #include <rpcmisc.h>
+#include <grp.h>
 #include "statd.h"
 #include "version.h"
 
@@ -147,6 +149,57 @@ usage()
 	fprintf(stderr,"      -N                   Run in notify only mode.\n");
 }
 
+static const char *pidfile = "/var/run/rpc.statd.pid";
+
+int pidfd = -1;
+static void create_pidfile(void)
+{
+	FILE *fp;
+
+	unlink(pidfile);
+	fp = fopen(pidfile, "w");
+	if (!fp)
+		die("Opening %s failed: %s\n",
+		    pidfile, strerror(errno));
+	fprintf(fp, "%d\n", getpid());
+	pidfd = dup(fileno(fp));
+	if (fclose(fp) < 0)
+		log(L_WARNING, "Flushing pid file failed.\n");
+}
+
+static void truncate_pidfile(void)
+{
+	if (pidfd >= 0)
+		ftruncate(pidfd, 0);
+}
+
+static void drop_privs(void)
+{
+	struct stat st;
+
+	if (stat(SM_DIR, &st) == -1 &&
+	    stat(DIR_BASE, &st) == -1)
+		st.st_uid = 0;
+
+	if (st.st_uid == 0) {
+		log(L_WARNING, "statd running as root. chown %s to choose different user\n",
+		    SM_DIR);
+		return;
+	}
+	/* better chown the pid file before dropping, as if it
+	 * if over nfs we might loose access
+	 */
+	if (pidfd >= 0)
+		fchown(pidfd, st.st_uid, st.st_gid);
+
+	setgroups(0, NULL);
+	if (setgid(st.st_gid) == -1
+	    || setuid(st.st_uid) == -1) {
+		log(L_ERROR, "Fail to drop privileges");
+		exit(1);
+	}
+}
+
 /* 
  * Entry routine/main loop.
  */
@@ -156,6 +209,9 @@ int main (int argc, char **argv)
 	int pid;
 	int arg;
 	int port = 0, out_port = 0;
+
+	int pipefds[2] = { -1, -1};
+	char status;
 
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
@@ -264,10 +320,6 @@ int main (int argc, char **argv)
 						   daemon mode. */
 	}
 
-	log_init (name_p,version_p);
-
-	log_modes();
-
 #ifdef SIMULATIONS
 	if (argc > 1)
 		/* LH - I _really_ need to update simulator... */
@@ -277,28 +329,54 @@ int main (int argc, char **argv)
 	if (!(run_mode & MODE_NODAEMON)) {
 		int filedes, fdmax, tempfd;
 
+		if (pipe(pipefds)<0) {
+			perror("statd: unable to create pipe");
+			exit(1);
+		}
 		if ((pid = fork ()) < 0) {
-			perror ("Could not fork");
+			perror ("statd: Could not fork");
 			exit (1);
 		} else if (pid != 0) {
-			/* Parent. */
+			/* Parent.
+			 * Wait for status from child.
+			 */
+			close(pipefds[1]);
+			if (read(pipefds[0], &status, 1) != 1)
+				exit(1);
 			exit (0);
 		}
 		/* Child.	*/
+		close(pipefds[0]);
 		setsid ();
-		chdir (DIR_BASE);
+		if (chdir (DIR_BASE) == -1) {
+			perror("statd: Could not chdir");
+			exit(1);
+		}
 
+		while (pipefds[1] <= 2) {
+			pipefds[1] = dup(pipefds[1]);
+			if (pipefds[1]<0) {
+				perror("statd: dup");
+				exit(1);
+			}
+		}
 		tempfd = open("/dev/null", O_RDWR);
 		close(0); dup2(tempfd, 0);
 		close(1); dup2(tempfd, 1);
 		close(2); dup2(tempfd, 2);
 		fdmax = sysconf (_SC_OPEN_MAX);
-		for (filedes = 3; filedes < fdmax; filedes++) {
-			close (filedes);
-		}
+		for (filedes = 3; filedes < fdmax; filedes++) 
+			if (filedes != pipefds[1])
+				close (filedes);
+
 	}
 
 	/* Child. */
+
+	log_init (name_p,version_p);
+
+	log_modes();
+
 	signal (SIGHUP, killer);
 	signal (SIGINT, killer);
 	signal (SIGTERM, killer);
@@ -307,6 +385,10 @@ int main (int argc, char **argv)
 
 	/* initialize out_port */
 	statd_get_socket(out_port);
+
+	create_pidfile();
+	atexit(truncate_pidfile);
+	drop_privs();
 
 	for (;;) {
 		if (!(run_mode & MODE_NOTIFY_ONLY)) {
@@ -319,6 +401,15 @@ int main (int argc, char **argv)
 		}
 		change_state ();
 		shuffle_dirs ();	/* Move directory names around */
+
+		/* If we got this far, we have successfully started, so notify parent */
+		if (pipefds[1] > 0) {
+			status = 0;
+			write(pipefds[1], &status, 1);
+			close(pipefds[1]);
+			pipefds[1] = -1;
+		}
+
 		notify_hosts ();	/* Send out notify requests */
 		++restart;
 
