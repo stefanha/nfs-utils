@@ -25,6 +25,7 @@ enum auth_error
   not_exported,
   illegal_port,
   faked_hostent,
+  no_forward_dns,
   success
 };
 
@@ -81,24 +82,31 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 				   AF_INET);
 	else {
 		/* must make sure the hostent is authorative. */
-		char *name = strdup((*hpp)->h_name);
 		char **sp;
-		*hpp = gethostbyname(name);
-		/* now make sure the "addr" is in the list */
-		for (sp = (*hpp)->h_addr_list ; *sp ; sp++) {
-			if (memcmp(*sp, &addr, (*hpp)->h_length)==0)
-				break;
-		}
+		struct hostent *forward;
+
+		forward = gethostbyname((*hpp)->h_name);
+		if (forward) {
+			/* now make sure the "addr" is in the list */
+			for (sp = forward->h_addr_list ; *sp ; sp++) {
+				if (memcmp(*sp, &addr, forward->h_length)==0)
+					break;
+			}
 		
-		if (!*sp) {
-			free(name);
-			/* it was a FAKE */
-			*error = faked_hostent;
-			*hpp = NULL;
+			if (!*sp) {
+				/* it was a FAKE */
+				*error = faked_hostent;
+				*hpp = hostent_dup (*hpp);
+				return NULL;
+			}
+			*hpp = hostent_dup (forward);
+		}
+		else {
+			/* never heard of it. misconfigured DNS? */
+			*error = no_forward_dns;
+			*hpp = hostent_dup (*hpp);
 			return NULL;
 		}
-		*hpp = hostent_dup (*hpp);
-		free(name);
 	}
 
 	if (!(exp = export_find(*hpp, path))) {
@@ -181,8 +189,13 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 		break;
 
 	case faked_hostent:
-		xlog(L_WARNING, "refused %s request from %s for %s (%s): faked hostent",
-		     what, inet_ntoa(addr), path, epath);
+		xlog(L_WARNING, "refused %s request from %s (%s) for %s (%s): DNS forward lookup does't match with reverse",
+		     what, inet_ntoa(addr), hp->h_name, path, epath);
+		break;
+
+	case no_forward_dns:
+		xlog(L_WARNING, "refused %s request from %s (%s) for %s (%s): no DNS forward lookup",
+		     what, inet_ntoa(addr), hp->h_name, path, epath);
 		break;
 
 	case success:
