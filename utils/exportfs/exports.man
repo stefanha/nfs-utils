@@ -1,5 +1,4 @@
-.TH EXPORTS 5 "28 October 1999"
-.UC 5
+.TH EXPORTS 5 "4 March 2005" "Linux" "Linux File Formats Manual"
 .SH NAME
 exports \- NFS file systems being exported (for Kernel based NFS)
 .SH SYNOPSIS
@@ -171,7 +170,7 @@ The option can be explicitly disabled with
 .TP
 .IR no_subtree_check
 This option disables subtree checking, which has mild security
-implications, but can improve reliability is some circumstances.
+implications, but can improve reliability in some circumstances.
 
 If a subdirectory of a filesystem is exported, but the whole
 filesystem isn't then whenever a NFS request arrives, the server must
@@ -190,7 +189,7 @@ subtree checking is also used to make sure that files inside
 directories to which only root has access can only be accessed if the
 filesystem is exported with
 .I no_root_squash
-(see below), even the file itself allows more general access.
+(see below), even if the file itself allows more general access.
 
 As a general guide, a home directory filesystem, which is normally
 exported at the root and may see lots of file renames, should be
@@ -487,6 +486,12 @@ don't use a reserved port for NFS.
 '''entry.
 .SH FILES
 /etc/exports
+.SH SEE ALSO
+.BR exportfs (8),
+.BR netgroup (5),
+.BR mountd (8),
+.BR nfsd (8),
+.BR showmount (8).
 '''.SH DIAGNOSTICS
 '''An error parsing the file is reported using syslogd(8) as level NOTICE from
 '''a DAEMON whenever nfsd(8) or mountd(8) is started up.  Any unknown
