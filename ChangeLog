@@ -1,3 +1,7 @@
+2001-02-12  Chip Salzenberg  <chip@valinux.com>
+
+	* debian/changelog: Version 0.3-2.
+
 2001-02-02  H.J. Lu <hjl@lucon.org>
 
 	* support/include/rpcmisc.h (rpc_init): Remove bufsize.
