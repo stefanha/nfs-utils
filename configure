@@ -533,7 +533,7 @@ fi
 
 
 # The nfs-utils version
-VERSION="0.3"
+VERSION="0.3.1"
 
 
 # Check whether --with-statedir or --without-statedir was given.

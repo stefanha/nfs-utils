@@ -1,5 +1,13 @@
 2001-02-14  H.J. Lu <hjl@lucon.org>
 
+	* configure.in (VERSION): Set to "0.3.1".
+	* configure: Regenerated.
+	* nfs-utils.spec: Likewise.
+
+	* README: Updated for 0.3.1.
+
+2001-02-14  H.J. Lu <hjl@lucon.org>
+
 	* support/nfs/rpcmisc.c: Include <time.h>.
 
 2001-02-14  Chip Salzenberg  <chip@valinux.com>
