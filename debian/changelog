@@ -1,3 +1,10 @@
+nfs-utils (1:0.3.3-2) unstable; urgency=high
+
+  * The "Test It Before Release, Stupid" release.
+  * Repair total failure of rpc.mountd.  (closes: #115095)
+
+ -- Chip Salzenberg <chip@valinux.com>  Thu, 11 Oct 2001 13:03:45 -0700
+
 nfs-utils (1:0.3.3-1) unstable; urgency=medium
 
   * The "Life Goes On" release.

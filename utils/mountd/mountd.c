@@ -484,6 +484,13 @@ main(int argc, char **argv)
 	/* WARNING: the following works on Linux and SysV, but not BSD! */
 	sigaction(SIGCHLD, &sa, NULL);
 
+	/* Daemons should close all extra filehandles ... *before* RPC init. */
+	if (!foreground) {
+		int fd = sysconf (_SC_OPEN_MAX);
+		while (--fd > 2)
+			(void) close(fd);
+	}
+
 	if (nfs_version & 0x1)
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS,
 			 mount_dispatch, port);
@@ -512,17 +519,11 @@ main(int argc, char **argv)
 		/* Now we remove ourselves from the foreground.
 		   Redirect stdin/stdout/stderr first. */
 		{
-			int fd, fdmax;
-
-			fd = open("/dev/null", O_RDWR);
+			int fd = open("/dev/null", O_RDWR);
 			(void) dup2(fd, 0);
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-
-			fdmax = sysconf (_SC_OPEN_MAX);
-			for (fd = 3; fd < fdmax; fd++) {
-				close (fd);
-			}
+			if (fd > 2) (void) close(fd);
 		}
 		setsid();
 		xlog_background();
