@@ -1,3 +1,25 @@
+2001-03-21  H.J. Lu <hjl@lucon.org>
+
+	* nfs-utils.spec: Regenerated.
+	(Release): Set to 3.
+
+2001-03-21  Ion Badulescu  <ionut@cs.columbia.edu>
+
+	* utils/statd/statd.c (main): make sure file descriptors 0-2
+	are open to /dev/null.
+
+2001-03-21  H.J. Lu <hjl@lucon.org>
+
+	* support/nfs/rpcmisc.c: Restore the change made on 2001-03-10.
+	* support/nfs/rpcmisc.c: Likewise.
+	* utils/rquotad/rquota_svc.c: Likewise.
+	* utils/rquotad/rquotad.man: Likewise.
+	* utils/statd/Makefile: Likewise.
+	* utils/statd/rmtcall.c: Likewise.
+	* utils/statd/simulate.c: Likewise.
+	* utils/statd/statd.c: Likewise.
+	* utils/statd/statd.man: Likewise.
+
 2001-03-11  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (RELEASE): New. Default to 1, set by

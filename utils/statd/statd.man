@@ -4,11 +4,11 @@
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
 .\" Modified by Jeffrey A. Uphoff, 1999.
 .\" Modified by Lon Hohberger, 2000.
-.TH rpc.statd 8 "05 Oct 2000"
+.TH rpc.statd 8 "08 Mar 2001"
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
-.B "/usr/sbin/rpc.statd [-F] [-d] [-?] [-V]
+.B "/sbin/rpc.statd [-F] [-d] [-?] [-o " port "] [-p " port "] [-V]"
 .SH DESCRIPTION
 The
 .B rpc.statd
@@ -51,6 +51,32 @@ instead. This option is mainly for debugging purposes, and may only
 be used in conjunction with the
 .B -F
 parameter.
+.TP
+.BI "\-o," "" " \-\-outgoing\-port "  port
+specify a port for
+.B rpc.statd
+to send outgoing status requests from.  By default,
+.BR rpc.statd
+will ask
+.BR portmap (8)
+to assign it a port number.  As of this writing, there is not
+a standard port number that
+.BR portmap
+always or usually assigns.  Specifying
+a port may be useful when implementing a firewall.
+.TP
+.BI "\-p," "" " \-\-port " port
+specify a port for
+.B rpc.statd
+to listen on.  By default,
+.BR rpc.statd
+will ask
+.BR portmap (8)
+to assign it a port number.  As of this writing, there is not
+a standard port number that
+.BR portmap
+always or usually assigns.  Specifying
+a port may be useful when implementing a firewall.
 .TP
 .B -?
 Causes
@@ -96,7 +122,8 @@ manual pages.
 .br
 .BR /var/lib/nfs/sm.bak/*
 .SH SEE ALSO
-.BR rpc.nfsd(8)
+.BR rpc.nfsd(8),
+.BR portmap(8)
 .SH AUTHORS
 .br
 Jeff Uphoff <juphoff@transmeta.com>

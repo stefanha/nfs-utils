@@ -18,6 +18,7 @@
 #include <string.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_clnt.h>
+#include <rpcmisc.h>
 #include "statd.h"
 #include "sim_sm_inter.h"
 
@@ -207,8 +208,8 @@ daemon_simulator (void)
   signal (SIGINT, sim_killer);
   signal (SIGTERM, sim_killer);
   pmap_unset (sim_port, SIM_SM_VERS);
-  do_regist (sim_port, sim_sm_prog_1);
-/*   do_regist (sim_port, (__dispatch_fn_t)sim_sm_prog_1); */
+  /* this registers both UDP and TCP services */
+  rpc_init("statd", sim_port, SIM_SM_VERS, sim_sm_prog_1, 0);
   svc_run ();
   pmap_unset (sim_port, SIM_SM_VERS);
 }

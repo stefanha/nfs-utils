@@ -47,8 +47,8 @@ static int		sockfd = -1;	/* notify socket */
 /*
  * Initialize callback socket
  */
-static int
-get_socket(void)
+int
+statd_get_socket(int port)
 {
 	struct sockaddr_in	sin;
 
@@ -64,6 +64,7 @@ get_socket(void)
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
+	sin.sin_port = port;
 	if (bindresvport(sockfd, &sin) < 0) {
 		dprintf(L_WARNING,
 			"process_hosts: can't bind to reserved port\n");
@@ -394,7 +395,7 @@ process_notify_list(void)
 	time_t		now;
 	int		fd;
 
-	if ((fd = get_socket()) < 0)
+	if ((fd = statd_get_socket(0)) < 0)
 		return 0;
 
 	while ((entry = notify) != NULL && NL_WHEN(entry) < time(&now)) {

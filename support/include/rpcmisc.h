@@ -41,6 +41,8 @@ struct rpc_dtable {
 		(xdrproc_t)xdr_##res_type, sizeof(res_type), \
 	}
 
+
+int		makesock(int port, int proto);
 void		rpc_init(char *name, int prog, int vers,
 				void (*dispatch)(struct svc_req *, SVCXPRT *),
 				int defport);

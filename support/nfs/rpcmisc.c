@@ -33,7 +33,7 @@
 #include "nfslib.h"
 
 static void	closedown(int sig);
-static int	makesock(int port, int proto);
+int	makesock(int port, int proto);
 
 #define _RPCSVC_CLOSEDOWN	120
 int	_rpcpmstart = 0;
@@ -145,9 +145,7 @@ int sig;
 	(void) alarm(_RPCSVC_CLOSEDOWN);
 }
 
-static int makesock(port, proto)
-int port;
-int proto;
+int makesock(int port, int proto)
 {
 	struct sockaddr_in sin;
 	int	s;

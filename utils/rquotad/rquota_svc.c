@@ -35,6 +35,8 @@
 #include <netinet/in.h>
 #include <syslog.h>
 #include <signal.h>
+#include <getopt.h>
+#include <rpcmisc.h>
 
 #ifdef __STDC__
 #define SIG_PF void(*)(int)
@@ -48,6 +50,14 @@ extern getquota_rslt *rquotaproc_getquota_2(ext_getquota_args *argp,
 					    struct svc_req *rqstp);
 extern getquota_rslt *rquotaproc_getactivequota_2(ext_getquota_args *argp,
 						  struct svc_req *rqstp);
+
+static struct option longopts[] =
+{
+        { "help", 0, 0, 'h' },
+        { "version", 0, 0, 'v' },
+        { "port", 1, 0, 'p' },
+        { NULL, 0, 0, 0 }
+};
 
 /*
  * Global authentication credentials.
@@ -204,19 +214,53 @@ static void rquotaprog_2(struct svc_req *rqstp, register SVCXPRT *transp)
    return;
 }
 
+static void
+usage(const char *prog, int n)
+{
+  fprintf(stderr, "Usage: %s [-p|--port port] [-h|-?|--help] [-v|--version]\n", prog);
+  exit(n);
+}
+
 int main(int argc, char **argv)
 {
    register SVCXPRT *transp;
+   char c;
+   int port = 0;
 
    (void) pmap_unset(RQUOTAPROG, RQUOTAVERS);
    (void) pmap_unset(RQUOTAPROG, EXT_RQUOTAVERS);
 
    openlog("rquota", LOG_PID, LOG_DAEMON);
 
+   while ((c = getopt_long(argc, argv, "hp:v", longopts, NULL)) != EOF) {
+     switch (c) {
+     case '?':
+     case 'h':
+       usage(argv[0], 0);
+       break;
+     case 'p':
+       port = atoi(optarg);
+       if (port < 1 || port > 65535) {
+	 fprintf(stderr, "%s: bad port number: %s\n",
+		 argv[0], optarg);
+	 usage(argv[0], 1);
+       }
+       break;
+     case 'v':
+       printf("rquotad %s\n", VERSION);
+       exit(0);
+     default:
+       usage(argv[0], 1);
+     }
+   }
+
    /* WARNING: the following works on Linux and SysV, but not BSD! */
    signal(SIGCHLD, SIG_IGN);
 
-   transp = svcudp_create(RPC_ANYSOCK);
+   if (port)
+     transp = svcudp_create(makesock(port, IPPROTO_UDP));
+   else
+     transp = svcudp_create(RPC_ANYSOCK);
    if (transp == NULL) {
       syslog(LOG_ERR, "cannot create udp service.");
       exit(1);
