@@ -283,10 +283,14 @@ unexportfs(char *arg, int verbose)
 	for (exp = exportlist[htype]; exp; exp = exp->m_next) {
 		if (path && strcmp(path, exp->m_export.e_path))
 			continue;
-		if (htype != exp->m_client->m_type
-		    || (htype == MCL_FQDN
-		        && !matchhostname(exp->m_export.e_hostname,
-					  hname)))
+		if (htype != exp->m_client->m_type)
+			continue;
+		if (htype == MCL_FQDN
+		    && !matchhostname(exp->m_export.e_hostname,
+					  hname))
+			continue;
+		if (htype != MCL_FQDN
+		    && strcasecmp(exp->m_export.e_hostname, hname))
 			continue;
 		if (verbose) {
 #if 0

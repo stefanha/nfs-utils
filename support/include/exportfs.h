@@ -62,7 +62,7 @@ void				export_add(nfs_export *);
 void				export_reset(nfs_export *);
 nfs_export *			export_lookup(char *hname, char *path, int caconical);
 nfs_export *			export_find(struct hostent *, char *path);
-struct exportent *		export_allowed(struct hostent *, char *path);
+nfs_export *			export_allowed(struct hostent *, char *path);
 nfs_export *			export_create(struct exportent *, int canonical);
 nfs_export *			export_dup(nfs_export *, struct hostent *);
 void				export_freeall(void);

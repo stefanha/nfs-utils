@@ -25,7 +25,6 @@ rmtab_read(void)
 
 	setrmtabent("r");
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
-		struct exportent	*xp;
 		struct hostent		*hp = NULL;
 		int			htype;
 		
@@ -33,22 +32,23 @@ rmtab_read(void)
 		if (htype == MCL_FQDN
 		    && (hp = gethostbyname (rep->r_client))
 		    && (hp = hostent_dup (hp),
-			xp = export_allowed (hp, rep->r_path))) {
+			exp = export_allowed (hp, rep->r_path))) {
 			/* see if the entry already exists, otherwise this was an instantiated
 			 * wild card, and we must add it
 			 */
-			exp = export_lookup(rep->r_client, xp->e_path, 0);
-			if (!exp) {
-				strncpy (xp->e_hostname, rep->r_client,
-					 sizeof (xp->e_hostname) - 1);
-				xp->e_hostname[sizeof (xp->e_hostname) -1] = '\0';
-				exp = export_create(xp, 0);
+			nfs_export *exp2 = export_lookup(rep->r_client,
+							exp->m_export.e_path, 0);
+			if (!exp2) {
+				struct exportent ee;
+				dupexportent(&ee, &exp->m_export);
+				strncpy (ee.e_hostname, rep->r_client,
+					 sizeof (ee.e_hostname) - 1);
+				ee.e_hostname[sizeof (ee.e_hostname) -1] = '\0';
+				exp2 = export_create(&ee, 0);
+				exp2->m_changed = exp->m_changed;
 			}
 			free (hp);
-
-			if (!exp)
-				continue;
-			exp->m_mayexport = 1;
+			exp2->m_mayexport = 1;
 		} else if (hp) /* export_allowed failed */
 			free(hp);
 	}

@@ -1,3 +1,16 @@
+2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
+	fumihiko kakuma <kakmy@mvh.biglobe.ne.jp>
+
+	* utils/exportfs/exportfs.c(unexportfs): improve host comparison
+	so as to only export the wildcard exports that were asked for.
+	* support/export/export.c(export_allowed): changed to return the
+	nfs_export rather than a "struct exportent", as m_changed is
+	needed by called
+	* support/export/rmtab.c(rmtab_read): modified to deal with
+	interface change for export_allowed(), and enhanced to preserve
+	m_changed flag when a wild-card export causes the creation of
+	a non-wildcard export.
+	
 2003-07-02 NeilBrown <neilb@cse.unsw.edu.au>
 	Steve Dickson <SteveD@redhat.com>
 

@@ -172,10 +172,9 @@ export_allowed_internal (struct hostent *hp, char *path)
 	return NULL;
 }
 
-struct exportent *
+nfs_export *
 export_allowed(struct hostent *hp, char *path)
 {
-	static struct exportent	ee;
 	nfs_export		*exp;
 	char			epath[MAXPATHLEN+1];
 	char			*p = NULL;
@@ -188,10 +187,8 @@ export_allowed(struct hostent *hp, char *path)
 	/* Try the longest matching exported pathname. */
 	while (1) {
 		exp = export_allowed_internal (hp, epath);
-		if (exp) {
-			dupexportent(&ee, &exp->m_export);
-			return &ee;
-		}
+		if (exp)
+			return exp;
 		/* We have to treat the root, "/", specially. */
 		if (p == &epath[1]) break;
 		p = strrchr(epath, '/');
