@@ -6,6 +6,7 @@ SUBDIRS	= tools support utils
 TOP	= 
 
 all:: config.mk utils/statd/.depend
+install:: all
 
 include $(TOP)rules.mk
 
