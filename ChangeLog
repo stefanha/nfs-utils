@@ -1,3 +1,8 @@
+2003-07-24  Chip Salzenberg  <chip@pobox.com>
+
+	* debian/nfs-kernel-server.init: Cosmetic changes.
+	* debian/changelog: Version 1.0.5-1.
+
 2003-07-18 NeilBrown <neilb@cse.unsw.edu.au>
 
 	Release 1.0.5:

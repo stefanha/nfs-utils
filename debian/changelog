@@ -1,3 +1,11 @@
+nfs-utils (1:1.0.5-1) unstable; urgency=high
+
+  * New upstream version:
+    > Don't use freed memory.  (closes: #201311, #201598, #201873)
+    > Fix mountd -o arg.  (closes: #197355)
+  
+ -- Chip Salzenberg <chip@debian.org>  Thu, 24 Jul 2003 15:40:12 -0400
+
 nfs-utils (1:1.0.3-2) unstable; urgency=high
 
   * Upstream CVS sync:
