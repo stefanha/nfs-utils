@@ -43,7 +43,7 @@ struct rpc_dtable {
 
 void		rpc_init(char *name, int prog, int vers,
 				void (*dispatch)(struct svc_req *, SVCXPRT *),
-				int defport, int bufsize);
+				int defport);
 void		rpc_svcrun(void);
 void		rpc_dispatch(struct svc_req *rq, SVCXPRT *xprt,
 				struct rpc_dtable *dtable, int nvers,

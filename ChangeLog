@@ -1,3 +1,15 @@
+2001-02-02  H.J. Lu <hjl@lucon.org>
+
+	* support/include/rpcmisc.h (rpc_init): Remove bufsize.
+	
+	* support/nfs/rpcmisc.c (makesock): Remove socksz and comment
+	out SO_SNDBUF/SO_RCVBUF.
+	(rpc_init): Remove bufsize and remove socksz in calls to
+	makesock ().
+
+	* utils/mountd/mountd.c (main): Remove bufsize in calls to
+	rpc_init ().
+
 2001-01-28  Chip Salzenberg  <chip@valinux.com>
 
 	* debian/changelog: Version 0.3-1.

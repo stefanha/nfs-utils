@@ -454,13 +454,13 @@ main(int argc, char **argv)
 
 	if (nfs_version & 0x1)
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS,
-			 mount_dispatch, port, 0);
+			 mount_dispatch, port);
 	if (nfs_version & (0x1 << 1))
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS_POSIX,
-			 mount_dispatch, port, 0);
+			 mount_dispatch, port);
 	if (nfs_version & (0x1 << 2))
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS_NFSV3,
-			 mount_dispatch, port, 0);
+			 mount_dispatch, port);
 
 	sa.sa_handler = killer;
 	sigaction(SIGHUP, &sa, NULL);
