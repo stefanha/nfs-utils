@@ -1,5 +1,10 @@
 2001-02-14  H.J. Lu <hjl@lucon.org>
 
+	* utils/statd/rmtcall.c: Include <time.h>.
+	* utils/statd/svc_run.c: Likewise.
+
+2001-02-14  H.J. Lu <hjl@lucon.org>
+
 	* configure.in (VERSION): Set to "0.3.1".
 	* configure: Regenerated.
 	* nfs-utils.spec: Likewise.

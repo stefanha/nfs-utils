@@ -49,6 +49,7 @@
  */
 #include "config.h"
 #include <errno.h>
+#include <time.h>
 #include "statd.h"
 #include "notlist.h"
 

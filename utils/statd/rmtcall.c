@@ -30,6 +30,7 @@
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <rpc/pmap_rmt.h>
+#include <time.h>
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
