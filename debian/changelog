@@ -1,3 +1,13 @@
+nfs-utils (1:0.3.1-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Incorporate (but not all) Bug Party changes by David LaBissoniere
+    <labiss@usit.net>:
+    > Mention upstream source and license in copyright file.  (closes: #79997)
+    > Add Build-Depends for debhelper and libwrap0-dev.  (closes: #84131)
+
+ -- Chip Salzenberg <chip@debian.org>  Mon, 26 Feb 2001 16:51:15 -0800
+
 nfs-utils (1:0.3-2) unstable; urgency=low
 
   * Upstream:

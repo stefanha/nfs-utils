@@ -44,8 +44,10 @@ binary-arch: build
 	dh_movefiles
 	# Fixups Start Here #
 	cd debian && \
-	  for f in rpc.lockd rpc.statd showmount; do \
-	    mv tmp/usr/sbin/$$f nfs-common/sbin/$$f; \
+	  for f in lockd statd showmount; do \
+	    mv tmp/usr/sbin/*$$f nfs-common/sbin; \
+	    perl -pi -e "s#/usr(/sbin/(rpc\\.)?$$f)#\$$1#g" \
+		nfs-common/usr/share/man/man8/$$f.8; \
 	  done; \
 	  rm -f tmp/usr/sbin/*quota*; \
 	  rm -f tmp/usr/share/man/man8/*quota*; \
