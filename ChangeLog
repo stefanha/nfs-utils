@@ -1,3 +1,8 @@
+2000-08-02  H.J. Lu <hjl@lucon.org>
+
+	* utils/mountd/auth.c (auth_authenticate_internal): Try to
+	avoid the reverse name lookup.
+
 2000-07-04  H.J. Lu <hjl@lucon.org>
 
 	* utils/statd/log.c: Include <stdlib.h> for exit ().

@@ -78,10 +78,19 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 	}
 	auth_fixpath(path);
 
-	if (!(*hpp = gethostbyaddr((const char *)&addr, sizeof(addr), AF_INET)))
-		*hpp = get_hostent((const char *)&addr, sizeof(addr),
-				   AF_INET);
-	else {
+	/* First try it w/o doing a hostname lookup... */
+	*hpp = get_hostent((const char *)&addr, sizeof(addr), AF_INET);
+	exp = export_find(*hpp, path);
+
+	if (!exp) {
+	    /* Ok, that didn't fly.  Try it with a reverse lookup. */
+	    free (*hpp);
+	    *hpp = gethostbyaddr((const char *)&addr, sizeof(addr),
+				 AF_INET);
+	    if (!(*hpp)) {
+		*error = no_entry;
+		return NULL;
+	    } else {
 		/* must make sure the hostent is authorative. */
 		char **sp;
 		struct hostent *forward = NULL;
@@ -113,12 +122,14 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 			*hpp = hostent_dup (*hpp);
 			return NULL;
 		}
-	}
+	    }
 
-	if (!(exp = export_find(*hpp, path))) {
+	    if (!(exp = export_find(*hpp, path))) {
 		*error = no_entry;
 		return NULL;
+	    }
 	}
+
 	if (!exp->m_mayexport) {
 		*error = not_exported;
 		return NULL;
