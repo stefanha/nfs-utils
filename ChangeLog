@@ -13,13 +13,22 @@
 
 2001-03-10  Ion Badulescu  <ionut@cs.columbia.edu>
 
-	* support/nfs/rpcmisc.[ch]: export makesock()
+	* support/nfs/rpcmisc.c: export makesock()
 
-	* utils/statd/statd.c: added longopts, added support for
+	* support/include/rpcmisc.h (makesock): Declared.
+
+	* utils/rquotad/rquota_svc.c: added longopts, added support for
 	specifying the port to bind to on the command line.
 
 	* utils/statd/statd.c: ditto, also specify port used for
 	outgoing connections.
+	(do_regist): Removed.
+
+	* utils/statd/rmtcall.c (statd_get_socket): Renamed from
+	get_socket. Make it extern.
+
+	* utils/statd/simulate.c (daemon_simulator): Call rpc_init
+	instead of do_regist.
 
 	* utils/statd/Makefile (LIBS): link with our own libnfs
 
