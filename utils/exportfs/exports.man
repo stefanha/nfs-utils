@@ -58,7 +58,7 @@ contiguous mask length (for example, either `/255.255.252.0' or `/22' appended
 to the network base address result in identical subnetworks with 10 bits of
 host). Wildcard characters generally do not work on IP addresses, though they
 may work by accident when reverse DNS lookups fail.
-.TP
+'''.TP
 '''.B =public
 '''This is a special ``hostname'' that identifies the given directory name
 '''as the public root directory (see the section on WebNFS in

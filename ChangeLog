@@ -3,6 +3,7 @@
 	* utils/exportfs/exports.man: Emphasize the need for options to
 	immediately follow client names.  Explain that wildcards don't
 	usually work on addresses, but may work when reverse DNS fails.
+	Comment out a leftover TP that was TPing our indentation.
 	* utils/mountd/mountd.man, utils/rquotad/rquotad.man,
 	utils/statd/statd.man: Remove refs to non-existent "hosts_allow(5)".
 	* debian/changelog: Version 0.3.3-6.
