@@ -1,9 +1,9 @@
 .\"@(#)rquotad.8"
-.TH RQUOTAD 8 "25 Aug 2000"
+.TH RQUOTAD 8 "8 Mar 2001"
 .SH NAME
 rquotad, rpc.rquotad \- remote quota server
 .SH SYNOPSIS
-.B /usr/etc/rpc.rquotad
+.B /usr/etc/rpc.rquotad [-p " port "] "
 .SH DESCRIPTION
 .LP
 .IX  "rquotad daemon"  ""  "\fLrquotad\fP \(em remote quota server"
@@ -34,6 +34,21 @@ script in
 or
 .BR /etc/init.d/
 (on systems with SysV'ish scripts, e.g. RedHat, SuSE, etc).
+
+.SH OPTIONS
+.TP
+.BI "\-p," "" " \-\-port " port
+specify a port for 
+.BR rpc.rquotad 
+to listen on.  By default,
+.BR rpc.rquotad
+will ask
+.BR portmap (8)
+to assign it a port number.  As of this writing, there is not
+a standard port number that 
+.BR portmap
+always or usually assigns.  Specifying
+a port may be useful when implementing a firewall.
 
 .SH TCP_WRAPPERS SUPPORT
 This
@@ -69,5 +84,6 @@ manual pages.
 .BR quota (8),
 .BR rpc (3N),
 .BR nfs (5),
-.BR services (5)
-.BR inetd (8),
+.BR services (5),
+.BR portmap(8),
+.BR inetd (8)
