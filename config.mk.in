@@ -22,6 +22,7 @@ NFSV3		= @enable_nfsv3@
 # Where and how to install manpages
 MAN1EXT		= 1
 MAN5EXT		= 5
+MAN7EXT		= 7
 MAN8EXT		= 8
 MAN9EXT		= 9
 MANOWNER	= root
@@ -87,5 +88,6 @@ INSTALLMOD	= $(INSTALL) -m 600
 INSTALLMAN	= $(INSTALL) -m 644
 MAN1DIR		= $(MANDIR)/man$(MAN1EXT)
 MAN5DIR		= $(MANDIR)/man$(MAN5EXT)
+MAN7DIR		= $(MANDIR)/man$(MAN7EXT)
 MAN8DIR		= $(MANDIR)/man$(MAN8EXT)
 MAN9DIR		= $(MANDIR)/man$(MAN9EXT)

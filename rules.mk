@@ -81,22 +81,22 @@ distclean::
 ##################################################################
 ifneq ($(MAN1)$(MAN5)$(MAN8)$(MAN9),)
 MANINIT	= ext=$(MAN$sEXT); dir=$(MAN$sDIR); pgs="$(MAN$s)";
-MANLOOP = $(MANINIT) for man in $$pgs; do eval $$cmd; done
+MANLOOP = $(MANINIT) for man in $$pgs; do mn=`echo $$man | sed 's/[0-9]$$//'`; eval $$cmd; done
 MDCMD	= $(MKDIR) \$$dir
-MICMD	= $(RM) \$$dir/\$$man.\$$ext; \
-	  echo $(INSTALLMAN) \$$man.man \$$dir/\$$man.\$$ext; \
-	  $(INSTALLMAN) \$$man.man \$$dir/\$$man.\$$ext
-LNCMD	= $(RM) \$$dir/$(PREFIX)\$$man.\$$ext; \
-	  echo $(LN_S) \$$man.\$$ext \$$dir/$(PREFIX)\$$man.\$$ext; \
-	  $(LN_S) \$$man.\$$ext \$$dir/$(PREFIX)\$$man.\$$ext
+MICMD	= $(RM) \$$dir/\$$mn.\$$ext; \
+	  echo $(INSTALLMAN) \$$man.man \$$dir/\$$mn.\$$ext; \
+	  $(INSTALLMAN) \$$man.man \$$dir/\$$mn.\$$ext
+LNCMD	= $(RM) \$$dir/$(PREFIX)\$$mn.\$$ext; \
+	  echo $(LN_S) \$$mn.\$$ext \$$dir/$(PREFIX)\$$mn.\$$ext; \
+	  $(LN_S) \$$mn.\$$ext \$$dir/$(PREFIX)\$$mn.\$$ext
 PSCMD	= echo \"$(MAN2PS) \$$man.man > $(TOP)postscript/\$$man.ps\"; \
 	  $(MAN2PS) \$$man.man > $(TOP)postscript/\$$man.ps
 
 installman::
-	@$(foreach s, 1 5 8 9, cmd="$(MDCMD)" $(MANLOOP);)
-	@$(foreach s, 1 5 8 9, cmd="$(MICMD)" $(MANLOOP);)
+	@$(foreach s, 1 5 7 8 9, cmd="$(MDCMD)" $(MANLOOP);)
+	@$(foreach s, 1 5 7 8 9, cmd="$(MICMD)" $(MANLOOP);)
 ifneq ($(PREFIX),)
-	@$(foreach s, 1 5 8 9, cmd="$(LNCMD)" $(MANLOOP);)
+	@$(foreach s, 1 5 7 8 9, cmd="$(LNCMD)" $(MANLOOP);)
 endif
 
 postscript::
@@ -113,7 +113,7 @@ ifneq ($(SRCS),)
 indent:
 	$(INDENT) $(SRCS)
 endif
-	
+
 ##################################################################
 # Handling of dependencies
 ##################################################################

@@ -8,7 +8,6 @@ OBJS	= nfsd.o
 DEPLIBS = $(TOP)support/lib/libfs.a
 LIBS	= -lnfs
 MAN8	= nfsd
-
 include $(TOP)rules.mk
 
 # 

@@ -1,5 +1,8 @@
+	
 2003-07-03 NeilBrown <neilb@cse.unsw.edu.au>
 
+	* utils/exportfs/nfsd.man: new man page for nfsd filesystem. Also
+	assorted changed to cope with section 7 of the manual.
 	* configure.in, nfs-utils.spec: Update version to 1.0.4
 	* run autoconf
 
