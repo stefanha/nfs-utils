@@ -89,6 +89,7 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 				 AF_INET);
 	    if (!(*hpp)) {
 		*error = no_entry;
+		*hpp = get_hostent((const char *)&addr, sizeof(addr), AF_INET);
 		return NULL;
 	    } else {
 		/* must make sure the hostent is authorative. */
@@ -96,6 +97,7 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 		struct hostent *forward = NULL;
 		char *tmpname;
 
+		*hpp = hostent_dup (*hpp);
 		tmpname = xstrdup((*hpp)->h_name);
 		if (tmpname) {
 			forward = gethostbyname(tmpname);
@@ -111,15 +113,14 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 			if (!*sp) {
 				/* it was a FAKE */
 				*error = faked_hostent;
-				*hpp = hostent_dup (*hpp);
 				return NULL;
 			}
+			free (*hpp);
 			*hpp = hostent_dup (forward);
 		}
 		else {
 			/* never heard of it. misconfigured DNS? */
 			*error = no_forward_dns;
-			*hpp = hostent_dup (*hpp);
 			return NULL;
 		}
 	    }
