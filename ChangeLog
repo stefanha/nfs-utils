@@ -1,3 +1,7 @@
+2003-08-11 NeilBrown <neilb@cse.unsw.edu.au>
+	* utils/mountd/cache.c(cache_get_filehandle): close the filehandle
+	before returning.
+	
 2003-08-04 NeilBrown <neilb@cse.unsw.edu.au>
 	* support/include/nfs/export.h, support/nfs/exports.c,
 	utils/exportfs/exports.c, utils/mountd/mountd.c:  change

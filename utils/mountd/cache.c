@@ -376,6 +376,7 @@ cache_get_filehandle(nfs_export *exp, int len, char *p)
 	FILE *f = fopen("/proc/fs/nfsd/filehandle", "r+");
 	char buf[200];
 	char *bp = buf;
+	int failed;
 	static struct nfs_fh_len fh;
 
 	if (!f)
@@ -388,7 +389,9 @@ cache_get_filehandle(nfs_export *exp, int len, char *p)
 	qword_printint(f, len);	
 	qword_eol(f);
 	
-	if (fgets(buf, sizeof(buf), f) == NULL)
+	failed = (fgets(buf, sizeof(buf), f) == NULL);
+	fclose(f);
+	if (failed)
 		return NULL;
 	memset(fh.fh_handle, 0, sizeof(fh.fh_handle));
 	fh.fh_size = qword_get(&bp, fh.fh_handle, NFS3_FHSIZE);
