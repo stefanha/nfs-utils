@@ -18,6 +18,7 @@
 #include "exportfs.h"
 #include "xio.h"
 
+static char	*cfname = NULL;
 static XFILE	*cfp = NULL;
 static int	*squash_uids = NULL,
 		*squash_gids = NULL;
@@ -46,6 +47,7 @@ setnfsclntent(char *fname)
 		fname = _PATH_NFSCLIENTS;
 	if ((cfp = xfopen(fname)) == NULL)
 		xlog(L_ERROR, "can't open %s for reading", fname);
+	cfname = strdup(fname);
 }
 
 struct nfsclntent *
@@ -137,8 +139,9 @@ again:
 	/* This is the anon entry */
 	if (!hosts) {
 		if (strcmp(cle.c_tag, "anonymous")) {
-			xlog(L_ERROR, "nfsclients entry %s allows anonymous "
-					"access. Ignored.", cle.c_tag);
+			xlog(L_ERROR,
+			     "%s:%d: entry %s allows anonymous access.  Ignored.",
+			     cfname, xfp->x_line, cle.c_tag);
 			goto again;
 		}
 		return &cle;
@@ -147,8 +150,9 @@ again:
 
 nexthost:
 	if (*hostptr == ':' && strcmp(cle.c_tag, "anonymous")) {
-		xlog(L_ERROR, "nfsclients entry %s allows anonymous "
-				"access. Ignored.", cle.c_tag);
+		xlog(L_ERROR,
+		     "%s:%d: entry %s allows anonymous access.  Ignored.",
+		     cfname, cfp->x_line, cle.c_tag);
 		while (*hostptr == ':')
 			hostptr++;
 	}
@@ -171,6 +175,8 @@ nexthost:
 void
 endnfsclntent(void)
 {
+	if (cfname)
+		free(cfname);
 	if (cfp)
 		xfclose(cfp);
 	if (squash_uids)
@@ -179,6 +185,7 @@ endnfsclntent(void)
 		xfree(squash_gids);
 	if (hosts)
 		xfree(hosts);
+	cfname = NULL;
 	cfp = NULL;
 	squash_uids = NULL;
 	squash_gids = NULL;
@@ -307,7 +314,7 @@ getattr(char *attr, int alen, char *value, int vlen)
 
 	xskip(cfp, " \t");
 	if ((ok = xgettok(cfp, '=', attr, alen)) < 0)
-		xlog(L_ERROR, "error parsing attribute");
+		syntaxerr("missing attribute");
 	if (ok <= 0)
 		return ok;
 	xskip(cfp, " \t=");
@@ -318,7 +325,7 @@ getattr(char *attr, int alen, char *value, int vlen)
 static void
 syntaxerr(char *msg)
 {
-	xlog(L_ERROR, "syntax error in nfsclients file (line %d): %s",
-				cfp->x_line, msg);
+	xlog(L_ERROR, "%s:%d: syntax error: %s",
+			cfname, cfp->x_line, msg);
 }
 

@@ -1,3 +1,12 @@
+2001-11-21  Chip Salzenberg  <chip@pobox.com>
+
+	* support/nfs/clients.c (cfname): Added: current clients file name.
+	(setnfsclntent): Set it.
+	({get,end}nfsclntent, syntaxerr): Use it.
+	* support/nfs/exports.c (efname): Added: current exports file name.
+	(setnfsexportent): Set it.
+	(endnfsexportent, parseopts, getexport, syntaxerr): Use it.
+
 2001-10-11  Chip Salzenberg  <chip@pobox.com>
 
 	* utils/mountd/mountd.c (main): Close fds > 2 _before_ RPC init.

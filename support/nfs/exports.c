@@ -31,6 +31,7 @@
 #define EXPORT_DEFAULT_FLAGS	\
   (NFSEXP_ASYNC|NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES)
 
+static char	*efname = NULL;
 static XFILE	*efp = NULL;
 static int	first;
 static int	*squids = NULL, nsquids = 0,
@@ -55,6 +56,7 @@ setexportent(char *fname, char *type)
 	if (!(efp = xfopen(fname, type)))
 		xlog(L_ERROR, "can't open %s for %sing",
 				fname, strcmp(type, "r")? "writ" : "read");
+	efname = strdup(fname);
 	first = 1;
 }
 
@@ -205,6 +207,9 @@ endexportent(void)
 	if (efp)
 		xfclose(efp);
 	efp = NULL;
+	if (efname)
+		free(efname);
+	efname = NULL;
 	freesquash();
 }
 
@@ -349,9 +354,8 @@ parseopts(char *cp, struct exportent *ep)
 				return -1;
 			}
 		} else {
-			xlog(L_ERROR,
-				"Unknown keyword \"%s\" in export file\n",
-				opt);
+			xlog(L_ERROR, "%s:%d: unknown keyword \"%s\"\n",
+					efname, efp->x_line, opt);
 			ep->e_flags |= NFSEXP_ALLSQUASH | NFSEXP_READONLY;
 			free(opt);
 			return -1;
@@ -468,14 +472,15 @@ getexport(char *exp, int len)
 
 	xskip(efp, " \t");
 	if ((ok = xgettok(efp, 0, exp, len)) < 0)
-		xlog(L_ERROR, "error parsing export entry");
+		xlog(L_ERROR, "%s:%d: syntax error",
+			efname, efp->x_line);
 	return ok;
 }
 
 static void
 syntaxerr(char *msg)
 {
-	xlog(L_ERROR, "syntax error in exports file (line %d): %s",
-				efp->x_line, msg);
+	xlog(L_ERROR, "%s:%d: syntax error: %s",
+			efname, efp->x_line, msg);
 }
 
