@@ -1,8 +1,10 @@
-nfs-utils (1:0.1.9.1-2) frozen unstable; urgency=medium
+nfs-utils (1:0.1.9.1-2) unstable; urgency=medium
 
+  * Upstream addition of tcpwrapper support in statd and mountd.
   * Upstream fixes from H.J. Lu and Neil Brown.
+  * Run exportfs first during startup (again).
 
- -- Chip Salzenberg <chip@valinux.com>  Wed, 25 Aug 2000 10:30:00 -0700
+ -- Chip Salzenberg <chip@valinux.com>  Sat, 26 Aug 2000 17:30:00 -0700
 
 nfs-utils (1:0.1.9.1-1) frozen unstable; urgency=high
 
