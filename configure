@@ -2134,7 +2134,7 @@ fi
 
         break
       fi
-      CFLAGS=$CFLAGS `K5CONFIG --cflags`
+      CFLAGS=$CFLAGS `$K5CONFIG --cflags`
     fi
   done
     if test "x$KRBDIR" = "x"; then

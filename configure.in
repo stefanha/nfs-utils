@@ -202,7 +202,7 @@ if test "$enable_gss" = yes; then
            AC_DEFINE(HAVE_GSS_KRB5_CCACHE_NAME),,$KRBLIB)
         break
       fi
-      CFLAGS=$CFLAGS `K5CONFIG --cflags`
+      CFLAGS=$CFLAGS `$K5CONFIG --cflags`
     fi
   done
   dnl We didn't find a usable Kerberos environment
