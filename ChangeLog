@@ -19,6 +19,8 @@
 	* utils/idmapd/idmapd.c: Make sure we catch all errors on
 	daemonizing by waiting for child to report succesfull startup
 	using a pipe. 
+	* utils/idmapd/idmapd.c: Let libnfsidmapd parse the idmapd.conf
+	file for the default domain, instead of doing that ourselves.
 
 	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>

@@ -372,15 +372,18 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 
 	printerr(1, "doing downcall\n");
 
-	if (WRITE_BYTES(&p, end, uid)) return -1;
+	if (WRITE_BYTES(&p, end, uid)) goto out_err;
 	/* Not setting any timeout for now: */
-	if (WRITE_BYTES(&p, end, timeout)) return -1;
-	if (WRITE_BYTES(&p, end, pd->pd_seq_win)) return -1;
-	if (write_buffer(&p, end, &pd->pd_ctx_hndl)) return -1;
-	if (write_buffer(&p, end, context_token)) return -1;
+	if (WRITE_BYTES(&p, end, timeout)) goto out_err;
+	if (WRITE_BYTES(&p, end, pd->pd_seq_win)) goto out_err;
+	if (write_buffer(&p, end, &pd->pd_ctx_hndl)) goto out_err;
+	if (write_buffer(&p, end, context_token)) goto out_err;
 
-	if (write(k5_fd, buf, p - buf) < p - buf) return -1;
+	if (write(k5_fd, buf, p - buf) < p - buf) goto out_err;
 	return 0;
+out_err:
+	printerr(0, "Failed to write downcall!\n");
+	return -1;
 }
 
 static int
@@ -393,15 +396,17 @@ do_error_downcall(int k5_fd, uid_t uid, int err)
 
 	printerr(1, "doing error downcall\n");
 
-	if (WRITE_BYTES(&p, end, uid)) return -1;
-	if (WRITE_BYTES(&p, end, timeout)) return -1;
+	if (WRITE_BYTES(&p, end, uid)) goto out_err;
+	if (WRITE_BYTES(&p, end, timeout)) goto out_err;
 	/* use seq_win = 0 to indicate an error: */
-	if (WRITE_BYTES(&p, end, zero)) return -1;
-	if (WRITE_BYTES(&p, end, err)) return -1;
+	if (WRITE_BYTES(&p, end, zero)) goto out_err;
+	if (WRITE_BYTES(&p, end, err)) goto out_err;
 
-	if (write(k5_fd, buf, p - buf) < p - buf) return -1;
+	if (write(k5_fd, buf, p - buf) < p - buf) goto out_err;
 	return 0;
-
+out_err:
+	printerr(0, "Failed to write error downcall!\n");
+	return -1;
 }
 
 /*
