@@ -49,10 +49,10 @@ static unsigned int	svcrcinfo[8];	/* 0  repcache hits
 					 * 2  uncached reqs
 					 *
 					 * including fh info:
-					 * 3  cached fh's
-					 * 4  valid fh's
-					 * 5  fixup required
-					 * 6  lookup (?)
+					 * 3  FH lookups
+					 * 4  'anon' FHs
+					 * 5  noncached non-directories
+					 * 6  noncached directories
 					 * 7  stale
 					 */
 
@@ -203,7 +203,7 @@ main(int argc, char **argv)
 		if (opt_prt & PRNT_FH) {
 			print_numbers(
 			"Server file handle cache:\n"
-			"cached     valid      fixup      lookup     stale\n",
+			"lookup     anon       ncachendir ncachedir  stale\n",
 			svcrcinfo + 3, 5);
 		}
 		if (opt_prt & PRNT_CALLS) {
