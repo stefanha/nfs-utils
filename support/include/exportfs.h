@@ -36,8 +36,8 @@ typedef struct mexport {
 	struct mexport *	m_next;
 	struct mclient *	m_client;
 	struct exportent	m_export;
-	int			m_exported : 1,	/* known to knfsd */
-				m_xtabent  : 1,	/* xtab entry exists */
+	int			m_exported;	/* known to knfsd. -1 means not sure */
+	int			m_xtabent  : 1,	/* xtab entry exists */
 				m_mayexport: 1,	/* derived from xtabbed */
 				m_changed  : 1; /* options (may) have changed */
 } nfs_export;

@@ -21,6 +21,10 @@
 static int
 xtab_read(char *xtab, int is_export)
 {
+    /* is_export == 0  => reading /proc/fs/nfs/exports - we know these things are exported to kernel
+     * is_export == 1  => reading /var/lib/nfs/etab - these things are allowed to be exported
+     * is_export == 2  => reading /var/lib/nfs/xtab - these things might be known to kernel
+     */
 	struct exportent	*xp;
 	nfs_export		*exp;
 	int			lockid;
@@ -33,11 +37,18 @@ xtab_read(char *xtab, int is_export)
 		    !(exp = export_create(xp))) {
 			continue;
 		}
-		if (is_export) {
+		switch (is_export) {
+		case 0:
+			exp->m_exported = 1;
+			break;
+		case 1:
 			exp->m_xtabent = 1;
 			exp->m_mayexport = 1;
-		} else
-			exp->m_exported = 1;
+			break;
+		case 2:
+			exp->m_exported = -1;/* may be exported */
+			break;
+		}
 	}
 	endexportent();
 	xfunlock(lockid);
@@ -53,7 +64,7 @@ xtab_mount_read(void)
 		close(fd);
 		return xtab_read(_PATH_PROC_EXPORTS, 0);
 	} else
-		return xtab_read(_PATH_XTAB, 1);
+		return xtab_read(_PATH_XTAB, 2);
 }
 
 int

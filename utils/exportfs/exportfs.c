@@ -132,7 +132,7 @@ exports_update(int verbose)
 	nfs_export 	*exp;
 
 	for (exp = exportlist[MCL_FQDN]; exp; exp=exp->m_next) {
-		if (exp->m_mayexport && (!exp->m_exported || exp->m_changed)) {
+		if (exp->m_mayexport && ((exp->m_exported<1) || exp->m_changed)) {
 			if (verbose)
 				printf("%sexporting %s:%s to kernel\n",
 				       exp->m_exported ?"re":"",

@@ -1,3 +1,23 @@
+2000-08-23  Neil Brown <neilb@cse.unsw.edu.au>
+
+	* support/export/xtab.c(xtab_read): introduce new mode for
+	   reading xtab. i.e. a list of exports that might be known to the
+	   kernel, or might not.  These are flagged as m_exported == -1
+	* support/export/xtab.c(xtab_mount_read):  call xtab_read with new
+	   value "2" for xtab, meaning don't trust this too much.
+	* support/include/exportfs.h(struct mexport): changed m_exported
+	   from one bit to an int so that it can hold new value
+	* utils/exportfs/exportfs.c(exportfs_ipdate): add an export to the
+	   kernel if it is uncertain whether the kernel knows (m_exported == -1)
+	* utils/mountd/mountd.c(get_rootfh): similarly export to kernel if
+	   status is uncertain
+
+	* support/nfs/xio.c(xflock): added O_CREAT when getting
+	   a write lock so that missing files aren't fatal.
+
+	* etc/debian/nfs-common: new file from "potato"
+	* etc/debian/nfs-kernel-server: new file from "potato" plus fixes.
+	 
 2000-08-09  H.J. Lu <hjl@lucon.org>
 
 	* etc/redhat/nfs.init: Run /usr/sbin/exportfs first during
