@@ -1,3 +1,8 @@
+2001-11-26  TAKAI Kousuke <takai@vlsi.kuee.kyoto-u.ac.jp>
+
+	* support/nfs/xio.c (xskip): Call `xungetc' instead of
+        `ungetc' to keep x_line more properly.
+
 2001-11-26  Chip Salzenberg  <chip@pobox.com>
 
 	* utils/showmount/showmount.c (main): Don't assume that strings

@@ -160,7 +160,7 @@ xskip(XFILE *xfp, char *str)
 	int	c;
 
 	while ((c = xgetc(xfp)) != EOF && strchr(str, c));
-	ungetc(c, xfp->x_fp);
+	xungetc(c, xfp);
 }
 
 char
