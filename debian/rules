@@ -53,16 +53,15 @@ binary-arch: build
 	  rm -f tmp/usr/share/man/man8/*quota*; \
 	  rm -rf tmp/var/lib/nfs/*
 	# Fixups End Here #
-	dh_installdocs ChangeLog README
+	dh_installdocs -A README
 	dh_installexamples
 #	dh_installmenu
 	dh_installinit -n
 #	dh_installcron
 #	dh_installmanpages
 #	dh_undocumented
-	dh_installchangelogs
+	dh_installchangelogs ChangeLog
 	dh_strip
-	dh_suidregister
 	dh_compress
 	dh_fixperms
 	dh_installdeb

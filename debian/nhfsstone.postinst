@@ -1,9 +1,3 @@
 #!/bin/sh -e
 
-case "$1" in
-    configure)
-	test ! -d /usr/share/doc/nhfsstone ||
-	  test -L /usr/doc/nhfsstone ||
-	  ln -sf ../share/doc/nhfsstone /usr/doc/nhfsstone
-	;;
-esac
+#DEBHELPER#

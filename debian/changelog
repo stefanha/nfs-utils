@@ -1,3 +1,15 @@
+nfs-utils (1:0.3.2-1) unstable; urgency=low
+
+  * Upstream changes to statd:
+    > Recognize long options.
+    > On startup, close std{in,out,err}.
+    > Updated man page.
+  * Let debhelper handle doc symlinks.  (closes: #74094)
+  * Rename upstream changelog, per policy.
+  * Get rid of suidregister call.
+
+ -- Chip Salzenberg <chip@debian.org>  Sun,  1 Apr 2001 19:21:26 -0700
+
 nfs-utils (1:0.3.1-1) unstable; urgency=medium
 
   * New upstream version.

@@ -1,11 +1,9 @@
 #!/bin/sh -e
 
+#DEBHELPER#
+
 case "$1" in
     configure)
-	test ! -d /usr/share/doc/nfs-kernel-server ||
-	  test -L /usr/doc/nfs-kernel-server ||
-	  ln -sf ../share/doc/nfs-kernel-server /usr/doc/nfs-kernel-server
-
 	mkdir -p /var/lib/nfs
 	touch /var/lib/nfs/xtab /var/lib/nfs/etab /var/lib/nfs/rmtab
 	if test -s /etc/exports

@@ -1,5 +1,5 @@
 #!/bin/sh
 
-rm -f /usr/doc/nhfsstone
+#DEBHELPER#
 
 exit 0
