@@ -52,25 +52,25 @@ esac
 
 # Exit if required binaries are missing.
 [ -x $PREFIX/sbin/rpc.statd ] || exit 0
-[ -x $PREFIX/sbin/rpc.lockd ] || [ "$NEED_LOCKD" = no ] || exit 0
-[ -x /usr/sbin/rpc.idmapd ] || [ "$NEED_IDMAPD" = no ] || exit 0
-[ -x /usr/sbin/rpc.gssd ] || [ "$NEED_GSSD" = no ] || exit 0
+[ -x $PREFIX/sbin/rpc.lockd ] || [ "$NEED_LOCKD"  = no ] || exit 0
+[ -x /usr/sbin/rpc.idmapd   ] || [ "$NEED_IDMAPD" = no ] || exit 0
+[ -x /usr/sbin/rpc.gssd     ] || [ "$NEED_GSSD"   = no ] || exit 0
 
 do_modprobe() {
-	modprobe -q $1 || true
+    modprobe -q "$1" || true
 }
 
 do_mount() {
-	if ! grep -E -qs "$1\$" /proc/filesystems
-	then
-		return 1
-	fi
-	if ! mountpoint -q $2
-	then
-		mount -t $1 $3 $1 $2
-		return
-	fi
-	return 0
+    if ! grep -E -qs "$1\$" /proc/filesystems
+    then
+	return 1
+    fi
+    if ! mountpoint -q "$2"
+    then
+	mount -t "$1" "$1" "$2"
+	return
+    fi
+    return 0
 }
 
 # See how we were called.
@@ -90,7 +90,7 @@ case "$1" in
 	if [ "$NEED_IDMAPD" = yes ] || [ "$NEED_GSSD" = yes ]
 	then
 	    do_modprobe nfs
-	    if do_mount rpc_pipefs $PIPEFS_MOUNTPOINT;
+	    if do_mount rpc_pipefs $PIPEFS_MOUNTPOINT
 	    then
 	    	if [ "$NEED_IDMAPD" = yes ]
 		then

@@ -17,9 +17,9 @@ DESC="NFS kernel daemon"
 PREFIX=/usr
 
 # Exit if required binaries are missing.
-[ -x $PREFIX/sbin/rpc.nfsd ] || exit 0
-[ -x $PREFIX/sbin/rpc.mountd ] || exit 0
-[ -x $PREFIX/sbin/exportfs ] || exit 0
+[ -x $PREFIX/sbin/rpc.nfsd    ] || exit 0
+[ -x $PREFIX/sbin/rpc.mountd  ] || exit 0
+[ -x $PREFIX/sbin/exportfs    ] || exit 0
 [ -x $PREFIX/sbin/rpc.svcgssd ] || exit 0
 
 # Read config
@@ -35,20 +35,20 @@ if [ -f $DEFAULTFILE ]; then
 fi
 
 do_modprobe() {
-	modprobe -q $1 || true
+    modprobe -q "$1" || true
 }
 
 do_mount() {
-	if ! grep -E -qs "$1\$" /proc/filesystems
-	then
-		return 1
-	fi
-	if ! mountpoint -q $2
-	then
-		mount -t $1 $3 $1 $2
-		return
-	fi
-	return 0
+    if ! grep -E -qs "$1\$" /proc/filesystems
+    then
+	return 1
+    fi
+    if ! mountpoint -q "$2"
+    then
+	mount -t "$1" "$1" "$2"
+	return
+    fi
+    return 0
 }
 
 # See how we were called.
@@ -70,7 +70,7 @@ case "$1" in
 		    start-stop-daemon --start --quiet \
 			    --make-pidfile --pidfile /var/run/rpc.svcgssd.pid \
 			    --exec $PREFIX/sbin/rpc.svcgssd -- $RPCSVCGSSDOPTS
-               fi
+		fi
 
 		printf " nfsd"
 		start-stop-daemon --start --quiet \
