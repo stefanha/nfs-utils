@@ -9,6 +9,7 @@
 #include "config.h"
 
 #include <stdio.h>
+#include <errno.h>
 #include "nfslib.h"
 
 static void	usage(const char *);
@@ -21,8 +22,14 @@ main(int argc, char **argv)
 	if (argc > 1)
 		usage (argv [0]);
 
-	if ((error = lockdsvc()) < 0)
-		perror("lockdsvc");
+	if ((error = lockdsvc()) < 0) {
+		if (errno == EINVAL)
+			/* Ignore EINVAL since kernel may start
+			   lockd automatically. */
+			error = 0;
+		else
+			perror("lockdsvc");
+	}
 
 	return (error != 0);
 }
