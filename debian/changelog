@@ -14,7 +14,7 @@ nfs-utils (1:0.3.3-3) unstable; urgency=low
     appears in the tcpwrapper config files.
   * German template for nfs-kernel-server.  (closes: #117196)
 
- -- Chip Salzenberg <chip@debian.org>  Wed, 21 Nov 2001 18:21:42 -0800
+ -- Chip Salzenberg <chip@debian.org>  Wed, 21 Nov 2001 18:30:36 -0800
 
 nfs-utils (1:0.3.3-2) unstable; urgency=high
 
