@@ -237,6 +237,25 @@ or
 '''.TP
 '''.IR link_absolute
 '''Leave all symbolic link as they are. This is the default operation.
+
+.TP
+.IR mountpoint= path
+.TP
+.I mp
+This option makes it possible to only export a directory if it has
+successfully been mounted.
+If no path is given (e.g.
+.IR mountpoint " or " mp )
+then the export point must also be a mount point.  If it isn't then
+the export point is not exported.  This allows you to be sure that the
+directory underneath a mountpoint will never be exported by accident
+if, for example, the filesystem failed to mount due to a disc error.
+
+If a path is given (e.g.
+.IR mountpoint= "/path or " mp= /path)
+then the nominted path must be a mountpoint for the exportpoint to be
+exported.
+
 .SS User ID Mapping
 .PP
 .I nfsd

@@ -282,6 +282,13 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 		xlog(L_WARNING, "request to export directory %s below nearest filesystem %s",
 		     p, exp->m_export.e_path);
 		*error = NFSERR_ACCES;
+	} else if (exp->m_export.e_mountpoint &&
+		   !is_mountpoint(exp->m_export.e_mountpoint[0]?
+				  exp->m_export.e_mountpoint:
+				  exp->m_export.e_path)) {
+		xlog(L_WARNING, "request to export an unmounted filesystem: %s",
+		     p);
+		*error = NFSERR_NOENT;
 	} else if (new_cache) {
 		/* This will be a static private nfs_export with just one
 		 * address.  We feed it to kernel then extract the filehandle,

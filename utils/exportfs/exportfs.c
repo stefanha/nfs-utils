@@ -147,6 +147,16 @@ exports_update(int verbose)
 	nfs_export 	*exp;
 
 	for (exp = exportlist[MCL_FQDN]; exp; exp=exp->m_next) {
+		/* check mountpoint option */
+		if (exp->m_mayexport && 
+		    exp->m_export.e_mountpoint &&
+		    !is_mountpoint(exp->m_export.e_mountpoint[0]?
+				   exp->m_export.e_mountpoint:
+				   exp->m_export.e_path)) {
+			printf("%s not exported as %s not a mountpoint.\n",
+			       exp->m_export.e_path, exp->m_export.e_mountpoint);
+			exp->m_mayexport = 0;
+		}
 		if (exp->m_mayexport && ((exp->m_exported<1) || exp->m_changed)) {
 			if (verbose)
 				printf("%sexporting %s:%s to kernel\n",
@@ -366,6 +376,10 @@ dump(int verbose)
 				c = dumpopt(c, "insecure_locks");
 			if (ep->e_flags & NFSEXP_FSID)
 				c = dumpopt(c, "fsid=%d", ep->e_fsid);
+			if (ep->e_mountpoint)
+				c = dumpopt(c, "mountpoint%s%s", 
+					    ep->e_mountpoint[0]?"=":"", 
+					    ep->e_mountpoint);
 			if (ep->e_maptype == CLE_MAP_UGIDD)
 				c = dumpopt(c, "mapping=ugidd");
 			else if (ep->e_maptype == CLE_MAP_FILE)

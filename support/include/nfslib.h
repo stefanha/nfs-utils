@@ -73,6 +73,7 @@ struct exportent {
 	int *		e_sqgids;
 	int		e_nsqgids;
 	int		e_fsid;
+	char *		e_mountpoint;
 };
 
 struct rmtabent {

@@ -1,3 +1,15 @@
+2003-05-30  NeilBrown <neilb@cse.unsw.edu.au>
+
+	* support/export/export.c, support/include/nfslib.h,
+	support/nfs/export.c, utils/exportfs/exportfs.c,
+	utils/mountd/mountd.c: new export option "mountpoint"
+	If no path is given, then the export point must be a
+	mount point, or it won't be exported.  If a path is 
+	given (e.g. mountpoint=/path) then that path must be
+	a mountpoint or the exportpoint won't be exported.
+	* utils/exportfs/exportfs.man: document mountpoint option.
+	* support/misc/mountpoint.c: New file with is_mountpoint()
+	to determine if something is a mountpoint.
 2003-05-23  NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/mountd/cache.c(cache_get_filehandle): take a separate path

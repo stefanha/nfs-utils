@@ -239,6 +239,8 @@ export_freeall(void)
 				xfree(exp->m_export.e_squids);
 			if (exp->m_export.e_sqgids)
 				xfree(exp->m_export.e_sqgids);
+			if (exp->m_export.e_mountpoint)
+				free(exp->m_export.e_mountpoint);
 			xfree(exp);
 		}
 		exportlist[i] = NULL;

@@ -91,6 +91,7 @@ getexportent(int fromkernel, int fromexports)
 	ee.e_anongid = -2;
 	ee.e_squids = NULL;
 	ee.e_sqgids = NULL;
+	ee.e_mountpoint = NULL;
 	ee.e_nsquids = 0;
 	ee.e_nsqgids = 0;
 
@@ -187,6 +188,10 @@ putexportent(struct exportent *ep)
 	if (ep->e_flags & NFSEXP_FSID) {
 		fprintf(fp, "fsid=%d,", ep->e_fsid);
 	}
+	if (ep->e_mountpoint)
+		fprintf(fp, "mountpoint%s%s,",
+			ep->e_mountpoint[0]?"=":"", ep->e_mountpoint);
+
 	fprintf(fp, "mapping=");
 	switch (ep->e_maptype) {
 	case CLE_MAP_IDENT:
@@ -247,6 +252,8 @@ dupexportent(struct exportent *dst, struct exportent *src)
 		dst->e_sqgids = (int *) xmalloc(n * sizeof(int));
 		memcpy(dst->e_sqgids, src->e_sqgids, n * sizeof(int));
 	}
+	if (src->e_mountpoint)
+		dst->e_mountpoint = strdup(src->e_mountpoint);
 }
 
 struct exportent *
@@ -260,6 +267,7 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_anongid = -2;
 	ee.e_squids = NULL;
 	ee.e_sqgids = NULL;
+	ee.e_mountpoint = NULL;
 	ee.e_nsquids = 0;
 	ee.e_nsqgids = 0;
 
@@ -408,6 +416,15 @@ bad_option:
 				goto bad_option;
 			}
 			ep->e_flags |= NFSEXP_FSID;
+		} else if (strcmp(opt, "mountpoint")==0 ||
+			   strcmp(opt, "mp") == 0 ||
+			   strncmp(opt, "mountpoint=", 11)==0 ||
+			   strncmp(opt, "mp=", 3) == 0) {
+			char * mp = strchr(opt, '=');
+			if (mp)
+				ep->e_mountpoint = strdup(mp+1);
+			else
+				ep->e_mountpoint = strdup("");
 		} else {
 			xlog(L_ERROR, "%s:%d: unknown keyword \"%s\"\n",
 					flname, flline, opt);

@@ -100,6 +100,7 @@ void nfsd_fh(FILE *f)
 	struct exportent *found = NULL;
 	nfs_export *exp;
 	int i;
+	int dev_missing = 0;
 
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
@@ -145,6 +146,11 @@ void nfsd_fh(FILE *f)
 				continue;
 			if (fsidtype == 0) {
 				struct stat stb;
+				if (exp->m_export.e_mountpoint &&
+				    !is_mountpoint(exp->m_export.e_mountpoint[0]?
+						   exp->m_export.e_mountpoint:
+						   exp->m_export.e_path))
+					dev_missing ++;
 				if (stat(exp->m_export.e_path, &stb) != 0)
 					continue;
 				if (stb.st_ino != inode)
@@ -158,11 +164,31 @@ void nfsd_fh(FILE *f)
 				found = &exp->m_export;
 			else if (strcmp(found->e_path, exp->m_export.e_path)!= 0)
 			{
-				xlog(L_WARNING, "%s and %s have name filehandle for %s, using first",
+				xlog(L_WARNING, "%s and %s have same filehandle for %s, using first",
 				     found->e_path, exp->m_export.e_path, dom);
 			}
 		}
 	}
+	if (found && 
+	    found->e_mountpoint &&
+	    !is_mountpoint(found->e_mountpoint[0]?
+			   found->e_mountpoint:
+			   found->e_path)) {
+		/* Cannot export this yet 
+		 * should log a warning, but need to rate limit
+		   xlog(L_WARNING, "%s not exported as %d not a mountpoint",
+		   found->e_path, found->e_mountpoint);
+		 */
+		/* FIXME we need to make sure we re-visit this later */
+		goto out;
+	}
+	if (!found && dev_missing) {
+		/* The missing dev could be what we want, so just be
+		 * quite rather than returning stale yet
+		 */
+		goto out;
+	}
+
 	cache_export_ent(dom, found);
 
 	qword_print(f, dom);
