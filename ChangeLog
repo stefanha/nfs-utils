@@ -26,6 +26,7 @@
 	* nfs-utils.spec.in (rquotad): New. Set to 0 to disable
 	rquotad.
 	(CC_FOR_BUILD): Renamed from BUILD_CC.
+	* nfs-utils.spec: Regenerated.
 
 2001-06-15  Chip Salzenberg  <chip@debian.org>
 
