@@ -1,3 +1,7 @@
+2005-02-28  Trond Myklebust <trond.myklebust@fys.uio.no>
+	* utils/statd/rmtcall.c(statd_get_socket): If a port number is
+	explicitly given, make sure to try to bind to that.
+	
 2005-01-11  Chip Salzenberg  <chip@pobox.com>
 
 	* debian/changelog: Version 1.0.7-1.

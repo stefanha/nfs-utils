@@ -65,7 +65,7 @@ statd_get_socket(int port)
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
-	sin.sin_port = port;
+	sin.sin_addr.s_addr = INADDR_ANY;
 	/*
 	 * If a local hostname is given (-n option to statd), bind to the address
 	 * specified. This is required to support clients that ignore the mon_name in
@@ -76,11 +76,18 @@ statd_get_socket(int port)
 		if (hp)
 			sin.sin_addr = *(struct in_addr *) hp->h_addr;
 	}
+	if (port != 0) {
+		sin.sin_port = htons(port);
+		if (bind(sockfd, &sin, sizeof(sin)) == 0)
+			goto out_success;
+		note(N_CRIT, "statd: failed to bind to outgoing port, %d\n"
+				"       falling back on randomly chosen port\n", port);
+	}
 	if (bindresvport(sockfd, &sin) < 0) {
 		dprintf(N_WARNING,
 			"process_hosts: can't bind to reserved port\n");
 	}
-
+out_success:
 	return sockfd;
 }
 
