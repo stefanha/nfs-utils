@@ -1,10 +1,10 @@
-2000-09-26  H.J. Lu <hjl@lucon.org>
+2000-09-25  H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.2.1".
 	* configure: Regenerated.
 	* nfs-utils.spec: Updated.
 
-2000-09-26  H.J. Lu <hjl@lucon.org>
+2000-09-25  H.J. Lu <hjl@lucon.org>
 
 	* utils/mountd/auth.c (auth_authenticate_internal): Make sure a
 	non-NULL hostent is always returned.
