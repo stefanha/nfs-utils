@@ -1,3 +1,17 @@
+2002-09-02 Juan Gomez <juang@us.ibm.com>
+	NeilBrown <neilb@cse.unsw.edu.au>
+
+	statd to have " -P directory" arg to use that directory instead
+	of /var/lib/nfs.  This is useful for fail-over clusters.
+	
+	* utils/statd/statd.h: define SM_DIR etc as var, not const.
+	* utils/statd/statd.c: define "-P" option to set SM_*
+	appropriately.
+	* utils/statd/monitor.c: sprintf to cope with SM_DIR not being
+	a constant any more.
+	* utils/statd/notify.c: ditto.
+	* utils/statd/statd.man: document -P option.
+	
 2002-08-26  Chip Salzenberg  <chip@pobox.com>
 
 	* utils/nfsd/nfsd.man: Fix typo.

@@ -24,6 +24,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+/* Added to enable specification of state directory path at run-time
+ * j_carlos_gomez@yahoo.com
+ */
+
+char * DIR_BASE = DEFAULT_DIR_BASE;
+
+char *  SM_DIR = DEFAULT_SM_DIR;
+char *  SM_BAK_DIR =  DEFAULT_SM_BAK_DIR;
+char *  SM_STAT_PATH = DEFAULT_SM_STAT_PATH;
+
+/* ----- end of state directory path stuff ------- */
 
 short int restart = 0;
 int	run_mode = 0;		/* foreground logging mode */
@@ -43,6 +54,7 @@ static struct option longopts[] =
 	{ "outgoing-port", 1, 0, 'o' },
 	{ "port", 1, 0, 'p' },
 	{ "name", 1, 0, 'n' },
+	{ "state-directory-path", 1, 0, 'P' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -128,6 +140,7 @@ usage()
 	fprintf(stderr,"      -o, --outgoing-port  Port for outgoing connections\n");
 	fprintf(stderr,"      -V, -v, --version    Display version information and exit.\n");
 	fprintf(stderr,"      -n, --name           Specify a local hostname.\n");
+	fprintf(stderr,"      -P                   State directory path.\n");
 }
 
 /* 
@@ -161,7 +174,7 @@ int main (int argc, char **argv)
 	MY_NAME = NULL;
 
 	/* Process command line switches */
-	while ((arg = getopt_long(argc, argv, "h?vVFdn:p:o:", longopts, NULL)) != EOF) {
+	while ((arg = getopt_long(argc, argv, "h?vVFdn:p:o:P:", longopts, NULL)) != EOF) {
 		switch (arg) {
 		case 'V':	/* Version */
 		case 'v':
@@ -193,6 +206,36 @@ int main (int argc, char **argv)
 			break;
 		case 'n':	/* Specify local hostname */
 			MY_NAME = xstrdup(optarg);
+			break;
+		case 'P':
+
+			if ((DIR_BASE = xstrdup(optarg)) == NULL) {
+				fprintf(stderr, "%s: xstrdup(%s) failed!\n",
+					argv[0], optarg);
+				exit(1);
+			}
+
+			SM_DIR = xmalloc(strlen(DIR_BASE) + 1 + sizeof("sm"));
+			SM_BAK_DIR = xmalloc(strlen(DIR_BASE) + 1 + sizeof("sm.bak"));
+			SM_STAT_PATH = xmalloc(strlen(DIR_BASE) + 1 + sizeof("state"));
+
+			if ((SM_DIR == NULL) 
+			    || (SM_BAK_DIR == NULL) 
+			    || (SM_STAT_PATH == NULL)) {
+
+				fprintf(stderr, "%s: xmalloc() failed!\n",
+					argv[0]);
+				exit(1);
+			}
+			if (DIR_BASE[strlen(DIR_BASE)-1] == '/') {
+				sprintf(SM_DIR, "%ssm", DIR_BASE );
+				sprintf(SM_BAK_DIR, "%ssm.bak", DIR_BASE );
+				sprintf(SM_STAT_PATH, "%sstate", DIR_BASE );
+			} else {
+				sprintf(SM_DIR, "%s/sm", DIR_BASE );
+				sprintf(SM_BAK_DIR, "%s/sm.bak", DIR_BASE );
+				sprintf(SM_STAT_PATH, "%s/state", DIR_BASE );
+			}
 			break;
 		case '?':	/* heeeeeelllllllpppp? heh */
 		case 'h':

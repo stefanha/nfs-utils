@@ -168,7 +168,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 */
 
 	path=xmalloc(strlen(SM_DIR)+strlen(mon_name)+2);
-	sprintf(path, SM_DIR "/%s", mon_name);
+	sprintf(path, "%s/%s", SM_DIR, mon_name);
 	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
 		/* Didn't fly.  We won't monitor. */
 		log(L_ERROR, "creat(%s) failed: %m", path);
