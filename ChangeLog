@@ -1,3 +1,9 @@
+2001-04-21  H.J. Lu <hjl@lucon.org>
+
+	* nfs-utils.spec.in: Fix cross build.
+	* nfs-utils.spec: Regenerated.
+	(Release): Set to 5.
+
 2001-04-18  H.J. Lu <hjl@lucon.org>
 
 	* nfs-utils.spec.in: Support cross build.
