@@ -1,3 +1,10 @@
+2003-09-15 NeilBrown <neilb@cse.unsw.edu.au>
+
+	Release 1.0.6
+
+	* configure.in, nfs-utils.spec: Update version to 1.0.4
+	* run autoconf
+	
 2003-09-12  Chip Salzenberg  <chip@pobox.com>
 
 	* debian/changelog: Version 1.0.6-1.
