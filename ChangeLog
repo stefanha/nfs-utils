@@ -1,5 +1,9 @@
 2000-09-27  H.J. Lu <hjl@lucon.org>
 
+	* README: Updated for RedHat 7.0.
+
+2000-09-27  H.J. Lu <hjl@lucon.org>
+
 	* nfs-utils.spec: Rebuild.
 
 2000-09-27  H.J. Lu <hjl@lucon.org>

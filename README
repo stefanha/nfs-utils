@@ -12,10 +12,10 @@ To compile, just do
 # make install
 
 will install the nfs-utils binaries. You have to install the NFS
-service scripts. There are 2 in etc/redhat provided for RedHat 6.x.
-They are tested on RedHat 6.2.
+service scripts. There are 2 in etc/redhat provided for RedHat 6.x
+and 7.0. They are tested on RedHat 6.2 and 7.0.
 
-On RedHat 6.2, you can use
+On RedHat 6.2 and 7.0, you can use
 
 # rpm -ta nfs-utils-0.2.1.tar.gz
 
