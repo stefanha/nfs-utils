@@ -9,7 +9,7 @@ case "$1" in
 	   || ( dpkg --compare-versions "$2" ge "1:1.0.1" \
 		&& dpkg --compare-versions "$2" lt "1:1.0.2-1" )
 	then
-	    update-rc.d -f nfs-common remove >/dev/null
+	    update-rc.d -f nfs-common remove >/dev/null 2>&1 || true
 	fi
 	update-rc.d nfs-common defaults 21 79 >/dev/null
 	;;
