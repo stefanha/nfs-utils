@@ -1,5 +1,11 @@
 2001-12-20  NeilBrown <neilb@cse.unsw.edu.au>
 
+	* support/export/client.c(client_lookup): If a host has multiple
+	IP addresses, then we must always use the result of a
+	gethostbyname, not that of gethostbyaddr for exporting
+	
+2001-12-20  NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/export/client.c (client_lookup): use strcasecmp when
 	comparing host names
 	* support/nfs/export.c (getexportent): add fromkernel arg and use
