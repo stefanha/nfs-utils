@@ -23,6 +23,14 @@
 	file for the default domain, instead of doing that ourselves.
 	* utils/gssd/gssd_proc.c: Make sure we get an error when a gssd
 	downcall fails. 
+	* utils/gssd/gssd_proc.c: We were forgetting to restore the euid
+	on certain failures, which meant gssd could get stuck in a state
+	where it didn't have permissions to read the files in rpc_pipefs
+	that it needed to. 
+	* utils/gssd/gssd_proc.c: Use libnfsidmapd to map gss principals
+	to uids. 
+	* debian/nfs-kernel-server.default: Document the NEED_SVCGSSD
+	variable in /etc/default/nfs-kernel-server. 
 
 	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>
