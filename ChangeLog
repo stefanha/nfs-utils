@@ -1,3 +1,8 @@
+2001-02-20  Lon Hohberger <hohberger@missioncriticallinux.com>
+
+	* etc/nodist/nfs-server: Changed chkconfig line to 60 20
+	* etc/nodist/nfs-client: Likewise.
+
 2001-02-18  Lon Hohberger <hohberger@missioncriticallinux.com>
 
 	* utils/statd/statd.man: Changed /usr/sbin/rpc.statd to
