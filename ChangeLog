@@ -1,3 +1,7 @@
+Mon Jan 17 11:48:18 2000 H.J. Lu <hjl@lucon.org>
+
+	* README: Update hostnames.
+
 Tue Jan 11 10:06:22 2000 H.J. Lu <hjl@lucon.org>
 
 	* configure.in (VERSION): Set to "0.1.6".
