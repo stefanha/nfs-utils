@@ -1,5 +1,9 @@
 2000-09-27  H.J. Lu <hjl@lucon.org>
 
+	* README: Updated for 0.2.1.
+
+2000-09-27  H.J. Lu <hjl@lucon.org>
+
 	* nfs-utils.spec.in: Updated to use rpm macros and support
 	RedHat 7.0.
 
