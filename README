@@ -34,11 +34,14 @@ On RedHat 6.2, you can use
 
 to build the source and binary RPMs.
 
-If your mount from util-linux is too old, you will need 3 patches:
+util-linux 2.10m or above is required. But the following patches may
+also be needed:
 
-ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.9o-mount-nfsv3.patch
-ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.9w-mount-nfsv3try.patch
-ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.10f-mount-rpc.patch
+ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.10f-mount-tcp.patch
+ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.10m-mount-compat.patch
+ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.10m-mount-nfsv3.patch
+ftp://nfs.sourceforge.net/pub/nfs/util-linux-2.10m-mount-rpc.patch
+
 
 Thanks.
 

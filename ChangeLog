@@ -1,5 +1,9 @@
 2000-07-03  H.J. Lu <hjl@lucon.org>
 
+	* README: Update the util-linux requirement.
+
+2000-07-03  H.J. Lu <hjl@lucon.org>
+
 	* configure.in (VERSION): Set to "0.1.9".
 	* configure: Regenerated.
 	* nfs-utils.spec: Updated.
