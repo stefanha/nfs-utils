@@ -1,5 +1,5 @@
 rpc.statd -- Network Status Monitor (NSM) protocol daemon for Linux.
-Copyright (C) 1995-1999 Jeffrey A. Uphoff
+Copyright (C) 1995-1999, 2002 Jeffrey A. Uphoff
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Massachusetts Ave, Cambridge, MA 02139, USA.
 
 Jeffrey A. Uphoff
-Transmeta Corporation
-2540 Mission College Blvd.
-Santa Clara, CA, 95054
+National Radio Astronomy Observatory
+520 Edgemont Road
+Charlottesville, VA 22903-2475
 USA
 
-Phone:     +1-408-919-6458
-Internet:  juphoff@transmeta.com
+Phone:     +1-434-296-0208
+Internet:  juphoff@nrao.edu

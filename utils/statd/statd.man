@@ -2,9 +2,9 @@
 .\" statd(8)
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
-.\" Modified by Jeffrey A. Uphoff, 1999.
+.\" Modified by Jeffrey A. Uphoff, 1999, 2002.
 .\" Modified by Lon Hohberger, 2000.
-.TH rpc.statd 8 "08 Mar 2001"
+.TH rpc.statd 8 "16 Sep 2002"
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
@@ -146,7 +146,7 @@ manual pages.
 .BR portmap(8)
 .SH AUTHORS
 .br
-Jeff Uphoff <juphoff@transmeta.com>
+Jeff Uphoff <juphoff@nrao.edu>
 .br
 Olaf Kirch <okir@monad.swb.de>
 .br
