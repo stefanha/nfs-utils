@@ -5,11 +5,7 @@
 case "$1" in
     configure)
 	update-rc.d nfs-common defaults 19 81 >/dev/null 2>&1
-
-	/etc/init.d/nfs-common start
-	;;
-
-    *)
-	/etc/init.d/nfs-common start
 	;;
 esac
+
+/etc/init.d/nfs-common start

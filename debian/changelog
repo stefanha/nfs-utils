@@ -1,9 +1,27 @@
+nfs-utils (1:0.3.3-3) unstable; urgency=low
+
+  * Upstream fixes:
+    > Accept obsolete mount option "crossmnt" for parsing old xtab files
+      after upgrade.  (closes: #78801)
+    > Put filenames into more error messages.
+  * Stop debconf before starting nfsd to avoid a hang.  Kernel threads
+    like nfsd aren't supposed to inherit open files from the programs that
+    start them, but nfsd does.  See debconf tutorial.  (closes: #115817)
+  * Rebuild with current glibc.  (closes: #119545)
+  * Carefully account for ownership of /var/lib/nfs/*.  (closes: #117258)
+  * Warn about statd using tcpwrappers.  (closes: #92666)
+  * Only warn about mountd's tcpwrappers name change if the old name
+    appears in the tcpwrapper config files.
+  * German template for nfs-kernel-server.  (closes: #117196)
+
+ -- Chip Salzenberg <chip@debian.org>  Wed, 21 Nov 2001 18:21:42 -0800
+
 nfs-utils (1:0.3.3-2) unstable; urgency=high
 
   * The "Test It Before Release, Stupid" release.
   * Repair total failure of rpc.mountd.  (closes: #115095)
 
- -- Chip Salzenberg <chip@valinux.com>  Thu, 11 Oct 2001 13:03:45 -0700
+ -- Chip Salzenberg <chip@debian.org>  Thu, 11 Oct 2001 13:03:45 -0700
 
 nfs-utils (1:0.3.3-1) unstable; urgency=medium
 

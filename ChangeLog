@@ -7,6 +7,7 @@
 	(setnfsexportent): Set it.
 	(endnfsexportent, parseopts, getexport, syntaxerr): Use it.
 	(parseopts): Accept old-style "crossmnt" option, for old xtabs.
+	* debian/changelog: Version 0.3.3-3.
 
 2001-10-11  Chip Salzenberg  <chip@pobox.com>
 

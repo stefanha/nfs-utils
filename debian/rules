@@ -51,7 +51,7 @@ binary-arch: build
 	  done; \
 	  rm -f tmp/usr/sbin/*quota*; \
 	  rm -f tmp/usr/share/man/man8/*quota*; \
-	  rm -rf tmp/var/lib/nfs/*
+          ( cd tmp && rm -rf var/lib/nfs && rmdir -p var/lib )
 	# Fixups End Here #
 	dh_installdocs -A README
 	dh_installexamples
@@ -68,9 +68,6 @@ binary-arch: build
 	dh_installdeb
 #	dh_makeshlibs
 	dh_shlibdeps
-	# Hackery Begins Here #
-	perl -pi -e 's/2\.2\.4-2/2.2.4-1/g' debian/*substvars
-	# Hackery Ends Here #
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

@@ -25,7 +25,8 @@ RPCMOUNTDOPTS=
 case "$1" in
   start)
 	cd /	# daemons should have root dir as cwd
-	if grep -q '^/' /etc/exports; then
+	if grep -q '^/' /etc/exports
+	then
 		printf "Exporting directories for $DESC..."
 		$PREFIX/sbin/exportfs -r
 		echo "done."

@@ -4,4 +4,11 @@
 
 [ -x /etc/init.d/nfs-common ] && /etc/init.d/nfs-common stop
 
+if [ "$1" != upgrade ]
+then
+    rm -f /var/lib/nfs/sm/*      \
+          /var/lib/nfs/sm.bak/*  \
+          /var/lib/nfs/state
+fi
+
 exit 0

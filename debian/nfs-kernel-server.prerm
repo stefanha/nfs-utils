@@ -4,4 +4,11 @@
 
 [ -x /etc/init.d/nfs-kernel-server ] && /etc/init.d/nfs-kernel-server stop
 
+if [ "$1" != upgrade ]
+then
+    rm -f /var/lib/nfs/etab   \
+          /var/lib/nfs/rmtab  \
+          /var/lib/nfs/xtab
+fi
+
 exit 0

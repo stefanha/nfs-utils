@@ -8,8 +8,10 @@ case "$1" in
     configure)
 	db_get nfs-kernel-server/tcpwrappers-mountd || true
 
-	mkdir -p /var/lib/nfs
-	touch /var/lib/nfs/xtab /var/lib/nfs/etab /var/lib/nfs/rmtab
+	touch /var/lib/nfs/etab  \
+              /var/lib/nfs/rmtab \
+              /var/lib/nfs/xtab
+
 	if test -s /etc/exports
 	then
 	    : do nothing
@@ -25,11 +27,9 @@ EOF
 	update-rc.d -f nfs-server remove
 
 	update-rc.d nfs-kernel-server defaults 20 80 >/dev/null 2>&1
-
-	/etc/init.d/nfs-kernel-server start
-	;;
-
-    *)
-	/etc/init.d/nfs-kernel-server start
 	;;
 esac
+
+db_stop
+
+/etc/init.d/nfs-kernel-server start
