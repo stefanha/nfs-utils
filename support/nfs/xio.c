@@ -83,14 +83,32 @@ xfunlock(int fd)
 	close(fd);
 }
 
+#define isoctal(x) (isdigit(x) && ((x)<'8'))
 int
 xgettok(XFILE *xfp, char sepa, char *tok, int len)
 {
 	int	i = 0;
 	int	c = 0;
+	int 	quoted=0;
 
-	while (i < len && (c = xgetc(xfp)) != EOF && c != sepa && !isspace(c))
+	while (i < len && (c = xgetc(xfp)) != EOF &&
+	       (quoted || (c != sepa && !isspace(c)))) {
+		if (c == '"') {
+			quoted = !quoted;
+			continue;
+		}
 		tok[i++] = c;
+		if (i >= 4 &&
+		    tok[i-4] == '\\' &&
+		    isoctal(tok[i-3]) &&
+		    isoctal(tok[i-2]) &&
+		    isoctal(tok[i-1]) &&
+		    ((tok[i]=0),
+		     (c = strtol(tok+i-3,NULL, 8)) < 256)) {
+			i -= 4;
+			tok[i++] = c;
+		}
+	}	
 	if (c == '\n')
 		xungetc(c, xfp);
 	if (!i)

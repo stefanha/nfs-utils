@@ -1,5 +1,14 @@
 2001-09-12 NeilBrown <neilb@cse.unsw.edu.au>
 
+	* support/nfs/exports.c (putexportent): \octal quote any spaces
+	etc in a path name
+	* support/nfs/xio.c (xgettok): recognise double-quote and
+	\octal quoting in path names
+	* utils/exportfs/exports.man: document quoting conventions
+	for path names
+	
+2001-09-12 NeilBrown <neilb@cse.unsw.edu.au>
+
 	* utils/mountd/auth.c (auth_authenticate_internal): Reverse
 	  change from 2000-08-02:  It causes problems if someone exports
 	  to both a hostname and IP addresses.  nfs-utils must be

@@ -22,7 +22,10 @@ contains an export point and a list of machine or netgroup names allowed
 to mount the file system at that point.  An optional parenthesized list
 of export parameters may follow each machine name.  Blank lines are
 ignored, and a # introduces a comment to the end of the line. Entries may
-be continued across newlines using a backslash.
+be continued across newlines using a backslash. If export name contains spaces
+it should be quoted using double-quotes. You can also specify spaces
+or any other unusual characters in the export path name using a
+backslash followed by the character code as 3 octal digits.
 .PP
 .SS Machine Name Formats
 NFS clients may be specified in a number of ways:

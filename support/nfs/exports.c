@@ -135,12 +135,19 @@ putexportent(struct exportent *ep)
 {
 	FILE	*fp;
 	int	*id, i;
+	char	*esc=ep->e_path;
 
 	if (!efp)
 		return;
 
 	fp = efp->x_fp;
-	fprintf(fp, "%s\t%s(", ep->e_path, ep->e_hostname);
+	for (i=0; esc[i]; i++)
+	        if (iscntrl(esc[i]) || esc[i] == '"' || esc[i] == '\\'|| isspace(esc[i]))
+			fprintf(fp, "\\%03o", esc[i]);
+		else
+			fprintf(fp, "%c", esc[i]);
+
+	fprintf(fp, "\t%s(", ep->e_hostname);
 	fprintf(fp, "%s,", (ep->e_flags & NFSEXP_READONLY)? "ro" : "rw");
 	fprintf(fp, "%ssync,", (ep->e_flags & NFSEXP_ASYNC)? "a" : "");
 	fprintf(fp, "%swdelay,", (ep->e_flags & NFSEXP_GATHERED_WRITES)?
