@@ -25,7 +25,7 @@ up to 2.6).  This man page does not apply to 2.4 and earlier.
 As well as this filesystem, there are a collection of files in the
 .B procfs
 filesystem (normally mounted at
-.BE /proc )
+.BR /proc )
 which are used to control the NFS server.
 This manual page describes all of these files.
 .P

@@ -1,3 +1,8 @@
+2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/exportfs/nfsd.man: corrected typo in .BR macro usage -
+	reported by Eric Raymond
+	
 2004-10-19 "J. Bruce Fields" <bfields@fieldses.org>
 
 	* support/gssapi/* support/rpc/* utils/gssd/* utils/svcgssd/* etc
