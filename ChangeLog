@@ -1,3 +1,7 @@
+2000-09-01  H.J. Lu <hjl@lucon.org>
+
+	* README: Updated for 0.2.
+
 2000-09-01  Jay Weber <jweber@valinux.com>
 
 	* etc/redhat/nfs.init: Added ability for rpc.mountd to default to
