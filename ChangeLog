@@ -1,3 +1,7 @@
+2000-06-28  Chip Salzenberg  <chip@valinux.com>
+
+	* utils/statd/log.c (log): Call syslog with format string.
+
 2000-06-27  H.J. Lu <hjl@lucon.org>
 
 	* utils/statd/statd.c (main): Use sysconf (_SC_OPEN_MAX)
