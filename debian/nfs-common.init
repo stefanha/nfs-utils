@@ -18,6 +18,7 @@ DESC="NFS common utilities"
 DEFAULTFILE=/etc/default/nfs-common
 PREFIX=
 NEED_LOCKD=
+NEED_IDMAPD=yes
 if [ -f $DEFAULTFILE ]; then
     . $DEFAULTFILE
 fi
@@ -47,6 +48,7 @@ esac
 # Exit if required binaries are missing.
 [ -x $PREFIX/sbin/rpc.statd ] || exit 0
 [ -x $PREFIX/sbin/rpc.lockd ] || [ "$NEED_LOCKD" = no ] || exit 0
+[ -x /usr/sbin/rpc.idmapd ] || [ "$NEED_IDMAPD" = no ] || exit 0
 
 # See how we were called.
 case "$1" in
@@ -62,11 +64,23 @@ case "$1" in
 	    start-stop-daemon --start --quiet \
 		--exec $PREFIX/sbin/rpc.lockd  || true
 	fi
+	if [ "$NEED_IDMAPD" = yes ]
+	then
+	    printf " idmapd"
+	    start-stop-daemon --start --quiet \
+		--exec /usr/sbin/rpc.idmapd
+	fi
 	echo "."
 	;;
 
   stop)
 	printf "Stopping $DESC:"
+	if [ "$NEED_IDMAPD" = yes ]
+	then
+	    printf " idmapd"
+	    start-stop-daemon --stop --oknodo --quiet \
+		--name rpc.idmapd --user 0
+	fi
 	if [ "$NEED_LOCKD" = yes ]
 	then
 	    printf " lockd"

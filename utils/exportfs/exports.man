@@ -79,6 +79,11 @@ may work by accident when reverse DNS lookups fail.
 '''.B \-\-public\-root
 '''option. Multiple specifications of a public root will be ignored.
 .PP
+.SS RPCSEC_GSS security
+To restrict access to an export using rpcsec_gss security, use the special
+string "gss/krb5" as the client.  It is not possible to simultaneously require
+rpcsec_gss and to make requirements on the IP address of the client.
+.PP
 .SS General Options
 .IR exportfs
 understands the following export options:

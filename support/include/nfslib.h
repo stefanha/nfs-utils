@@ -23,6 +23,9 @@
 #ifndef _PATH_EXPORTS
 #define _PATH_EXPORTS		"/etc/exports"
 #endif
+#ifndef _PATH_IDMAPDCONF
+#define _PATH_IDMAPDCONF	"/etc/idmapd.conf"
+#endif
 #ifndef _PATH_XTAB
 #define _PATH_XTAB		NFS_STATEDIR "/xtab"
 #endif

@@ -392,6 +392,8 @@ client_check(nfs_client *clp, struct hostent *hp)
 #endif
 	case MCL_ANONYMOUS:
 		return 1;
+	case MCL_GSS:
+		return 0;
 	default:
 		xlog(L_FATAL, "internal: bad client type %d", clp->m_type);
 	}
@@ -425,6 +427,8 @@ client_gettype(char *ident)
 
 	if (ident[0] == '\0' || strcmp(ident, "*")==0)
 		return MCL_ANONYMOUS;
+	if (strncmp(ident, "gss/", 4) == 0)
+		return MCL_GSS;
 	if (ident[0] == '@') {
 #ifndef HAVE_INNETGR
 		xlog(L_WARNING, "netgroup support not compiled in");

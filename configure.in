@@ -39,6 +39,19 @@ AC_ARG_ENABLE(nfsv3,
 		enable_nfsv3=
 	fi
 	AC_SUBST(enable_nfsv3)
+AC_ARG_ENABLE(nfsv4,
+	[  --enable-nfsv4          enable support for NFSv4],
+	enable_nfsv4=$enableval,
+	enable_nfsv4=yes)
+	if test "$enable_nfsv4" = yes; then
+		AC_DEFINE(NFS4_SUPPORTED)
+		IDMAPD=idmapd
+	else
+		enable_nfsv4=
+		IDMAPD=
+	fi
+	AC_SUBST(IDMAPD)
+	AC_SUBST(enable_nfsv4)
 AC_ARG_ENABLE(kprefix,
 	[  --enable-kprefix       install progs as rpc.knfsd etc],
 	test "$enableval" = "yes" && kprefix=k,
@@ -87,6 +100,12 @@ dnl *************************************************************
 AC_CHECK_LIB(socket, main, [LIBSOCKET="-lnsl"])
 AC_CHECK_LIB(nsl, main,	[LIBNSL="-lnsl"])
 AC_CHECK_LIB(crypt, crypt, [LIBCRYPT="-lcrypt"])
+if test "$enable_nfsv4" = yes; then
+    AC_CHECK_LIB(event, event_dispatch)
+    AC_CHECK_LIB(nfsidmap, nfs4_uid_to_name)
+    AC_CHECK_HEADERS(event.h)
+    AC_CHECK_HEADERS(nfsidmap.h)
+fi
 if test "$knfsd_cv_glibc2" = no; then
     AC_CHECK_LIB(bsd, daemon, [LIBBSD="-lbsd"])
 fi

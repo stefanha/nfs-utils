@@ -27,7 +27,7 @@ export_export(nfs_export *exp)
 	struct nfsctl_export	exparg;
 	struct nfsctl_client	cltarg;
 
-	if (!clp->m_exported) {
+	if (!clp->m_exported && (clp->m_type != MCL_GSS)) {
 		if (!cltsetup(&cltarg, clp))
 			return 0;
 		if (nfsaddclient(&cltarg) < 0)

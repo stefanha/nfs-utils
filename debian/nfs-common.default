@@ -6,3 +6,7 @@ STATDOPTS=
 # Are you _sure_ that your kernel does or does not need a lockd daemon?
 # If so, set this variable to either "yes" or "no".
 NEED_LOCKD=
+
+# If you are not using NFSv4 and wish to disable the idmapd daemon
+# then uncomment the following line
+# NEED_IDMAPD=no

@@ -46,6 +46,7 @@ binary-arch: build
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
+	dh_install
 	# Add here commands to install the files into debian/tmp
 	$(MAKE) install_prefix='$(DEBTMP)' install
 	dh_movefiles
