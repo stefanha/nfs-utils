@@ -1,3 +1,7 @@
+2004-12-06 Bruce Allan <bwa@us.ibm.com>
+	* utils/mountd/auth.c(auth_reload)  Clear the "my_client" cache on
+	an auth_reload to avoid old data getting used.
+	
 2004-12-03 NeilBrown <neilb@cse.unsw.edu.au>
 	Release 1.0.7-pre1 for testing
 	

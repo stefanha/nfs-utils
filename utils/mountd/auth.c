@@ -30,6 +30,8 @@ enum auth_error
 
 static void		auth_fixpath(char *path);
 static char	*export_file = NULL;
+static nfs_export my_exp;
+static nfs_client my_client;
 
 extern int new_cache;
 
@@ -55,6 +57,7 @@ auth_reload()
 	last_modified = stb.st_mtime;
 
 	export_freeall();
+	memset(&my_client, 0, sizeof(my_client));
 	// export_read(export_file);
 	xtab_export_read();
 
@@ -69,8 +72,6 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 	nfs_export		*exp;
 
 	if (new_cache) {
-		static nfs_export my_exp;
-		static nfs_client my_client;
 		int i;
 		/* return static nfs_export with details filled in */
 		if (my_client.m_naddr != 1 ||
