@@ -1,5 +1,11 @@
 2003-03-26 NeilBrown <neilb@cse.unsw.edu.au>
 
+	* configure.in (VERSION): Set to "1.0.3".
+	* nfs-utils.spec: Likewise.
+	* configure: Regenerated.
+
+2003-03-26 NeilBrown <neilb@cse.unsw.edu.au>
+
 	* support/nfs/cacheio.c: New File - support for read/writing
 	to export cache in /proc/rpc/*/channel
 	* support/nfs/Makefile: compile cacheio.c
