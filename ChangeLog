@@ -1,3 +1,10 @@
+2004-12-07 Marc Eshel <eshel@almaden.ibm.com>
+	* utils/statd/svc_run.c(my_svc_run): allow loop to exit when in
+	MODE_NOTIFY_ONLY
+	*utils/statd/rmtcall.c(statd_get_socket): if a hostname is given
+	to statd with -n, prefer it's IP address to the default for
+	listening on.
+	
 2004-12-06 Bruce Allan <bwa@us.ibm.com>
 	* utils/mountd/auth.c(auth_reload)  Clear the "my_client" cache on
 	an auth_reload to avoid old data getting used.

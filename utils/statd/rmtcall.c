@@ -66,6 +66,16 @@ statd_get_socket(int port)
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_port = port;
+	/*
+	 * If a local hostname is given (-n option to statd), bind to the address
+	 * specified. This is required to support clients that ignore the mon_name in
+	 * the statd protocol but use the source address from the request packet.
+	 */
+	if (MY_NAME) {
+		struct hostent *hp = gethostbyname(MY_NAME);
+		if (hp)
+			sin.sin_addr = *(struct in_addr *) hp->h_addr;
+	}
 	if (bindresvport(sockfd, &sin) < 0) {
 		dprintf(N_WARNING,
 			"process_hosts: can't bind to reserved port\n");

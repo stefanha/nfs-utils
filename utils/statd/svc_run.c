@@ -107,7 +107,9 @@ my_svc_run(void)
 							tv.tv_sec);
 			selret = select(FD_SETSIZE, &readfds,
 				(void *) 0, (void *) 0, &tv);
-		} else {
+		} else if (run_mode & MODE_NOTIFY_ONLY)
+			return;
+		else {
 			dprintf(N_DEBUG, "Waiting for client connections.");
 			selret = select(FD_SETSIZE, &readfds,
 				(void *) 0, (void *) 0, (struct timeval *) 0);
