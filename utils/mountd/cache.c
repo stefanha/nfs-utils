@@ -78,6 +78,9 @@ void auth_unix_ip(FILE *f)
 		qword_print(f, *client?client:"DEFAULT");
 	qword_eol(f);
 
+	if (client && strcmp(ipaddr, client))
+		mountlist_add(ipaddr, *client?client:"DEFAULT");
+
 	if (client) free(client);
 	
 }
@@ -258,6 +261,7 @@ void nfsd_export(FILE *f)
 		qword_printint(f, found->m_export.e_anonuid);
 		qword_printint(f, found->m_export.e_anongid);
 		qword_printint(f, found->m_export.e_fsid);
+		mountlist_add(dom, path);
 	}
 	qword_eol(f);
  out:
@@ -320,7 +324,7 @@ int cache_process_req(fd_set *readfds)
 void cache_export_ent(char *domain, struct exportent *exp)
 {
 
-	FILE *f = fopen("/proc/net/rpc/nfsd.export/channel", "r+");
+	FILE *f = fopen("/proc/net/rpc/nfsd.export/channel", "w");
 	if (!f)
 		return;
 
@@ -334,13 +338,15 @@ void cache_export_ent(char *domain, struct exportent *exp)
 	qword_eol(f);
 
 	fclose(f);
+
+	mountlist_add(domain, exp->e_path);
 }
 
 void cache_export(nfs_export *exp)
 {
 	FILE *f;
 
-	f = fopen("/proc/net/rpc/auth.unix.ip/channel", "r+");
+	f = fopen("/proc/net/rpc/auth.unix.ip/channel", "w");
 	if (!f)
 		return;
 
@@ -351,6 +357,9 @@ void cache_export(nfs_export *exp)
 	qword_eol(f);
 	
 	fclose(f);
+
+	if (strcmp(inet_ntoa(exp->m_client->m_addrlist[0]), exp->m_client->m_hostname))
+		mountlist_add(inet_ntoa(exp->m_client->m_addrlist[0]), exp->m_client->m_hostname);
 
 	cache_export_ent(exp->m_client->m_hostname, &exp->m_export);
 }

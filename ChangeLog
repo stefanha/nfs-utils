@@ -1,3 +1,12 @@
+2003-08-04 NeilBrown <neilb@cse.unsw.edu.au>
+	* support/nfs/nfsexport.c: open channel file O_WRONLY when
+	only writing.
+	* utils/mountd/cache.c: maintain mountlist when new_cache is
+	active. Also use O_WRONLY for channel files.
+	* utils/mountd/mountd.h: mountlist_{del,add} now take a host name
+	rather than an nfs_export.
+	* utils/mountd/rmtab.c: ditto.
+	
 2003-07-24  Chip Salzenberg  <chip@pobox.com>
 
 	* support/nfs/xlog.c (xlog): Revise buffer-overflow fix to

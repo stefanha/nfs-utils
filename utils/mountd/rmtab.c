@@ -46,7 +46,7 @@ slink_safe_rename(const char * oldpath, const char * newpath)
 }
 
 void
-mountlist_add(nfs_export *exp, const char *path)
+mountlist_add(char *host, const char *path)
 {
 	struct rmtabent	xe;
 	struct rmtabent	*rep;
@@ -58,7 +58,7 @@ mountlist_add(nfs_export *exp, const char *path)
 	setrmtabent("r+");
 	while ((rep = getrmtabent(1, &pos)) != NULL) {
 		if (strcmp (rep->r_client,
-			    exp->m_client->m_hostname) == 0
+			    host) == 0
 		    && strcmp(rep->r_path, path) == 0) {
 			rep->r_count++;
 			putrmtabent(rep, &pos);
@@ -68,7 +68,7 @@ mountlist_add(nfs_export *exp, const char *path)
 		}
 	}
 	endrmtabent();
-	strncpy(xe.r_client, exp->m_client->m_hostname,
+	strncpy(xe.r_client, host,
 		sizeof (xe.r_client) - 1);
 	xe.r_client [sizeof (xe.r_client) - 1] = '\0';
 	strncpy(xe.r_path, path, sizeof (xe.r_path) - 1);
@@ -82,11 +82,10 @@ mountlist_add(nfs_export *exp, const char *path)
 }
 
 void
-mountlist_del(nfs_export *exp, const char *path)
+mountlist_del(char *hname, const char *path)
 {
 	struct rmtabent	*rep;
 	FILE		*fp;
-	char		*hname = exp->m_client->m_hostname;
 	int		lockid;
 	int		match;
 

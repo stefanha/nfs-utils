@@ -117,8 +117,14 @@ mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *resp)
 	if (!(exp = auth_authenticate("unmount", sin, p))) {
 		return 1;
 	}
-	mountlist_del(exp, p);
-	export_reset (exp);
+	if (new_cache) {
+		if (strcmp(inet_ntoa(exp->m_client->m_addrlist[0]), exp->m_client->m_hostname))
+			mountlist_del(inet_ntoa(exp->m_client->m_addrlist[0]), exp->m_client->m_hostname);
+		mountlist_del(exp->m_client->m_hostname, p);
+	} else {
+		mountlist_del(exp->m_client->m_hostname, p);
+		export_reset (exp);
+	}
 	return 1;
 }
 
@@ -322,7 +328,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 						stb.st_dev, stb.st_ino);
 		}
 		if (fh != NULL) {
-			mountlist_add(exp, p);
+			mountlist_add(exp->m_client->m_hostname, p);
 			*error = NFS_OK;
 			export_reset (exp);
 			return fh;

@@ -93,7 +93,7 @@ nfsexport(struct nfsctl_export *exp)
 {
 	struct nfsctl_arg	arg;
 	int fd;
-	if ((fd=open("/proc/net/rpc/nfsd.fh/channel", O_RDWR))>= 0) {
+	if ((fd=open("/proc/net/rpc/nfsd.fh/channel", O_WRONLY))>= 0) {
 		close(fd);
 		return exp_unexp(exp, 1);
 	}
@@ -108,7 +108,7 @@ nfsunexport(struct nfsctl_export *exp)
 	struct nfsctl_arg	arg;
 
 	int fd;
-	if ((fd=open("/proc/net/rpc/nfsd.fh/channel", O_RDWR))>= 0) {
+	if ((fd=open("/proc/net/rpc/nfsd.fh/channel", O_WRONLY))>= 0) {
 		close(fd);
 		return exp_unexp(exp, 0);
 	}
