@@ -98,6 +98,8 @@ getexportent(void)
 	if (ok == 0)
 		exp[0] = '\0';
 	if ((opt = strchr(exp, '(')) != NULL) {
+		if (opt == exp) 
+			xlog(L_WARNING, "No host name given with %s %s, suggest *%s to avoid warning", ee.e_path, exp, exp);
 		*opt++ = '\0';
 		if (!(sp = strchr(opt, ')')) || sp[1] != '\0') {
 			syntaxerr("bad option list");
@@ -106,6 +108,8 @@ getexportent(void)
 		*sp = '\0';
 		if (parseopts(opt, &ee) < 0)
 			return NULL;
+	} else {
+	    xlog(L_WARNING, "No options for %s %s: suggest %s() to avoid warning", ee.e_path, exp, exp);
 	}
 	if (strlen(exp) >= sizeof(ee.e_hostname)) {
 		syntaxerr("client name too long");
