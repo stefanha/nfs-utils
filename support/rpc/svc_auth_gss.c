@@ -382,7 +382,7 @@ _svcauth_gss(struct svc_req *rqst, struct rpc_msg *msg, bool_t *no_dispatch)
 			return (AUTH_FAILED);
 		}
 		auth->svc_ah_ops = &svc_auth_gss_ops;
-		SVCAUTH_PRIVATE(auth) = gd;
+		auth->svc_ah_private = (caddr_t)gd;
 		rqst->rq_xprt->xp_auth = auth;
 	}
 	else gd = SVCAUTH_PRIVATE(rqst->rq_xprt->xp_auth);

@@ -1,5 +1,8 @@
 2005-04-06  Chip Salzenberg  <chip@pobox.com>
 
+	* support/rpc/svc_auth_gss.c (_svcauth_gss): Avoid using a cast as
+	an lvalue, as it is non-portable.
+
 	* support/nfs/exports.c (parseopts): Accept "acl" option to mean
 	~NFSEXP_NOACL, and "no_acl" to mean NFSEXP_NOACL.
 	(putexportent): Report NFSEXP_NOACL as "no_acl", and ~NFSEXP_NOACL
