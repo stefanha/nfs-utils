@@ -27,7 +27,7 @@ fi
 [ -x /usr/sbin/exportfs ] || exit 0
 [ -s /etc/exports ] || exit 0
 
-# Number of servers to be started uo by default
+# Number of servers to be started up by default
 RPCNFSDCOUNT=8
 # No NFS V3.
 RPCMOUNTDOPTS="--no-nfs-version 3"
