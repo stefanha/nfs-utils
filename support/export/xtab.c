@@ -53,7 +53,7 @@ xtab_mount_read(void)
 		close(fd);
 		return xtab_read(_PATH_PROC_EXPORTS, 0);
 	} else
-		return xtab_read(_PATH_XTAB, 0);
+		return xtab_read(_PATH_XTAB, 1);
 }
 
 int

@@ -1,3 +1,11 @@
+2000-08-09  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfs.init: Run /usr/sbin/exportfs first during
+	startup to ensure all existing clients work fine.
+
+	* support/export/xtab.c (xtab_mount_read): Pass 1 instead of 0
+	to xtab_read () for reading _PATH_XTAB.
+
 2000-08-02  H.J. Lu <hjl@lucon.org>
 
 	* utils/mountd/auth.c (auth_authenticate_internal): Try to
