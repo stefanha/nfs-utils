@@ -1,3 +1,23 @@
+2001-06-27  H.J. Lu <hjl@lucon.org>
+
+	* config.mk.in (CC_FOR_BUILD): Renamed from BUILD_CC.
+	(CFLAGS_FOR_BUILD): New. Don't use @CFLAGS@.
+
+	* configure.in (enable_nfsv3): Set to yes by default.
+	(--enable-rquotad): Added
+	(AC_PROG_CXX): Removed.
+	(AC_OUTPUT): Add utils/Makefile.
+	(CC_FOR_BUILD): Renamed from BUILD_CC.
+	* configure: Regenerated.
+
+	* utils/Makefile: Removed.
+
+	* utils/Makefile.in: New.
+
+	* nfs-utils.spec.in (rquotad): New. Set to 0 to disable
+	rquotad.
+	(CC_FOR_BUILD): Renamed from BUILD_CC.
+
 2001-06-15  Chip Salzenberg  <chip@debian.org>
 
 	* debian/changelog: Version 0.3.2-2.
@@ -59,7 +79,7 @@
 	* config.guess: New.
 
 	* config.mk.in (BUILD_CC): New.
-	(CC): Set to  $(BUILD_CC) if BUILD is defined.
+	(CC): Set to $(BUILD_CC) if BUILD is defined.
 	(AR): Set to @AR@.
 	(LD): Set to @LD@.
 	(RANLIB): Set to @RANLIB@.

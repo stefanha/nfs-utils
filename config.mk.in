@@ -43,12 +43,6 @@ ifndef ARCHFLAGS
 .EXPORT:	ARCHFLAGS
 endif
 
-BUILD_CC	= @BUILD_CC@
-ifdef BUILD
-CC		= $(BUILD_CC)
-else
-CC		= @CC@
-endif
 AR		= @AR@
 LD		= @LD@
 RM		= rm -f
@@ -67,7 +61,17 @@ ifdef KERNEL_INCDIR
 AFLAGS	       += -I$(KERNEL_INCDIR)
 endif
 
-CFLAGS		= @CFLAGS@ $(AFLAGS) $(CCOPTS) -DVERSION="\"$(VERSION)\""
+ALL-CFLAGS	= $(AFLAGS) $(CCOPTS) -DVERSION="\"$(VERSION)\""
+CC		= @CC@
+CFLAGS		= @CFLAGS@ $(ALL-CFLAGS)
+CC_FOR_BUILD	= @CC_FOR_BUILD@
+CFLAGS_FOR_BUILD= -O2 $(ALL-CFLAGS)
+
+ifdef BUILD
+CC		= $(CC_FOR_BUILD)
+CFLAGS		= $(CFLAGS_FOR_BUILD)
+endif
+
 LDFLAGS		= @LDFLAGS@ $(LDOPTS) -L$(TOP)support/lib
 
 ifdef NFSV3

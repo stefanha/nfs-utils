@@ -2,7 +2,7 @@
 # Makefile for linux-nfs/support
 #
 
-SUBDIRS	= exportfs mountd nfsd statd nfsstat rquotad showmount \
+SUBDIRS	= exportfs mountd nfsd statd nfsstat @RQUOTAD@ showmount \
 	  nhfsstone lockd
 
 include $(TOP)rules.mk
