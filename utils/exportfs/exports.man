@@ -95,17 +95,31 @@ This can also be made explicit by using
 the
 .IR ro " option.
 .TP
-.IR sync
-This option requests that all file writes be committed to disc before
-the write request completes.  This is required for complete safety of
-data in the face of a server crash, but incurs a performance hit.
-The default is to allow the server to write the data out whenever it
-is ready.  This can be explicitly requested with the
-.IR async " option.
+.IR async
+This option allows the NFS server to violate the NFS protocol and
+reply to requests before any changes made by that request have been
+committed to stable storage (e.g. disc drive).
+
+Using this option usually improves performance, but at the cost that
+an unclean server restart (i.e. a crash) can cause data to be lost or
+corrupted.
+
+In releases of nfs-utils upto and including 1.0.0, this option was the
+default.  In this and future releases,
+.I sync
+is the default, and
+.I async
+must be explicit requested if needed.
+To help make system adminstrators aware of this change, 'exportfs'
+will issue a warning if neither
+.I sync
+nor
+.I async
+is specified.
 .TP
 .IR no_wdelay
-This option only has effect if
-.I sync
+This option has no effect if
+.I async
 is also set.  The NFS server will normally delay committing a write request
 to disc slightly if it suspects that another related write request may be in
 progress or may arrive soon.  This allows multiple write requests to

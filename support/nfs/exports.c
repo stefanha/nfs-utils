@@ -29,7 +29,7 @@
 #include "xio.h"
 
 #define EXPORT_DEFAULT_FLAGS	\
-  (NFSEXP_ASYNC|NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES)
+  (NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES)
 
 static char	*efname = NULL;
 static XFILE	*efp = NULL;
@@ -117,10 +117,8 @@ getexportent(int fromkernel)
 			return NULL;
 		}
 		*sp = '\0';
-		if (parseopts(opt, &ee) < 0)
-			return NULL;
 	} else {
-	    xlog(L_WARNING, "No options for %s %s: suggest %s() to avoid warning", ee.e_path, exp, exp);
+	    xlog(L_WARNING, "No options for %s %s: suggest %s(sync) to avoid warning", ee.e_path, exp, exp);
 	}
 	if (strlen(exp) >= sizeof(ee.e_hostname)) {
 		syntaxerr("client name too long");
@@ -128,6 +126,9 @@ getexportent(int fromkernel)
 	}
 	strncpy(ee.e_hostname, exp, sizeof (ee.e_hostname) - 1);
 	ee.e_hostname[sizeof (ee.e_hostname) - 1] = '\0';
+
+	if (parseopts(opt, &ee) < 0)
+		return NULL;
 
 	/* resolve symlinks */
 	if (realpath(ee.e_path, rpath) != NULL) {
@@ -266,7 +267,7 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_path[sizeof (ee.e_path) - 1] = '\0';
 	strncpy (ee.m_path, ee.e_path, sizeof (ee.m_path) - 1);
 	ee.m_path [sizeof (ee.m_path) - 1] = '\0';
-	if (options && parseopts(options, &ee) < 0)
+	if (parseopts(options, &ee) < 0)
 		return NULL;
 	return &ee;
 }
@@ -274,7 +275,7 @@ mkexportent(char *hname, char *path, char *options)
 int
 updateexportent(struct exportent *eep, char *options)
 {
-	if (options && parseopts(options, eep) < 0)
+	if (parseopts(options, eep) < 0)
 		return 0;
 	return 1;
 }
@@ -285,12 +286,17 @@ updateexportent(struct exportent *eep, char *options)
 static int
 parseopts(char *cp, struct exportent *ep)
 {
+	int	had_sync_opt = 0;
 
 	squids = ep->e_squids; nsquids = ep->e_nsquids;
 	sqgids = ep->e_sqgids; nsqgids = ep->e_nsqgids;
 
+	if (!cp)
+		goto out;
+
 	while (isblank(*cp))
 		cp++;
+
 	while (*cp) {
 		char *opt = strdup(cp);
 		char *optstart = cp;
@@ -310,11 +316,13 @@ parseopts(char *cp, struct exportent *ep)
 			ep->e_flags &= ~NFSEXP_INSECURE_PORT;
 		else if (!strcmp(opt, "insecure"))
 			ep->e_flags |= NFSEXP_INSECURE_PORT;
-		else if (!strcmp(opt, "sync"))
+		else if (!strcmp(opt, "sync")) {
+			had_sync_opt = 1;
 			ep->e_flags &= ~NFSEXP_ASYNC;
-		else if (!strcmp(opt, "async"))
+		} else if (!strcmp(opt, "async")) {
+			had_sync_opt = 1;
 			ep->e_flags |= NFSEXP_ASYNC;
-		else if (!strcmp(opt, "nohide"))
+		} else if (!strcmp(opt, "nohide"))
 			ep->e_flags |= NFSEXP_CROSSMNT;
 		else if (!strcmp(opt, "hide"))
 			ep->e_flags &= ~NFSEXP_CROSSMNT;
@@ -382,6 +390,13 @@ parseopts(char *cp, struct exportent *ep)
 	ep->e_sqgids = sqgids;
 	ep->e_nsquids = nsquids;
 	ep->e_nsqgids = nsqgids;
+
+out:
+	if (!had_sync_opt)
+		xlog(L_WARNING, "No 'sync' or 'async' option specified for export \"%s:%s\".\n"
+				"  Assuming default behaviour ('sync').\n"
+		     		"  NOTE: this default has changed from previous versions\n",
+				ep->e_hostname, ep->e_path);
 
 	return 1;
 }
