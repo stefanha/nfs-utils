@@ -29,6 +29,8 @@ MANGROUP	= root
 
 # Various libs
 LIBBSD		= @LIBBSD@
+LIBNSL		= @LIBNSL@
+LIBWRAP		= @LIBWRAP@
 
 ################# END OF USER SERVICEABLE PARTS ##################
 ALLTARGETS	= all clean distclean install installman \

@@ -52,7 +52,7 @@ dnl ** we have to include sys/types.h. Ugh.
 define(AC_DEV_T_SIZE,
   [AC_MSG_CHECKING(size of dev_t)
    AC_CACHE_VAL(ac_cv_sizeof_dev_t,
-   [AC_TRY_RUN(
+   [AC_TRY_LINK(
     [#include <stdio.h>
      #include <sys/types.h>
      main()
@@ -118,3 +118,22 @@ define([AC_BSD_SIGNALS],
     AC_MSG_RESULT($knfsd_cv_bsd_signals)
     test $knfsd_cv_bsd_signals = yes && AC_DEFINE(HAVE_BSD_SIGNALS)
 ])dnl
+dnl *********** the tcp wrapper library ***************
+define(AC_TCP_WRAPPER,
+  [AC_MSG_CHECKING(for the tcp wrapper library)
+  AC_CACHE_VAL(knfsd_cv_tcp_wrapper,
+  [old_LIBS="$LIBS"
+   LIBS="$LIBS -lwrap $LIBNSL"
+   AC_TRY_LINK([
+      int deny_severity = 0;
+      int allow_severity = 0;],
+      [return hosts_ctl ("nfsd", "", "")],
+      knfsd_cv_tcp_wrapper=yes, knfsd_cv_tcp_wrapper=no)
+   LDFLAGS="$old_LDFLAGS"])
+  AC_MSG_RESULT($knfsd_cv_tcp_wrapper)
+  if test "$knfsd_cv_tcp_wrapper" = yes; then
+    CFLAGS="$CFLAGS -DHAVE_TCP_WRAPPER"
+    CXXFLAGS="$CXXFLAGS -DHAVE_TCP_WRAPPER"
+    LIBWRAP="-lwrap"
+  fi
+]) dnl

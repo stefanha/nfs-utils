@@ -16,7 +16,7 @@ PROGRAM	= statd
 PREFIX	= rpc.
 OBJS	= $(SRCS:.c=.o)
 CCOPTS	= $(DEBUG) $(SIMUL)
-LIBS	= -lexport
+LIBS	= -lexport -lmisc $(LIBWRAP) $(LIBNSL)
 
 SRCS	= $(RPCSRCS) $(SIMSRCS) \
 	  callback.c notlist.c log.c misc.c monitor.c notify.c simu.c \

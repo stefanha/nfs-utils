@@ -21,12 +21,31 @@ int	_rpcpmstart = 0;	/* flags for tirpc rpcgen */
 int	_rpcfdtype = 0;
 int	_rpcsvcdirty = 0;
 
-extern void sm_prog_1 (struct svc_req *, register SVCXPRT);
+extern void sm_prog_1 (struct svc_req *, register SVCXPRT *);
 
 #ifdef SIMULATIONS
 extern void simulator (int, char **);
 #endif
 
+
+#ifdef HAVE_TCP_WRAPPER 
+#include "tcpwrapper.h"
+
+static void
+sm_prog_1_wrapper (struct svc_req *rqstp, register SVCXPRT *transp)
+{
+  /* remote host authorization check */
+  if (!check_default("statd", svc_getcaller(transp),
+		     rqstp->rq_proc, (u_long) 0)) {
+    svcerr_auth (transp, AUTH_FAILED);
+    return;
+  }
+
+  sm_prog_1 (rqstp, transp);
+}
+
+#define sm_prog_1 sm_prog_1_wrapper
+#endif
 
 /*
  * Signal handler.

@@ -20,6 +20,10 @@
  */
 #include "config.h"
 
+#ifdef HAVE_TCP_WRAPPER
+#include "tcpwrapper.h"
+#endif
+
 #include <unistd.h>
 #include <rpc/rpc.h>
 #include "rquota.h"
@@ -58,6 +62,15 @@ static void rquotaprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
    char *result;
    xdrproc_t xdr_argument, xdr_result;
    char *(*local)(char *, struct svc_req *);
+
+#ifdef HAVE_TCP_WRAPPER
+   /* remote host authorization check */
+   if (!check_default("rquotad", svc_getcaller(transp),
+		      rqstp->rq_proc, (u_long) 0)) {
+         svcerr_auth (transp, AUTH_FAILED);
+         return;
+   }
+#endif
 
    /*
     * Don't bother authentication for NULLPROC.

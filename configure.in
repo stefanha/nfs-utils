@@ -64,6 +64,9 @@ AC_SUBST(LIBNSL)
 AC_SUBST(LIBCRYPT)
 AC_SUBST(LIBBSD)
 
+AC_TCP_WRAPPER
+AC_SUBST(LIBWRAP)
+
 dnl *************************************************************
 dnl Check for headers
 dnl *************************************************************

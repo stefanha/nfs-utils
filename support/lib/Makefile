@@ -1,7 +1,7 @@
 
 include	$(TOP)rules.mk
 
-LIBS	= libnfs.a libexport.a
+LIBS	= libnfs.a libexport.a libmisc.a
 
 all install::	$(LIBS)
 	@:
