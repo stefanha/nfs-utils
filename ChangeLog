@@ -3,6 +3,9 @@
 	* debian/changelog: Version 1.0.5-3.
 	* support/export/hostname.c (get_reliable_hostbyaddr): Fix crash
 	on invalid reverse DNS.
+	* utils/showmount/showmount.c (main): Fix inet_ntoa() parameter.
+	* tools/rpcgen/rpc_cout.c (print_header): Remove unused vars.
+	* tools/rpcgen/rpc_parse.c (def_union): Likewise.
 
 2003-08-22  Chip Salzenberg  <chip@pobox.com>
 

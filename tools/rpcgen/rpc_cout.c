@@ -156,9 +156,6 @@ static void
 print_header(definition *def)
 {
 	decl_list      *dl;
-	bas_type       *ptr;
-	int             i;
-
 
 	print_generic_header(def->def_name,
 		def->def_kind != DEF_TYPEDEF ||

@@ -288,7 +288,7 @@ def_union(definition *defp)
 {
   token tok;
   declaration dec;
-  case_list *cases,*tcase;
+  case_list *cases;
   case_list **tailp;
   int flag;
 

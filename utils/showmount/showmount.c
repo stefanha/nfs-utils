@@ -154,7 +154,7 @@ char **argv;
 		break;
 	}
 
-	if (inet_aton(hostname, &server_addr.sin_addr.s_addr)) {
+	if (inet_aton(hostname, &server_addr.sin_addr)) {
 		server_addr.sin_family = AF_INET;
 	}
 	else {
