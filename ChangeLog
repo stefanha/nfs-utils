@@ -1,4 +1,8 @@
-2002-02-280   Steven Whitehouse <steve@gw.chygwyn.com>
+2002-04-07  H.J. Lu <hjl@lucon.org>
+
+	* etc/redhat/nfs.init: Read /etc/sysconfig/nfsd for NFS tuning.
+
+2002-02-28   Steven Whitehouse <steve@gw.chygwyn.com>
 	      NeilBrown <neilb@cse.unsw.edu.au>
 
 	Add support for fsid=nn export option so that device
