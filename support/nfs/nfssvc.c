@@ -19,7 +19,9 @@ nfssvc(int port, int nrservs)
 	struct nfsctl_arg	arg;
 	int fd;
 
-	fd = open("/proc/fs/nfs/threads", O_WRONLY);
+	fd = open("/proc/fs/nfsd/threads", O_WRONLY);
+	if (fd < 0)
+		fd = open("/proc/fs/nfs/threads", O_WRONLY);
 	if (fd >= 0) {
 		/* 2.5+ kernel with nfsd filesystem mounted.
 		 * Just write the number in.

@@ -227,7 +227,8 @@ int
 check_new_cache(void)
 {
 	struct stat stb;
-	return (stat("/proc/fs/nfs/filehandle", &stb) == 0);
+	return	(stat("/proc/fs/nfs/filehandle", &stb) == 0) ||
+		(stat("/proc/fs/nfsd/filehandle", &stb) == 0);
 }	
 
 

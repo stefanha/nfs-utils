@@ -65,6 +65,9 @@ xtab_mount_read(void)
 	if ((fd=open(_PATH_PROC_EXPORTS, O_RDONLY))>=0) {
 		close(fd);
 		return xtab_read(_PATH_PROC_EXPORTS, 0);
+	} else if ((fd=open(_PATH_PROC_EXPORTS_ALT, O_RDONLY) >= 0)) {
+		close(fd);
+		return xtab_read(_PATH_PROC_EXPORTS_ALT, 0);
 	} else
 		return xtab_read(_PATH_XTAB, 2);
 }

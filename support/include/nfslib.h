@@ -43,6 +43,7 @@
 #endif
 #ifndef _PATH_PROC_EXPORTS
 #define	_PATH_PROC_EXPORTS	"/proc/fs/nfs/exports"
+#define	_PATH_PROC_EXPORTS_ALT	"/proc/fs/nfsd/exports"
 #endif
 
 enum cle_maptypes {

@@ -368,15 +368,18 @@ void cache_export(nfs_export *exp)
  * { 
  *   echo $domain $path $length 
  *   read filehandle <&0
- * } <> /proc/fs/nfs/filehandle
+ * } <> /proc/fs/nfsd/filehandle
  */
 struct nfs_fh_len *
 cache_get_filehandle(nfs_export *exp, int len, char *p)
 {
-	FILE *f = fopen("/proc/fs/nfs/filehandle", "r+");
+	FILE *f = fopen("/proc/fs/nfsd/filehandle", "r+");
 	char buf[200];
 	char *bp = buf;
 	static struct nfs_fh_len fh;
+
+	if (!f)
+		f = fopen("/proc/fs/nfs/filehandle", "r+");
 	if (!f)
 		return NULL;
 

@@ -1,4 +1,12 @@
 2003-08-04 NeilBrown <neilb@cse.unsw.edu.au>
+	* support/export/xtab.c, support/include/nfslib.h,
+	support/nfs/cacheio.c, support/nfs/nfssvc.c,
+	utils/exportfs/exportfs.c, utils/exportfs/exportfs.man,
+	utils/exportfs/nfsd.man, utils/mountd/cache.c: support
+	/proc/fs/nfsd/* as a perferred alternate to /proc/fs/nfs/*
+	(nfs-utils-1.0.5-post2)
+	
+2003-08-04 NeilBrown <neilb@cse.unsw.edu.au>
 	* support/nfs/nfsexport.c: open channel file O_WRONLY when
 	only writing.
 	* utils/mountd/cache.c: maintain mountlist when new_cache is
@@ -6,6 +14,7 @@
 	* utils/mountd/mountd.h: mountlist_{del,add} now take a host name
 	rather than an nfs_export.
 	* utils/mountd/rmtab.c: ditto.
+	(nfs-utils-1.5.0-post1)
 	
 2003-07-24  Chip Salzenberg  <chip@pobox.com>
 

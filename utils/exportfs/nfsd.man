@@ -8,7 +8,7 @@
 .SH NAME
 nfsd \- special filesystem for controlling Linux NFS server
 .SH SYNPOSIS
-.B "mount -t nfsd nfsd /proc/fs/nfs"
+.B "mount -t nfsd nfsd /proc/fs/nfsd"
 .SH DESCRIPTION
 The
 .B nfsd
@@ -35,6 +35,8 @@ and
 .I mountd
 programs (part of the nfs-utils package) expect to find this
 filesystem mounted at
+.B /proc/fs/nfsd
+or
 .BR /proc/fs/nfs .
 If it is not mounted, they will fall-back on 2.4 style functionality.
 This involves accessing the NFS server via a systemcall.  This

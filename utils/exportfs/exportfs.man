@@ -49,6 +49,8 @@ earlier versions of the Linux kernel, and a new mode which applies to
 2.6 and later versions providing the
 .B nfsd
 virtual filesystem has been mounted at
+.B /proc/fs/nfsd
+or
 .BR /proc/fs/nfs .
 If this filesystem is not mounted in 2.6, the legacy mode is used.
 .P
