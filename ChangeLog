@@ -1,3 +1,10 @@
+2001-09-12 NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/mountd/auth.c (auth_authenticate_internal): Reverse
+	  change from 2000-08-02:  It causes problems if someone exports
+	  to both a hostname and IP addresses.  nfs-utils must be
+	  consistant about the canonical name that it chooses.
+
 2001-08-17  Ragnar Kjørstad <nfs@ragnark.vestdata.no>
 	    H.J. Lu <hjl@lucon.org>
 
