@@ -50,7 +50,6 @@ case "$1" in
 	;;
   stop)
 	# Stop daemons.
-	action "Shutting down NFS services: " /usr/sbin/exportfs -au
 	echo -n "Shutting down NFS mountd: "
 	killproc rpc.mountd
 	echo
@@ -60,6 +59,7 @@ case "$1" in
 	echo -n "Shutting down NFS quotas: "
 	killproc rpc.rquotad
 	echo
+	action "Shutting down NFS services: " /usr/sbin/exportfs -au
 	rm -f /var/lock/subsys/nfs
 	;;
   status)
