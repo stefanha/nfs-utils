@@ -53,7 +53,9 @@ start)
     echo -n "Starting $NFSD: "
     startdaemon $PREFIX$NFSD $RPCNFSDCOUNT
 
-    if /usr/sbin/rpcinfo -u localhost nfs 3 &>/dev/null 
+    # Disable NFSv3 on mountd if we don't have NFSv3
+    rpcinfo -u localhost nfs 3 &>/dev/null 
+    if [ "$?" != "0" ]
     then
         RPCMOUNTDOPTS="$RPCMOUNTDOPTS --no-nfs-version 3"
     fi
