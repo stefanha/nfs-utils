@@ -118,7 +118,7 @@ AC_CHECK_LIB(nsl, main,	[LIBNSL="-lnsl"])
 AC_CHECK_LIB(crypt, crypt, [LIBCRYPT="-lcrypt"])
 if test "$enable_nfsv4" = yes; then
     AC_CHECK_LIB(event, event_dispatch)
-    AC_CHECK_LIB(nfsidmap, nfs4_uid_to_name)
+    AC_CHECK_LIB(nfsidmap, nfs4_init_name_mapping)
     AC_CHECK_HEADERS(event.h)
     AC_CHECK_HEADERS(nfsidmap.h)
 fi

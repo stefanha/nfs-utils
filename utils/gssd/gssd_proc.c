@@ -504,6 +504,10 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	retval = 0;
 
   out_fail:
+	if ((save_uid != -1) && (seteuid(save_uid) != 0)) {
+		printerr(0, "WARNING: Failed to restore euid"
+			    " to uid %d (in error path)\n", save_uid);
+	}
 	if (sec.cred != GSS_C_NO_CREDENTIAL)
 		gss_release_cred(&min_stat, &sec.cred);
 	if (rpc_clnt) clnt_destroy(rpc_clnt);

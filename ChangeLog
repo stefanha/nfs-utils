@@ -21,6 +21,8 @@
 	using a pipe. 
 	* utils/idmapd/idmapd.c: Let libnfsidmapd parse the idmapd.conf
 	file for the default domain, instead of doing that ourselves.
+	* utils/gssd/gssd_proc.c: Make sure we get an error when a gssd
+	downcall fails. 
 
 	
 2004-11-22 NeilBrown <neilb@cse.unsw.edu.au>

@@ -132,7 +132,6 @@ void    mydaemon(int, int);
 void    release_parent();
 
 static int verbose = 0;
-static char domain[512];
 static char pipefsdir[PATH_MAX];
 static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
@@ -153,7 +152,6 @@ main(int argc, char **argv)
 	struct group *gr;
 	struct stat sb;
 	char *xpipefsdir = NULL;
-	char *xdomain = NULL;
 	int serverstart = 1, clientstart = 1;
 
 	conf_path = _PATH_IDMAPDCONF;
@@ -181,13 +179,11 @@ main(int argc, char **argv)
 		conf_init();
 		verbose = conf_get_num("General", "Verbosity", 0);
 		CONF_SAVE(xpipefsdir, conf_get_str("General", "Pipefs-Directory"));
-		CONF_SAVE(xdomain, conf_get_str("General", "Domain"));
 		if (xpipefsdir != NULL)
 			strlcpy(pipefsdir, xpipefsdir, sizeof(pipefsdir));
-		if (xdomain != NULL)
-			strlcpy(domain, xdomain, sizeof(domain));
 		CONF_SAVE(nobodyuser, conf_get_str("Mapping", "Nobody-User"));
 		CONF_SAVE(nobodygroup, conf_get_str("Mapping", "Nobody-Group"));
+		nfs4_init_name_mapping(conf_path);
 	}
 
 	while ((opt = getopt(argc, argv, GETOPTSTR)) != -1)
@@ -221,23 +217,6 @@ main(int argc, char **argv)
 
 	strncat(pipefsdir, "/nfs", sizeof(pipefsdir));
 
-	if (domain[0] == '\0') {
-		struct hostent *he;
-		char hname[64], *c;
-
-		if (gethostname(hname, sizeof(hname)) == -1)
-			errx(1, "Error getting hostname");
-
-		if ((he = gethostbyname(hname)) == NULL)
-			errx(1, "Error resolving hostname: %s", hname);
-
-		if ((c = strchr(he->h_name, '.')) == NULL || *++c == '\0')
-			errx(1, "Error resolving domain, "
-			    "please use the -d switch");
-
-		strlcpy(domain, c, sizeof(domain));
-	}
-
 	if ((pw = getpwnam(nobodyuser)) == NULL)
 		errx(1, "Could not find user \"%s\"", nobodyuser);
 	nobodyuid = pw->pw_uid;
@@ -245,12 +224,6 @@ main(int argc, char **argv)
 	if ((gr = getgrnam(nobodygroup)) == NULL)
 		errx(1, "Could not find group \"%s\"", nobodygroup);
 	nobodygid = gr->gr_gid;
-
-	if (strlen(domain) == 0)
-		errx(1, "Invalid domain; please specify with -d switch");
-
-	if (verbose > 2)
-		warnx("Using domain \"%s\"", domain);
 
 	if (!fg)
 		mydaemon(0, 0);
@@ -640,7 +613,7 @@ nfsdopenone(struct idmap_client *ic, short which, char *path)
 
 	ic->ic_which = which;
 	ic->ic_id = "Server";
-	strlcpy(ic->ic_clid, domain, sizeof(ic->ic_clid));
+	strlcpy(ic->ic_clid, "Server", strlen("Server"));
 
 	if (verbose > 0)
 		warnx("Opened %s", ic->ic_path);
@@ -688,8 +661,10 @@ static int write_name(char *dest, char *localname, char *domain, size_t len)
 static void
 idtonameres(struct idmap_msg *im)
 {
+	char domain[NFS4_MAX_DOMAIN_LEN];
 	int ret = 0;
 
+	ret = nfs4_get_default_domain(NULL, domain, sizeof(domain));
 	switch (im->im_type) {
 	case IDMAP_TYPE_USER:
 		ret = nfs4_uid_to_name(im->im_id, domain, im->im_name,

@@ -44,6 +44,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <nfsidmap.h>
 
 #include "svcgssd.h"
 #include "gss_util.h"
@@ -162,15 +163,15 @@ send_response(FILE *f, gss_buffer_desc *in_handle, gss_buffer_desc *in_token,
 #define rpcsec_gsserr_ctxproblem	14
 
 static int
-get_ids(gss_name_t client_name, gss_OID *mech, struct svc_cred *cred)
+get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 {
 	u_int32_t	maj_stat, min_stat;
 	gss_buffer_desc	name;
 	char		*sname;
 	int		res = -1;
-	struct passwd	*pw = NULL;
+	uid_t		uid, gid;
 	gss_OID		name_type;
-	char		*c;
+	char		*secname;
 
 	maj_stat = gss_display_name(&min_stat, client_name, &name, &name_type);
 	if (maj_stat != GSS_S_COMPLETE)
@@ -179,18 +180,17 @@ get_ids(gss_name_t client_name, gss_OID *mech, struct svc_cred *cred)
 		goto out;
 	memcpy(sname, name.value, name.length);
 	printerr(1, "sname = %s\n", sname);
-	/* XXX: should use same mapping as idmapd?  Or something; for now
-	 * I'm just chopping off the domain. */
-	/* XXX: note that idmapd also does this!  It doesn't check the domain
-	 * name. */
-	if ((c = strchr(sname, '@')) != NULL)
-		*c = '\0';
-	/* XXX? mapping unknown users (including machine creds) to nobody: */
-	if ( !(pw = getpwnam(sname)) && !(pw = getpwnam("nobody")) )
+
+	res = -EINVAL;
+	if ((secname = mech2file(mech)) == NULL)
 		goto out_free;
-	cred->cr_uid = pw->pw_uid;
-	cred->cr_gid = pw->pw_gid;
-	/* XXX Read password file?  Use initgroups? I dunno...*/
+	nfs4_init_name_mapping(NULL); /* XXX: should only do this once */
+	res = nfs4_gss_princ_to_ids(secname, sname, &uid, &gid);
+	if (res < 0)
+		goto out_free;
+	cred->cr_uid = uid;
+	cred->cr_gid = gid;
+	/*XXX: want add_supplementary_groups(secname, sname, cred)? */
 	cred->cr_ngroups = 0;
 	res = 0;
 out_free:
@@ -310,7 +310,7 @@ handle_nullreq(FILE *f) {
 				&null_token, &null_token);
 		goto out_err;
 	}
-	if (get_ids(client_name, &mech, &cred)) {
+	if (get_ids(client_name, mech, &cred)) {
 		printerr(0, "WARNING: handle_nullreq: get_uid failed\n");
 		send_response(f, &in_handle, &in_tok, GSS_S_BAD_NAME /* XXX? */,
 				0, &null_token, &null_token);
