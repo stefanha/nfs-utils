@@ -335,7 +335,7 @@ void cache_export(nfs_export *exp)
  * } <> /proc/fs/nfs/filehandle
  */
 struct nfs_fh_len *
-cache_get_filehandle(nfs_export *exp, int len)
+cache_get_filehandle(nfs_export *exp, int len, char *p)
 {
 	FILE *f = fopen("/proc/fs/nfs/filehandle", "r+");
 	char buf[200];
@@ -345,7 +345,7 @@ cache_get_filehandle(nfs_export *exp, int len)
 		return NULL;
 
 	qword_print(f, exp->m_client->m_hostname);
-	qword_print(f, exp->m_export.e_path);
+	qword_print(f, p);
 	qword_printint(f, len);	
 	qword_eol(f);
 	

@@ -25,7 +25,7 @@
 #include "rpcmisc.h"
 
 extern void	cache_open(void);
-extern struct nfs_fh_len *cache_get_filehandle(nfs_export *exp, int len);
+extern struct nfs_fh_len *cache_get_filehandle(nfs_export *exp, int len, char *p);
 extern void cache_export(nfs_export *exp);
 
 extern void my_svc_run(void);
@@ -242,7 +242,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 {
 	struct sockaddr_in *sin =
 		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
-	struct stat	stb;
+	struct stat	stb, estb;
 	nfs_export	*exp;
 	char		rpath[MAXPATHLEN+1];
 	char		*p = *path;
@@ -272,6 +272,16 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 	} else if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
 		xlog(L_WARNING, "%s is not a directory or regular file", p);
 		*error = NFSERR_NOTDIR;
+	} else if (stat(exp->m_export.e_path, &estb) < 0) {
+		xlog(L_WARNING, "can't stat export point %s: %s",
+		     p, strerror(errno));
+		*error = NFSERR_NOENT;
+	} else if (estb.st_dev != stb.st_dev
+		   /* && (!new_cache || !(exp->m_export.e_flags & NFSEXP_CROSSMNT)) */
+		) {
+		xlog(L_WARNING, "request to export directory %s below nearest filesystem %s",
+		     p, exp->m_export.e_path);
+		*error = NFSERR_ACCES;
 	} else if (new_cache) {
 		/* This will be a static private nfs_export with just one
 		 * address.  We feed it to kernel then extract the filehandle,
@@ -280,7 +290,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
 		struct nfs_fh_len  *fh;
 
 		cache_export(exp);
-		fh = cache_get_filehandle(exp, v3?64:32);
+		fh = cache_get_filehandle(exp, v3?64:32, p);
 		if (fh == NULL) 
 			*error = NFSERR_ACCES;
 		else

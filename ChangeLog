@@ -1,3 +1,14 @@
+2003-05-23  NeilBrown <neilb@cse.unsw.edu.au>
+
+	* utils/mountd/cache.c(cache_get_filehandle): take a separate path
+	argument as we might not be getting the filehandle for the
+	mountpoint.
+	* utils/mountd/mountd.c(get_rootfh): pass real path when calling
+	cache_get_filehandle.
+	* utils/mountd/mountd.c(get_rootfh): check export point and
+	requested directory are on the same filesystem, and complain if
+	not.
+	
 2003-05-22  NeilBrown <neilb@cse.unsw.edu.au>
 
 	* utils/mountd/auth.c(auth_authenticate_internal): make sure
