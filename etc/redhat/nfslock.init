@@ -22,8 +22,8 @@ fi
 # Check that networking is up.
 [ ${NETWORKING} = "no" ] && exit 0
 
-[ -x /usr/sbin/rpc.lockd ] || exit 0
-[ -x /usr/sbin/rpc.statd ] || exit 0
+[ -x /sbin/rpc.lockd ] || exit 0
+[ -x /sbin/rpc.statd ] || exit 0
 
 # See how we were called.
 case "$1" in
