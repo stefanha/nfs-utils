@@ -5,8 +5,9 @@
 
 2000-11-24  Neil Brown <neilb@cse.unsw.edu.au>
 
-        * support/nfs/exports.c (getexportent):  Check for host name without option,
-          or options without hostname, and print a warning, as this is most likely a typo.
+        * support/nfs/exports.c (getexportent): Check for host name
+	without option, or options without hostname, and print a warning,
+	as this is most likely a typo.
 
 2000-11-19  Chip Salzenberg  <chip@valinux.com>
 
