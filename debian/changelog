@@ -1,3 +1,13 @@
+nfs-utils (1:1.0.7-2) unstable; urgency=low
+
+  * Upstream CVS sync:
+    > Support "no_acl" export option, for the few specially patched
+      kernels that understand it.  (Closes: #253824)
+    > Fix FTBTS on amd64.  (Closes: #297729)
+    > Update config.{guess,sub}.  (Closes: #300552)
+
+ -- Chip Salzenberg <chip@debian.org>  Thu,  7 Apr 2005 09:02:22 -0400
+
 nfs-utils (1:1.0.7-1) unstable; urgency=medium
 
   * Acknowledge NMU; thanks to joeyh.  (closes: #287053)
