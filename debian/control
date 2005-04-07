@@ -1,7 +1,7 @@
 Source: nfs-utils
 Priority: standard
 Section: net
-Maintainer: Chip Salzenberg <chip@debian.org>
+Maintainer: Debian QA Group <packages@qa.debian.org>
 Build-Depends: debhelper (>= 4.1.16), libwrap0-dev, libevent-dev, libnfsidmap-dev, libkrb5-dev
 Standards-Version: 3.1.1.1
 
