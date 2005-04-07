@@ -1,7 +1,7 @@
 .\"
 .\" lockd(8)
 .\"
-.\" Copyright (C) 2000 Chip Salzenberg <chip@valinux.com>
+.\" Copyright (C) 2000 Chip Salzenberg <chip@debian.org>
 .\"
 .TH rpc.lockd 8 "25 Feb 2000"
 .SH NAME
