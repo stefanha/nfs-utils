@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -83,12 +84,12 @@ static const char *	nfsv3name[22] = {
 };
 
 static const char *	nfssvrv4name[2] = {
-        "null",
+	"null",
 	"compound",
 };
 
 static const char *	nfscltv4name[32] = {
-        "null",      "read",      "write",   "commit",      "open",        "open_conf",
+	"null",      "read",      "write",   "commit",      "open",        "open_conf",
 	"open_noat", "open_dgrd", "close",   "setattr",     "fsinfo",      "renew",
 	"setclntid", "confirm",   "lock",
 	"lockt",     "locku",     "access",  "getattr",     "lookup",      "lookup_root",
@@ -139,7 +140,60 @@ static int             mounts(const char *);
 #define PRNT_NET	0x0004
 #define PRNT_FH		0x0008
 #define PRNT_RC		0x0010
+#define PRNT_AUTO	0x1000
+#define PRNT_V2		0x2000
+#define PRNT_V3		0x4000
+#define PRNT_V4		0x8000
 #define PRNT_ALL	0x0fff
+
+int versions[] = {
+	PRNT_V2,
+	PRNT_V3,
+	PRNT_V4
+};
+
+void usage(char *name)
+{
+	printf("Usage: %s [OPTION]...\n\
+\n\
+  -m, --mounted\t\tShow statistics on mounted NFS filesystems\n\
+  -c, --client\t\tShow NFS client statistics\n\
+  -s, --server\t\tShow NFS server statistics\n\
+  -2\t\t\tShow NFS version 2 statistics\n\
+  -3\t\t\tShow NFS version 3 statistics\n\
+  -4\t\t\tShow NFS version 4 statistics\n\
+  -o [facility]\t\tShow statistics on particular facilities.\n\
+     nfs\tNFS protocol information\n\
+     rpc\tGeneral RPC information\n\
+     net\tNetwork layer statistics\n\
+     fh\t\tUsage information on the server's file handle cache\n\
+     rc\t\tUsage information on the server's request reply cache\n\
+     all\tSelect all of the above\n\
+  -v, --verbose, --all\tSame as '-o all'\n\
+  -r, --rpc\t\tShow RPC statistics\n\
+  -n, --nfs\t\tShow NFS statistics\n\
+  --version\t\tShow program version\n\
+  --help\t\tWhat you just did\n\
+\n", name);
+	exit(0);
+}
+
+static struct option longopts[] =
+{
+	{ "acl", 0, 0, 'a' },
+	{ "all", 0, 0, 'v' },
+	{ "auto", 0, 0, '\3' },
+	{ "client", 0, 0, 'c' },
+	{ "mounts", 0, 0, 'm' },
+	{ "nfs", 0, 0, 'n' },
+	{ "rpc", 0, 0, 'r' },
+	{ "server", 0, 0, 's' },
+	{ "verbose", 0, 0, 'v' },
+	{ "zero", 0, 0, 'z' },
+	{ "help", 0, 0, '\1' },
+	{ "version", 0, 0, '\2' },
+	{ NULL, 0, 0, 0 }
+};
 
 int
 main(int argc, char **argv)
@@ -151,12 +205,18 @@ main(int argc, char **argv)
 			clt_info = 0,
 			opt_prt = 0;
 	int		c;
+	char           *progname;
+ 
+	if ((progname = strrchr(argv[0], '/')))
+		progname++;
+	else
+		progname = argv[0];
 
-	while ((c = getopt(argc, argv, "acmno:rsz")) != -1) {
+	while ((c = getopt_long(argc, argv, "234acmno:vrsz\1\2", longopts, NULL)) != EOF) {
 		switch (c) {
 		case 'a':
-			opt_all = 1;
-			break;
+			fprintf(stderr, "nfsstat: nfs acls are not yet supported.\n");
+			return -1;
 		case 'c':
 			opt_clt = 1;
 			break;
@@ -182,6 +242,17 @@ main(int argc, char **argv)
 				return 2;
 			}
 			break;
+		case '2':
+		case '3':
+		case '4':
+			opt_prt |= versions[c - '2'];
+			break;
+		case 'v':
+			opt_all = 1;
+			break;
+		case '\3':
+			opt_prt |= PRNT_AUTO;
+			break;
 		case 'r':
 			opt_prt |= PRNT_RPC;
 			break;
@@ -194,17 +265,30 @@ main(int argc, char **argv)
 			return 2;
 		case 'm':
 			return mounts(MOUNTSFILE);
+		case '\1':
+			usage(progname);
+			return 0;
+		case '\2':
+			fprintf(stdout, "nfsstat: " VERSION "\n");
+			return 0;
+		default:
+			printf("Try `%s --help' for more information.\n", progname);
+			return -1;
 		}
 	}
 
 	if (opt_all) {
 		opt_srv = opt_clt = 1;
-		opt_prt = PRNT_ALL;
+		opt_prt |= PRNT_ALL;
 	}
 	if (!(opt_srv + opt_clt))
 		opt_srv = opt_clt = 1;
-	if (!opt_prt)
-		opt_prt = PRNT_CALLS + PRNT_RPC;
+	if (!(opt_prt & 0xfff)) {
+		opt_prt |= PRNT_CALLS + PRNT_RPC;
+	}
+	if (!(opt_prt & 0xe000)) {
+		opt_prt |= PRNT_AUTO;
+	}
 	if ((opt_prt & (PRNT_FH|PRNT_RC)) && !opt_srv) {
 		fprintf(stderr,
 			"You requested file handle or request cache "
@@ -285,19 +369,20 @@ main(int argc, char **argv)
 			printf("\n");
 		}
 		if (opt_prt & PRNT_CALLS) {
-			print_callstats(
-			"Server nfs v2:\n",
-			    nfsv2name, svcv2info + 1, sizeof(nfsv2name)/sizeof(char *)
-			);
-                        if (svcv3info[0])
+			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && svcv2info[0] && svcv2info[svcv2info[0]+1] != svcv2info[0]))
+				print_callstats(
+				"Server nfs v2:\n",
+				    nfsv2name, svcv2info + 1, sizeof(nfsv2name)/sizeof(char *)
+				);
+			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && svcv3info[0] && svcv3info[svcv3info[0]+1] != svcv3info[0]))
 				print_callstats(
 				"Server nfs v3:\n",
-                                nfsv3name, svcv3info + 1, sizeof(nfsv3name)/sizeof(char *)
-                                );
-                        if (svcv4info[0])
-                                print_callstats(
-                                "Server nfs v4:\n",
-                                nfssvrv4name, svcv4info + 1, sizeof(nfssvrv4name)/sizeof(char *)
+				nfsv3name, svcv3info + 1, sizeof(nfsv3name)/sizeof(char *)
+				);
+			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && svcv4info[0] && svcv4info[svcv4info[0]+1] != svcv4info[0]))
+				print_callstats(
+				"Server nfs v4:\n",
+				nfssvrv4name, svcv4info + 1, sizeof(nfssvrv4name)/sizeof(char *)
 				);
 		}
 	}
@@ -320,19 +405,20 @@ main(int argc, char **argv)
 			printf("\n");
 		}
 		if (opt_prt & PRNT_CALLS) {
-			print_callstats(
-			"Client nfs v2:\n",
-			nfsv2name, cltv2info + 1,  sizeof(nfsv2name)/sizeof(char *)
-			);
-                        if (cltv3info[0])
+			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && cltv2info[0] && cltv2info[cltv2info[0]+1] != cltv2info[0]))
+				print_callstats(
+				"Client nfs v2:\n",
+				nfsv2name, cltv2info + 1,  sizeof(nfsv2name)/sizeof(char *)
+				);
+			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && cltv3info[0] && cltv3info[cltv3info[0]+1] != cltv3info[0]))
 				print_callstats(
 				"Client nfs v3:\n",
 				nfsv3name, cltv3info + 1, sizeof(nfsv3name)/sizeof(char *)
 				);
-                        if (cltv4info[0])
-                                print_callstats(
-                                "Client nfs v4:\n",
-                                nfscltv4name, cltv4info + 1,  sizeof(nfscltv4name)/sizeof(char *)
+			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && cltv4info[0] && cltv4info[cltv4info[0]+1] != cltv4info[0]))
+				print_callstats(
+				"Client nfs v4:\n",
+				nfscltv4name, cltv4info + 1,  sizeof(nfscltv4name)/sizeof(char *)
 				);
 		}
 	}
@@ -379,11 +465,11 @@ print_callstats(const char *hdr, const char **names,
 		total = 1;
 	for (i = 0; i < nr; i += 6) {
 		for (j = 0; j < 6 && i + j < nr; j++)
-                        printf("%-13s", names[i+j]);
+			printf("%-13s", names[i+j]);
 		printf("\n");
 		for (j = 0; j < 6 && i + j < nr; j++) {
 			pct = ((unsigned long long) info[i+j]*100)/total;
-                        printf("%-8d%3llu%% ", info[i+j], pct);
+			printf("%-8d%3llu%% ", info[i+j], pct);
 		}
 		printf("\n");
 	}
@@ -408,7 +494,7 @@ parse_statfile(const char *name, struct statinfo *statp)
 	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
 		struct statinfo	*ip;
 		char		*sp, *line = buffer;
-                unsigned int    i, cnt;
+		unsigned int    i, cnt;
 		unsigned int	total = 0;
 
 		if ((next = strchr(line, '\n')) != NULL)
