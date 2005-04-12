@@ -2,6 +2,7 @@
 # dummy Makefile
 #
 
+TOP	= ../../
 PROGRAM	= showmount
 OBJS	= showmount.o
 LIBDEPS	= $(TOP)support/lib/libexport.a

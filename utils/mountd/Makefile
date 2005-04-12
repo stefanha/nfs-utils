@@ -2,6 +2,7 @@
 # Makefile for rpc.mountd
 #
 
+TOP	= ../../
 PROGRAM	= mountd
 PREFIX	= rpc.
 OBJS	= mountd.o mount_dispatch.o auth.o rmtab.o cache.o svc_run.o

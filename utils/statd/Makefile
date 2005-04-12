@@ -3,6 +3,7 @@
 #
 # NSM for Linux.
 
+TOP	= ../../
 # Uncomment for embedded client-side simulation functions.
 #SIMUL	= -DSIMULATIONS
 

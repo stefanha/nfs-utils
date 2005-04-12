@@ -4,6 +4,7 @@
 # of NFS volumes.
 #
 
+TOP	= ../../
 LIBNAME	= libexport.a
 SRCS	= $(RPCSRCS) client.c export.c hostname.c nfsctl.c rmtab.c \
 	  xtab.c

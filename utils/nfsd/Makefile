@@ -2,6 +2,7 @@
 # Makefile for knfsd
 #
 
+TOP	= ../../
 PROGRAM	= nfsd
 PREFIX	= rpc.
 OBJS	= nfsd.o

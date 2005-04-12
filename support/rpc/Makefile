@@ -2,7 +2,7 @@
 # librpc.a
 # rpc library with rpcsec_gss
 #
-
+TOP	= ../../
 LIBNAME	= librpc.a
 SRCS	= auth_gss.c authgss_prot.c svc.c svc_run.c svc_auth.c \
 	  svc_auth_none.c svc_auth_unix.c svc_auth_gss.c \

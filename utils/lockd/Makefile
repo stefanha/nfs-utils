@@ -1,7 +1,8 @@
 #
 # Makefile for lockd
 #
-
+ 
+TOP	= ../../
 PROGRAM	= lockd
 PREFIX	= rpc.
 OBJS	= lockd.o

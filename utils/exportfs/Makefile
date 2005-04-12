@@ -2,6 +2,7 @@
 # dummy Makefile
 #
 
+TOP	= ../../
 PROGRAM	= exportfs
 OBJS	= exportfs.o
 LIBDEPS	= $(TOP)support/lib/libexport.a $(TOP)/support/lib/libnfs.a

@@ -2,7 +2,7 @@
 # libgssapi.a
 # gssapi mechanism-switching layer
 #
-
+TOP	= ../../
 LIBNAME	= libgssapi.a
 SRCS	= g_accept_sec_context.c g_acquire_cred.c g_compare_name.c \
 	g_context_time.c g_delete_sec_context.c g_dsp_name.c g_dsp_status.c \

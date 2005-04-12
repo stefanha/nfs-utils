@@ -3,6 +3,7 @@
 #		compiled.
 #
 
+TOP	= ../../
 TOOL	= getkversion
 OBJS	= getkversion.o
 

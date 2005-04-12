@@ -2,6 +2,7 @@
 # gss context destruction tool
 #
 
+TOP	= ../../     
 PROGRAM	= gss_clnt_send_err
 OBJS	= gss_clnt_send_err.o
 

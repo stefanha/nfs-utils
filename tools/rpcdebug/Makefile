@@ -2,6 +2,7 @@
 # knfsd tools
 #
 
+TOP	= ../../
 TOOL	= rpcdebug nfsdebug nfsddebug
 OBJS	= rpcdebug.o
 

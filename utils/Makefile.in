@@ -2,6 +2,7 @@
 # Makefile for linux-nfs/support
 #
 
+TOP	= ../
 SUBDIRS	= exportfs mountd nfsd statd nfsstat @RQUOTAD@ showmount \
 	  nhfsstone lockd @IDMAPD@ @GSSD@ @SVCGSSD@
 

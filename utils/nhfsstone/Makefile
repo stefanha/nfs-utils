@@ -4,6 +4,7 @@
 
 SCRIPTS	= nhfsrun nhfsnums nhfsgraph
 
+TOP	= ../../
 PROGRAM	= nhfsstone
 OBJS	= nhfsstone.o
 MAN8	= nhfsstone $(SCRIPTS)

@@ -1,7 +1,7 @@
 #
 # linux-nfs/support/nfs/Makefile
 #
-
+TOP	= ../../
 LIBNAME	= libnfs.a
 OBJS	= exports.o rmtab.o xio.o \
 	  rpcmisc.o rpcdispatch.o xlog.o xmalloc.o wildmat.o \

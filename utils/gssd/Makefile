@@ -2,6 +2,7 @@
 # Makefile for rpc.gssd
 #
 
+TOP	= ../../
 PROGRAM	= gssd
 PREFIX	= rpc.
 OBJS	= gssd.o gssd_main_loop.o gssd_proc.o err_util.o gss_util.o \

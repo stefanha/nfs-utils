@@ -2,6 +2,7 @@
 # nlmtest	Exercise some NLM calls to test the lockd server.
 #
 
+TOP	= ../../
 TOOL	= nlmtest
 SRCS	= $(RPCSRCS) nlmtest.c
 OBJS	= $(SRCS:.c=.o)

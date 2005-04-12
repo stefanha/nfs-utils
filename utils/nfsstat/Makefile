@@ -2,6 +2,7 @@
 # dummy Makefile
 #
 
+TOP	= ../../
 PROGRAM	= nfsstat
 OBJS	= nfsstat.o
 MAN8	= nfsstat

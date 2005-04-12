@@ -2,6 +2,7 @@
 # knfsd tools
 #
 
+TOP	= ../../
 TOOL	= getiversion
 OBJS	= getiversion.o
 

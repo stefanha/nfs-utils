@@ -2,6 +2,8 @@
 # Makefile for linux-nfs/support
 #
 
+TOP	 = ../../
+
 include $(TOP)rules.mk
 
 all install::	mount.h
