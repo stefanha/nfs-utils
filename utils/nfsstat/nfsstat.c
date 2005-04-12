@@ -9,6 +9,8 @@
 #define NFSSVCSTAT	"/proc/net/rpc/nfsd"
 #define NFSCLTSTAT	"/proc/net/rpc/nfs"
 
+#define MOUNTSFILE     "/proc/mounts"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -110,6 +112,7 @@ static int		parse_statfile(const char *, struct statinfo *);
 
 static statinfo		*get_stat_info(const char *, struct statinfo *);
 
+static int             mounts(const char *);
 
 #define PRNT_CALLS	0x0001
 #define PRNT_RPC	0x0002
@@ -129,7 +132,7 @@ main(int argc, char **argv)
 			opt_prt = 0;
 	int		c;
 
-	while ((c = getopt(argc, argv, "acno:rsz")) != -1) {
+	while ((c = getopt(argc, argv, "acmno:rsz")) != -1) {
 		switch (c) {
 		case 'a':
 			opt_all = 1;
@@ -167,6 +170,8 @@ main(int argc, char **argv)
 			fprintf(stderr, "nfsstat: zeroing of nfs statistics "
 					"not yet supported\n");
 			return 2;
+		case 'm':
+			return mounts(MOUNTSFILE);
 		}
 	}
 
@@ -387,4 +392,52 @@ parse_statfile(const char *name, struct statinfo *statp)
 
 	fclose(fp);
 	return 1;
+}
+
+static int
+mounts(const char *name)
+{
+	char	buffer[4096], *next;
+	FILE	*fp;
+
+	/* Being unable to read e.g. the nfsd stats file shouldn't
+	 * be a fatal error -- it usually means the module isn't loaded.
+	 */
+	if ((fp = fopen(name, "r")) == NULL) {
+		fprintf(stderr, "Warning: %s: %m\n", name);
+		return -1;
+	}
+
+	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+		char	      *line = buffer;
+		char          *device, *mount, *type, *flags;
+
+		if ((next = strchr(line, '\n')) != NULL)
+			*next = '\0';
+
+		if (!(device = strtok(line, " \t")))
+			continue;
+
+		if (!(mount = strtok(NULL, " \t")))
+			continue;
+
+		if (!(type = strtok(NULL, " \t")))
+			continue;
+
+		if (strcmp(type, "nfs")) {
+		    continue;
+		}
+
+		if (!(flags = strtok(NULL, " \t")))
+			continue;
+
+		printf("%s from %s\n", mount, device);
+		printf(" Flags:\t%s\n", flags);
+		printf("\n");
+
+		continue;
+	}
+
+	fclose(fp);
+	return 0;
 }
