@@ -1,3 +1,15 @@
+2005-04-12  G. Allen Morris III <gam3@gam3.net>
+
+	* All Makefile: added TOP as needed for easier compile.
+
+	* utils/nfsstat/nfsstat.c: added NFS V4 support; added the -m
+	  option; Added -2, -3, and -4 options; changed -a option to -v
+	  option; added long options; changed default output to not
+	  show V2 NFS statistics unless used.
+
+	* utils/nfsstat/nfsstat.man: Documented above changes; changed
+	  authors email address; added BUGS section.
+
 2005-04-07  Chip Salzenberg  <chip@pobox.com>
 
 	* debian/changelog: Version 1.0.7-2.
