@@ -2,7 +2,7 @@
 .\" statd(8)
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
-.\" Modified by Jeffrey A. Uphoff, 1999, 2002.
+.\" Modified by Jeffrey A. Uphoff, 1999, 2002, 2005.
 .\" Modified by Lon Hohberger, 2000.
 .\" Modified by Paul Clements, 2004.
 .TH rpc.statd 8 "31 Aug 2004"
@@ -169,7 +169,7 @@ of an NFS export from another server.
 .BR portmap(8)
 .SH AUTHORS
 .br
-Jeff Uphoff <juphoff@nrao.edu>
+Jeff Uphoff <juphoff@users.sourceforge.net>
 .br
 Olaf Kirch <okir@monad.swb.de>
 .br
