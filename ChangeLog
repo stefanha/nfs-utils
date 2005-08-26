@@ -1,4 +1,41 @@
 2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
+	*utils/mountd/mountd.c:
+	mountd currently always returns AUTH_NULL and AUTH_SYS as the
+	allowable flavors in mount replies.  We want it to also return gss
+	flavors when appropriate. For now as a hack we just have it always
+	return the KRB5 flavors as well. 
+
+	*utils/mountd/cache.c:
+	
+	When attempting to mount an NFSv4 pseudofilesystem (fsid=0) and the
+	actual exported directory does not exist on the server, rpc.mountd
+	doesn't check the directory exists (when fsidtype=1, i.e. using fsid,
+	but does check for fsidtype=0, i.e. using dev/ino).  The non-existent
+	exported directory path with fsid=0 is written to the kernel via
+	/proc/net/rpc/nfsd.export/channel, which leads to path_lookup() to
+	return ENOENT (seems appropriate).  Unfortunately, the new_cache
+	approach ignores errors returned when writing via the channel file so
+	that particular error is lost and the mount request is silently ignored.
+	
+	Assuming it doesn't make sense to revamp the new_cache/up-call method to
+	not ignore returned errors, it seems appropriate to fix the case where
+	rpc.mountd doesn't check for the existence of an exported directory with
+	fsid= semantics.  The following patch does this by moving the stat() up
+	so it is done for both fsidtype's.  I'm not certain whether the other
+	tests need to be executed for fsidtype=1, but it doesn't appear to hurt
+	[Not exactly true: the comparison of inode numbers caused problems so
+	now it's kept for fsidtype=0 only].
+	
+	Would it be also desirable to log a warning for every error, if any,
+	returned by a write to any of the /proc/net/rpc/*/channel files which
+	would otherwise be ignored (maybe under a debug flag)?
+
+	* gssd/mountd/svcgssd: Changes gssd, svcgssd, and mountd to ignore a
+	SIGHUP rather than dying.
+
+	* many: Remove the gssapi code and rely on an external library instead.
+
+2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
 	* utils/exportfs/exports.man: Document the "crossmnt" export export option
 	* utils/gssd/krb5_util.c: 
 	Add better debugging and partially revert the function

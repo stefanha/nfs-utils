@@ -145,21 +145,22 @@ void nfsd_fh(FILE *f)
 	/* Now determine export point for this fsid/domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+			struct stat stb;
+
 			if (!client_member(dom, exp->m_client->m_hostname))
+				continue;
+			if (exp->m_export.e_mountpoint &&
+			    !is_mountpoint(exp->m_export.e_mountpoint[0]?
+					   exp->m_export.e_mountpoint:
+					   exp->m_export.e_path))
+				dev_missing ++;
+			if (stat(exp->m_export.e_path, &stb) != 0)
 				continue;
 			if (fsidtype == 1 &&
 			    ((exp->m_export.e_flags & NFSEXP_FSID) == 0 ||
 			     exp->m_export.e_fsid != fsidnum))
 				continue;
 			if (fsidtype == 0) {
-				struct stat stb;
-				if (exp->m_export.e_mountpoint &&
-				    !is_mountpoint(exp->m_export.e_mountpoint[0]?
-						   exp->m_export.e_mountpoint:
-						   exp->m_export.e_path))
-					dev_missing ++;
-				if (stat(exp->m_export.e_path, &stb) != 0)
-					continue;
 				if (stb.st_ino != inode)
 					continue;
 				if (major != major(stb.st_dev) ||

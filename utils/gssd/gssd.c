@@ -63,6 +63,14 @@ sig_die(int signal)
 	exit(1);
 }
 
+void
+sig_hup(int signal)
+{
+	/* don't exit on SIGHUP */
+	printerr(1, "Received SIGHUP... Ignoring.\n");
+	return;
+}
+
 static void
 usage(char *progname)
 {
@@ -123,7 +131,7 @@ main(int argc, char *argv[])
 
 	signal(SIGINT, sig_die);
 	signal(SIGTERM, sig_die);
-	signal(SIGHUP, sig_die);
+	signal(SIGHUP, sig_hup);
 
 	/* Process keytab file and get machine credentials */
 	gssd_refresh_krb5_machine_creds();

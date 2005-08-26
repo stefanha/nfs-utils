@@ -1,4 +1,3 @@
 /etc/default/nfs-common
 /etc/init.d/nfs-common
 /etc/idmapd.conf
-/etc/gssapi_mech.conf

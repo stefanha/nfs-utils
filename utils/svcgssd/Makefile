@@ -7,7 +7,7 @@ PROGRAM	= svcgssd
 PREFIX	= rpc.
 OBJS	= svcgssd.o svcgssd_main_loop.o svcgssd_proc.o err_util.o gss_util.o \
 	  gss_oids.o context.o context_heimdal.o cacheio.o svcgssd_mech2file.o
-LIBDEPS	= $(TOP)support/lib/librpc.a $(TOP)support/lib/libgssapi.a
+LIBDEPS	= $(TOP)support/lib/librpc.a
 LIBS	= -Wl,-rpath=$(KRBDIR)/lib -lrpc -lgssapi -ldl $(KRBLIB) -lnfsidmap
 MAN8	= svcgssd
 
