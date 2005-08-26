@@ -168,6 +168,14 @@ copes with the situation effectively.
 The option can be explicitly disabled with
 .IR hide .
 .TP
+.IR crossmnt
+This option is similar to
+.I nohide
+but it makes it possible for clients to move from the filesystem marked
+with crossmnt to exported filesystems mounted on it.  Thus when a child
+filesystem "B" is mounted on a parent "A", setting crossmnt on "A" has
+the same effect as setting "nohide" on B.
+.TP
 .IR no_subtree_check
 This option disables subtree checking, which has mild security
 implications, but can improve reliability in some circumstances.

@@ -714,9 +714,7 @@ idtonameres(struct idmap_msg *im)
 					sizeof(im->im_name));
 		break;
 	}
-	/* XXX Hack? would rather return failure instead of writing nobody
-	 * as above, but kernel seems not to deal well with that as of
-	 * 2.6.8-rc3. */
+	/* XXX Hack? */
 	im->im_status = IDMAP_STATUS_SUCCESS;
 }
 
@@ -725,6 +723,14 @@ nametoidres(struct idmap_msg *im)
 {
 	int ret = 0;
 
+	/* XXX: nobody fallbacks shouldn't always happen:
+	 *	server id -> name should be OK
+	 *	client name -> id should be OK
+	 * but not otherwise */
+	/* XXX: move nobody stuff to library calls
+	 * (nfs4_get_nobody_user(domain), nfs4_get_nobody_group(domain)) */
+	/* XXX: should make this call higher up in the call chain (so we'd
+	 * have a chance on looking up server/whatever. */
 	switch (im->im_type) {
 	case IDMAP_TYPE_USER:
 		ret = nfs4_name_to_uid(im->im_name, &im->im_id);
@@ -737,9 +743,7 @@ nametoidres(struct idmap_msg *im)
 			im->im_id = nobodygid;
 		break;
 	}
-	/* XXX Hack? would rather return failure instead of writing nobody
-	 * as above, but kernel seems not to deal well with that as of
-	 * 2.6.8-rc3. */
+	/* XXX? */
 	im->im_status = IDMAP_STATUS_SUCCESS;
 }
 

@@ -58,19 +58,24 @@ gssd_run()
 	f = fopen(NULLRPC_FILE, "rw");
 
 	if (!f) {
-		printerr(0, "failed to open %s\n", NULLRPC_FILE);
+		printerr(0, "failed to open %s: %s\n",
+			 NULLRPC_FILE, strerror(errno));
 		exit(1);
 	}
 	pollfd.fd = fileno(f);
 	pollfd.events = POLLIN;
 	while (1) {
+		int save_err;
+
 		pollfd.revents = 0;
 		printerr(1, "entering poll\n");
 		ret = poll(&pollfd, 1, -1);
+		save_err = errno;
 		printerr(1, "leaving poll\n");
 		if (ret < 0) {
-			if (errno != EINTR)
-				printerr(0, "error return from poll\n");
+			if (save_err != EINTR)
+				printerr(0, "error return from poll: %s\n",
+					 strerror(save_err));
 		} else if (ret == 0) {
 			/* timeout; shouldn't happen. */
 		} else {

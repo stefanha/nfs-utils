@@ -190,6 +190,7 @@ gssd_acquire_cred(char *server_name)
 	gss_name_t target_name;
 	u_int32_t maj_stat, min_stat;
 	u_int32_t ignore_maj_stat, ignore_min_stat;
+	gss_buffer_desc pbuf;
 
 	name.value = (void *)server_name;
 	name.length = strlen(server_name);
@@ -207,10 +208,19 @@ gssd_acquire_cred(char *server_name)
 			GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
 			&gssd_creds, NULL, NULL);
 
-	ignore_maj_stat = gss_release_name(&ignore_min_stat, &target_name);
-
-	if (maj_stat != GSS_S_COMPLETE)
+	if (maj_stat != GSS_S_COMPLETE) {
 		pgsserr("gss_acquire_cred", maj_stat, min_stat, g_mechOid);
+		ignore_maj_stat = gss_display_name(&ignore_min_stat,
+				target_name, &pbuf, NULL);
+		if (ignore_maj_stat == GSS_S_COMPLETE) {
+			printerr(0, "Unable to obtain credentials for '%.*s'\n",
+				 pbuf.length, pbuf.value);
+			ignore_maj_stat = gss_release_buffer(&ignore_min_stat,
+							     &pbuf);
+		}
+	}
+
+	ignore_maj_stat = gss_release_name(&ignore_min_stat, &target_name);
 
 	return (maj_stat == GSS_S_COMPLETE);
 }

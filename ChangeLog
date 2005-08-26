@@ -1,4 +1,49 @@
 2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
+	* utils/exportfs/exports.man: Document the "crossmnt" export export option
+	* utils/gssd/krb5_util.c: 
+	Add better debugging and partially revert the function
+	check for gss_krb5_ccache_name.
+	
+	For MIT Kerberos releases up to and including 1.3.1, we *must*
+	use the routine gss_krb5_ccache_name to get the K5 gssapi code
+	to use a different credentials cache.
+	
+	For releases 1.3.2 and on, we want to use the KRB5CCNAME
+	environment variable to tell it what to use.
+	(A problem was reported where 1.3.5 was being used, our
+	code was using gss_krb5_ccache_name, but the underlying
+	code continued to use the first (or default?) credentials
+	cache.  Switching to using the env variable fixed the problem.
+	I cannot recreate this problem.
+
+	*utils/gssd/krb5_util.c:
+	Andrew Mahone <andrew.mahone@gmail.com> reported that reiser4
+	always has DT_UNKNOWN.  He supplied patch to move the check
+	for regular files after the stat() call to correctly find
+	ccache files in reiser4 filesystem.
+	
+	Also change the name comparison so that the wrong file is
+	not selected when the substring comparison is done.
+
+	*utils/gssd/krb5_util.c:
+	Limit the set of encryption types that can be negotiated by
+	the Kerberos library to those that the kernel code currently
+	supports.
+	
+	This should eventually query the kernel for the list of
+	supported enctypes.
+
+	*utils/gssd/gss_util.c, utils/svcgssd/svcgssd_main_loop.c:
+	Print more information in error messages to help debugging failures.
+
+	*utils/svcgssd/svcgssd_proc.c: Increase token buffer size and
+	update error handling so that a response is always sent.
+
+	*utils/svcgssd/svcgssd_proc.c: Add support to retrieve
+	supplementary groups. 
+	
+	
+2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
 	* configure.in etc
 	Consolidate some of the Kerberos checking instead of repeating
 	the same things for MIT and Heimdal.
