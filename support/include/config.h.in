@@ -5,6 +5,12 @@
 /* Define this if you have string.h */
 #undef  HAVE_STRING_H
 
+/* Define this if you have com_err.h */
+#undef  HAVE_COM_ERR_H
+
+/* Define this if you have <et/com_err.h> */
+#undef  HAVE_ET_COM_ERR_H
+
 /* Define this if you have netgroup support
  */
 #undef  HAVE_INNETGR
@@ -43,3 +49,15 @@
 /* Define this if the Kerberos gssapi library has function
  * gss_krb5_cache_name */
 #undef HAVE_GSS_KRB5_CCACHE_NAME
+
+/* The size of a `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of a `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of a `short', as computed by sizeof. */
+#undef SIZEOF_SHORT
+
+/* The size of a `size_t', as computed by sizeof. */
+#undef SIZEOF_SIZE_T

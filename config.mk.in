@@ -61,7 +61,6 @@ INSTALL		= install
 MAN2PS		= groff -Tps -man
 
 AFLAGS		= -I$(TOP)support/include \
-		  -I$(KRBDIR)/include \
 		  -Wall $(ARCHFLAGS) -pipe
 ifdef KERNEL_INCDIR
 AFLAGS	       += -I$(KERNEL_INCDIR)

@@ -1,3 +1,12 @@
+2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
+	* configure.in etc
+	Consolidate some of the Kerberos checking instead of repeating
+	the same things for MIT and Heimdal.
+	Also adds more checks to distinguish 32-bit from 64-bit
+	(mainly for gssapi.h)
+	Fix svcgssd Makefile so make TOP=../../ works correctly there.
+	Enable running a modern autoheader.
+
 2005-04-12  G. Allen Morris III <gam3@gam3.net>
 
 	* All Makefile: added TOP as needed for easier compile.
