@@ -131,7 +131,7 @@ static int select_krb5_ccache(const struct dirent *d);
 static int gssd_find_existing_krb5_ccache(uid_t uid, struct dirent **d);
 static int gssd_get_single_krb5_cred(krb5_context context,
 		krb5_keytab kt, struct gssd_k5_kt_princ *ple);
-static int gssd_have_realm_ple(krb5_data *realm);
+static int gssd_have_realm_ple(void *realm);
 static int gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt,
 		char *kt_name);
 
@@ -355,7 +355,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 	krb5_get_init_creds_opt_set_tkt_life(&options, 5*60);
 #endif
         if ((code = krb5_get_init_creds_keytab(context, &my_creds, ple->princ,
-	                                  kt, 0, 0, &options))) {
+	                                  kt, 0, NULL, &options))) {
 		char *pname;
 		if ((krb5_unparse_name(context, ple->princ, &pname))) {
 			pname = NULL;
@@ -364,7 +364,11 @@ gssd_get_single_krb5_cred(krb5_context context,
 			    "principal '%s' from keytab '%s'\n",
 			 error_message(code),
 			 pname ? pname : "<unparsable>", kt_name);
+#ifdef HAVE_KRB5
 		if (pname) krb5_free_unparsed_name(context, pname);
+#else
+		if (pname) free(pname);
+#endif
 		goto out;
 	}
 
@@ -416,13 +420,22 @@ gssd_get_single_krb5_cred(krb5_context context,
  *	1 => found ple for given realm
  */
 static int
-gssd_have_realm_ple(krb5_data *realm)
+gssd_have_realm_ple(void *r)
 {
 	struct gssd_k5_kt_princ *ple;
+#ifdef HAVE_KRB5
+	krb5_data *realm = (krb5_data *)r;
+#else
+	char *realm = (char *)r;
+#endif
 
 	for (ple = gssd_k5_kt_princ_list; ple; ple = ple->next) {
+#ifdef HAVE_KRB5
 		if ((realm->length == strlen(ple->realm)) &&
 		    (strncmp(realm->data, ple->realm, realm->length) == 0)) {
+#else
+		if (strcmp(realm, ple->realm) == 0) {
+#endif
 		    return 1;
 		}
 	}
@@ -472,16 +485,27 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 		}
 		printerr(2, "Processing keytab entry for principal '%s'\n",
 			 pname);
+#ifdef HAVE_KRB5
 		if ( (kte.principal->data[0].length == GSSD_SERVICE_NAME_LEN) &&
 		     (strncmp(kte.principal->data[0].data, GSSD_SERVICE_NAME,
 			      GSSD_SERVICE_NAME_LEN) == 0) &&
-		     (!gssd_have_realm_ple(&kte.principal->realm)) ) {
+#else
+		if ( (strlen(kte.principal->name.name_string.val[0]) == GSSD_SERVICE_NAME_LEN) &&
+		     (strncmp(kte.principal->name.name_string.val[0], GSSD_SERVICE_NAME,
+			      GSSD_SERVICE_NAME_LEN) == 0) &&
+			      
+#endif
+		     (!gssd_have_realm_ple((void *)&kte.principal->realm)) ) {
 			printerr(2, "We will use this entry (%s)\n", pname);
 			ple = malloc(sizeof(struct gssd_k5_kt_princ));
 			if (ple == NULL) {
 				printerr(0, "ERROR: could not allocate storage "
 					    "for principal list entry\n");
+#ifdef HAVE_KRB5
 				krb5_free_unparsed_name(context, pname);
+#else
+				free(pname);
+#endif
 				retval = ENOMEM;
 				goto out;
 			}
@@ -490,13 +514,21 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 			ple->ccname = NULL;
 			ple->endtime = 0;
 			if ((ple->realm =
+#ifdef HAVE_KRB5
 				strndup(kte.principal->realm.data,
 					kte.principal->realm.length))
+#else
+				strdup(kte.principal->realm))
+#endif
 					== NULL) {
 				printerr(0, "ERROR: %s while copying realm to "
 					    "principal list entry\n",
 					 "not enough memory");
+#ifdef HAVE_KRB5
 				krb5_free_unparsed_name(context, pname);
+#else
+				free(pname);
+#endif
 				retval = ENOMEM;
 				goto out;
 			}
@@ -505,7 +537,11 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 				printerr(0, "ERROR: %s while copying principal "
 					    "to principal list entry\n",
 					error_message(code));
+#ifdef HAVE_KRB5
 				krb5_free_unparsed_name(context, pname);
+#else
+				free(pname);
+#endif
 				retval = code;
 				goto out;
 			}
@@ -520,7 +556,11 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 			printerr(2, "We will NOT use this entry (%s)\n",
 				pname);
 		}
+#ifdef HAVE_KRB5
 		krb5_free_unparsed_name(context, pname);
+#else
+		free(pname);
+#endif
 	}
 
 	if ((code = krb5_kt_end_seq_get(context, kt, &cursor))) {

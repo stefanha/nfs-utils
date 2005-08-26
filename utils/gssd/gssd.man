@@ -6,7 +6,7 @@
 .SH NAME
 rpc.gssd \- rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.gssd [-f] [-k keytab] [-p pipefsdir] [-v]"
+.B "rpc.gssd [-f] [-k keytab] [-p pipefsdir] [-v] [-r]"
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -50,6 +50,10 @@ where to look for the rpc_pipefs filesystem.  The default value is
 .TP
 .B -v
 Increases the verbosity of the output (can be specified multiple times).
+.TP
+.B -r
+If the rpcsec_gss library supports setting debug level,
+increases the verbosity of the output (can be specified multiple times).
 .SH SEE ALSO
 .BR rpc.svcgssd(8)
 .SH AUTHORS

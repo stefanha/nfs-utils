@@ -6,7 +6,7 @@
 .SH NAME
 rpc.svcgssd \- server-side rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.svcgssd [-v] [-f] [-p pipefsdir]"
+.B "rpc.svcgssd [-v] [-r] [-f] [-p pipefsdir]"
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -27,6 +27,10 @@ in the foreground and sends output to stderr (as opposed to syslogd)
 .TP
 .B -v
 Increases the verbosity of the output (can be specified multiple times).
+.TP
+.B -r
+If the rpcsec_gss library supports setting debug level,
+increases the verbosity of the output (can be specified multiple times).
 
 .SH SEE ALSO
 .BR rpc.gssd(8),

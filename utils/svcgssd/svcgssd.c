@@ -37,6 +37,8 @@
 
 */
 
+#include "config.h"
+
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -154,7 +156,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-n] [-f] [-v]\n",
+	fprintf(stderr, "usage: %s [-n] [-f] [-v] [-r]\n",
 		progname);
 	exit(1);
 }
@@ -165,11 +167,12 @@ main(int argc, char *argv[])
 	int get_creds = 1;
 	int fg = 0;
 	int verbosity = 0;
+	int rpc_verbosity = 0;
 	int opt;
 	extern char *optarg;
 	char *progname;
 
-	while ((opt = getopt(argc, argv, "fvnp:")) != -1) {
+	while ((opt = getopt(argc, argv, "fvrnp:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -179,6 +182,9 @@ main(int argc, char *argv[])
 				break;
 			case 'v':
 				verbosity++;
+				break;
+			case 'r':
+				rpc_verbosity++;
 				break;
 			default:
 				usage(argv[0]);
@@ -192,6 +198,13 @@ main(int argc, char *argv[])
 		progname = argv[0];
 
 	initerr(progname, verbosity, fg);
+#ifdef HAVE_AUTHGSS_SET_DEBUG_LEVEL
+	authgss_set_debug_level(rpc_verbosity);
+#else
+	if (rpc_verbosity > 0)
+		printerr(0, "Warning: rpcsec_gss library does not "
+			    "support setting debug level\n");
+#endif
 
 	if (!fg)
 		mydaemon(0, 0);

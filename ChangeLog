@@ -1,4 +1,12 @@
 2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
+	Add option to set rpcsec_gss debugging level (if available)
+
+	Changes to allow gssd/svcgssd to build when using Hiemdal Kerberos
+	libraries.  Note that there are still run-time issues preventing
+	this from working when shared libraries for libgssapi and librpcsecgss
+	are used.
+	
+2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
 	Remove the rpcsec_gss code and rely on an external library instead.
 
 2005-08-26 Kevin Coffman <kwc@citi.umich.edu>

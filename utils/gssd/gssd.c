@@ -36,6 +36,8 @@
 
 */
 
+#include "config.h"
+
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <rpc/rpc.h>
@@ -74,7 +76,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-f] [-v] [-p pipefsdir] [-k keytab]\n",
+	fprintf(stderr, "usage: %s [-f] [-v] [-r] [-p pipefsdir] [-k keytab]\n",
 		progname);
 	exit(1);
 }
@@ -84,11 +86,12 @@ main(int argc, char *argv[])
 {
 	int fg = 0;
 	int verbosity = 0;
+	int rpc_verbosity = 0;
 	int opt;
 	extern char *optarg;
 	char *progname;
 
-	while ((opt = getopt(argc, argv, "fvmp:k:")) != -1) {
+	while ((opt = getopt(argc, argv, "fvrmp:k:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -98,6 +101,9 @@ main(int argc, char *argv[])
 				break;
 			case 'v':
 				verbosity++;
+				break;
+			case 'r':
+				rpc_verbosity++;
 				break;
 			case 'p':
 				strncpy(pipefsdir, optarg, sizeof(pipefsdir));
@@ -125,6 +131,13 @@ main(int argc, char *argv[])
 		progname = argv[0];
 
 	initerr(progname, verbosity, fg);
+#ifdef HAVE_AUTHGSS_SET_DEBUG_LEVEL
+	authgss_set_debug_level(rpc_verbosity);
+#else
+        if (rpc_verbosity > 0)
+		printerr(0, "Warning: rpcsec_gss library does not "
+			    "support setting debug level\n");
+#endif
 
 	if (!fg && daemon(0, 0) < 0)
 		errx(1, "fork");

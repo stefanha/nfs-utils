@@ -32,7 +32,6 @@
 #define _GSS_OIDS_H_
 
 #include <sys/types.h>
-#include <gssapi/gssapi.h>
 
 extern gss_OID_desc krb5oid;
 extern gss_OID_desc spkm3oid;

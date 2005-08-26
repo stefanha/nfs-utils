@@ -37,9 +37,11 @@
 #include <syslog.h>
 #include <string.h>
 #include <errno.h>
-#include <gssapi.h>
 #include <krb5.h>
+#include <gssapi.h>	/* Must use the heimdal copy! */
+#ifdef HAVE_COM_ERR_H
 #include <com_err.h>
+#endif
 #include "err_util.h"
 #include "gss_oids.h"
 #include "write_bytes.h"
@@ -83,9 +85,14 @@ int write_heimdal_enc_key(char **p, char *end, gss_ctx_id_t ctx)
 	}
 
 	memset(&enc_key, 0, sizeof(enc_key));
-	printerr(1, "WARN: write_heimdal_enc_key: "
-		    "overriding heimdal keytype\n");
-	enc_key.keytype = 4 /* XXX XXX XXX XXX key->keytype */;
+	enc_key.keytype = key->keytype;
+	/* XXX current kernel code only handles des-cbc-raw  (4) */
+	if (enc_key.keytype != 4) {
+		printerr(1, "WARN: write_heimdal_enc_key: "
+			    "overriding heimdal keytype (%d => %d)\n",
+			 enc_key.keytype, 4);
+		enc_key.keytype = 4;
+	}
 	enc_key.keyvalue.length = key->keyvalue.length;
 	if ((enc_key.keyvalue.data =
 				calloc(1, enc_key.keyvalue.length)) == NULL) {
@@ -135,9 +142,13 @@ int write_heimdal_seq_key(char **p, char *end, gss_ctx_id_t ctx)
 		goto out_err_free_context;
 	}
 
-	printerr(1, "WARN: write_heimdal_seq_key: "
-		    "overriding heimdal keytype\n");
-	key->keytype = 4;	/* XXX XXX XXX XXX XXX */
+	/* XXX current kernel code only handles des-cbc-raw  (4) */
+	if (key->keytype != 4) {
+		printerr(1, "WARN: write_heimdal_seq_key: "
+			    "overriding heimdal keytype (%d => %d)\n",
+			 key->keytype, 4);
+		key->keytype = 4;
+	}
 
 	if (write_heimdal_keyblock(p, end, key)) {
 		goto out_err_free_key;
