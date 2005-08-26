@@ -1,4 +1,7 @@
 2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
+	Remove the rpcsec_gss code and rely on an external library instead.
+
+2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
 	*utils/mountd/mountd.c:
 	mountd currently always returns AUTH_NULL and AUTH_SYS as the
 	allowable flavors in mount replies.  We want it to also return gss

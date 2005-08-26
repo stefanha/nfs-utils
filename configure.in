@@ -223,6 +223,12 @@ if test "$enable_gss" = yes; then
     AC_MSG_WARN(Using $KRBDIR instead of requested value of $krb5_with for Kerberos!)
   fi
 
+  dnl This is not done until here because we need to have KRBLIB set
+  dnl "librpcsecgss=1" is so that it doesn't get added to LIBS
+  AC_CHECK_LIB(rpcsecgss, authgss_create_default, [librpcsecgss=1], [AC_MSG_ERROR(librpcsecgss needed for nfsv4 support)], $KRBLIB)
+  AC_CHECK_LIB(rpcsecgss, authgss_set_debug_level,
+  	       AC_DEFINE(HAVE_AUTHGSS_SET_DEBUG_LEVEL, 1, [Define this if the rpcsec_gss library has the function authgss_set_debug_level]),, $KRBLIB)
+
   AC_SUBST([KRBDIR])
   AC_SUBST([KRBLIB])
   AC_SUBST([KRBINC])

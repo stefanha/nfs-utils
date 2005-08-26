@@ -50,6 +50,10 @@
  * gss_krb5_cache_name */
 #undef HAVE_GSS_KRB5_CCACHE_NAME
 
+/* Define this if the rpcsec_gss library has the function
+ * authgss_set_debug_level */
+#undef HAVE_AUTHGSS_SET_DEBUG_LEVEL
+
 /* Define this if we want to use the private Kerberos
  * gssapi library function, gss_krb5_cache_name, to
  * specify the credentials cache file to be used by

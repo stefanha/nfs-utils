@@ -37,9 +37,8 @@
 #ifndef _RPC_AUTH_GSS_H
 #define _RPC_AUTH_GSS_H
 
-#include "config.h"
 #include <rpc/clnt.h>
-#include "../../../include/gssapi/gssapi.h"
+#include <gssapi/gssapi.h>
 
 /* RPCSEC_GSS control procedures. */
 typedef enum {
