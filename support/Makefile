@@ -3,7 +3,7 @@
 #
 
     TOP = ../
-SUBDIRS	= include nfs export lib misc rpc gssapi
+SUBDIRS	= include nfs export lib misc
 .DEFAULT: all
 
 include $(TOP)rules.mk
