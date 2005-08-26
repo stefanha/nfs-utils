@@ -6,6 +6,20 @@
 	(mainly for gssapi.h)
 	Fix svcgssd Makefile so make TOP=../../ works correctly there.
 	Enable running a modern autoheader.
+	* utils/gssd/gss_oids.c: Use correct OID value for SPKM-3
+	* utils/gssd/gss_util.c: Fix build with older MIT releases that do not define GSS_C_NT_HOSTBASED_SERVICE
+	* utils/gssd/write_bytes.h, support/include/gssapi/gssapi.h:
+	Length of gss_buffer_desc is a size_t which is 64-bits on a
+	64-bit machine.  Kernel code expects 32-bit integer for length.
+	Coerce length value into a 32-bit value when reading from or
+	writing to the kernel.
+	Change gssapi.h to use datatype size values obtained from
+	configure rather than hard-coded values.
+	* utils/idmapd/idmapd.c: The EV_INIT check here was wrong, and was
+	causing idmapd to become unresponsive to server requests after
+	receiving a sighup. 
+	* utils/idmapd/idmapd.c: Idmapd should flush the server id<->name
+	caches when its started. 
 
 2005-04-12  G. Allen Morris III <gam3@gam3.net>
 

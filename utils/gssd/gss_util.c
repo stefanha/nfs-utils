@@ -73,6 +73,10 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <gssapi/gssapi.h>
+#if defined(HAVE_KRB5) && !defined(GSS_C_NT_HOSTBASED_SERVICE)
+#include <gssapi/gssapi_generic.h>
+#define GSS_C_NT_HOSTBASED_SERVICE gss_nt_service_name
+#endif
 #include "gss_util.h"
 #include "err_util.h"
 #include "gssd.h"

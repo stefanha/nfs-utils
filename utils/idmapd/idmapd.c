@@ -141,6 +141,34 @@ static struct idmap_client nfsd_ic[2];
 /* Used by cfg.c */
 char *conf_path;
 
+static int
+flush_nfsd_cache(char *path, time_t now)
+{
+	int fd;
+	char stime[20];
+
+	sprintf(stime, "%ld\n", now);
+	fd = open(path, O_RDWR);
+	if (fd == -1)
+		return -1;
+	write(fd, stime, strlen(stime));
+	close(fd);
+	return 0;
+}
+
+static int
+flush_nfsd_idmap_cache(void)
+{
+	time_t now = time(NULL);
+	int ret;
+
+	ret = flush_nfsd_cache("/proc/net/rpc/nfs4.idtoname/flush", now);
+	if (ret)
+		return ret;
+	ret = flush_nfsd_cache("/proc/net/rpc/nfs4.nametoid/flush", now);
+	return ret;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -153,6 +181,7 @@ main(int argc, char **argv)
 	struct stat sb;
 	char *xpipefsdir = NULL;
 	int serverstart = 1, clientstart = 1;
+	int ret;
 
 	conf_path = _PATH_IDMAPDCONF;
 	nobodyuser = NFS4NOBODY_USER;
@@ -230,8 +259,14 @@ main(int argc, char **argv)
 
 	event_init();
 
-	if (serverstart)
+	if (serverstart) {
 		nfsdret = nfsdopen(NFSD_DIR);
+		if (nfsdret == 0) {
+			ret = flush_nfsd_idmap_cache();
+			if (ret)
+				errx(1, "Failed to flush nfsd idmap cache\n");
+		}
+	}
 
 	if (clientstart) {
 		struct timeval now = {
@@ -565,10 +600,8 @@ nfsdreopen_one(struct idmap_client *ic)
 		if (ic->ic_fd != -1)
 			close(ic->ic_fd);
 		ic->ic_event.ev_fd = ic->ic_fd = fd;
-		if ((ic->ic_event.ev_flags & EVLIST_INIT) == 0) {
-			event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
-			event_add(&ic->ic_event, NULL);
-		}
+		event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
+		event_add(&ic->ic_event, NULL);
 	} else {
 		warnx("nfsdreopen: Opening '%s' failed: errno %d (%s)",
 			ic->ic_path, errno, strerror(errno));

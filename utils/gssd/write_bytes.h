@@ -53,12 +53,13 @@ write_bytes(char **ptr, const char *end, const void *arg, int arg_len)
 inline static int
 write_buffer(char **p, char *end, gss_buffer_desc *arg)
 {
-	if (WRITE_BYTES(p, end, arg->length))
+	int len = (int)arg->length;		/* make an int out of size_t */
+	if (WRITE_BYTES(p, end, len))
 		return -1;
 	if (*p + arg->length > end)
 		return -1;
-	memcpy(*p, arg->value, arg->length);
-	*p += arg->length;
+	memcpy(*p, arg->value, len);
+	*p += len;
 	return 0;
 }
 
@@ -80,8 +81,10 @@ get_buffer(char **ptr, const char *end, gss_buffer_desc *res)
 {
 	char *p, *q;
 	p = *ptr;
-	if (get_bytes(&p, end, &res->length, sizeof(res->length)))
+	int len;
+	if (get_bytes(&p, end, &len, sizeof(len)))
 		return -1;
+	res->length = len;		/* promote to size_t if necessary */
 	q = p + res->length;
 	if (q > end || q < p)
 		return -1;
@@ -105,9 +108,11 @@ static inline int
 xdr_get_buffer(u_int32_t **ptr, const u_int32_t *end, gss_buffer_desc *res)
 {
 	u_int32_t *p, *q;
+	u_int32_t len;
 	p = *ptr;
-	if (xdr_get_u32(&p, end, &res->length))
+	if (xdr_get_u32(&p, end, &len))
 		return -1;
+	res->length = len;
 	q = p + ((res->length + 3) >> 2);
 	if (q > end || q < p)
 		return -1;
@@ -130,7 +135,8 @@ xdr_write_u32(u_int32_t **ptr, const u_int32_t *end, u_int32_t arg)
 static inline int
 xdr_write_buffer(u_int32_t **ptr, const u_int32_t *end, gss_buffer_desc *arg)
 {
-	if (xdr_write_u32(ptr, end, arg->length))
+	int len = arg->length;
+	if (xdr_write_u32(ptr, end, len))
 		return -1;
 	return write_bytes((char **)ptr, (char *)end, arg->value,
 			   (arg->length + 3) & ~3);

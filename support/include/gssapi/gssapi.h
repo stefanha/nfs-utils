@@ -1,25 +1,3 @@
-/* This is the gssapi.h prologue. */
-/* It contains some choice pieces of autoconf.h */
-#define SIZEOF_INT 4
-#define SIZEOF_LONG 4
-#define SIZEOF_SHORT 2
-#define HAVE_STDARG_H 1
-/* #undef HAVE_VARARGS_H */
-/* #undef HAVE_MACSOCK_H */
-#define HAVE_NETINET_IN_H 1
-#define HAVE_STDDEF_H 1
-#define HAVE_STDLIB_H 1
-#define HAVE_STRING_H 1
-#define HAVE_SYS_FILE_H 1
-#define HAVE_SYS_PARAM_H 1
-#define HAVE_SYS_SOCKET_H 1
-#define HAVE_SYS_STAT_H 1
-#define HAVE_SYS_TIME_H 1
-#define HAVE_SYS_TYPES_H 1
-#define HAVE_UNISTD_H 1
-/* #undef HAVE_XOM_H */
-#define USE_DIRENT_H 1
-/* End of gssapi.h prologue. */
 /*
  * Copyright 1993 by OpenVision Technologies, Inc.
  *
@@ -44,6 +22,8 @@
 
 #ifndef _GSSAPI_H_
 #define _GSSAPI_H_
+
+#include "config.h"
 
 /*
  * Determine platform-dependent configuration.
@@ -127,7 +107,7 @@ extern "C" {
 #endif	/* HAVE_XOM_H */
 
 /*
- * $Id: gssapi.h,v 1.1 2004/10/19 00:22:57 neilbrown Exp $
+ * $Id: gssapi.h,v 1.2 2005/08/26 01:20:12 neilbrown Exp $
  */
 
 /*
