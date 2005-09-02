@@ -76,6 +76,7 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
    char *pathname, *qfpathname;
    int fd, err, id, type;
    struct stat stm, stn;
+   struct rquota *rquota;
 
    /*
     * First check authentication.
@@ -166,10 +167,18 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
          result.getquota_rslt_u.gqr_rquota.rq_active = (err == 0) ? TRUE : FALSE;
          /*
           * Make a copy of the info into the last part of the remote quota
-          * struct which is exactly the same.
+          * struct might not be exactly the same on all architectures...
           */
-         memcpy((caddr_t *)&result.getquota_rslt_u.gqr_rquota.rq_bhardlimit,
-                (caddr_t *)&dq_dqb, sizeof(struct dqblk));
+
+         rquota = &result.getquota_rslt_u.gqr_rquota;
+         rquota->rq_bhardlimit = dq_dqb.dqb_bhardlimit;
+         rquota->rq_bsoftlimit = dq_dqb.dqb_bsoftlimit;;
+         rquota->rq_curblocks = dq_dqb.dqb_curblocks;
+         rquota->rq_fhardlimit = dq_dqb.dqb_ihardlimit;
+         rquota->rq_fsoftlimit = dq_dqb.dqb_isoftlimit;
+         rquota->rq_curfiles = dq_dqb.dqb_curinodes;
+         rquota->rq_btimeleft = dq_dqb.dqb_btime;
+         rquota->rq_ftimeleft = dq_dqb.dqb_itime;
 
          return(&result);
       }
