@@ -1,3 +1,8 @@
+2005-09-02 Mike Frysinger <vapier@gentoo.org>
+	* utils/rquotad/rquota_server.c(getquotainfo): use explicit
+	struture-member copying rather than memcpy, as the element
+	sizes are the same on all architectures.
+
 2005-08-26 Kevin Coffman <kwc@citi.umich.edu>
 	Add option to set rpcsec_gss debugging level (if available)
 
