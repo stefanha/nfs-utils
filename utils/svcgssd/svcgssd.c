@@ -113,13 +113,10 @@ mydaemon(int nochdir, int noclose)
 
 	if (noclose == 0) {
 		tempfd = open("/dev/null", O_RDWR);
-		close(0); dup2(tempfd, 0);
-		close(1); dup2(tempfd, 1);
-		close(2); dup2(tempfd, 2);
-		fdmax = sysconf (_SC_OPEN_MAX);
-		for (filedes = 3; filedes < fdmax; filedes++)
-			if (filedes != pipefds[1])
-				close (filedes);
+		dup2(tempfd, 0);
+		dup2(tempfd, 1);
+		dup2(tempfd, 2);
+		closeall(3);
 	}
 
 	return;

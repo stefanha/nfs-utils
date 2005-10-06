@@ -104,10 +104,11 @@ mount_dump_1_svc(struct svc_req *rqstp, void *argp, mountlist *res)
 {
 	struct sockaddr_in *addr =
 		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
-	xlog(L_NOTICE, "dump request from %s",
-		inet_ntoa(addr->sin_addr));
 
-	*res = mountlist_list();
+	if ((*res = mountlist_list()) == NULL)
+		xlog(L_WARNING, "dump request from %s failed.",
+			inet_ntoa(addr->sin_addr));
+
 	return 1;
 }
 
@@ -157,9 +158,11 @@ mount_export_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 {
 	struct sockaddr_in *addr =
 		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
-	xlog(L_NOTICE, "export request from %s",
-		inet_ntoa(addr->sin_addr));
-	*resp = get_exportlist();
+
+	if ((*resp = get_exportlist()) == NULL)
+		xlog(L_WARNING, "export request from %s failed.",
+			inet_ntoa(addr->sin_addr));
+		
 	return 1;
 }
 
@@ -168,9 +171,10 @@ mount_exportall_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 {
 	struct sockaddr_in *addr =
 		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
-	xlog(L_NOTICE, "exportall request from %s",
-		inet_ntoa(addr->sin_addr));
-	*resp = get_exportlist();
+
+	if ((*resp = get_exportlist()) == NULL)
+		xlog(L_WARNING, "exportall request from %s failed.",
+			inet_ntoa(addr->sin_addr));
 	return 1;
 }
 
@@ -557,11 +561,8 @@ main(int argc, char **argv)
 	sigaction(SIGCHLD, &sa, NULL);
 
 	/* Daemons should close all extra filehandles ... *before* RPC init. */
-	if (!foreground) {
-		int fd = sysconf (_SC_OPEN_MAX);
-		while (--fd > 2)
-			(void) close(fd);
-	}
+	if (!foreground)
+		closeall(3);
 
 	new_cache = check_new_cache();
 	if (new_cache)

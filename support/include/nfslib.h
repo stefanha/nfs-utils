@@ -137,6 +137,8 @@ int qword_get_int(char **bpp, int *anint);
 void cache_flush(int force);
 int check_new_cache(void);
 
+void closeall(int min);
+
 /* lockd. */
 int			lockdsvc();
 

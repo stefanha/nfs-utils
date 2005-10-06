@@ -15,6 +15,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include <arpa/inet.h>
 #include "misc.h"
 #include "statd.h"
@@ -172,7 +173,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	sprintf(path, "%s/%s", SM_DIR, mon_name);
 	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
 		/* Didn't fly.  We won't monitor. */
-		note(N_ERROR, "creat(%s) failed: %m", path);
+		note(N_ERROR, "creat(%s) failed: %s", path, strerror (errno));
 		nlist_free(NULL, clnt);
 		free(path);
 		goto failure;

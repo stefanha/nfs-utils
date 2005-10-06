@@ -123,7 +123,8 @@ my_svc_run(void)
 			if (errno == EINTR || errno == ECONNREFUSED
 			 || errno == ENETUNREACH || errno == EHOSTUNREACH)
 				continue;
-			note(N_ERROR, "my_svc_run() - select: %m");
+			note(N_ERROR, "my_svc_run() - select: %s",
+				strerror (errno));
 			return;
 
 		case 0:

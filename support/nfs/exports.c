@@ -448,7 +448,7 @@ bad_option:
 	ep->e_nsqgids = nsqgids;
 
 out:
-	if (warn && !had_sync_opt)
+	if (warn && !had_sync_opt && !(ep->e_flags & NFSEXP_READONLY))
 		xlog(L_WARNING, "%s [%d]: No 'sync' or 'async' option specified for export \"%s:%s\".\n"
 				"  Assuming default behaviour ('sync').\n"
 		     		"  NOTE: this default has changed from previous versions\n",

@@ -161,7 +161,7 @@ xlog(int kind, const char *fmt, ...)
 			break;
 		default:
 			if (!log_stderr)
-				syslog(LOG_DEBUG, "%s", buff);
+				syslog(LOG_INFO, "%s", buff);
 			break;
 		}
 	}

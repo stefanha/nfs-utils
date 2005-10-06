@@ -91,8 +91,8 @@
 		(w) = p;			\
 } while (0)
 
-#define IC_IDNAME 1
-#define IC_NAMEID 2
+#define IC_IDNAME 0
+#define IC_NAMEID 1
 struct idmap_client {
 	int                        ic_fd;
 	int                        ic_dirfd;
@@ -622,8 +622,8 @@ nfsdreopen()
 static int
 nfsdopen(char *path)
 {
-	return ((nfsdopenone(&nfsd_ic[0], IC_NAMEID, path) == 0 &&
-		    nfsdopenone(&nfsd_ic[1], IC_IDNAME, path) == 0) ? 0 : -1);
+	return ((nfsdopenone(&nfsd_ic[IC_NAMEID], IC_NAMEID, path) == 0 &&
+		    nfsdopenone(&nfsd_ic[IC_IDNAME], IC_IDNAME, path) == 0) ? 0 : -1);
 }
 
 static int
@@ -846,7 +846,7 @@ int pipefds[2] = { -1, -1};
 void
 mydaemon(int nochdir, int noclose)
 {
-	int pid, status, tempfd, fdmax, filedes;
+	int pid, status, tempfd;
 
 	if (pipe(pipefds) < 0)
 		err(1, "mydaemon: pipe() failed: errno %d (%s)\n", errno, strerror(errno));
@@ -879,13 +879,10 @@ mydaemon(int nochdir, int noclose)
 
 	if (noclose == 0) {
 		tempfd = open("/dev/null", O_RDWR);
-		close(0); dup2(tempfd, 0);
-		close(1); dup2(tempfd, 1);
-		close(2); dup2(tempfd, 2);
-		fdmax = sysconf (_SC_OPEN_MAX);
-		for (filedes = 3; filedes < fdmax; filedes++)
-			if (filedes != pipefds[1])
-				close (filedes);
+		dup2(tempfd, 0);
+		dup2(tempfd, 1);
+		dup2(tempfd, 2);
+		closeall(3);
 	}
 
 	return;

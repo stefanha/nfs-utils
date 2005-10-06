@@ -1,3 +1,35 @@
+2005-10-06 Steve Dickson <SteveD@redhat.com> NeilBrown <neilb@suse.de>
+	* support/nfs/export.c: don't warn about sync/async for readonly
+	exports
+	* support/nfs/closeall.c: new file with function to close all 
+	file descriptors from a give minimum upwards.
+	* nfsd/mountd/statd/idmapd/gsssvcd: use closeall.
+	* utils/mountd/mountd.c: Eliminate 3 syslog message that are
+	logged for successful events. 
+	* utils/mountd/mountd.c: make sure the correct hostname is used in
+	the SM_NOTIFY message that is sent from a rebooted server which
+	has multiple network interfaces. (bz 139101)
+
+	Details can be found in:
+	https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=139101
+
+	*utils/idmapd/idmapd.c:Fixed subscripting problem in idmapd (bz
+	158188) This fixes the following problem: 
+         rpc.idmapd: nfsdreopen: Opening '' failed: errno 2 (No such file or directory)
+
+	 Details can be found in:
+	 https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=158188
+
+	*utils/statd/statd.c(drop_privs): clear st_gid as well as st_uid
+	of stat fails.
+	*utils/statd/svc_run.c(my_svc_run): remove usage of undocumented
+	%m format specifier.
+	*utils/statd/montor.c(sm_mon_1_svc): as above
+	*support/nfs/xlog.c(xlog): Changed xlog to use LOG_INFO instead of
+	LOG_DEBUG so debug messages will appear w/out any config changes
+	to syslog.conf. 
+
+	
 2005-09-02 Mike Frysinger <vapier@gentoo.org>
 	* utils/rquotad/rquota_server.c(getquotainfo): use explicit
 	struture-member copying rather than memcpy, as the element

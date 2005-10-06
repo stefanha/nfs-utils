@@ -80,9 +80,7 @@ main(int argc, char **argv)
 		(void) dup2(fd, 1);
 		(void) dup2(fd, 2);
 	}
-	fd = sysconf(_SC_OPEN_MAX);
-	while (--fd > 2)
-		(void) close(fd);
+	closeall(3);
 
 	if ((error = nfssvc(port, count)) < 0) {
 		int e = errno;
