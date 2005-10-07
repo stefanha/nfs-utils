@@ -1,3 +1,11 @@
+2005-10-07 Olaf Kirch <okir@suse.de>
+	* utils/mountd/mountd.c(get_exportlist): Without this patch,
+	showmount -e would sometimes display host names that should really
+	have been subsumed under a wildcard entry.
+
+	The problem was that the code in get_exportlist would always
+	skip the next group entry after removing one FQDN.
+
 2005-10-06 Steve Dickson <SteveD@redhat.com> NeilBrown <neilb@suse.de>
 	* support/nfs/export.c: don't warn about sync/async for readonly
 	exports

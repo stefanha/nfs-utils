@@ -425,11 +425,9 @@ get_exportlist(void)
 				xfree(c->gr_name);
 				xfree(c);
 				xfree (hp);
-				if ((c = *cp) == NULL)
-				  break;
+				continue;
 			      }
-			      else
-				xfree (hp);
+			      xfree (hp);
 			    }
 			    cp = &(c->gr_next);
 			  }
