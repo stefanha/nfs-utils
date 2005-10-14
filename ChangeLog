@@ -1,3 +1,8 @@
+2005-10-14 NeilBrown <neilb@suse.de>
+	*utils/mountd/cache.c(nfsd_fh): Understand type 2 and type 3
+	filesystem identifiers, which are used with device numbers
+	That don't fit into 16 bits.
+
 2005-10-07 Olaf Kirch <okir@suse.de>
 	* utils/mountd/mountd.c(get_exportlist): Without this patch,
 	showmount -e would sometimes display host names that should really

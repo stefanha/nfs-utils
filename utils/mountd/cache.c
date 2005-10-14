@@ -119,7 +119,7 @@ void nfsd_fh(FILE *f)
 		goto out;
 	if (qword_get_int(&cp, &fsidtype) != 0)
 		goto out;
-	if (fsidtype < 0 || fsidtype > 1)
+	if (fsidtype < 0 || fsidtype > 3)
 		goto out; /* unknown type */
 	if ((fsidlen = qword_get(&cp, fsid, 32)) <= 0)
 		goto out;
@@ -138,6 +138,30 @@ void nfsd_fh(FILE *f)
 			goto out;
 		memcpy(&fsidnum, fsid, 4);
 		break;
+
+	case 2: /* 12 bytes: 4 major, 4 minor, 4 inode 
+		 * This format is never actually used but was
+		 * an historical accident
+		 */
+		if (fsidlen != 12)
+			goto out;
+		memcpy(&dev, fsid, 4); major = ntohl(dev);
+		memcpy(&dev, fsid+4, 4); minor = ntohl(dev);
+		memcpy(&inode, fsid+8, 4);
+		break;
+
+	case 3: /* 8 bytes: 4 byte packed device number, 4 inode */
+		/* This is *host* endian, not net-byte-order, because
+		 * no-one outside this host has any business interpreting it
+		 */
+		if (fsidlen != 8)
+			goto out;
+		memcpy(&dev, fsid, 4);
+		memcpy(&inode, fsid+4, 4);
+		major = (dev & 0xfff00) >> 8;
+		minor = (dev & 0xff) | ((dev >> 12) & 0xfff00);
+		break;
+
 	}
 
 	auth_reload();
@@ -160,7 +184,7 @@ void nfsd_fh(FILE *f)
 			    ((exp->m_export.e_flags & NFSEXP_FSID) == 0 ||
 			     exp->m_export.e_fsid != fsidnum))
 				continue;
-			if (fsidtype == 0) {
+			if (fsidtype != 1) {
 				if (stb.st_ino != inode)
 					continue;
 				if (major != major(stb.st_dev) ||
