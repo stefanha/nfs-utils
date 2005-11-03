@@ -1,3 +1,49 @@
+2005-11-03 Steve Dickson <SteveD@redhat.com> NeilBrown <neilb@suse.de>
+	*utils/idmapd/idmaps.c:
+	
+	I've recently updated the nfs-utils in rawhide with the
+	latest patches from the SourceForge CVS tree and the
+	latest CITI patches (1.0.7-4).
+	
+	In testing these patches, I notice that when the server was started
+	and a SIGHUP was sent to rpc.idmapd to open the nfs4.nametoid/channel
+	and nfs4.idtoname/channel files, the second open (the nfs4.idtoname one)
+	failed because the path (i.e. ic->ic_path) was NULL.
+	
+	Now the reason the ic_path was NULL was because it was never set
+	during the call to nfsdopen(). nfsdopen() looks like:
+	nfsdopen(char *path)
+	{
+	     return ((nfsdopenone(&nfsd_ic[IC_NAMEID], IC_NAMEID, path) == 0 &&
+             nfsdopenone(&nfsd_ic[IC_IDNAME], IC_IDNAME, path) == 0) ? 0 
+	       : -1);
+	}
+
+	Note: the call to nfsdopenone() is how the path is set in each nfsd_ic[]
+	entry and nfsdopen() is only called once.
+	
+	So when rpc.idmap comes up and the first call to nfsdopenone() fails
+	(because the server is not running) the path in nfsd_ic[IC_IDNAME] is
+	never filled in because the second nfsdopenone() never happen...
+	
+	Now there was a CITI patche (idmapd_revert_fix_reopen_on_sighup.dif)
+	that tried to address this problem but did seem to fix it.. The
+	attached patch fix the problem by initializing both nfsd_ic[IC_IDNAME]
+	and nfsd_ic[IC_NAMEID] structures with the needed info...
+	I figured since there is no way of changing these paths or filenames
+	by command line args, why not just set them during compile time...
+	so that's what this patch does.
+	
+	This patch also changes how nfsdreopen_one() handles the
+	case where the event has already been set. Unlike the CITI
+	patch (idmapd_revert_fix_reopen_on_sighup.dif) which just
+	just does not register the second event, my patch deletes
+	the old event and the registers the new one. It just seems like
+	the right thing to do since a SIGHUP means a new server just
+	started so we probably should create a new event as well...
+	
+	steved.
+	
 2005-10-14 NeilBrown <neilb@suse.de>
 	*utils/mountd/cache.c(nfsd_fh): Understand type 2 and type 3
 	filesystem identifiers, which are used with device numbers

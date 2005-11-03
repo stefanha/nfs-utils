@@ -92,17 +92,27 @@
 } while (0)
 
 #define IC_IDNAME 0
+#define IC_IDNAME_CHAN  NFSD_DIR "/nfs4.idtoname/channel"
+#define IC_IDNAME_FLUSH NFSD_DIR "/nfs4.idtoname/flush"
+
 #define IC_NAMEID 1
+#define IC_NAMEID_CHAN  NFSD_DIR "/nfs4.nametoid/channel"
+#define IC_NAMEID_FLUSH NFSD_DIR "/nfs4.nametoid/flush"
+
 struct idmap_client {
+	short                      ic_which;
+	char                       ic_clid[30];
+	char                      *ic_id;
+	char                       ic_path[PATH_MAX];
 	int                        ic_fd;
 	int                        ic_dirfd;
-	char                       ic_clid[30];
-	char                       ic_path[PATH_MAX];
 	int                        ic_scanned;
 	struct event               ic_event;
-	char                      *ic_id;
-	short                      ic_which;
 	TAILQ_ENTRY(idmap_client)  ic_next;
+};
+static struct idmap_client nfsd_ic[2] = {
+{IC_IDNAME, "Server", "", IC_IDNAME_CHAN, -1, -1, 0},
+{IC_NAMEID, "Server", "", IC_NAMEID_CHAN, -1, -1, 0},
 };
 
 TAILQ_HEAD(idmap_clientq, idmap_client);
@@ -122,7 +132,7 @@ static void idtonameres(struct idmap_msg *);
 static void nametoidres(struct idmap_msg *);
 
 static int nfsdopen(char *);
-static int nfsdopenone(struct idmap_client *, short, char *);
+static int nfsdopenone(struct idmap_client *);
 static void nfsdreopen(void);
 
 size_t  strlcat(char *, const char *, size_t);
@@ -136,7 +146,6 @@ static char pipefsdir[PATH_MAX];
 static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
 static gid_t nobodygid;
-static struct idmap_client nfsd_ic[2];
 
 /* Used by cfg.c */
 char *conf_path;
@@ -162,10 +171,10 @@ flush_nfsd_idmap_cache(void)
 	time_t now = time(NULL);
 	int ret;
 
-	ret = flush_nfsd_cache("/proc/net/rpc/nfs4.idtoname/flush", now);
+	ret = flush_nfsd_cache(IC_IDNAME_FLUSH, now);
 	if (ret)
 		return ret;
-	ret = flush_nfsd_cache("/proc/net/rpc/nfs4.nametoid/flush", now);
+	ret = flush_nfsd_cache(IC_NAMEID_FLUSH, now);
 	return ret;
 }
 
@@ -596,9 +605,13 @@ nfsdreopen_one(struct idmap_client *ic)
 
 	if (verbose > 0)
 		warnx("ReOpening %s", ic->ic_path);
+
 	if ((fd = open(ic->ic_path, O_RDWR, 0)) != -1) {
 		if (ic->ic_fd != -1)
 			close(ic->ic_fd);
+		if ((ic->ic_event.ev_flags & EVLIST_INIT))
+			event_del(&ic->ic_event);
+
 		ic->ic_event.ev_fd = ic->ic_fd = fd;
 		event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
 		event_add(&ic->ic_event, NULL);
@@ -608,9 +621,6 @@ nfsdreopen_one(struct idmap_client *ic)
 	}
 }
 
-/*
- * Note: nfsdreopen assumes nfsdopen has already been called
- */
 static void
 nfsdreopen()
 {
@@ -622,18 +632,13 @@ nfsdreopen()
 static int
 nfsdopen(char *path)
 {
-	return ((nfsdopenone(&nfsd_ic[IC_NAMEID], IC_NAMEID, path) == 0 &&
-		    nfsdopenone(&nfsd_ic[IC_IDNAME], IC_IDNAME, path) == 0) ? 0 : -1);
+	return ((nfsdopenone(&nfsd_ic[IC_NAMEID]) == 0 &&
+		    nfsdopenone(&nfsd_ic[IC_IDNAME]) == 0) ? 0 : -1);
 }
 
 static int
-nfsdopenone(struct idmap_client *ic, short which, char *path)
+nfsdopenone(struct idmap_client *ic)
 {
-	char *whichstr;
-
-	whichstr = which == IC_IDNAME ? "idtoname" : "nametoid";
-	snprintf(ic->ic_path, sizeof(ic->ic_path),
-		"%s/nfs4.%s/channel", path, whichstr);
 	if ((ic->ic_fd = open(ic->ic_path, O_RDWR, 0)) == -1) {
 		if (verbose > 0)
 			warnx("Opening %s failed: errno %d (%s)",
@@ -643,10 +648,6 @@ nfsdopenone(struct idmap_client *ic, short which, char *path)
 
 	event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
 	event_add(&ic->ic_event, NULL);
-
-	ic->ic_which = which;
-	ic->ic_id = "Server";
-	strlcpy(ic->ic_clid, "Server", strlen("Server"));
 
 	if (verbose > 0)
 		warnx("Opened %s", ic->ic_path);
