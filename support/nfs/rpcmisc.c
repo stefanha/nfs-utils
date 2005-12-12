@@ -53,12 +53,19 @@ rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport)
 	if (getsockname(0, (struct sockaddr *) &saddr, &asize) == 0
 	    && saddr.sin_family == AF_INET) {
 		int ssize = sizeof (int);
-		_rpcfdtype = 0;
+		int fdtype = 0;
 		if (getsockopt(0, SOL_SOCKET, SO_TYPE,
-				(char *)&_rpcfdtype, &ssize) == -1)
+				(char *)&fdtype, &ssize) == -1)
 			xlog(L_FATAL, "getsockopt failed: %s", strerror(errno));
-		_rpcpmstart = 1;
-	} else {
+		/* inetd passes a UDP socket or a listening TCP socket.
+		 * listen will fail on a connected TCP socket(passed by rsh).
+		 */
+		if (!(fdtype == SOCK_STREAM && listen(0,5) == -1)) {
+			_rpcfdtype = fdtype;
+			_rpcpmstart = 1;
+		}
+	}
+	if (!_rpcpmstart) {
 		pmap_unset(prog, vers);
 		sock = RPC_ANYSOCK;
 	}

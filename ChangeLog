@@ -1,3 +1,8 @@
+2005-12-12 Usha Ketineni <ketineni@us.ibm.com>, NeilBrown <neilb@suse.de>
+	*support/nfs/rpcmisc.c(rpc_init): is stdin is a socket, but
+	is already connected (as e.g. from ssh), don't assume we
+	were started by inetd.
+
 2005-11-03 Steve Dickson <SteveD@redhat.com> NeilBrown <neilb@suse.de>
 	*utils/idmapd/idmaps.c:
 	
