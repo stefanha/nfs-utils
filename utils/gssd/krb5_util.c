@@ -288,18 +288,16 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
 				    &credh, NULL, NULL);
 
 	if (maj_stat != GSS_S_COMPLETE) {
-		printerr(0, "WARNING: error from gss_acquire_cred "
-			"for user with uid %d (%s)\n",
-			uid, error_message(min_stat));
+		pgsserr("gss_acquire_cred",
+			maj_stat, min_stat, &krb5oid);
 		return -1;
 	}
 
 	maj_stat = gss_set_allowable_enctypes(&min_stat, credh, &krb5oid,
 					     num_enctypes, &enctypes);
 	if (maj_stat != GSS_S_COMPLETE) {
-		printerr(0, "WARNING: error from gss_set_allowable_enctypes "
-			"for user with uid %d (%s)\n",
-			uid, error_message(min_stat));
+		pgsserr("gss_set_allowable_enctypes",
+			maj_stat, min_stat, &krb5oid);
 		return -1;
 	}
 	sec->cred = credh;

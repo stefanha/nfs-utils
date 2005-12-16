@@ -54,6 +54,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+#include <syslog.h>
 #include <pwd.h>
 #include <grp.h>
 #include <limits.h>
@@ -131,7 +133,7 @@ static void imconv(struct idmap_client *, struct idmap_msg *);
 static void idtonameres(struct idmap_msg *);
 static void nametoidres(struct idmap_msg *);
 
-static int nfsdopen(char *);
+static int nfsdopen();
 static int nfsdopenone(struct idmap_client *);
 static void nfsdreopen(void);
 
@@ -178,6 +180,71 @@ flush_nfsd_idmap_cache(void)
 	return ret;
 }
 
+static void
+msg_format(char *rtnbuff, int rtnbuffsize, int errval,
+	   const char *fmt, va_list args)
+{
+	char buff[1024];
+	int n;
+
+	vsnprintf(buff, sizeof(buff), fmt, args);
+
+	if ((n = strlen(buff)) > 0 && buff[n-1] == '\n')
+		buff[--n] = '\0';
+
+	snprintf(rtnbuff, rtnbuffsize, "%s: %s", buff, strerror(errval));
+}
+
+static void
+idmapd_warn(const char *fmt, ...)
+{
+	int errval = errno;	/* save this! */
+	char buff[1024];
+	va_list args;
+
+	va_start(args, fmt);
+	msg_format(buff, sizeof(buff), errval, fmt, args);
+	va_end(args);
+
+	syslog(LOG_WARNING, "%s", buff);
+}
+
+static void
+idmapd_warnx(const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	vsyslog(LOG_WARNING, fmt, args);
+	va_end(args);
+}
+
+static void
+idmapd_err(int eval, const char *fmt, ...)
+{
+	int errval = errno;	/* save this! */
+	char buff[1024];
+	va_list args;
+
+	va_start(args, fmt);
+	msg_format(buff, sizeof(buff), errval, fmt, args);
+	va_end(args);
+
+	syslog(LOG_ERR, "%s", buff);
+	exit(eval);
+}
+
+static void
+idmapd_errx(int eval, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	vsyslog(LOG_ERR, fmt, args);
+	va_end(args);
+	exit(eval);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -191,11 +258,18 @@ main(int argc, char **argv)
 	char *xpipefsdir = NULL;
 	int serverstart = 1, clientstart = 1;
 	int ret;
+	char *progname;
 
 	conf_path = _PATH_IDMAPDCONF;
 	nobodyuser = NFS4NOBODY_USER;
 	nobodygroup = NFS4NOBODY_GROUP;
 	strlcpy(pipefsdir, PIPEFS_DIR, sizeof(pipefsdir));
+
+	if ((progname = strrchr(argv[0], '/')))
+		progname++;
+	else
+		progname = argv[0];
+	openlog(progname, LOG_PID, LOG_DAEMON);
 
 #define GETOPTSTR "vfd:p:U:G:c:CS"
 	opterr=0; /* Turn off error messages */
@@ -269,11 +343,12 @@ main(int argc, char **argv)
 	event_init();
 
 	if (serverstart) {
-		nfsdret = nfsdopen(NFSD_DIR);
+		nfsdret = nfsdopen();
 		if (nfsdret == 0) {
 			ret = flush_nfsd_idmap_cache();
 			if (ret)
-				errx(1, "Failed to flush nfsd idmap cache\n");
+				idmapd_errx(1,
+					"main: Failed to flush nfsd idmap cache\n");
 		}
 	}
 
@@ -284,13 +359,14 @@ main(int argc, char **argv)
 		};
 
 		if ((fd = open(pipefsdir, O_RDONLY)) == -1)
-			err(1, "open(%s)", pipefsdir);
+			idmapd_err(1, "main: open(%s)", pipefsdir);
 
 		if (fcntl(fd, F_SETSIG, SIGUSR1) == -1)
-			err(1, "fcntl(%s)", pipefsdir);
+			idmapd_err(1, "main: fcntl(%s)", pipefsdir);
+
 		if (fcntl(fd, F_NOTIFY,
 			DN_CREATE | DN_DELETE | DN_MODIFY | DN_MULTISHOT) == -1)
-			err(1, "fcntl(%s)", pipefsdir);
+			idmapd_err(1, "main: fcntl(%s)", pipefsdir);
 
 		TAILQ_INIT(&icq);
 
@@ -310,12 +386,13 @@ main(int argc, char **argv)
 	}
 
 	if (nfsdret != 0 && fd == 0)
-		errx(1, "Neither NFS client nor NFSd found");
+		idmapd_errx(1, "main: Neither NFS client nor NFSd found");
 
 	release_parent();
 
 	if (event_dispatch() < 0)
-		errx(1, "event_dispatch: returns errno %d (%s)", errno, strerror(errno));
+		idmapd_errx(1, "main: event_dispatch returns errno %d (%s)",
+			    errno, strerror(errno));
 	/* NOTREACHED */
 	return 1;
 }
@@ -331,7 +408,7 @@ dirscancb(int fd, short which, void *data)
 
 	nent = scandir(pipefsdir, &ents, NULL, alphasort);
 	if (nent == -1) {
-		warn("scandir(%s)", pipefsdir);
+		idmapd_warn("dirscancb: scandir(%s)", pipefsdir);
 		return;
 	}
 
@@ -353,7 +430,7 @@ dirscancb(int fd, short which, void *data)
 			    pipefsdir, ents[i]->d_name);
 
 			if ((ic->ic_dirfd = open(path, O_RDONLY, 0)) == -1) {
-				warn("open(%s)", path);
+				idmapd_warn("dirscancb: open(%s)", path);
 				free(ic);
 				return;
 			}
@@ -362,7 +439,7 @@ dirscancb(int fd, short which, void *data)
 			strlcpy(ic->ic_path, path, sizeof(ic->ic_path));
 
 			if (verbose > 0)
-				warnx("New client: %s", ic->ic_clid);
+				idmapd_warnx("New client: %s", ic->ic_clid);
 
 			if (nfsopen(ic) == -1) {
 				close(ic->ic_dirfd);
@@ -386,8 +463,8 @@ dirscancb(int fd, short which, void *data)
 			close(ic->ic_dirfd);
 			TAILQ_REMOVE(icq, ic, ic_next);
 			if (verbose > 0) {
-				warnx("Stale client: %s", ic->ic_clid);
-				warnx("\t-> closed %s", ic->ic_path);
+				idmapd_warnx("Stale client: %s", ic->ic_clid);
+				idmapd_warnx("\t-> closed %s", ic->ic_path);
 			}
 			free(ic);
 		} else
@@ -425,13 +502,14 @@ nfsdcb(int fd, short which, void *data)
 	size_t len, bsiz;
 	char *bp, typebuf[IDMAP_MAXMSGSZ],
 		buf1[IDMAP_MAXMSGSZ], authbuf[IDMAP_MAXMSGSZ], *p;
+	unsigned long tmp;
 
 	if (which != EV_READ)
 		goto out;
 
 	if ((len = read(ic->ic_fd, buf, sizeof(buf))) == -1) {
-		warnx("nfsdcb: read(%s) failed: errno %d (%s)",
-			ic->ic_path, errno, strerror(errno));
+		idmapd_warnx("nfsdcb: read(%s) failed: errno %d (%s)",
+			     ic->ic_path, errno, strerror(errno));
 		goto out;
 	}
 
@@ -443,15 +521,16 @@ nfsdcb(int fd, short which, void *data)
 
 	/* Authentication name -- ignored for now*/
 	if (getfield(&bp, authbuf, sizeof(authbuf)) == -1) {
-		warnx("nfsdcb: bad authentication name in upcall\n");
+		idmapd_warnx("nfsdcb: bad authentication name in upcall\n");
 		return;
 	}
 	if (getfield(&bp, typebuf, sizeof(typebuf)) == -1) {
-		warnx("nfsdcb: bad type in upcall\n");
+		idmapd_warnx("nfsdcb: bad type in upcall\n");
 		return;
 	}
 	if (verbose > 0)
-		warnx("nfsdcb: authbuf=%s authtype=%s", authbuf, typebuf);
+		idmapd_warnx("nfsdcb: authbuf=%s authtype=%s",
+			     authbuf, typebuf);
 
 	im.im_type = strcmp(typebuf, "user") == 0 ?
 		IDMAP_TYPE_USER : IDMAP_TYPE_GROUP;
@@ -460,25 +539,26 @@ nfsdcb(int fd, short which, void *data)
 	case IC_NAMEID:
 		im.im_conv = IDMAP_CONV_NAMETOID;
 		if (getfield(&bp, im.im_name, sizeof(im.im_name)) == -1) {
-			warnx("nfsdcb: bad name in upcall\n");
+			idmapd_warnx("nfsdcb: bad name in upcall\n");
 			return;
 		}
 		break;
 	case IC_IDNAME:
 		im.im_conv = IDMAP_CONV_IDTONAME;
 		if (getfield(&bp, buf1, sizeof(buf1)) == -1) {
-			warnx("nfsdcb: bad id in upcall\n");
+			idmapd_warnx("nfsdcb: bad id in upcall\n");
 			return;
 		}
-		if ((im.im_id = strtoul(buf1, (char **)NULL, 10)) == ULONG_MAX &&
-		    errno == ERANGE) {
-			warnx("nfsdcb: id '%s' too big!\n", buf1);
+		tmp = strtoul(buf1, (char **)NULL, 10);
+		im.im_id = (u_int32_t)tmp;
+		if ((tmp == ULONG_MAX && errno == ERANGE)
+				|| (unsigned long)im.im_id != tmp) {
+			idmapd_warnx("nfsdcb: id '%s' too big!\n", buf1);
 			return;
 		}
-
 		break;
 	default:
-		warnx("Unknown which type %d", ic->ic_which);
+		idmapd_warnx("nfsdcb: Unknown which type %d", ic->ic_which);
 		return;
 	}
 
@@ -528,15 +608,15 @@ nfsdcb(int fd, short which, void *data)
 
 		break;
 	default:
-		warnx("Unknown which type %d", ic->ic_which);
+		idmapd_warnx("nfsdcb: Unknown which type %d", ic->ic_which);
 		return;
 	}
 
 	bsiz = sizeof(buf) - bsiz;
 
 	if (atomicio(write, ic->ic_fd, buf, bsiz) != bsiz)
-		warnx("nfsdcb: write(%s) failed: errno %d (%s)",
-			ic->ic_path, errno, strerror(errno));
+		idmapd_warnx("nfsdcb: write(%s) failed: errno %d (%s)",
+			     ic->ic_path, errno, strerror(errno));
 
 out:
 	event_add(&ic->ic_event, NULL);
@@ -549,7 +629,7 @@ imconv(struct idmap_client *ic, struct idmap_msg *im)
 	case IDMAP_CONV_IDTONAME:
 		idtonameres(im);
 		if (verbose > 1)
-			warnx("%s %s: (%s) id \"%d\" -> name \"%s\"",
+			idmapd_warnx("%s %s: (%s) id \"%d\" -> name \"%s\"",
 			    ic->ic_id, ic->ic_clid,
 			    im->im_type == IDMAP_TYPE_USER ? "user" : "group",
 			    im->im_id, im->im_name);
@@ -561,13 +641,14 @@ imconv(struct idmap_client *ic, struct idmap_msg *im)
 		}
 		nametoidres(im);
 		if (verbose > 1)
-			warnx("%s %s: (%s) name \"%s\" -> id \"%d\"",
+			idmapd_warnx("%s %s: (%s) name \"%s\" -> id \"%d\"",
 			    ic->ic_id, ic->ic_clid,
 			    im->im_type == IDMAP_TYPE_USER ? "user" : "group",
 			    im->im_name, im->im_id);
 		break;
 	default:
-		warnx("Invalid conversion type (%d) in message", im->im_conv);
+		idmapd_warnx("imconv: Invalid conversion type (%d) in message",
+			     im->im_conv);
 		im->im_status |= IDMAP_STATUS_INVALIDMSG;
 		break;
 	}
@@ -584,7 +665,7 @@ nfscb(int fd, short which, void *data)
 
 	if (atomicio(read, ic->ic_fd, &im, sizeof(im)) != sizeof(im)) {
 		if (verbose > 0)
-			warn("read(%s)", ic->ic_path);
+			idmapd_warn("nfscb: read(%s)", ic->ic_path);
 		if (errno == EPIPE)
 			return;
 		goto out;
@@ -593,7 +674,7 @@ nfscb(int fd, short which, void *data)
 	imconv(ic, &im);
 
 	if (atomicio(write, ic->ic_fd, &im, sizeof(im)) != sizeof(im))
-		warn("write(%s)", ic->ic_path);
+		idmapd_warn("nfscb: write(%s)", ic->ic_path);
 out:
 	event_add(&ic->ic_event, NULL);
 }
@@ -604,7 +685,7 @@ nfsdreopen_one(struct idmap_client *ic)
 	int fd;
 
 	if (verbose > 0)
-		warnx("ReOpening %s", ic->ic_path);
+		idmapd_warnx("ReOpening %s", ic->ic_path);
 
 	if ((fd = open(ic->ic_path, O_RDWR, 0)) != -1) {
 		if (ic->ic_fd != -1)
@@ -616,7 +697,7 @@ nfsdreopen_one(struct idmap_client *ic)
 		event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
 		event_add(&ic->ic_event, NULL);
 	} else {
-		warnx("nfsdreopen: Opening '%s' failed: errno %d (%s)",
+		idmapd_warnx("nfsdreopen: Opening '%s' failed: errno %d (%s)",
 			ic->ic_path, errno, strerror(errno));
 	}
 }
@@ -630,7 +711,7 @@ nfsdreopen()
 }
 
 static int
-nfsdopen(char *path)
+nfsdopen()
 {
 	return ((nfsdopenone(&nfsd_ic[IC_NAMEID]) == 0 &&
 		    nfsdopenone(&nfsd_ic[IC_IDNAME]) == 0) ? 0 : -1);
@@ -641,7 +722,8 @@ nfsdopenone(struct idmap_client *ic)
 {
 	if ((ic->ic_fd = open(ic->ic_path, O_RDWR, 0)) == -1) {
 		if (verbose > 0)
-			warnx("Opening %s failed: errno %d (%s)",
+			idmapd_warnx("nfsdopenone: Opening %s failed: "
+				"errno %d (%s)",
 				ic->ic_path, errno, strerror(errno));
 		return (-1);
 	}
@@ -650,7 +732,7 @@ nfsdopenone(struct idmap_client *ic)
 	event_add(&ic->ic_event, NULL);
 
 	if (verbose > 0)
-		warnx("Opened %s", ic->ic_path);
+		idmapd_warnx("Opened %s", ic->ic_path);
 
 	return (0);
 }
@@ -666,7 +748,7 @@ nfsopen(struct idmap_client *ic)
 			    DN_CREATE | DN_DELETE | DN_MULTISHOT);
 			break;
 		default:
-			warn("open(%s)", ic->ic_path);
+			idmapd_warn("nfsopen: open(%s)", ic->ic_path);
 			return (-1);
 		}
 	} else {
@@ -675,21 +757,10 @@ nfsopen(struct idmap_client *ic)
 		fcntl(ic->ic_dirfd, F_SETSIG, 0);
 		fcntl(ic->ic_dirfd, F_NOTIFY, 0);
 		if (verbose > 0)
-			warnx("Opened %s", ic->ic_path);
+			idmapd_warnx("Opened %s", ic->ic_path);
 	}
 
 	return (0);
-}
-
-static int write_name(char *dest, char *localname, char *domain, size_t len)
-{
-	if (strlen(localname) + 1 + strlen(domain) + 1 > len) {
-		return -ENOMEM; /* XXX: Is there an -ETOOLONG? */
-	}
-	strcpy(dest, localname);
-	strcat(dest, "@");
-	strcat(dest, domain);
-	return 0;
 }
 
 static void
@@ -703,16 +774,22 @@ idtonameres(struct idmap_msg *im)
 	case IDMAP_TYPE_USER:
 		ret = nfs4_uid_to_name(im->im_id, domain, im->im_name,
 				sizeof(im->im_name));
-		if (ret)
-			write_name(im->im_name, nobodyuser, domain,
-					sizeof(im->im_name));
+		if (ret) {
+			if (strlen(nobodyuser) < sizeof(im->im_name))
+				strcpy(im->im_name, nobodyuser);
+			else
+				strcpy(im->im_name, NFS4NOBODY_USER);
+		}
 		break;
 	case IDMAP_TYPE_GROUP:
 		ret = nfs4_gid_to_name(im->im_id, domain, im->im_name,
 				sizeof(im->im_name));
-		if (ret)
-			write_name(im->im_name, nobodygroup, domain,
-					sizeof(im->im_name));
+		if (ret) {
+			if (strlen(nobodygroup) < sizeof(im->im_name))
+				strcpy(im->im_name, nobodygroup);
+			else
+				strcpy(im->im_name, NFS4NOBODY_GROUP);
+		}
 		break;
 	}
 	/* XXX Hack? */
@@ -722,6 +799,8 @@ idtonameres(struct idmap_msg *im)
 static void
 nametoidres(struct idmap_msg *im)
 {
+	uid_t uid;
+	gid_t gid;
 	int ret = 0;
 
 	/* XXX: nobody fallbacks shouldn't always happen:
@@ -734,12 +813,14 @@ nametoidres(struct idmap_msg *im)
 	 * have a chance on looking up server/whatever. */
 	switch (im->im_type) {
 	case IDMAP_TYPE_USER:
-		ret = nfs4_name_to_uid(im->im_name, &im->im_id);
+		ret = nfs4_name_to_uid(im->im_name, &uid);
+		im->im_id = (u_int32_t) uid;
 		if (ret)
 			im->im_id = nobodyuid;
 		break;
 	case IDMAP_TYPE_GROUP:
-		ret = nfs4_name_to_gid(im->im_name, &im->im_id);
+		ret = nfs4_name_to_gid(im->im_name, &gid);
+		im->im_id = (u_int32_t) gid;
 		if (ret)
 			im->im_id = nobodygid;
 		break;
@@ -850,10 +931,10 @@ mydaemon(int nochdir, int noclose)
 	int pid, status, tempfd;
 
 	if (pipe(pipefds) < 0)
-		err(1, "mydaemon: pipe() failed: errno %d (%s)\n", errno, strerror(errno));
+		err(1, "mydaemon: pipe() failed: errno %d", errno);
 
 	if ((pid = fork ()) < 0)
-		err(1, "mydaemon: fork() failed: errno %d (%s)\n", errno, strerror(errno));
+		err(1, "mydaemon: fork() failed: errno %d", errno);
 
 	if (pid != 0) {
 		/*
@@ -869,13 +950,13 @@ mydaemon(int nochdir, int noclose)
 	setsid ();
 	if (nochdir == 0) {
 		if (chdir ("/") == -1)
-			err(1, "mydaemon: chdir() failed: errno %d (%s)\n", errno, strerror(errno));
+			err(1, "mydaemon: chdir() failed: errno %d", errno);
 	}
 
 	while (pipefds[1] <= 2) {
 		pipefds[1] = dup(pipefds[1]);
 		if (pipefds[1] < 0)
-			err(1, "mydaemon: dup() failed: errno %d (%s)\n", errno, strerror(errno));
+			err(1, "mydaemon: dup() failed: errno %d", errno);
 	}
 
 	if (noclose == 0) {

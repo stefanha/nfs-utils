@@ -366,11 +366,16 @@ static int
 do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	    gss_buffer_desc *context_token)
 {
-	char    buf[2048];
-	char    *p = buf, *end = buf + 2048;
+	char    *buf = NULL, *p = NULL, *end = NULL;
 	unsigned int timeout = 0; /* XXX decide on a reasonable value */
+	unsigned int buf_size = 0;
 
 	printerr(1, "doing downcall\n");
+	buf_size = sizeof(uid) + sizeof(timeout) + sizeof(pd->pd_seq_win) +
+		sizeof(pd->pd_ctx_hndl.length) + pd->pd_ctx_hndl.length +
+		sizeof(context_token->length) + context_token->length;
+	p = buf = malloc(buf_size);
+	end = buf + buf_size;
 
 	if (WRITE_BYTES(&p, end, uid)) goto out_err;
 	/* Not setting any timeout for now: */
@@ -380,8 +385,10 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	if (write_buffer(&p, end, context_token)) goto out_err;
 
 	if (write(k5_fd, buf, p - buf) < p - buf) goto out_err;
+	if (buf) free(buf);
 	return 0;
 out_err:
+	if (buf) free(buf);
 	printerr(0, "Failed to write downcall!\n");
 	return -1;
 }
@@ -423,7 +430,12 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	AUTH			*auth = NULL;
 	uid_t			save_uid = -1;
 	int			retval = -1;
+	int			errcode;
 	OM_uint32		min_stat;
+	char			rpc_errmsg[1024];
+	int			sockp = RPC_ANYSOCK;
+	int			sendsz = 32768, recvsz = 32768;
+	struct addrinfo		ai_hints, *a = NULL;
 
 	sec.qop = GSS_C_QOP_DEFAULT;
 	sec.svc = RPCSEC_GSS_SVC_NONE;
@@ -435,7 +447,10 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	}
 	else if (authtype == AUTHTYPE_SPKM3) {
 		sec.mech = (gss_OID)&spkm3oid;
-		sec.req_flags = GSS_C_ANON_FLAG;
+		/* XXX sec.req_flags = GSS_C_ANON_FLAG;
+		 * Need a way to switch....
+		 */
+		sec.req_flags = GSS_C_MUTUAL_FLAG;
 	}
 	else {
 		printerr(0, "ERROR: Invalid authentication type (%d) "
@@ -473,20 +488,82 @@ int create_auth_rpc_client(struct clnt_info *clp,
 
 	printerr(2, "creating %s client for server %s\n", clp->protocol,
 			clp->servername);
-	if ((rpc_clnt = clnt_create(clp->servername, clp->prog, clp->vers,
-					clp->protocol)) == NULL) {
-		printerr(0, "WARNING: can't create rpc_clnt for server "
-			    "%s for user with uid %d\n",
-			clp->servername, uid);
+
+	memset(&ai_hints, '\0', sizeof(ai_hints));
+	ai_hints.ai_family = PF_INET;
+	ai_hints.ai_flags |= AI_CANONNAME;
+	if ((strcmp(clp->protocol, "tcp")) == 0) {
+		ai_hints.ai_socktype = SOCK_STREAM;
+		ai_hints.ai_protocol = IPPROTO_TCP;
+	} else if ((strcmp(clp->protocol, "udp")) == 0) {
+		ai_hints.ai_socktype = SOCK_DGRAM;
+		ai_hints.ai_protocol = IPPROTO_UDP;
+	} else {
+		printerr(0, "WARNING: unrecognized protocol, '%s', requested "
+			 "for connection to server %s for user with uid %d",
+			 clp->protocol, clp->servername, uid);
 		goto out_fail;
 	}
+
+	errcode = getaddrinfo(clp->servername, "nfs",
+			      &ai_hints, &a);
+	if (errcode) {
+		printerr(0, "WARNING: Error from getaddrinfo for server "
+			 "'%s': %s", clp->servername, gai_strerror(errcode));
+		goto out_fail;
+	}
+
+	if (a == NULL) {
+		printerr(0, "WARNING: No address information found for "
+			 "connection to server %s for user with uid %d",
+			 clp->servername, uid);
+		goto out_fail;
+	}
+	if (a->ai_protocol == IPPROTO_TCP) {
+		if ((rpc_clnt = clnttcp_create(
+					(struct sockaddr_in *) a->ai_addr,
+					clp->prog, clp->vers, &sockp,
+					sendsz, recvsz)) == NULL) {
+			snprintf(rpc_errmsg, sizeof(rpc_errmsg),
+				 "WARNING: can't create tcp rpc_clnt "
+				 "for server %s for user with uid %d",
+				 clp->servername, uid);
+			printerr(0, "%s\n",
+				 clnt_spcreateerror(rpc_errmsg));
+			goto out_fail;
+		}
+	} else if (a->ai_protocol == IPPROTO_UDP) {
+		const struct timeval timeout = {5, 0};
+		if ((rpc_clnt = clntudp_bufcreate(
+					(struct sockaddr_in *) a->ai_addr,
+					clp->prog, clp->vers, timeout,
+					&sockp, sendsz, recvsz)) == NULL) {
+			snprintf(rpc_errmsg, sizeof(rpc_errmsg),
+				 "WARNING: can't create udp rpc_clnt "
+				 "for server %s for user with uid %d",
+				 clp->servername, uid);
+			printerr(0, "%s\n",
+				 clnt_spcreateerror(rpc_errmsg));
+			goto out_fail;
+		}
+	} else {
+		/* Shouldn't happen! */
+		printerr(0, "ERROR: requested protocol '%s', but "
+			 "got addrinfo with protocol %d",
+			 clp->protocol, a->ai_protocol);
+		goto out_fail;
+	}
+	/* We're done with this */
+	freeaddrinfo(a);
+	a = NULL;
 
 	printerr(2, "creating context with server %s\n", clp->servicename);
 	auth = authgss_create_default(rpc_clnt, clp->servicename, &sec);
 	if (!auth) {
 		/* Our caller should print appropriate message */
-		printerr(2, "WARNING: Failed to create krb5 context for "
+		printerr(2, "WARNING: Failed to create %s context for "
 			    "user with uid %d for server %s\n",
+			(authtype == AUTHTYPE_KRB5 ? "krb5":"spkm3"),
 			 uid, clp->servername);
 		goto out_fail;
 	}
@@ -511,6 +588,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	if (sec.cred != GSS_C_NO_CREDENTIAL)
 		gss_release_cred(&min_stat, &sec.cred);
 	if (rpc_clnt) clnt_destroy(rpc_clnt);
+  	if (a != NULL) freeaddrinfo(a);
 
 	return retval;
 }

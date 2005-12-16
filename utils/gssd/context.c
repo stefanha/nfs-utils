@@ -42,6 +42,10 @@
 #include "err_util.h"
 #include "context.h"
 
+#ifdef HAVE_SPKM3_H
+#include <spkm3.h>
+#endif
+
 /* spkm3 seems to actually want it this big, yipes. */
 #define MAX_CTX_LEN 4096
 
@@ -132,49 +136,6 @@ typedef struct _krb5_gss_ctx_id_rec {
 
 #endif /* KRB5_VERSION */
 #endif /* HAVE_KRB5 */
-
-/* XXX We have the same issue as above.  We can require SPKM-3 source
- * at the time we compile gssd, or copy the context structure definitions
- * here.
- */
-
-/* structure typedefs */
-
-typedef struct spkm3_ctx_id_t {
-    int length;
-    unsigned char *data;
-} spkm3_ctx_id,
- *spkm3_ctx_id_t;
-
-/* first pass at spkm3 context. will add a bunch of stuff .... */
-
-typedef struct spkm3_gss_ctx_id_desc_t {
-    spkm3_ctx_id ctx_id;        /* per spkm token contextid */
-    int established;
-    int qop;                    /* negotiated qop */
-    gss_OID mech_used;
-    OM_uint32 ret_flags;
-    OM_uint32 req_flags;
-    /* DH should be abstracted to an EVP_ struct able to hold
-     * various kalg results */
-    /* XXX The following is defined as "DH *dh" in the original
-     * header we're gonna cheat and use "void *dh" here. */
-    void *dh;
-    gss_buffer_desc share_key;
-    /* derived keys are result from applying the owf_alg to the
-     * shared key - see spkm3_derive_supkey */
-    gss_buffer_desc derived_conf_key;
-    gss_buffer_desc derived_integ_key;
-    /* openssl NID's of the negotiated algorithms */
-    int keyestb_alg;            /* key establishment */
-    int owf_alg;                /* one way function */
-    int intg_alg;               /* integrity */
-    int conf_alg;               /* privacy */
-    /* der encoded REQ_TOKEN reqcontets and length */
-    unsigned char *der_reqcontents;
-    int der_req_len;
-} spkm3_gss_ctx_id_desc;
-
 
 /* adapted from mit kerberos 5 ../lib/gssapi/mechglue/mglueP.h
  * this is what gets passed around when the mechglue code is enabled : */
@@ -292,6 +253,7 @@ prepare_krb5_rfc_cfx_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	return -1;
 }
 
+
 static int
 serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 {
@@ -303,7 +265,7 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 
 	printerr(2, "DEBUG: serialize_krb5_ctx: lucid version!\n");
 	maj_stat = gss_krb5_export_lucid_sec_context(&min_stat, &ctx,
-						     1, &return_ctx);
+							1, &return_ctx);
 	if (maj_stat != GSS_S_COMPLETE)
 		goto out_err;
 
@@ -392,6 +354,98 @@ out_err:
 #endif /* HAVE_KRB5 */
 
 
+#ifdef HAVE_SPKM3_H
+/*
+ * Function: prepare_spkm3_ctx_buffer()
+ *
+ * Prepare spkm3 lucid context for the kernel
+ *
+ *	buf->length should be:
+ *
+ *	ctx_id 4 + 12
+ *	qop 4
+ *	mech_used 4 + 7
+ *	ret_fl  4
+ *	req_fl  4
+ *      share   4 + key_len
+ *      conf_alg 4 + oid_len
+ *      d_conf_key 4 + key_len
+ *      intg_alg 4 + oid_len
+ *      d_intg_key 4 + key_len
+ *      kyestb 4 + oid_len
+ *      owl alg 4 + oid_len
+*/
+static int
+prepare_spkm3_ctx_buffer(gss_spkm3_lucid_ctx_t *lctx, gss_buffer_desc *buf)
+{
+	char *p, *end;
+	unsigned int buf_size = 0;
+
+	buf_size = lctx->ctx_id.length +
+		sizeof(lctx->ctx_id.length) + sizeof(lctx->qop) +
+		sizeof(lctx->mech_used.length) + lctx->mech_used.length +
+		sizeof(lctx->ret_flags) + sizeof(lctx->req_flags) +
+		sizeof(lctx->share_key.length) + lctx->share_key.length +
+		sizeof(lctx->conf_alg.length) + lctx->conf_alg.length +
+		sizeof(lctx->derived_conf_key.length) +
+		lctx->derived_conf_key.length +
+		sizeof(lctx->intg_alg.length) + lctx->intg_alg.length +
+		sizeof(lctx->derived_integ_key.length) +
+		lctx->derived_integ_key.length +
+		sizeof(lctx->keyestb_alg.length) + lctx->keyestb_alg.length +
+		sizeof(lctx->owf_alg.length) + lctx->owf_alg.length;
+
+	if (!(buf->value = calloc(1, buf_size)))
+		goto out_err;
+	p = buf->value;
+	end = buf->value + buf_size;
+
+	if (write_buffer(&p, end, &lctx->ctx_id))
+		goto out_err;
+
+	if (WRITE_BYTES(&p, end, lctx->qop))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->mech_used))
+		goto out_err;
+
+	if (WRITE_BYTES(&p, end, lctx->ret_flags))
+		goto out_err;
+
+	if (WRITE_BYTES(&p, end, lctx->req_flags))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->share_key))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->conf_alg))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->derived_conf_key))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->intg_alg))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->derived_integ_key))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->keyestb_alg))
+		goto out_err;
+
+	if (write_buffer(&p, end, &lctx->owf_alg))
+		goto out_err;
+
+	buf->length = p - (char *)buf->value;
+	return 0;
+out_err:
+	printerr(0, "ERROR: failed serializing spkm3 context for kernel\n");
+	if (buf->value) free(buf->value);
+	buf->length = 0;
+
+	return -1;
+}
+
 /* ANDROS: need to determine which fields of the spkm3_gss_ctx_id_desc_t
  * are needed in the kernel for get_mic, validate, wrap, unwrap, and destroy
  * and only export those fields to the kernel.
@@ -399,56 +453,41 @@ out_err:
 static int
 serialize_spkm3_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 {
-	spkm3_gss_ctx_id_desc      *sctx = (spkm3_gss_ctx_id_desc *)ctx;
-	char *p, *end;
+	OM_uint32 vers, ret, maj_stat, min_stat;
+	void *ret_ctx = 0;
+	gss_spkm3_lucid_ctx_t     *lctx;
 
 	printerr(1, "serialize_spkm3_ctx called\n");
 
-	if (!(buf->value = calloc(1, MAX_CTX_LEN)))
-		goto out_err;
-	p = buf->value;
-	end = buf->value + MAX_CTX_LEN;
-/* buf->length
-ctx_id 4 + 12
-qop 4
-mech_used 4 + 7
-ret_fl  4
-req_fl  4
-share   4 + 16
-conf_alg 4
-d_conf_key 4 + 0
-intg_alg 4
-d_intg_key 4 + 0
-kyestb 4
-owl alg 4
-*/
-	if (write_buffer(&p, end, (gss_buffer_desc *)&sctx->ctx_id))
-		goto out_err;
-	if (WRITE_BYTES(&p, end, sctx->qop)) goto out_err;
-	if (write_buffer(&p, end, (gss_buffer_desc *)sctx->mech_used)) goto out_err;
-	if (WRITE_BYTES(&p, end, sctx->ret_flags)) goto out_err;
-	if (WRITE_BYTES(&p, end, sctx->req_flags)) goto out_err;
-	if (write_buffer(&p, end, &sctx->share_key))
+	printerr(2, "DEBUG: serialize_spkm3_ctx: lucid version!\n");
+	maj_stat = gss_export_lucid_sec_context(&min_stat, ctx, 1, &ret_ctx);
+	if (maj_stat != GSS_S_COMPLETE)
 		goto out_err;
 
-	if (WRITE_BYTES(&p, end, sctx->conf_alg)) goto out_err;
-	if (write_buffer(&p, end, &sctx->derived_conf_key))
+	lctx = (gss_spkm3_lucid_ctx_t *)ret_ctx;
+
+	vers = lctx->version;
+	if (vers != 1) {
+		printerr(0, "ERROR: unsupported spkm3 context version %d\n",
+			vers);
 		goto out_err;
+	}
+	ret = prepare_spkm3_ctx_buffer(lctx, buf);
 
-	if (WRITE_BYTES(&p, end, sctx->intg_alg)) goto out_err;
-	if (write_buffer(&p, end, &sctx->derived_integ_key))
+	maj_stat = gss_free_lucid_sec_context(&min_stat, ctx, ret_ctx);
+
+	if (maj_stat != GSS_S_COMPLETE)
+		printerr(0, "WARN: failed to free lucid sec context\n");
+	if (ret)
 		goto out_err;
-
-	if (WRITE_BYTES(&p, end, sctx->keyestb_alg)) goto out_err;
-	if (WRITE_BYTES(&p, end, sctx->owf_alg)) goto out_err;
-
-	buf->length = p - (char *)buf->value;
+	printerr(2, "DEBUG: serialize_spkm3_ctx: success\n");
 	return 0;
+
 out_err:
-	if (buf->value) free(buf->value);
-	buf->length = 0;
+	printerr(2, "DEBUG: serialize_spkm3_ctx: failed\n");
 	return -1;
 }
+#endif /* HAVE_SPKM3_H */
 
 int
 serialize_context_for_kernel(gss_ctx_id_t ctx, gss_buffer_desc *buf)
@@ -457,8 +496,10 @@ serialize_context_for_kernel(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 
 	if (g_OID_equal(&krb5oid, uctx->mech_type))
 		return serialize_krb5_ctx(uctx->internal_ctx_id, buf);
+#ifdef HAVE_SPKM3_H
 	else if (g_OID_equal(&spkm3oid, uctx->mech_type))
-		return serialize_spkm3_ctx(uctx->internal_ctx_id, buf);
+		return serialize_spkm3_ctx(uctx, buf);
+#endif
 	else {
 		printerr(0, "ERROR: attempting to serialize context with "
 				"unknown mechanism oid\n");

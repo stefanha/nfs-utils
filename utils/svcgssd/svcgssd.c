@@ -54,6 +54,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include "nfslib.h"
 #include "svcgssd.h"
 #include "gss_util.h"
 #include "err_util.h"
@@ -69,7 +70,7 @@ int pipefds[2] = { -1, -1};
 static void
 mydaemon(int nochdir, int noclose)
 {
-	int pid, status, tempfd, fdmax, filedes;
+	int pid, status, tempfd;
 
 	if (pipe(pipefds) < 0) {
 		printerr(1, "mydaemon: pipe() failed: errno %d (%s)\n",

@@ -20,6 +20,7 @@
  *          2 of the License, or (at your option) any later version.
  */
 #include "config.h"
+#define _LINUX_QUOTA_VERSION 1
 
 #include <sys/types.h>
 #include <sys/quota.h>

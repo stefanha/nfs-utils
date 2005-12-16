@@ -136,6 +136,7 @@ AC_SUBST(LIBWRAP)
 if test "$enable_gss" = yes; then
   dnl 'gss' also depends on nfsidmap.h - at least for svcgssd_proc.c
   AC_CHECK_HEADERS(nfsidmap.h, ,[AC_MSG_ERROR(libnfsidmap needed for gss support)])
+  AC_CHECK_HEADERS(spkm3.h, ,[AC_MSG_WARN(could not locate SPKM3 header; will not have SPKM3 support)])
   
   dnl Checks for Kerberos
   dnl NOTE: while we intend to do generic gss-api, currently we

@@ -30,6 +30,9 @@
  */
 #undef RESTRICTED_STATD
 
+/* Define this if you have <spkm3.h> */
+#undef  HAVE_SPKM3_H
+
 /* Define this if you want support for rpcsec_gss with
  * the MIT krb5 mechanism compiled in */
 #undef HAVE_KRB5

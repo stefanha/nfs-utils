@@ -1,3 +1,108 @@
+2005-12-16 Kevin Coffman <kwc@citi.umich.edu>
+	svcgssd needs -lnfs when using new function closeall().
+	
+	---
+	Remove unused argument from nfsdopen()
+	
+	After previous changes, the arguement to nfsdopen() has become unused.
+	Remove it.
+	
+	---
+	Fix idmapd error reporting after call to mydaemon()
+	
+	After call to mydaemon(), calls to err[x] and warn[x] result
+	in the message going nowhere.  Change to using idmapd_*
+	versions of these routines which write to syslog.
+	Original problem reported by Vincent Roqueta <vincent.roqueta@ext.bull.net>
+	with a different patch.
+	
+	---
+	Don't add @domain to names that cannot be mapped.
+	
+	Per rfc3530 section 5.8: when unable to map a uid to a name, don't
+	add the @domain to the "nobody" name.
+	
+	---
+	Fix idmapd for systems where sizeof(uid_t)!=4 and sizeof(gid_t)!=4
+	
+	Fix conversion cases where uid_t and gid_t are not 32 bits.
+	
+	---
+	Don't segfault because mech wasn't filled in because of an error
+	
+	From Kevin Coffman <kwc@citi.umich.edu>
+	
+	Initialize mech to null to avoid segfault if an error occurs
+	and mech is never returned from gss_accept_sec_context.
+	
+	---
+	Remove use of static buffer in do_downcall
+	
+	Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+	
+	Dynamically allocate buffer of the correct length rather
+	than using fixed-length buffer.
+	
+	---
+	Print better error message if rpc routine clnt_create() fails.
+	
+	---
+	Print appropriate error messages after gss calls.
+	
+	Print gss error messages after calls to gss functions, even if they
+	are for Kerberos only.
+	
+	---
+	Update gssd and svcgssd to use the new gss mech glue lucid context calls.
+	
+	Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+	
+	Update gssd and svcgssd to use a lucid context from SPKM3 to send down
+	to the kernel.
+	Update gssd and svcgssd to use the new gss mech glue lucid context calls.
+	Add configure check to see if spkm3 support is available.
+	
+	---
+	Add support for CONTINUE_NEEDED return from gss_accept_sec_context.
+	
+	Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+	
+	Add CONTINUE_INIT handling to svcgssd. Store the partially complete spkm
+	context handle in the out_handle of CONTINUE_INIT messages so that it is
+	returned in the in_handle of subsequent messages.
+	
+	---
+	Replace GSS_C_ANON_FLAG with GSS_C_MUTUAL_FLAG.
+	
+	Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+	
+	Specify GSS_C_MUTUAL_FLAG rather than GSS_C_ANON_FLAG for
+	spkm3.
+	
+	NOTE: we need a way to pass the appropriate value rather than
+	hard-coding this flag.
+	
+	---
+	Increase size of rpc send/receive buffers
+	
+	Change the clnt_create() to use routines which allow us to set the
+	send and receive buffer size.  This is needed for larger spkm3
+	exchanges including certificate chains.
+	
+	This has the side-effect of skipping the portmap call since
+	we specify the port (by specifying the service) when getting
+	the server's address information.
+	
+	---
+	Define _LINUX_QUOTA_VERSION to 1
+	
+	The rquotad code is written against the "old" kernel quota interface.
+	Fedora Core 4 is the only platform known to check for different
+	versions, so this should not have any affect on other platforms
+	and fixes the build for FC4.
+	
+	---
+
 2005-12-12 Usha Ketineni <ketineni@us.ibm.com>, NeilBrown <neilb@suse.de>
 	*support/nfs/rpcmisc.c(rpc_init): is stdin is a socket, but
 	is already connected (as e.g. from ssh), don't assume we
