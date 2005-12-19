@@ -436,6 +436,8 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	int			sockp = RPC_ANYSOCK;
 	int			sendsz = 32768, recvsz = 32768;
 	struct addrinfo		ai_hints, *a = NULL;
+	char			service[64];
+	char			*at_sign;
 
 	sec.qop = GSS_C_QOP_DEFAULT;
 	sec.svc = RPCSEC_GSS_SVC_NONE;
@@ -505,8 +507,21 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		goto out_fail;
 	}
 
-	errcode = getaddrinfo(clp->servername, "nfs",
-			      &ai_hints, &a);
+	/* extract the service name from clp->servicename */
+	if ((at_sign = strchr(clp->servicename, '@')) == NULL) {
+		printerr(0, "WARNING: servicename (%s) not formatted as "
+			"expected with service@host", clp->servicename);
+		goto out_fail;
+	}
+	if ((at_sign - clp->servicename) >= sizeof(service)) {
+		printerr(0, "WARNING: service portion of servicename (%s) "
+			"is too long!", clp->servicename);
+		goto out_fail;
+	}
+	strncpy(service, clp->servicename, at_sign - clp->servicename);
+	service[at_sign - clp->servicename] = '\0';
+
+	errcode = getaddrinfo(clp->servername, service, &ai_hints, &a);
 	if (errcode) {
 		printerr(0, "WARNING: Error from getaddrinfo for server "
 			 "'%s': %s", clp->servername, gai_strerror(errcode));

@@ -1,3 +1,10 @@
+2005-12-20 Kevin Coffman <kwc@citi.umich.edu>
+	utils/gssd/gssd_proc.c(create_auth_rpc_client): Use service
+	  portion of clp->servicename rather than hard-coding "nfs". 
+
+2005-12-16 NeilBrown <neilb@suse.de>
+	1.0.8-rc1 released
+
 2005-12-16 Kevin Coffman <kwc@citi.umich.edu>
 	svcgssd needs -lnfs when using new function closeall().
 	
