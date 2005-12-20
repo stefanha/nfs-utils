@@ -1,3 +1,8 @@
+2005-12-20 NeilBrown <neilb@suse.de>
+	support/nfs/exports.c(getexportent): is a null host name is given,
+	replace it with '*' so we have a non-empty host name for messages
+	etc.
+
 2005-12-20 Kevin Coffman <kwc@citi.umich.edu>
 	utils/gssd/gssd_proc.c(create_auth_rpc_client): Use service
 	  portion of clp->servicename rather than hard-coding "nfs". 

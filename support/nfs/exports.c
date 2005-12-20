@@ -67,7 +67,7 @@ struct exportent *
 getexportent(int fromkernel, int fromexports)
 {
 	static struct exportent	ee;
-	char		exp[512];
+	char		exp[512], *hostname;
 	char		rpath[MAXPATHLEN+1];
 	char		*opt, *sp;
 	int		ok;
@@ -113,9 +113,13 @@ getexportent(int fromkernel, int fromexports)
 	/* Check for default client */
 	if (ok == 0)
 		exp[0] = '\0';
+
+	hostname = exp;
 	if ((opt = strchr(exp, '(')) != NULL) {
-		if (opt == exp) 
+		if (opt == exp) {
 			xlog(L_WARNING, "No host name given with %s %s, suggest *%s to avoid warning", ee.e_path, exp, exp);
+			hostname = "*";
+		}
 		*opt++ = '\0';
 		if (!(sp = strchr(opt, ')')) || sp[1] != '\0') {
 			syntaxerr("bad option list");
@@ -126,12 +130,12 @@ getexportent(int fromkernel, int fromexports)
 	} else {
 	    xlog(L_WARNING, "No options for %s %s: suggest %s(sync) to avoid warning", ee.e_path, exp, exp);
 	}
-	if (strlen(exp) >= sizeof(ee.e_hostname)) {
+	if (strlen(hostname) >= sizeof(ee.e_hostname)) {
 		syntaxerr("client name too long");
 		export_errno = EINVAL;
 		return NULL;
 	}
-	strncpy(ee.e_hostname, exp, sizeof (ee.e_hostname) - 1);
+	strncpy(ee.e_hostname, hostname, sizeof (ee.e_hostname) - 1);
 	ee.e_hostname[sizeof (ee.e_hostname) - 1] = '\0';
 
 	if (parseopts(opt, &ee, fromexports) < 0)
