@@ -6,13 +6,17 @@
  *
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include "nfslib.h"
+#include <nfslib.h>
+
+
 
 static void	usage(const char *);
 
@@ -23,7 +27,7 @@ main(int argc, char **argv)
 
 	if (argc > 1)
 		usage (argv [0]);
-
+	
 	if (chdir(NFS_STATEDIR)) {
 		fprintf(stderr, "%s: chdir(%s) failed: %s\n",
 			argv [0], NFS_STATEDIR, strerror(errno));

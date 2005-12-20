@@ -4,11 +4,22 @@
  * Get version number for an inode on an ext2 file system.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+
 #include <stdio.h>
 #include <sys/fs/ext2fs.h>
 

@@ -5,7 +5,10 @@
  * NSM for Linux.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "sm_inter.h"
 #include "system.h"
 #include "log.h"

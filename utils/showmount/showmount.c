@@ -13,7 +13,9 @@
  * GNU General Public License for more details.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <rpc/rpc.h>

@@ -31,8 +31,10 @@
   * Computing Science, Eindhoven University of Technology, The Netherlands.
   */
 
-#include "tcpwrapper.h"
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+#include <tcpwrapper.h>
 #include <unistd.h>
 #include <string.h>
 #include <rpc/rpc.h>
@@ -55,8 +57,15 @@ int     deny_severity = LOG_WARNING;
 
 /* A handful of macros for "readability". */
 
+#ifdef HAVE_LIBWRAP
 /* coming from libwrap.a (tcp_wrappers) */
 extern int hosts_ctl(char *daemon, char *name, char *addr, char *user);
+#else
+int hosts_ctl(char *daemon, char *name, char *addr, char *user)
+{
+	return 0;
+}
+#endif
 
 #define	legal_port(a,p) \
   (ntohs((a)->sin_port) < IPPORT_RESERVED || (p) >= IPPORT_RESERVED)

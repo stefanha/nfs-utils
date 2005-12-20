@@ -12,7 +12,9 @@
  *	260295	 okir	started with simply syslog logging.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <syslog.h>
 #include <unistd.h>

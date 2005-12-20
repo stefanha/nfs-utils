@@ -15,7 +15,7 @@
  *
  */
 
-#include "config.h"
+/* #include "config.h" */
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -23,6 +23,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <string.h>
+#include <malloc.h>
 #include <fcntl.h>
 #include <ctype.h>
 /* RPC debug flags

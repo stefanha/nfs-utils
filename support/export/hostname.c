@@ -5,7 +5,9 @@
  *
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /*
 #define TEST
@@ -118,7 +120,7 @@ hostent_dup (struct hostent *hp)
       len_addr_list += align (hp->h_length, ALIGNMENT)
 		       + sizeof (char *);
     }
-  
+
   cp = (struct hostent *) xmalloc (len_ent + len_name + len_aliases
 				   + len_addr_list);
 
@@ -219,7 +221,7 @@ matchhostname (const char *h1, const char *h2)
 
 
 /* Map IP to hostname, and then map back to addr to make sure it is a
- * reliable hostname 
+ * reliable hostname
  */
 struct hostent *
 get_reliable_hostbyaddr(const char *addr, int len, int type)
@@ -275,7 +277,7 @@ print_host (struct hostent *hp)
 
   if (hp)
     {
-      printf ("official hostname: %s\n", hp->h_name); 
+      printf ("official hostname: %s\n", hp->h_name);
       printf ("aliases:\n");
       for (sp = hp->h_aliases; *sp; sp++)
 	printf ("  %s\n", *sp);

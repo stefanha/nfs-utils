@@ -6,7 +6,9 @@
  * Copyright (C) 1995 Olaf Kirch <okir@monad.swb.de>
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/stat.h>
 #include <stdlib.h>

@@ -6,7 +6,9 @@
  * Copyright (C) 1995, 1996 Olaf Kirch <okir@monad.swb.de>
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/fcntl.h>
 #include <unistd.h>
@@ -149,7 +151,7 @@ xtab_append(nfs_export *exp)
 
 /*
  * rename newfile onto oldfile unless
- * they are identical 
+ * they are identical
  */
 static void cond_rename(char *newfile, char *oldfile)
 {

@@ -1,17 +1,19 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-AC_INIT(rules.mk)
+AC_INIT([linux nfs-utils],[1.0.8-rc2],[nfs@lists.sf.net],[nfs-utils])
+AC_CANONICAL_BUILD([])
+AC_CANONICAL_HOST([])
+AC_CONFIG_SRCDIR(tools/getiversion/getiversion.c)
+AC_CONFIG_MACRO_DIR(aclocal)
+AM_INIT_AUTOMAKE
+AC_PREREQ(2.59)
 AC_PREFIX_DEFAULT(/usr)
-
-# The nfs-utils version
-VERSION="1.0.8-rc1"
-AC_SUBST(VERSION)
 
 dnl *************************************************************
 dnl * Define the set of applicable options
 dnl *************************************************************
 AC_ARG_WITH(release,
-	[  --with-release=XXX      set release to XXX [1]],
+	[AC_HELP_STRING([--with-release=XXX], [set release to XXX [1]])],
 	RELEASE=$withval,
 	RELEASE=1)
 	AC_SUBST(RELEASE)
@@ -21,16 +23,23 @@ AC_ARG_WITH(statedir,
 	statedir=/var/lib/nfs)
 	AC_SUBST(statedir)
 AC_ARG_WITH(statduser,
-	[  --with-statduser=rpcuser user for statd to run under [rpcuser or nobody]],
+	[AC_HELP_STRING([--with-statduser=rpcuser],
+                        [statd to run under @<:@rpcuser or nobody@:>@]
+	)],
 	statduser=$withval,
-	if grep -s '^rpcuser:' /etc/passwd > /dev/null; then
-		statduser=rpcuser
+	if test "x$cross_compiling" = "xno"; then
+		if grep -s '^rpcuser:' /etc/passwd > /dev/null; then
+			statduser=rpcuser
+		else
+			statduser=nobody
+		fi
 	else
 		statduser=nobody
 	fi)
 	AC_SUBST(statduser)
 AC_ARG_ENABLE(nfsv3,
-	[  --enable-nfsv3          enable support for NFSv3],
+	[AC_HELP_STRING([--enable-nfsv3],
+                        [enable support for NFSv3 @<:@default=yes@:>@])],
 	enable_nfsv3=$enableval,
 	enable_nfsv3=yes)
 	if test "$enable_nfsv3" = yes; then
@@ -40,7 +49,8 @@ AC_ARG_ENABLE(nfsv3,
 	fi
 	AC_SUBST(enable_nfsv3)
 AC_ARG_ENABLE(nfsv4,
-	[  --enable-nfsv4          enable support for NFSv4],
+	[AC_HELP_STRING([--enable-nfsv4],
+                        [enable support for NFSv4 @<:@default=yes@:>@])],
 	enable_nfsv4=$enableval,
 	enable_nfsv4=yes)
 	if test "$enable_nfsv4" = yes; then
@@ -52,8 +62,10 @@ AC_ARG_ENABLE(nfsv4,
 	fi
 	AC_SUBST(IDMAPD)
 	AC_SUBST(enable_nfsv4)
+	AM_CONDITIONAL(CONFIG_NFSV4, [test "$enable_nfsv4" = "yes"])
 AC_ARG_ENABLE(gss,
-	[  --enable-gss           enable support for rpcsec_gss],
+	[AC_HELP_STRING([--enable-gss],
+                        [enable support for rpcsec_gss @<:@default=yes@:>@])],
 	enable_gss=$enableval,
 	enable_gss=yes)
 	if test "$enable_gss" = yes; then
@@ -68,13 +80,15 @@ AC_ARG_ENABLE(gss,
 	AC_SUBST(GSSD)
 	AC_SUBST(SVCGSSD)
 	AC_SUBST(enable_gss)
+	AM_CONDITIONAL(CONFIG_GSS, [test "$enable_gss" = "yes"])
 AC_ARG_ENABLE(kprefix,
-	[  --enable-kprefix       install progs as rpc.knfsd etc],
+	[AC_HELP_STRING([--enable-kprefix], [install progs as rpc.knfsd etc])],
 	test "$enableval" = "yes" && kprefix=k,
 	kprefix=)
 	AC_SUBST(kprefix)
 AC_ARG_ENABLE(secure-statd,
-	[  --enable-secure-statd  Only lockd can use statd (security)],
+	[AC_HELP_STRING([--enable-secure-statd],
+                        [Only lockd can use statd (security)])],
 	test "$enableval" = "yes" && secure_statd=yes,
 	secure_statd=no)
 	if test "$secure_statd" = yes; then
@@ -82,7 +96,8 @@ AC_ARG_ENABLE(secure-statd,
 	fi
 	AC_SUBST(secure_statd)
 AC_ARG_ENABLE(rquotad,
-	[  --enable-rquotad          enable rquotad],
+	[AC_HELP_STRING([--enable-rquotad],
+                        [enable rquotad @<:@default=yes@:>@])],
 	enable_rquotad=$enableval,
 	enable_rquotad=yes)
 	if test "$enable_rquotad" = yes; then
@@ -90,28 +105,40 @@ AC_ARG_ENABLE(rquotad,
 	else
 		RQUOTAD=
 	fi
-	AC_SUBST(RQUOTAD)
-dnl AC_ARG_ENABLE(frob,	enable frobnicator,,		    enable_frob=test)
-AC_CONFIG_HEADER(support/include/config.h)
+	AM_CONDITIONAL(CONFIG_RQUOTAD, [test "$enable_rquotad" = "yes"])
 
+# Check whether user wants TCP wrappers support
+AC_TCP_WRAPPERS
+
+AC_CONFIG_SRCDIR([support/include/config.h.in])
+AC_CONFIG_HEADERS([support/include/config.h])
+
+# Checks for programs.
+AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_LIBTOOL
 
-test "${CC_FOR_BUILD+set}" = set || CC_FOR_BUILD="$CC"
+if test "x$cross_compiling" = "xno"; then
+	CC_FOR_BUILD=${CC_FOR_BUILD-${CC-gcc}}
+else
+	CC_FOR_BUILD=${CC_FOR_BUILD-gcc}
+fi
+
 AC_SUBST(CC_FOR_BUILD)
 
-AC_CHECK_TOOL(RANLIB, ranlib, :)
 AC_CHECK_TOOL(AR, ar)
 AC_CHECK_TOOL(LD, ld)
 
-AC_STDC_HEADERS
+AC_HEADER_STDC([])
 AC_GNULIBC
-dnl AC_LN_SF
-dnl AC_BSD_SIGNALS
+AC_BSD_SIGNALS
 
 dnl *************************************************************
-dnl * Check for required librarues
+dnl * Check for required libraries
 dnl *************************************************************
 AC_CHECK_LIB(socket, main, [LIBSOCKET="-lnsl"])
 AC_CHECK_LIB(nsl, main,	[LIBNSL="-lnsl"])
@@ -130,126 +157,72 @@ AC_SUBST(LIBNSL)
 AC_SUBST(LIBCRYPT)
 AC_SUBST(LIBBSD)
 
-AC_TCP_WRAPPER
-AC_SUBST(LIBWRAP)
-
 if test "$enable_gss" = yes; then
   dnl 'gss' also depends on nfsidmap.h - at least for svcgssd_proc.c
   AC_CHECK_HEADERS(nfsidmap.h, ,[AC_MSG_ERROR(libnfsidmap needed for gss support)])
   AC_CHECK_HEADERS(spkm3.h, ,[AC_MSG_WARN(could not locate SPKM3 header; will not have SPKM3 support)])
-  
-  dnl Checks for Kerberos
-  dnl NOTE: while we intend to do generic gss-api, currently we
-  dnl have a requirement to get an initial Kerberos machine
-  dnl credential.  Thus, the requirement for Kerberos.
-  dnl The Kerberos gssapi library will be dynamically loaded?
-  AC_MSG_CHECKING(for Kerberos v5)
-  AC_ARG_WITH(krb5,
-  [  --with-krb5=DIR         use Kerberos v5 installation in DIR],
-  [ case "$withval" in
-    yes|no)
-       krb5_with=""
-       ;;
-    *)
-       krb5_with="$withval"
-       ;;
-    esac ]
-  )
 
-  for dir in $krb5_with /usr /usr/kerberos /usr/local /usr/local/krb5 \
-  	     /usr/krb5 /usr/heimdal /usr/local/heimdal /usr/athena ; do
-    dnl This ugly hack brought on by the split installation of
-    dnl MIT Kerberos on Fedora Core 1
-    K5CONFIG=""
-    if test -f $dir/bin/krb5-config; then
-      K5CONFIG=$dir/bin/krb5-config
-    elif test -f "/usr/kerberos/bin/krb5-config"; then
-      K5CONFIG="/usr/kerberos/bin/krb5-config"
-    fi
-    if test "$K5CONFIG" != ""; then
-      KRBINC=`$K5CONFIG --cflags`
-      KRBLIB=`$K5CONFIG --libs gssapi`
-      K5VERS=`$K5CONFIG --version | head -n 1 | awk '{split($4,v,"."); if (v[[3]] == "") v[[3]] = "0"; print v[[1]]v[[2]]v[[3]] }'`
-      AC_DEFINE_UNQUOTED(KRB5_VERSION, $K5VERS, [Define this as the Kerberos version number])
-      if test -f $dir/include/gssapi/gssapi_krb5.h -a \
-              \( -f $dir/lib/libgssapi_krb5.a -o \
-  	    -f $dir/lib/libgssapi_krb5.so \) ; then
-         AC_DEFINE(HAVE_KRB5, 1, [Define this if you have MIT Kerberos libraries])
-         KRBDIR="$dir"
-	 dnl If we are using MIT K5 1.3.1 and before, we *MUST* use the
-	 dnl private function (gss_krb5_ccache_name) to get correct
-	 dnl behavior of changing the ccache used by gssapi.
-	 dnl Starting in 1.3.2, we *DO NOT* want to use
-	 dnl gss_krb5_ccache_name, instead we want to set KRB5CCNAME
-	 dnl to get gssapi to use a different ccache
-         if test $K5VERS -le 131; then
-           AC_DEFINE(USE_GSS_KRB5_CCACHE_NAME, 1, [Define this if the private function, gss_krb5_cache_name, must be used to tell the Kerberos library which credentials cache to use. Otherwise, this is done by setting the KRB5CCNAME environment variable])
-         fi
-	 gssapi_lib=gssapi_krb5
-         break
-      dnl The following ugly hack brought on by the split installation
-      dnl of Heimdal Kerberos on SuSe
-      elif test \( -f $dir/include/heim_err.h -o\
-      		 -f $dir/include/heimdal/heim_err.h \) -a \
-                -f $dir/lib/libroken.a; then
-         AC_DEFINE(HAVE_HEIMDAL, 1, [Define this if you have Heimdal Kerberos libraries])
-         KRBDIR="$dir"
-	 gssapi_lib=gssapi
-        break
-      fi
-      CFLAGS=$CFLAGS `$K5CONFIG --cflags`
-    fi
-  done
-  dnl We didn't find a usable Kerberos environment
-  if test "x$KRBDIR" = "x"; then
-    if test "x$krb5_with" = "x"; then
-      AC_MSG_ERROR(Kerberos v5 with GSS support not found: consider --disable-gss or --with-krb5=)
-    else
-      AC_MSG_ERROR(Kerberos v5 with GSS support not found at $krb5_with)
-    fi
-  fi
-  CFLAGS="$CFLAGS `$K5CONFIG --cflags`"
-  AC_MSG_RESULT($KRBDIR)
+  dnl Check for Kerberos V5
+  AC_KERBEROS_V5
 
-  dnl Now check for functions within gssapi library
-  AC_CHECK_LIB($gssapi_lib, gss_krb5_export_lucid_sec_context,
-    AC_DEFINE(HAVE_LUCID_CONTEXT_SUPPORT, 1, [Define this if the Kerberos GSS library supports gss_krb5_export_lucid_sec_context]), ,$KRBLIB)
-  AC_CHECK_LIB($gssapi_lib, gss_krb5_set_allowable_enctypes,
-    AC_DEFINE(HAVE_SET_ALLOWABLE_ENCTYPES, 1, [Define this if the Kerberos GSS library supports gss_krb5_set_allowable_enctypes]), ,$KRBLIB)
-  AC_CHECK_LIB($gssapi_lib, gss_krb5_ccache_name,
-    AC_DEFINE(HAVE_GSS_KRB5_CCACHE_NAME, 1, [Define this if the Kerberos GSS library supports gss_krb5_ccache_name]), ,$KRBLIB)
-
-  dnl If they specified a directory and it didn't work, give them a warning
-  if test "x$krb5_with" != "x" -a "$krb5_with" != "$KRBDIR"; then
-    AC_MSG_WARN(Using $KRBDIR instead of requested value of $krb5_with for Kerberos!)
-  fi
-
-  dnl This is not done until here because we need to have KRBLIB set
+  dnl This is not done until here because we need to have KRBLIBS set
   dnl "librpcsecgss=1" is so that it doesn't get added to LIBS
-  AC_CHECK_LIB(rpcsecgss, authgss_create_default, [librpcsecgss=1], [AC_MSG_ERROR(librpcsecgss needed for nfsv4 support)], $KRBLIB)
+  AC_CHECK_LIB(rpcsecgss, authgss_create_default, [librpcsecgss=1], [AC_MSG_ERROR(librpcsecgss needed for nfsv4 support)], $KRBLIBS)
   AC_CHECK_LIB(rpcsecgss, authgss_set_debug_level,
-  	       AC_DEFINE(HAVE_AUTHGSS_SET_DEBUG_LEVEL, 1, [Define this if the rpcsec_gss library has the function authgss_set_debug_level]),, $KRBLIB)
+  	       AC_DEFINE(HAVE_AUTHGSS_SET_DEBUG_LEVEL, 1, [Define this if the rpcsec_gss library has the function authgss_set_debug_level]),, $KRBLIBS)
 
-  AC_SUBST([KRBDIR])
-  AC_SUBST([KRBLIB])
-  AC_SUBST([KRBINC])
-  AC_SUBST([K5VERS])
 fi
 
 dnl *************************************************************
 dnl Check for headers
 dnl *************************************************************
-dnl AC_HAVE_HEADERS(string.h)
-AC_HAVE_HEADERS(com_err.h)
-AC_HAVE_HEADERS(et/com_err.h)
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h libintl.h limits.h \
+                 malloc.h memory.h netdb.h netinet/in.h paths.h \
+                 stdlib.h string.h sys/file.h sys/ioctl.h sys/mount.h \
+                 sys/param.h sys/socket.h sys/time.h sys/vfs.h \
+                 syslog.h unistd.h com_err.h et/com_err.h])
+
+dnl *************************************************************
+dnl Checks for typedefs, structures, and compiler characteristics
+dnl *************************************************************
+AC_C_CONST
+AC_TYPE_UID_T
+AC_C_INLINE
+AC_TYPE_OFF_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_STRUCT_TM
 
 dnl *************************************************************
 dnl Check for functions
 dnl *************************************************************
-AC_HAVE_FUNCS(innetgr)
+AC_FUNC_ALLOCA
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_FORK
+AC_FUNC_GETGROUPS
+AC_FUNC_GETMNTENT
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_LSTAT
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_HEADER_MAJOR
+#AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+#AC_FUNC_REALLOC
+AC_FUNC_SELECT_ARGTYPES
+AC_TYPE_SIGNAL
+AC_FUNC_STAT
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([alarm atexit dup2 fdatasync ftruncate getcwd \
+               gethostbyaddr gethostbyname gethostname getmntent \
+               gettimeofday hasmntopt inet_ntoa memset mkdir pathconf \
+               realpath rmdir select socket strcasecmp strchr strdup \
+               strerror strrchr strtol strtoul])
+
 
 dnl *************************************************************
-dnl Check for data sizes
+dnl Check for data sizes (XXX These should go away with libgssapi pkg-config)
 dnl *************************************************************
 AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
@@ -261,7 +234,80 @@ dnl Export some path names to config.h
 dnl *************************************************************
 AC_DEFINE_UNQUOTED(NFS_STATEDIR, "$statedir", [This defines the location of the NFS state files. Warning: this must match definitions in config.mk!])
 
-AC_SUBST(LDFLAGS)
-AC_SUBST(CXXFLAGS)
+if test "x$cross_compiling" = "xno"; then
+	CFLAGS_FOR_BUILD=${CFLAGS_FOR_BUILD-"$CFLAGS"}
+	CXXFLAGS_FOR_BUILD=${CXXFLAGS_FOR_BUILD-"$CXXFLAGS"}
+	CPPFLAGS_FOR_BUILD=${CPPFLAGS_FOR_BUILD-"$CPPFLAGS"}
+	LDFLAGS_FOR_BUILD=${LDFLAGS_FOR_BUILD-"$LDFLAGS"}
+else
+	CFLAGS_FOR_BUILD=${CFLAGS_FOR_BUILD-""}
+	CXXFLAGS_FOR_BUILD=${CXXFLAGS_FOR_BUILD-""}
+	CPPFLAGS_FOR_BUILD=${CPPFLAGS_FOR_BUILD-""}
+	LDFLAGS_FOR_BUILD=${LDFLAGS_FOR_BUILD-""}
+fi
+
 AC_SUBST(CFLAGS)
-AC_OUTPUT(config.mk utils/Makefile)
+AC_SUBST(CXXFLAGS)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(LDFLAGS)
+
+AC_SUBST(CFLAGS_FOR_BUILD)
+AC_SUBST(CXXFLAGS_FOR_BUILD)
+AC_SUBST(CPPFLAGS_FOR_BUILD)
+AC_SUBST(LDFLAGS_FOR_BUILD)
+
+dnl *************************************************************
+dnl Set up "global" CFLAGS
+dnl *************************************************************
+dnl Use architecture-specific compile flags
+dnl (We use $host and not $build in case we are cross-compiling)
+dnl *************************************************************
+case $host in
+  alpha*)
+    ARCHFLAGS="-mno-fp-regs -ffixed-8" ;;
+  *)
+    ARCHFLAGS="" ;;
+esac
+
+my_am_cflags="-Wall $ARCHFLAGS -pipe"
+
+AC_SUBST([AM_CPPFLAGS], ["-I\${top_srcdir}/support/include"])
+AC_SUBST([AM_CFLAGS], ["$my_am_cflags"])
+
+# Make sure that $ACLOCAL_FLAGS are used during a rebuild
+AC_SUBST([ACLOCAL_AMFLAGS], ["-I $ac_macro_dir \$(ACLOCAL_FLAGS)"])
+
+AC_CONFIG_FILES([
+	Makefile
+	linux-nfs/Makefile
+	support/Makefile
+	support/export/Makefile
+	support/include/nfs/Makefile
+	support/include/rpcsvc/Makefile
+	support/include/sys/fs/Makefile
+	support/include/sys/Makefile
+	support/include/Makefile
+	support/misc/Makefile
+	support/nfs/Makefile
+	tools/Makefile
+	tools/getiversion/Makefile
+	tools/getkversion/Makefile
+	tools/locktest/Makefile
+	tools/nlmtest/Makefile
+	tools/rpcdebug/Makefile
+	tools/rpcgen/Makefile
+	utils/Makefile
+	utils/exportfs/Makefile
+	utils/gssd/Makefile
+	utils/idmapd/Makefile
+	utils/lockd/Makefile
+	utils/mountd/Makefile
+	utils/nfsd/Makefile
+	utils/nfsstat/Makefile
+	utils/nhfsstone/Makefile
+	utils/rquotad/Makefile
+	utils/showmount/Makefile
+	utils/statd/Makefile
+	utils/svcgssd/Makefile])
+AC_OUTPUT
+

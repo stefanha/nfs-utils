@@ -15,7 +15,9 @@
  *		as is, with no warranty expressed or implied.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <unistd.h>
 #include <signal.h>

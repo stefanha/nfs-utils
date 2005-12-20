@@ -6,7 +6,9 @@
  * Copyright (C) 1995, 1996 Olaf Kirch <okir@monad.swb.de>
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -262,11 +264,11 @@ client_compose(struct in_addr addr)
 	return name;
 }
 
-int 
+int
 client_member(char *client, char *name)
 {
 	/* check if "client" (a ',' separated list of names)
-	 * contains 'name' as a member 
+	 * contains 'name' as a member
 	 */
 	int l = strlen(name);
 	while (*client) {
@@ -282,7 +284,7 @@ client_member(char *client, char *name)
 }
 
 
-int 
+int
 name_cmp(char *a, char *b)
 {
 	/* compare strings a and b, but only upto ',' in a */

@@ -8,7 +8,9 @@
  * Extensive changes, 1999, Neil Brown <neilb@cse.unsw.edu.au>
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <string.h>

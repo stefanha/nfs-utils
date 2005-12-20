@@ -7,7 +7,11 @@
  * NSM for Linux.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <sys/stat.h>
 #include <limits.h>
 #include <signal.h>
 #include <unistd.h>

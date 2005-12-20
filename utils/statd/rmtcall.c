@@ -20,7 +20,9 @@
  * it won't if it's worth its money).
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>

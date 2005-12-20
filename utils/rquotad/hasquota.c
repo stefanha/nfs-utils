@@ -19,7 +19,10 @@
  *          as published by the Free Software Foundation; either version
  *          2 of the License, or (at your option) any later version.
  */
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #define _LINUX_QUOTA_VERSION 1
 
 #include <sys/types.h>

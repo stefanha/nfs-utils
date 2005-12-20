@@ -6,7 +6,10 @@
  * and listen for requests (using my_svc_run)
  * 
  */
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/select.h>

@@ -47,7 +47,11 @@
  * This is the RPC server side idle loop.
  * Wait for input, call server program.
  */
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <errno.h>
 #include <time.h>
 #include "statd.h"

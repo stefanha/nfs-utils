@@ -4,7 +4,9 @@
  * Copyright (C) 1995 Olaf Kirch <okir@monad.swb.de>
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef HAVE_TCP_WRAPPER
 #include "tcpwrapper.h"

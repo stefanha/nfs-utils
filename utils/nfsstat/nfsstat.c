@@ -4,7 +4,9 @@
  * Copyright (C) 1995-2005 Olaf Kirch <okir@suse.de>
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define NFSSVCSTAT	"/proc/net/rpc/nfsd"
 #define NFSCLTSTAT	"/proc/net/rpc/nfs"

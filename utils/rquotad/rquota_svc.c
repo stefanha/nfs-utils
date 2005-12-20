@@ -18,7 +18,10 @@
  *          as published by the Free Software Foundation; either version
  *          2 of the License, or (at your option) any later version.
  */
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef HAVE_TCP_WRAPPER
 #include "tcpwrapper.h"
