@@ -156,7 +156,7 @@ take place immediately after parsing the command line and updating the
 file.
 .P
 The default export options are
-.BR sync,ro,root_squash,no_delay .
+.BR sync,ro,root_squash,wdelay .
 .\" -------------------- Unexporting Directories ------------------
 .SS Unexporting Directories
 The third synopsis shows how to unexported a currently exported directory.
