@@ -28484,7 +28484,7 @@ esac
 
 my_am_cflags="-Wall $ARCHFLAGS -pipe"
 
-AM_CPPFLAGS="-I\${top_srcdir}/support/include"
+AM_CPPFLAGS="-I\${top_srcdir}/support/include -D_FILE_OFFSET_BITS=64"
 
 AM_CFLAGS="$my_am_cflags"
 

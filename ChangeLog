@@ -1,3 +1,10 @@
+2005-12-20 Kevin Coffman <kwc@citi.umich.edu> NeilBrown <neilb@suse.de>
+	Substantial Makefile/configure rewrite.  
+	Run 'autogen.sh' to create "Makefile.in" etc.
+
+	Also add -D_FILE_OFFSET_BITS=64 to CPP_FLAGS so that mountd can
+	stat and export files larger than 2Gig.
+
 2005-12-20 NeilBrown <neilb@suse.de>
 	support/nfs/exports.c(getexportent): is a null host name is given,
 	replace it with '*' so we have a non-empty host name for messages
