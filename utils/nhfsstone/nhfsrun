@@ -54,6 +54,6 @@ LOAD=$START
 while [ $LOAD -le $END ]; do
 	echo nhfsstone -l $LOAD
 	nhfsstone -l $LOAD >> $OUTFILE
-	tail -1 $OUTFILE
+	tail -n 1 $OUTFILE
 	LOAD=`expr $LOAD + $INCR`
 done

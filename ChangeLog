@@ -1,6 +1,9 @@
 2005-12-21 NeilBrown <neilb@suse.de>
-	utils/rquotad/rquota_server.c: Detect and handle both old-style
+	*utils/rquotad/rquota_server.c: Detect and handle both old-style
 	(2.4) and new-style(2.6) quotactl.
+	*utils/gssd/gss_destroy_cred: remove dependence on "head -1" which
+	might need to be "head -n 1"
+	*utils/nhfsstone/nhfsrun: convert "tail -1" to "tail -n 1"
 	
 2005-12-20 Kevin Coffman <kwc@citi.umich.edu> NeilBrown <neilb@suse.de>
 	Substantial Makefile/configure rewrite.  

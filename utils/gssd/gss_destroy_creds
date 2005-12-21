@@ -1,6 +1,6 @@
 #!/bin/bash
 
-path=`mount|grep rpc_pipefs|head -1|awk '{ print $3 }'`
+path=`mount|grep rpc_pipefs|awk '{ print $3;exit }'`
 
 if [ -z "$path" ]; then
 	echo "unable to find rpc_pipefs; is it mounted?"
