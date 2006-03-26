@@ -1,3 +1,9 @@
+2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
+	Don't close file descriptor until after calling event_del().
+
+	Delete event processing for a file descriptor before closing it.
+	This was causing hangs when used in combination with libevent-1.0b.
+
 2006-03-27 kwc@citi.umich.edu
 	Find krb5-config on SuSE 10
 

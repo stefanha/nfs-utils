@@ -688,10 +688,10 @@ nfsdreopen_one(struct idmap_client *ic)
 		idmapd_warnx("ReOpening %s", ic->ic_path);
 
 	if ((fd = open(ic->ic_path, O_RDWR, 0)) != -1) {
-		if (ic->ic_fd != -1)
-			close(ic->ic_fd);
 		if ((ic->ic_event.ev_flags & EVLIST_INIT))
 			event_del(&ic->ic_event);
+		if (ic->ic_fd != -1)
+			close(ic->ic_fd);
 
 		ic->ic_event.ev_fd = ic->ic_fd = fd;
 		event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfsdcb, ic);
