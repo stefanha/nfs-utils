@@ -1,4 +1,7 @@
 2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
+	Update debian package information.
+
+2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
 	Install /var/lib/nfs files using DESTDIR and add rpcsec headers to distribution
 
 	Add "$(DESTDIR)" to the paths for the "$(statedir)" files so they are

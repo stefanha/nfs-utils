@@ -48,7 +48,7 @@ binary-arch: build
 	dh_installdirs
 	dh_install
 	# Add here commands to install the files into debian/tmp
-	$(MAKE) install_prefix='$(DEBTMP)' install
+	$(MAKE) DESTDIR='$(DEBTMP)' install
 	dh_movefiles
 	# Fixups Start Here #
 	cd debian && \
