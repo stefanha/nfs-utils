@@ -1,3 +1,9 @@
+2006-03-27 kwc@citi.umich.edu
+	Find krb5-config on SuSE 10
+
+	SuSE 10.0 puts krb5-config in yet another obscure location.
+	Look for it there and use it if found.
+
 2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
 	Update debian package information.
 

@@ -26,6 +26,8 @@ AC_DEFUN([AC_KERBEROS_V5],[
       K5CONFIG=$dir/bin/krb5-config
     elif test -f "/usr/kerberos/bin/krb5-config"; then
       K5CONFIG="/usr/kerberos/bin/krb5-config"
+    elif test -f "/usr/lib/mit/bin/krb5-config"; then
+      K5CONFIG="/usr/lib/mit/bin/krb5-config"
     fi
     if test "$K5CONFIG" != ""; then
       KRBCFLAGS=`$K5CONFIG --cflags`
