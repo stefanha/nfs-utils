@@ -1,3 +1,9 @@
+2006-03-27
+	Add option to specify directory to search for credentials cache files
+	
+	Add command line option to specify which directory should be searched
+	to find credentials caches.
+	
 2006-03-27 kwc@citi.umich.edu
 	Must still use knowledge of the glue context for pre-1.4 versions of MIT krb5
 	
