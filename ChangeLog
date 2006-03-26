@@ -1,3 +1,9 @@
+2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
+	User-selectable idmapping cache lifetime
+	
+	Read and process new configuration option, Cache-Expiration, and use
+	the value to determine how long idmapping entries are cached.
+	
 2006-03-27 Steve Dickson <steved@redhat.com>
 	Set libnfsidmap library debugging level and logging function.
 
