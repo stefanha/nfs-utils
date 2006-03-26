@@ -1,3 +1,10 @@
+2006-03-27 Steve Dickson <steved@redhat.com>
+	Set libnfsidmap library debugging level and logging function.
+
+	This patch adds a call to the new libnfsidmap library function 
+	nfs4_set_debug(), which defines the verbosity level libnfsidmap
+	should use as well as the logging function.
+
 2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
 	Don't close file descriptor until after calling event_del().
 

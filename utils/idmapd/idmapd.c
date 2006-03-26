@@ -287,6 +287,7 @@ main(int argc, char **argv)
 
 	if (stat(conf_path, &sb) == -1 && (errno == ENOENT || errno == EACCES)) {
 		warn("Skipping configuration file \"%s\"", conf_path);
+		conf_path = NULL;
 	} else {
 		conf_init();
 		verbose = conf_get_num("General", "Verbosity", 0);
@@ -295,7 +296,6 @@ main(int argc, char **argv)
 			strlcpy(pipefsdir, xpipefsdir, sizeof(pipefsdir));
 		CONF_SAVE(nobodyuser, conf_get_str("Mapping", "Nobody-User"));
 		CONF_SAVE(nobodygroup, conf_get_str("Mapping", "Nobody-Group"));
-		nfs4_init_name_mapping(conf_path);
 	}
 
 	while ((opt = getopt(argc, argv, GETOPTSTR)) != -1)
@@ -336,6 +336,12 @@ main(int argc, char **argv)
 	if ((gr = getgrnam(nobodygroup)) == NULL)
 		errx(1, "Could not find group \"%s\"", nobodygroup);
 	nobodygid = gr->gr_gid;
+
+	nfs4_set_debug(verbose, idmapd_warnx);
+	if (conf_path == NULL)
+		conf_path = _PATH_IDMAPDCONF;
+	if (nfs4_init_name_mapping(conf_path))
+		errx(1, "Unable to create name to user id mappings.");
 
 	if (!fg)
 		mydaemon(0, 0);
