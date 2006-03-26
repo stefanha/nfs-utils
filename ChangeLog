@@ -1,3 +1,11 @@
+2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
+	Install /var/lib/nfs files using DESTDIR and add rpcsec headers to distribution
+
+	Add "$(DESTDIR)" to the paths for the "$(statedir)" files so they are
+	put in the right place when DESTDIR is defined.
+
+	Add the rpcsec header files to EXTRA_DIST list.
+
 2005-12-21 NeilBrown <neilb@suse.de>
 	*utils/rquotad/rquota_server.c: Detect and handle both old-style
 	(2.4) and new-style(2.6) quotactl.

@@ -37,14 +37,36 @@ EXTRA_DIST = \
 	\
 	aclocal/nfs-utils.m4 \
 	aclocal/kerberos5.m4 \
-	aclocal/tcp-wrappers.m4
+	aclocal/tcp-wrappers.m4 \
+	\
+	support/rpc/include/rpc/auth_gss.h \
+	support/rpc/include/rpc/auth.h \
+	support/rpc/include/rpc/auth_unix.h \
+	support/rpc/include/rpc/clnt.h \
+	support/rpc/include/rpc/pmap_clnt.h \
+	support/rpc/include/rpc/pmap_prot.h \
+	support/rpc/include/rpc/pmap_rmt.h \
+	support/rpc/include/rpc/rpc_des.h \
+	support/rpc/include/rpc/rpc.h \
+	support/rpc/include/rpc/rpc_msg.h \
+	support/rpc/include/rpc/svc_auth.h \
+	support/rpc/include/rpc/svc.h \
+	support/rpc/include/rpc/types.h \
+	support/rpc/include/rpc/xdr.h
+
 
 install-data-hook:
-	if [ ! -d $(statedir) ]; then mkdir -p $(statedir); fi
-	touch $(statedir)/xtab; chmod 644 $(statedir)/xtab
-	touch $(statedir)/etab; chmod 644 $(statedir)/etab
-	touch $(statedir)/rmtab; chmod 644 $(statedir)/rmtab
-	mkdir -p $(statedir)/sm $(statedir)/sm.bak
-	touch $(statedir)/state
-	chmod go-rwx $(statedir)/sm $(statedir)/sm.bak $(statedir)/state
-	chown $(statduser) $(statedir)/sm $(statedir)/sm.bak $(statedir)/state
+	if [ ! -d $(DESTDIR)$(statedir) ]; then mkdir -p $(DESTDIR)$(statedir); fi
+	touch $(DESTDIR)$(statedir)/xtab; chmod 644 $(DESTDIR)$(statedir)/xtab
+	touch $(DESTDIR)$(statedir)/etab; chmod 644 $(DESTDIR)$(statedir)/etab
+	touch $(DESTDIR)$(statedir)/rmtab; chmod 644 $(DESTDIR)$(statedir)/rmtab
+	mkdir -p $(DESTDIR)$(statedir)/sm $(DESTDIR)$(statedir)/sm.bak
+	touch $(DESTDIR)$(statedir)/state
+	chmod go-rwx $(DESTDIR)$(statedir)/sm $(DESTDIR)$(statedir)/sm.bak $(DESTDIR)$(statedir)/state
+	chown $(statduser) $(DESTDIR)$(statedir)/sm $(DESTDIR)$(statedir)/sm.bak $(DESTDIR)$(statedir)/state
+
+uninstall-hook:
+	rm $(DESTDIR)$(statedir)/xtab
+	rm $(DESTDIR)$(statedir)/etab
+	rm $(DESTDIR)$(statedir)/rmtab
+	rm $(DESTDIR)$(statedir)/state
