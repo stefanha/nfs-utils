@@ -1,4 +1,12 @@
 2006-03-27
+	Don't close and reopen all pipes on every DNOTIFY signal.
+	
+	Don't unnecessarily close and re-open all pipes after every DNOTIFY
+	signal.  These unnecessary closes were triggering a kernel Oops.
+	Original patch modified to correct segfault when unmounting last
+	NFSv4 mount.
+	
+2006-03-27
 	Add option to specify directory to search for credentials cache files
 	
 	Add command line option to specify which directory should be searched
