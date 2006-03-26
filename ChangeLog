@@ -1,3 +1,8 @@
+2006-03-27 Kevin Coffman <kwc@citi.umich.edu>
+	Remove unused variable causing compile warning
+	
+	Remove unused groups variable from get_ids() which was causing a compiler warning.
+	
 2006-03-27 kwc@citi.umich.edu
 	Update krb5 code to use glue routine lucid context functions
 	
