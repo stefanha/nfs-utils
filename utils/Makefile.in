@@ -37,7 +37,7 @@ build_triplet = @build@
 host_triplet = @host@
 @CONFIG_RQUOTAD_TRUE@am__append_1 = rquotad
 @CONFIG_NFSV4_TRUE@am__append_2 = idmapd
-@CONFIG_GSS_TRUE@am__append_3 = gssd svcgssd
+@CONFIG_GSS_TRUE@am__append_3 = gssd
 subdir = utils
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -62,7 +62,7 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = exportfs lockd mountd nfsd nfsstat nhfsstone showmount \
-	statd rquotad idmapd gssd svcgssd
+	statd rquotad idmapd gssd
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ACLOCAL_AMFLAGS = @ACLOCAL_AMFLAGS@

@@ -307,7 +307,6 @@ AC_CONFIG_FILES([
 	utils/nhfsstone/Makefile
 	utils/rquotad/Makefile
 	utils/showmount/Makefile
-	utils/statd/Makefile
-	utils/svcgssd/Makefile])
+	utils/statd/Makefile])
 AC_OUTPUT
 

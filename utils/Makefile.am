@@ -11,7 +11,7 @@ OPTDIRS += idmapd
 endif
 
 if CONFIG_GSS
-OPTDIRS += gssd svcgssd
+OPTDIRS += gssd
 endif
 
 SUBDIRS = \

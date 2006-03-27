@@ -1,31 +1,36 @@
 ## Process this file with automake to produce Makefile.in
 
-man8_MANS	= gssd.man
+man8_MANS	= gssd.man svcgssd.man
 
 RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
-sbin_PROGRAMS	= gssd
+sbin_PREFIXED	= gssd svcgssd
+sbin_PROGRAMS	= $(sbin_PREFIXED) gss_clnt_send_err
+sbin_SCRIPTS	= gss_destroy_creds
 
 EXTRA_DIST = \
-	$(man8_MANS) \
-	gss_clnt_send_err.c \
-	gss_destroy_creds
+	gss_destroy_creds \
+	$(man8_MANS)
 
-gssd_SOURCES = \
+COMMON_SRCS = \
 	context.c \
 	context_heimdal.c \
-	err_util.c \
-	gss_oids.c \
 	gss_util.c \
+	gss_oids.c \
+	err_util.c \
+	\
+	context.h \
+	err_util.h \
+	gss_oids.h \
+	gss_util.h
+
+gssd_SOURCES = \
+	$(COMMON_SRCS) \
 	gssd.c \
 	gssd_main_loop.c \
 	gssd_proc.c \
 	krb5_util.c \
 	\
-	context.h \
-	err_util.h \
-	gss_oids.h \
-	gss_util.h \
 	gssd.h \
 	krb5_util.h \
 	write_bytes.h
@@ -39,6 +44,29 @@ gssd_CPPFLAGS = -I$(top_srcdir)/support/rpc/include \
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 	      $(KRBCFLAGS)
 
+svcgssd_SOURCES = \
+	$(COMMON_SRCS) \
+	cacheio.c \
+	svcgssd.c \
+	svcgssd_main_loop.c \
+	svcgssd_mech2file.c \
+	svcgssd_proc.c \
+	\
+	cacheio.h \
+	svcgssd.h
+
+svcgssd_LDADD = \
+	../../support/nfs/libnfs.a \
+	$(RPCSECGSS_LIBS) -lnfsidmap \
+	$(KRBLIBS)
+
+svcgssd_LDFLAGS = -Wl,-rpath=$(KRBDIR)/lib
+
+svcgssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
+		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
+
+gss_clnt_send_err_SOURCES = gss_clnt_send_err.c
+
 MAINTAINERCLEANFILES = Makefile.in
 
 #######################################################################
@@ -51,12 +79,12 @@ MAINTAINERCLEANFILES = Makefile.in
 # practice does not do.
 install-exec-hook:
 	(cd $(DESTDIR)$(sbindir) && \
-	  for p in $(sbin_PROGRAMS); do \
+	  for p in $(sbin_PREFIXED); do \
 	    mv -f $$p$(EXEEXT) $(RPCPREFIX)$(KPREFIX)$$p$(EXEEXT) ;\
 	  done)
 uninstall-hook:
 	(cd $(DESTDIR)$(sbindir) && \
-	  for p in $(sbin_PROGRAMS); do \
+	  for p in $(sbin_PREFIXED); do \
 	    rm -f $(RPCPREFIX)$(KPREFIX)$$p$(EXEEXT) ;\
 	  done)
 
