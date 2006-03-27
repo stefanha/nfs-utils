@@ -1,3 +1,6 @@
+2006-03-27 NeilBrown <neilb@suse.de>
+	1.0.8-rc3
+
 2006-03-27 kwc@citi.umich.edu
 	Add debugging to better detect negotiation of enctype not supported by kernel
 
