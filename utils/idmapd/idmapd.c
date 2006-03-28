@@ -78,6 +78,10 @@
 #define NFSD_DIR  "/proc/net/rpc"
 #endif
 
+#ifndef CLIENT_CACHE_TIMEOUT_FILE
+#define CLIENT_CACHE_TIMEOUT_FILE "/proc/sys/fs/nfs/idmap_cache_timeout"
+#endif
+
 #ifndef NFS4NOBODY_USER
 #define NFS4NOBODY_USER "nobody"
 #endif
@@ -144,6 +148,8 @@ void    mydaemon(int, int);
 void    release_parent();
 
 static int verbose = 0;
+#define DEFAULT_IDMAP_CACHE_EXPIRY 600 /* seconds */
+static int cache_entry_expiration = 0;
 static char pipefsdir[PATH_MAX];
 static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
@@ -291,6 +297,8 @@ main(int argc, char **argv)
 	} else {
 		conf_init();
 		verbose = conf_get_num("General", "Verbosity", 0);
+		cache_entry_expiration = conf_get_num("General",
+				"Cache-Expiration", DEFAULT_IDMAP_CACHE_EXPIRY);
 		CONF_SAVE(xpipefsdir, conf_get_str("General", "Pipefs-Directory"));
 		if (xpipefsdir != NULL)
 			strlcpy(pipefsdir, xpipefsdir, sizeof(pipefsdir));
@@ -348,6 +356,9 @@ main(int argc, char **argv)
 
 	event_init();
 
+	if (verbose > 0)
+		idmapd_warnx("Expiration time is %d seconds.",
+			     cache_entry_expiration);
 	if (serverstart) {
 		nfsdret = nfsdopen();
 		if (nfsdret == 0) {
@@ -363,6 +374,29 @@ main(int argc, char **argv)
 			.tv_sec = 0,
 			.tv_usec = 0,
 		};
+
+		if (cache_entry_expiration != DEFAULT_IDMAP_CACHE_EXPIRY) {
+			int timeout_fd, len;
+			char timeout_buf[12];
+			if ((timeout_fd = open(CLIENT_CACHE_TIMEOUT_FILE,
+					       O_RDWR)) == -1) {
+				idmapd_warnx("Unable to open '%s' to set "
+					     "client cache expiration time "
+					     "to %d seconds\n",
+					     CLIENT_CACHE_TIMEOUT_FILE,
+					     cache_entry_expiration);
+			} else {
+				len = snprintf(timeout_buf, sizeof(timeout_buf),
+					       "%d", cache_entry_expiration);
+				if ((write(timeout_fd, timeout_buf, len)) != len)
+					idmapd_warnx("Error writing '%s' to "
+						     "'%s' to set client "
+						     "cache expiration time\n",
+						     timeout_buf,
+						     CLIENT_CACHE_TIMEOUT_FILE);
+				close(timeout_fd);
+			}
+		}
 
 		if ((fd = open(pipefsdir, O_RDONLY)) == -1)
 			idmapd_err(1, "main: open(%s)", pipefsdir);
@@ -584,9 +618,9 @@ nfsdcb(int fd, short which, void *data)
 		addfield(&bp, &bsiz, p);
 		/* Name */
 		addfield(&bp, &bsiz, im.im_name);
-#define NFSD_EXPIRY 300 /* seconds */
 		/* expiry */
-		snprintf(buf1, sizeof(buf1), "%lu", time(NULL) + NFSD_EXPIRY);
+		snprintf(buf1, sizeof(buf1), "%lu",
+			 time(NULL) + cache_entry_expiration);
 		addfield(&bp, &bsiz, buf1);
 		/* ID */
 		snprintf(buf1, sizeof(buf1), "%u", im.im_id);
@@ -605,7 +639,8 @@ nfsdcb(int fd, short which, void *data)
 		snprintf(buf1, sizeof(buf1), "%u", im.im_id);
 		addfield(&bp, &bsiz, buf1);
 		/* expiry */
-		snprintf(buf1, sizeof(buf1), "%lu", time(NULL) + NFSD_EXPIRY);
+		snprintf(buf1, sizeof(buf1), "%lu",
+			 time(NULL) + cache_entry_expiration);
 		addfield(&bp, &bsiz, buf1);
 		/* Name */
 		addfield(&bp, &bsiz, im.im_name);
