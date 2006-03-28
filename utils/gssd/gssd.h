@@ -60,6 +60,7 @@ enum {AUTHTYPE_KRB5, AUTHTYPE_SPKM3, AUTHTYPE_LIPKEY};
 
 extern char			pipefsdir[PATH_MAX];
 extern char			keytabfile[PATH_MAX];
+extern char			ccachedir[PATH_MAX];
 
 TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 

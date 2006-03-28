@@ -1,4 +1,15 @@
 2006-03-28 kwc@citi.umich.edu
+	Add option to specify directory to search for credentials cache files
+	
+	
+	From: Vince Busam <vbusam@google.com>
+	Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+	
+	Add command line option to specify which directory should be searched
+	to find credentials caches.
+	(really this time)	
+	
+2006-03-28 kwc@citi.umich.edu
 	Must still use knowledge of the glue context for pre-1.4 versions of MIT krb5
 	
 	We need to get access to the internal krb5 context pointer for

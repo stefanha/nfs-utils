@@ -158,7 +158,7 @@ select_krb5_ccache(const struct dirent *d)
 }
 
 /*
- * Look in the GSSD_DEFAULT_CRED_DIR for files that look like they
+ * Look in the ccachedir for files that look like they
  * are Kerberos Credential Cache files for a given UID.  Return
  * non-zero and the dirent pointer for the entry most likely to be
  * what we want. Otherwise, return zero and no dirent pointer.
@@ -179,7 +179,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, struct dirent **d)
 	struct stat best_match_stat, tmp_stat;
 
 	*d = NULL;
-	n = scandir(GSSD_DEFAULT_CRED_DIR, &namelist, select_krb5_ccache, 0);
+	n = scandir(ccachedir, &namelist, select_krb5_ccache, 0);
 	if (n < 0) {
 		perror("scandir looking for krb5 credentials caches");
 	}
@@ -195,7 +195,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, struct dirent **d)
 			if (strstr(namelist[i]->d_name, substring) ||
 			    !strcmp(namelist[i]->d_name, fullstring)) {
 				snprintf(statname, sizeof(statname),
-					 "%s/%s", GSSD_DEFAULT_CRED_DIR,
+					 "%s/%s", ccachedir,
 					 namelist[i]->d_name);
 				if (stat(statname, &tmp_stat)) {
 					printerr(0, "Error doing stat "
@@ -626,13 +626,12 @@ gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername)
 	memset(buf, 0, sizeof(buf));
 	if (gssd_find_existing_krb5_ccache(uid, &d)) {
 		snprintf(buf, sizeof(buf), "FILE:%s/%s",
-			GSSD_DEFAULT_CRED_DIR, d->d_name);
+			ccachedir, d->d_name);
 		free(d);
 	}
 	else
 		snprintf(buf, sizeof(buf), "FILE:%s/%s%u",
-			GSSD_DEFAULT_CRED_DIR,
-			GSSD_DEFAULT_CRED_PREFIX, uid);
+			ccachedir, GSSD_DEFAULT_CRED_PREFIX, uid);
 	printerr(2, "using %s as credentials cache for client with "
 		    "uid %u for server %s\n", buf, uid, servername);
 	gssd_set_krb5_ccache_name(buf);

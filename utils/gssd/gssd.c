@@ -55,6 +55,7 @@
 
 char pipefsdir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
+char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR;
 
 void
 sig_die(int signal)
@@ -76,7 +77,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-f] [-v] [-r] [-p pipefsdir] [-k keytab]\n",
+	fprintf(stderr, "usage: %s [-f] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir]\n",
 		progname);
 	exit(1);
 }
@@ -91,7 +92,7 @@ main(int argc, char *argv[])
 	extern char *optarg;
 	char *progname;
 
-	while ((opt = getopt(argc, argv, "fvrmp:k:")) != -1) {
+	while ((opt = getopt(argc, argv, "fvrmp:k:d:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -114,6 +115,11 @@ main(int argc, char *argv[])
 				strncpy(keytabfile, optarg, sizeof(keytabfile));
 				if (keytabfile[sizeof(keytabfile)-1] != '\0')
 					errx(1, "keytab path name too long");
+				break;
+			case 'd':
+				strncpy(ccachedir, optarg, sizeof(ccachedir));
+				if (ccachedir[sizeof(ccachedir-1)] != '\0')
+					errx(1, "ccachedir path name too long");
 				break;
 			default:
 				usage(argv[0]);
