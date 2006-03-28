@@ -243,22 +243,7 @@ EXTRA_DIST = \
 	\
 	aclocal/nfs-utils.m4 \
 	aclocal/kerberos5.m4 \
-	aclocal/tcp-wrappers.m4 \
-	\
-	support/rpc/include/rpc/auth_gss.h \
-	support/rpc/include/rpc/auth.h \
-	support/rpc/include/rpc/auth_unix.h \
-	support/rpc/include/rpc/clnt.h \
-	support/rpc/include/rpc/pmap_clnt.h \
-	support/rpc/include/rpc/pmap_prot.h \
-	support/rpc/include/rpc/pmap_rmt.h \
-	support/rpc/include/rpc/rpc_des.h \
-	support/rpc/include/rpc/rpc.h \
-	support/rpc/include/rpc/rpc_msg.h \
-	support/rpc/include/rpc/svc_auth.h \
-	support/rpc/include/rpc/svc.h \
-	support/rpc/include/rpc/types.h \
-	support/rpc/include/rpc/xdr.h
+	aclocal/tcp-wrappers.m4
 
 all: all-recursive
 
@@ -442,7 +427,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/aclocal $(distdir)/debian $(distdir)/support/rpc/include/rpc
+	$(mkdir_p) $(distdir)/aclocal $(distdir)/debian
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

@@ -59,7 +59,8 @@ PROGRAMS = $(sbin_PROGRAMS)
 am_gss_clnt_send_err_OBJECTS = gss_clnt_send_err.$(OBJEXT)
 gss_clnt_send_err_OBJECTS = $(am_gss_clnt_send_err_OBJECTS)
 gss_clnt_send_err_LDADD = $(LDADD)
-am__objects_1 = gssd-context.$(OBJEXT) gssd-context_heimdal.$(OBJEXT) \
+am__objects_1 = gssd-context.$(OBJEXT) gssd-context_mit.$(OBJEXT) \
+	gssd-context_heimdal.$(OBJEXT) gssd-context_spkm3.$(OBJEXT) \
 	gssd-gss_util.$(OBJEXT) gssd-gss_oids.$(OBJEXT) \
 	gssd-err_util.$(OBJEXT)
 am_gssd_OBJECTS = $(am__objects_1) gssd-gssd.$(OBJEXT) \
@@ -69,7 +70,9 @@ gssd_OBJECTS = $(am_gssd_OBJECTS)
 am__DEPENDENCIES_1 =
 gssd_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__objects_2 = svcgssd-context.$(OBJEXT) \
-	svcgssd-context_heimdal.$(OBJEXT) svcgssd-gss_util.$(OBJEXT) \
+	svcgssd-context_mit.$(OBJEXT) \
+	svcgssd-context_heimdal.$(OBJEXT) \
+	svcgssd-context_spkm3.$(OBJEXT) svcgssd-gss_util.$(OBJEXT) \
 	svcgssd-gss_oids.$(OBJEXT) svcgssd-err_util.$(OBJEXT)
 am_svcgssd_OBJECTS = $(am__objects_2) svcgssd-cacheio.$(OBJEXT) \
 	svcgssd-svcgssd.$(OBJEXT) svcgssd-svcgssd_main_loop.$(OBJEXT) \
@@ -245,7 +248,9 @@ EXTRA_DIST = \
 
 COMMON_SRCS = \
 	context.c \
+	context_mit.c \
 	context_heimdal.c \
+	context_spkm3.c \
 	gss_util.c \
 	gss_oids.c \
 	err_util.c \
@@ -266,13 +271,10 @@ gssd_SOURCES = \
 	krb5_util.h \
 	write_bytes.h
 
-gssd_LDADD = -lrpcsecgss -lgssapi -ldl $(KRBLIBS)
+gssd_LDADD = $(RPCSECGSS_LIBS) $(KRBLIBS)
 gssd_LDFLAGS = -Wl,-rpath=$(KRBDIR)/lib
-gssd_CPPFLAGS = -I$(top_srcdir)/support/rpc/include \
-	      $(AM_CPPFLAGS) $(CPPFLAGS)
-
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
-	      $(KRBCFLAGS)
+	      $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
 
 svcgssd_SOURCES = \
 	$(COMMON_SRCS) \
@@ -395,6 +397,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gss_clnt_send_err.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-context.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-context_heimdal.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-context_mit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-context_spkm3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-err_util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-gss_oids.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gssd-gss_util.Po@am__quote@
@@ -405,6 +409,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-cacheio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-context.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-context_heimdal.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-context_mit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-context_spkm3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-err_util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-gss_oids.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svcgssd-gss_util.Po@am__quote@
@@ -435,130 +441,158 @@ distclean-compile:
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
 gssd-context.o: context.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context.o -MD -MP -MF "$(DEPDIR)/gssd-context.Tpo" -c -o gssd-context.o `test -f 'context.c' || echo '$(srcdir)/'`context.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context.o -MD -MP -MF "$(DEPDIR)/gssd-context.Tpo" -c -o gssd-context.o `test -f 'context.c' || echo '$(srcdir)/'`context.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context.Tpo" "$(DEPDIR)/gssd-context.Po"; else rm -f "$(DEPDIR)/gssd-context.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context.c' object='gssd-context.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context.o `test -f 'context.c' || echo '$(srcdir)/'`context.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context.o `test -f 'context.c' || echo '$(srcdir)/'`context.c
 
 gssd-context.obj: context.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context.obj -MD -MP -MF "$(DEPDIR)/gssd-context.Tpo" -c -o gssd-context.obj `if test -f 'context.c'; then $(CYGPATH_W) 'context.c'; else $(CYGPATH_W) '$(srcdir)/context.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context.obj -MD -MP -MF "$(DEPDIR)/gssd-context.Tpo" -c -o gssd-context.obj `if test -f 'context.c'; then $(CYGPATH_W) 'context.c'; else $(CYGPATH_W) '$(srcdir)/context.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context.Tpo" "$(DEPDIR)/gssd-context.Po"; else rm -f "$(DEPDIR)/gssd-context.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context.c' object='gssd-context.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context.obj `if test -f 'context.c'; then $(CYGPATH_W) 'context.c'; else $(CYGPATH_W) '$(srcdir)/context.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context.obj `if test -f 'context.c'; then $(CYGPATH_W) 'context.c'; else $(CYGPATH_W) '$(srcdir)/context.c'; fi`
+
+gssd-context_mit.o: context_mit.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_mit.o -MD -MP -MF "$(DEPDIR)/gssd-context_mit.Tpo" -c -o gssd-context_mit.o `test -f 'context_mit.c' || echo '$(srcdir)/'`context_mit.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context_mit.Tpo" "$(DEPDIR)/gssd-context_mit.Po"; else rm -f "$(DEPDIR)/gssd-context_mit.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_mit.c' object='gssd-context_mit.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_mit.o `test -f 'context_mit.c' || echo '$(srcdir)/'`context_mit.c
+
+gssd-context_mit.obj: context_mit.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_mit.obj -MD -MP -MF "$(DEPDIR)/gssd-context_mit.Tpo" -c -o gssd-context_mit.obj `if test -f 'context_mit.c'; then $(CYGPATH_W) 'context_mit.c'; else $(CYGPATH_W) '$(srcdir)/context_mit.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context_mit.Tpo" "$(DEPDIR)/gssd-context_mit.Po"; else rm -f "$(DEPDIR)/gssd-context_mit.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_mit.c' object='gssd-context_mit.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_mit.obj `if test -f 'context_mit.c'; then $(CYGPATH_W) 'context_mit.c'; else $(CYGPATH_W) '$(srcdir)/context_mit.c'; fi`
 
 gssd-context_heimdal.o: context_heimdal.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_heimdal.o -MD -MP -MF "$(DEPDIR)/gssd-context_heimdal.Tpo" -c -o gssd-context_heimdal.o `test -f 'context_heimdal.c' || echo '$(srcdir)/'`context_heimdal.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_heimdal.o -MD -MP -MF "$(DEPDIR)/gssd-context_heimdal.Tpo" -c -o gssd-context_heimdal.o `test -f 'context_heimdal.c' || echo '$(srcdir)/'`context_heimdal.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context_heimdal.Tpo" "$(DEPDIR)/gssd-context_heimdal.Po"; else rm -f "$(DEPDIR)/gssd-context_heimdal.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_heimdal.c' object='gssd-context_heimdal.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_heimdal.o `test -f 'context_heimdal.c' || echo '$(srcdir)/'`context_heimdal.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_heimdal.o `test -f 'context_heimdal.c' || echo '$(srcdir)/'`context_heimdal.c
 
 gssd-context_heimdal.obj: context_heimdal.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_heimdal.obj -MD -MP -MF "$(DEPDIR)/gssd-context_heimdal.Tpo" -c -o gssd-context_heimdal.obj `if test -f 'context_heimdal.c'; then $(CYGPATH_W) 'context_heimdal.c'; else $(CYGPATH_W) '$(srcdir)/context_heimdal.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_heimdal.obj -MD -MP -MF "$(DEPDIR)/gssd-context_heimdal.Tpo" -c -o gssd-context_heimdal.obj `if test -f 'context_heimdal.c'; then $(CYGPATH_W) 'context_heimdal.c'; else $(CYGPATH_W) '$(srcdir)/context_heimdal.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context_heimdal.Tpo" "$(DEPDIR)/gssd-context_heimdal.Po"; else rm -f "$(DEPDIR)/gssd-context_heimdal.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_heimdal.c' object='gssd-context_heimdal.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_heimdal.obj `if test -f 'context_heimdal.c'; then $(CYGPATH_W) 'context_heimdal.c'; else $(CYGPATH_W) '$(srcdir)/context_heimdal.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_heimdal.obj `if test -f 'context_heimdal.c'; then $(CYGPATH_W) 'context_heimdal.c'; else $(CYGPATH_W) '$(srcdir)/context_heimdal.c'; fi`
+
+gssd-context_spkm3.o: context_spkm3.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_spkm3.o -MD -MP -MF "$(DEPDIR)/gssd-context_spkm3.Tpo" -c -o gssd-context_spkm3.o `test -f 'context_spkm3.c' || echo '$(srcdir)/'`context_spkm3.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context_spkm3.Tpo" "$(DEPDIR)/gssd-context_spkm3.Po"; else rm -f "$(DEPDIR)/gssd-context_spkm3.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_spkm3.c' object='gssd-context_spkm3.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_spkm3.o `test -f 'context_spkm3.c' || echo '$(srcdir)/'`context_spkm3.c
+
+gssd-context_spkm3.obj: context_spkm3.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-context_spkm3.obj -MD -MP -MF "$(DEPDIR)/gssd-context_spkm3.Tpo" -c -o gssd-context_spkm3.obj `if test -f 'context_spkm3.c'; then $(CYGPATH_W) 'context_spkm3.c'; else $(CYGPATH_W) '$(srcdir)/context_spkm3.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-context_spkm3.Tpo" "$(DEPDIR)/gssd-context_spkm3.Po"; else rm -f "$(DEPDIR)/gssd-context_spkm3.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_spkm3.c' object='gssd-context_spkm3.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-context_spkm3.obj `if test -f 'context_spkm3.c'; then $(CYGPATH_W) 'context_spkm3.c'; else $(CYGPATH_W) '$(srcdir)/context_spkm3.c'; fi`
 
 gssd-gss_util.o: gss_util.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_util.o -MD -MP -MF "$(DEPDIR)/gssd-gss_util.Tpo" -c -o gssd-gss_util.o `test -f 'gss_util.c' || echo '$(srcdir)/'`gss_util.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_util.o -MD -MP -MF "$(DEPDIR)/gssd-gss_util.Tpo" -c -o gssd-gss_util.o `test -f 'gss_util.c' || echo '$(srcdir)/'`gss_util.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gss_util.Tpo" "$(DEPDIR)/gssd-gss_util.Po"; else rm -f "$(DEPDIR)/gssd-gss_util.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gss_util.c' object='gssd-gss_util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_util.o `test -f 'gss_util.c' || echo '$(srcdir)/'`gss_util.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_util.o `test -f 'gss_util.c' || echo '$(srcdir)/'`gss_util.c
 
 gssd-gss_util.obj: gss_util.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_util.obj -MD -MP -MF "$(DEPDIR)/gssd-gss_util.Tpo" -c -o gssd-gss_util.obj `if test -f 'gss_util.c'; then $(CYGPATH_W) 'gss_util.c'; else $(CYGPATH_W) '$(srcdir)/gss_util.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_util.obj -MD -MP -MF "$(DEPDIR)/gssd-gss_util.Tpo" -c -o gssd-gss_util.obj `if test -f 'gss_util.c'; then $(CYGPATH_W) 'gss_util.c'; else $(CYGPATH_W) '$(srcdir)/gss_util.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gss_util.Tpo" "$(DEPDIR)/gssd-gss_util.Po"; else rm -f "$(DEPDIR)/gssd-gss_util.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gss_util.c' object='gssd-gss_util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_util.obj `if test -f 'gss_util.c'; then $(CYGPATH_W) 'gss_util.c'; else $(CYGPATH_W) '$(srcdir)/gss_util.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_util.obj `if test -f 'gss_util.c'; then $(CYGPATH_W) 'gss_util.c'; else $(CYGPATH_W) '$(srcdir)/gss_util.c'; fi`
 
 gssd-gss_oids.o: gss_oids.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_oids.o -MD -MP -MF "$(DEPDIR)/gssd-gss_oids.Tpo" -c -o gssd-gss_oids.o `test -f 'gss_oids.c' || echo '$(srcdir)/'`gss_oids.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_oids.o -MD -MP -MF "$(DEPDIR)/gssd-gss_oids.Tpo" -c -o gssd-gss_oids.o `test -f 'gss_oids.c' || echo '$(srcdir)/'`gss_oids.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gss_oids.Tpo" "$(DEPDIR)/gssd-gss_oids.Po"; else rm -f "$(DEPDIR)/gssd-gss_oids.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gss_oids.c' object='gssd-gss_oids.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_oids.o `test -f 'gss_oids.c' || echo '$(srcdir)/'`gss_oids.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_oids.o `test -f 'gss_oids.c' || echo '$(srcdir)/'`gss_oids.c
 
 gssd-gss_oids.obj: gss_oids.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_oids.obj -MD -MP -MF "$(DEPDIR)/gssd-gss_oids.Tpo" -c -o gssd-gss_oids.obj `if test -f 'gss_oids.c'; then $(CYGPATH_W) 'gss_oids.c'; else $(CYGPATH_W) '$(srcdir)/gss_oids.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gss_oids.obj -MD -MP -MF "$(DEPDIR)/gssd-gss_oids.Tpo" -c -o gssd-gss_oids.obj `if test -f 'gss_oids.c'; then $(CYGPATH_W) 'gss_oids.c'; else $(CYGPATH_W) '$(srcdir)/gss_oids.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gss_oids.Tpo" "$(DEPDIR)/gssd-gss_oids.Po"; else rm -f "$(DEPDIR)/gssd-gss_oids.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gss_oids.c' object='gssd-gss_oids.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_oids.obj `if test -f 'gss_oids.c'; then $(CYGPATH_W) 'gss_oids.c'; else $(CYGPATH_W) '$(srcdir)/gss_oids.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gss_oids.obj `if test -f 'gss_oids.c'; then $(CYGPATH_W) 'gss_oids.c'; else $(CYGPATH_W) '$(srcdir)/gss_oids.c'; fi`
 
 gssd-err_util.o: err_util.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-err_util.o -MD -MP -MF "$(DEPDIR)/gssd-err_util.Tpo" -c -o gssd-err_util.o `test -f 'err_util.c' || echo '$(srcdir)/'`err_util.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-err_util.o -MD -MP -MF "$(DEPDIR)/gssd-err_util.Tpo" -c -o gssd-err_util.o `test -f 'err_util.c' || echo '$(srcdir)/'`err_util.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-err_util.Tpo" "$(DEPDIR)/gssd-err_util.Po"; else rm -f "$(DEPDIR)/gssd-err_util.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='err_util.c' object='gssd-err_util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-err_util.o `test -f 'err_util.c' || echo '$(srcdir)/'`err_util.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-err_util.o `test -f 'err_util.c' || echo '$(srcdir)/'`err_util.c
 
 gssd-err_util.obj: err_util.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-err_util.obj -MD -MP -MF "$(DEPDIR)/gssd-err_util.Tpo" -c -o gssd-err_util.obj `if test -f 'err_util.c'; then $(CYGPATH_W) 'err_util.c'; else $(CYGPATH_W) '$(srcdir)/err_util.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-err_util.obj -MD -MP -MF "$(DEPDIR)/gssd-err_util.Tpo" -c -o gssd-err_util.obj `if test -f 'err_util.c'; then $(CYGPATH_W) 'err_util.c'; else $(CYGPATH_W) '$(srcdir)/err_util.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-err_util.Tpo" "$(DEPDIR)/gssd-err_util.Po"; else rm -f "$(DEPDIR)/gssd-err_util.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='err_util.c' object='gssd-err_util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-err_util.obj `if test -f 'err_util.c'; then $(CYGPATH_W) 'err_util.c'; else $(CYGPATH_W) '$(srcdir)/err_util.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-err_util.obj `if test -f 'err_util.c'; then $(CYGPATH_W) 'err_util.c'; else $(CYGPATH_W) '$(srcdir)/err_util.c'; fi`
 
 gssd-gssd.o: gssd.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd.o -MD -MP -MF "$(DEPDIR)/gssd-gssd.Tpo" -c -o gssd-gssd.o `test -f 'gssd.c' || echo '$(srcdir)/'`gssd.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd.o -MD -MP -MF "$(DEPDIR)/gssd-gssd.Tpo" -c -o gssd-gssd.o `test -f 'gssd.c' || echo '$(srcdir)/'`gssd.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gssd.Tpo" "$(DEPDIR)/gssd-gssd.Po"; else rm -f "$(DEPDIR)/gssd-gssd.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gssd.c' object='gssd-gssd.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd.o `test -f 'gssd.c' || echo '$(srcdir)/'`gssd.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd.o `test -f 'gssd.c' || echo '$(srcdir)/'`gssd.c
 
 gssd-gssd.obj: gssd.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd.obj -MD -MP -MF "$(DEPDIR)/gssd-gssd.Tpo" -c -o gssd-gssd.obj `if test -f 'gssd.c'; then $(CYGPATH_W) 'gssd.c'; else $(CYGPATH_W) '$(srcdir)/gssd.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd.obj -MD -MP -MF "$(DEPDIR)/gssd-gssd.Tpo" -c -o gssd-gssd.obj `if test -f 'gssd.c'; then $(CYGPATH_W) 'gssd.c'; else $(CYGPATH_W) '$(srcdir)/gssd.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gssd.Tpo" "$(DEPDIR)/gssd-gssd.Po"; else rm -f "$(DEPDIR)/gssd-gssd.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gssd.c' object='gssd-gssd.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd.obj `if test -f 'gssd.c'; then $(CYGPATH_W) 'gssd.c'; else $(CYGPATH_W) '$(srcdir)/gssd.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd.obj `if test -f 'gssd.c'; then $(CYGPATH_W) 'gssd.c'; else $(CYGPATH_W) '$(srcdir)/gssd.c'; fi`
 
 gssd-gssd_main_loop.o: gssd_main_loop.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_main_loop.o -MD -MP -MF "$(DEPDIR)/gssd-gssd_main_loop.Tpo" -c -o gssd-gssd_main_loop.o `test -f 'gssd_main_loop.c' || echo '$(srcdir)/'`gssd_main_loop.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_main_loop.o -MD -MP -MF "$(DEPDIR)/gssd-gssd_main_loop.Tpo" -c -o gssd-gssd_main_loop.o `test -f 'gssd_main_loop.c' || echo '$(srcdir)/'`gssd_main_loop.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gssd_main_loop.Tpo" "$(DEPDIR)/gssd-gssd_main_loop.Po"; else rm -f "$(DEPDIR)/gssd-gssd_main_loop.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gssd_main_loop.c' object='gssd-gssd_main_loop.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_main_loop.o `test -f 'gssd_main_loop.c' || echo '$(srcdir)/'`gssd_main_loop.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_main_loop.o `test -f 'gssd_main_loop.c' || echo '$(srcdir)/'`gssd_main_loop.c
 
 gssd-gssd_main_loop.obj: gssd_main_loop.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_main_loop.obj -MD -MP -MF "$(DEPDIR)/gssd-gssd_main_loop.Tpo" -c -o gssd-gssd_main_loop.obj `if test -f 'gssd_main_loop.c'; then $(CYGPATH_W) 'gssd_main_loop.c'; else $(CYGPATH_W) '$(srcdir)/gssd_main_loop.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_main_loop.obj -MD -MP -MF "$(DEPDIR)/gssd-gssd_main_loop.Tpo" -c -o gssd-gssd_main_loop.obj `if test -f 'gssd_main_loop.c'; then $(CYGPATH_W) 'gssd_main_loop.c'; else $(CYGPATH_W) '$(srcdir)/gssd_main_loop.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gssd_main_loop.Tpo" "$(DEPDIR)/gssd-gssd_main_loop.Po"; else rm -f "$(DEPDIR)/gssd-gssd_main_loop.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gssd_main_loop.c' object='gssd-gssd_main_loop.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_main_loop.obj `if test -f 'gssd_main_loop.c'; then $(CYGPATH_W) 'gssd_main_loop.c'; else $(CYGPATH_W) '$(srcdir)/gssd_main_loop.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_main_loop.obj `if test -f 'gssd_main_loop.c'; then $(CYGPATH_W) 'gssd_main_loop.c'; else $(CYGPATH_W) '$(srcdir)/gssd_main_loop.c'; fi`
 
 gssd-gssd_proc.o: gssd_proc.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_proc.o -MD -MP -MF "$(DEPDIR)/gssd-gssd_proc.Tpo" -c -o gssd-gssd_proc.o `test -f 'gssd_proc.c' || echo '$(srcdir)/'`gssd_proc.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_proc.o -MD -MP -MF "$(DEPDIR)/gssd-gssd_proc.Tpo" -c -o gssd-gssd_proc.o `test -f 'gssd_proc.c' || echo '$(srcdir)/'`gssd_proc.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gssd_proc.Tpo" "$(DEPDIR)/gssd-gssd_proc.Po"; else rm -f "$(DEPDIR)/gssd-gssd_proc.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gssd_proc.c' object='gssd-gssd_proc.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_proc.o `test -f 'gssd_proc.c' || echo '$(srcdir)/'`gssd_proc.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_proc.o `test -f 'gssd_proc.c' || echo '$(srcdir)/'`gssd_proc.c
 
 gssd-gssd_proc.obj: gssd_proc.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_proc.obj -MD -MP -MF "$(DEPDIR)/gssd-gssd_proc.Tpo" -c -o gssd-gssd_proc.obj `if test -f 'gssd_proc.c'; then $(CYGPATH_W) 'gssd_proc.c'; else $(CYGPATH_W) '$(srcdir)/gssd_proc.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-gssd_proc.obj -MD -MP -MF "$(DEPDIR)/gssd-gssd_proc.Tpo" -c -o gssd-gssd_proc.obj `if test -f 'gssd_proc.c'; then $(CYGPATH_W) 'gssd_proc.c'; else $(CYGPATH_W) '$(srcdir)/gssd_proc.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-gssd_proc.Tpo" "$(DEPDIR)/gssd-gssd_proc.Po"; else rm -f "$(DEPDIR)/gssd-gssd_proc.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gssd_proc.c' object='gssd-gssd_proc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_proc.obj `if test -f 'gssd_proc.c'; then $(CYGPATH_W) 'gssd_proc.c'; else $(CYGPATH_W) '$(srcdir)/gssd_proc.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-gssd_proc.obj `if test -f 'gssd_proc.c'; then $(CYGPATH_W) 'gssd_proc.c'; else $(CYGPATH_W) '$(srcdir)/gssd_proc.c'; fi`
 
 gssd-krb5_util.o: krb5_util.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-krb5_util.o -MD -MP -MF "$(DEPDIR)/gssd-krb5_util.Tpo" -c -o gssd-krb5_util.o `test -f 'krb5_util.c' || echo '$(srcdir)/'`krb5_util.c; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-krb5_util.o -MD -MP -MF "$(DEPDIR)/gssd-krb5_util.Tpo" -c -o gssd-krb5_util.o `test -f 'krb5_util.c' || echo '$(srcdir)/'`krb5_util.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-krb5_util.Tpo" "$(DEPDIR)/gssd-krb5_util.Po"; else rm -f "$(DEPDIR)/gssd-krb5_util.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='krb5_util.c' object='gssd-krb5_util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-krb5_util.o `test -f 'krb5_util.c' || echo '$(srcdir)/'`krb5_util.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-krb5_util.o `test -f 'krb5_util.c' || echo '$(srcdir)/'`krb5_util.c
 
 gssd-krb5_util.obj: krb5_util.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-krb5_util.obj -MD -MP -MF "$(DEPDIR)/gssd-krb5_util.Tpo" -c -o gssd-krb5_util.obj `if test -f 'krb5_util.c'; then $(CYGPATH_W) 'krb5_util.c'; else $(CYGPATH_W) '$(srcdir)/krb5_util.c'; fi`; \
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -MT gssd-krb5_util.obj -MD -MP -MF "$(DEPDIR)/gssd-krb5_util.Tpo" -c -o gssd-krb5_util.obj `if test -f 'krb5_util.c'; then $(CYGPATH_W) 'krb5_util.c'; else $(CYGPATH_W) '$(srcdir)/krb5_util.c'; fi`; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gssd-krb5_util.Tpo" "$(DEPDIR)/gssd-krb5_util.Po"; else rm -f "$(DEPDIR)/gssd-krb5_util.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='krb5_util.c' object='gssd-krb5_util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gssd_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-krb5_util.obj `if test -f 'krb5_util.c'; then $(CYGPATH_W) 'krb5_util.c'; else $(CYGPATH_W) '$(srcdir)/krb5_util.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gssd_CFLAGS) $(CFLAGS) -c -o gssd-krb5_util.obj `if test -f 'krb5_util.c'; then $(CYGPATH_W) 'krb5_util.c'; else $(CYGPATH_W) '$(srcdir)/krb5_util.c'; fi`
 
 svcgssd-context.o: context.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-context.o -MD -MP -MF "$(DEPDIR)/svcgssd-context.Tpo" -c -o svcgssd-context.o `test -f 'context.c' || echo '$(srcdir)/'`context.c; \
@@ -574,6 +608,20 @@ svcgssd-context.obj: context.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -c -o svcgssd-context.obj `if test -f 'context.c'; then $(CYGPATH_W) 'context.c'; else $(CYGPATH_W) '$(srcdir)/context.c'; fi`
 
+svcgssd-context_mit.o: context_mit.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-context_mit.o -MD -MP -MF "$(DEPDIR)/svcgssd-context_mit.Tpo" -c -o svcgssd-context_mit.o `test -f 'context_mit.c' || echo '$(srcdir)/'`context_mit.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/svcgssd-context_mit.Tpo" "$(DEPDIR)/svcgssd-context_mit.Po"; else rm -f "$(DEPDIR)/svcgssd-context_mit.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_mit.c' object='svcgssd-context_mit.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -c -o svcgssd-context_mit.o `test -f 'context_mit.c' || echo '$(srcdir)/'`context_mit.c
+
+svcgssd-context_mit.obj: context_mit.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-context_mit.obj -MD -MP -MF "$(DEPDIR)/svcgssd-context_mit.Tpo" -c -o svcgssd-context_mit.obj `if test -f 'context_mit.c'; then $(CYGPATH_W) 'context_mit.c'; else $(CYGPATH_W) '$(srcdir)/context_mit.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/svcgssd-context_mit.Tpo" "$(DEPDIR)/svcgssd-context_mit.Po"; else rm -f "$(DEPDIR)/svcgssd-context_mit.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_mit.c' object='svcgssd-context_mit.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -c -o svcgssd-context_mit.obj `if test -f 'context_mit.c'; then $(CYGPATH_W) 'context_mit.c'; else $(CYGPATH_W) '$(srcdir)/context_mit.c'; fi`
+
 svcgssd-context_heimdal.o: context_heimdal.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-context_heimdal.o -MD -MP -MF "$(DEPDIR)/svcgssd-context_heimdal.Tpo" -c -o svcgssd-context_heimdal.o `test -f 'context_heimdal.c' || echo '$(srcdir)/'`context_heimdal.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/svcgssd-context_heimdal.Tpo" "$(DEPDIR)/svcgssd-context_heimdal.Po"; else rm -f "$(DEPDIR)/svcgssd-context_heimdal.Tpo"; exit 1; fi
@@ -587,6 +635,20 @@ svcgssd-context_heimdal.obj: context_heimdal.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_heimdal.c' object='svcgssd-context_heimdal.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -c -o svcgssd-context_heimdal.obj `if test -f 'context_heimdal.c'; then $(CYGPATH_W) 'context_heimdal.c'; else $(CYGPATH_W) '$(srcdir)/context_heimdal.c'; fi`
+
+svcgssd-context_spkm3.o: context_spkm3.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-context_spkm3.o -MD -MP -MF "$(DEPDIR)/svcgssd-context_spkm3.Tpo" -c -o svcgssd-context_spkm3.o `test -f 'context_spkm3.c' || echo '$(srcdir)/'`context_spkm3.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/svcgssd-context_spkm3.Tpo" "$(DEPDIR)/svcgssd-context_spkm3.Po"; else rm -f "$(DEPDIR)/svcgssd-context_spkm3.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_spkm3.c' object='svcgssd-context_spkm3.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -c -o svcgssd-context_spkm3.o `test -f 'context_spkm3.c' || echo '$(srcdir)/'`context_spkm3.c
+
+svcgssd-context_spkm3.obj: context_spkm3.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-context_spkm3.obj -MD -MP -MF "$(DEPDIR)/svcgssd-context_spkm3.Tpo" -c -o svcgssd-context_spkm3.obj `if test -f 'context_spkm3.c'; then $(CYGPATH_W) 'context_spkm3.c'; else $(CYGPATH_W) '$(srcdir)/context_spkm3.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/svcgssd-context_spkm3.Tpo" "$(DEPDIR)/svcgssd-context_spkm3.Po"; else rm -f "$(DEPDIR)/svcgssd-context_spkm3.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='context_spkm3.c' object='svcgssd-context_spkm3.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -c -o svcgssd-context_spkm3.obj `if test -f 'context_spkm3.c'; then $(CYGPATH_W) 'context_spkm3.c'; else $(CYGPATH_W) '$(srcdir)/context_spkm3.c'; fi`
 
 svcgssd-gss_util.o: gss_util.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(svcgssd_CFLAGS) $(CFLAGS) -MT svcgssd-gss_util.o -MD -MP -MF "$(DEPDIR)/svcgssd-gss_util.Tpo" -c -o svcgssd-gss_util.o `test -f 'gss_util.c' || echo '$(srcdir)/'`gss_util.c; \
