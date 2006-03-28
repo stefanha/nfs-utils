@@ -185,6 +185,11 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	if (WRITE_BYTES(&p, end, word_send_seq)) goto out_err;
 	if (write_buffer(&p, end, (gss_buffer_desc*)&krb5oid)) goto out_err;
 
+	printerr(2, "prepare_krb5_rfc1964_buffer: serializing keys with "
+		 "enctype %d and length %d\n",
+		 lctx->rfc1964_kd.ctx_key.type,
+		 lctx->rfc1964_kd.ctx_key.length);
+
 	/* derive the encryption key and copy it into buffer */
 	enc_key.type = lctx->rfc1964_kd.ctx_key.type;
 	enc_key.length = lctx->rfc1964_kd.ctx_key.length;
@@ -339,6 +344,11 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 	word_seq_send = kctx->seq_send;
 	if (WRITE_BYTES(&p, end, word_seq_send)) goto out_err;
 	if (write_buffer(&p, end, kctx->mech_used)) goto out_err;
+
+	printerr(2, "serialize_krb5_ctx: serializing keys with "
+		 "enctype %d and length %d\n",
+		 kctx->enc->enctype, kctx->enc->length);
+
 	if (write_keyblock(&p, end, kctx->enc)) goto out_err;
 	if (write_keyblock(&p, end, kctx->seq)) goto out_err;
 

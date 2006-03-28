@@ -1,4 +1,12 @@
 2006-03-28 kwc@citi.umich.edu
+	Add debugging to better detect negotiation of enctype not supported by kernel
+	
+	Print debugging message indicating the type of encryption keys being sent
+	down to the kernel.  This should make it easier to detect cases where
+	unsupported encryption types are being negotiated.
+	(really this time)
+	
+2006-03-28 kwc@citi.umich.edu
 	
 	Don't close and reopen all pipes on every DNOTIFY signal.
 	
