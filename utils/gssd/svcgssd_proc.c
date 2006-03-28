@@ -193,7 +193,6 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 	uid_t		uid, gid;
 	gss_OID		name_type = GSS_C_NO_OID;
 	char		*secname;
-	gid_t		*groups;
 
 	maj_stat = gss_display_name(&min_stat, client_name, &name, &name_type);
 	if (maj_stat != GSS_S_COMPLETE) {
