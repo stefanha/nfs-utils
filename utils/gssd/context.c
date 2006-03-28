@@ -41,19 +41,19 @@
 #include "context.h"
 
 int
-serialize_context_for_kernel(gss_ctx_id_t ctx, gss_buffer_desc *buf)
+serialize_context_for_kernel(gss_ctx_id_t ctx,
+			     gss_buffer_desc *buf,
+			     gss_OID mech)
 {
-	gss_union_ctx_id_t      uctx = (gss_union_ctx_id_t)ctx;
-
-	if (g_OID_equal(&krb5oid, uctx->mech_type))
-		return serialize_krb5_ctx(uctx->internal_ctx_id, buf);
+	if (g_OID_equal(&krb5oid, mech))
+		return serialize_krb5_ctx(ctx, buf);
 #ifdef HAVE_SPKM3_H
-	else if (g_OID_equal(&spkm3oid, uctx->mech_type))
-		return serialize_spkm3_ctx(uctx, buf);
+	else if (g_OID_equal(&spkm3oid, mech))
+		return serialize_spkm3_ctx(ctx, buf);
 #endif
 	else {
 		printerr(0, "ERROR: attempting to serialize context with "
-				"unknown mechanism oid\n");
+				"unknown/unsupported mechanism oid\n");
 		return -1;
 	}
 }

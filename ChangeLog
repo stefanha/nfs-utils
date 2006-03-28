@@ -1,4 +1,18 @@
 2006-03-28 kwc@citi.umich.edu
+	Update krb5 code to use glue routine lucid context functions
+	
+	
+	
+	The gssd code should not know about the glue layer's context structure.
+	A previous patch added gss_export_lucid_sec_context() and
+	gss_free_lucid_sec_context() functions to the gssapi glue layer.
+	Use these functions rather than calling directly to the Kerberos
+	gssapi code (which requires the Kerberos context handle rather
+	than the glue's context handle).
+	
+	(really this time)
+	
+2006-03-28 kwc@citi.umich.edu
 	
 	Separate out context handling code for MIT Kerberos and SPKM3
 	into their own file.

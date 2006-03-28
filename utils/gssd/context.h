@@ -33,7 +33,8 @@
 
 #include <rpc/rpc.h>
 
-int serialize_context_for_kernel(gss_ctx_id_t ctx, gss_buffer_desc *buf);
+int serialize_context_for_kernel(gss_ctx_id_t ctx, gss_buffer_desc *buf,
+				 gss_OID mech);
 int serialize_spkm3_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf);
 int serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf);
 

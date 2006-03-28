@@ -232,10 +232,13 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 	int retcode = 0;
 
 	printerr(2, "DEBUG: serialize_krb5_ctx: lucid version!\n");
-	maj_stat = gss_krb5_export_lucid_sec_context(&min_stat, &ctx,
-							1, &return_ctx);
-	if (maj_stat != GSS_S_COMPLETE)
+	maj_stat = gss_export_lucid_sec_context(&min_stat, ctx,
+						1, &return_ctx);
+	if (maj_stat != GSS_S_COMPLETE) {
+		pgsserr("gss_export_lucid_sec_context",
+			maj_stat, min_stat, &krb5oid);
 		goto out_err;
+	}
 
 	/* Check the version returned, we only support v1 right now */
 	vers = ((gss_krb5_lucid_context_version_t *)return_ctx)->version;
@@ -256,12 +259,18 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 	else
 		retcode = prepare_krb5_rfc_cfx_buffer(lctx, buf);
 
-	maj_stat = gss_krb5_free_lucid_sec_context(&min_stat,
-						   (void *)lctx);
-	if (maj_stat != GSS_S_COMPLETE)
+	maj_stat = gss_free_lucid_sec_context(&min_stat, ctx, return_ctx);
+	if (maj_stat != GSS_S_COMPLETE) {
+		pgsserr("gss_export_lucid_sec_context",
+			maj_stat, min_stat, &krb5oid);
 		printerr(0, "WARN: failed to free lucid sec context\n");
-	if (retcode)
+	}
+
+	if (retcode) {
+		printerr(1, "serialize_krb5_ctx: prepare_krb5_*_buffer "
+			 "failed (retcode = %d)\n", retcode);
 		goto out_err;
+	}
 
 	return 0;
 
