@@ -294,10 +294,21 @@ write_keyblock(char **p, char *end, struct _krb5_keyblock *arg)
 	return 0;
 }
 
+/*
+ * We really shouldn't know about glue-layer context structure, but
+ * we need to get at the real krb5 context pointer.  This should be
+ * removed as soon as we say there is no support for MIT Kerberos
+ * prior to 1.4 -- which gives us "legal" access to the context info.
+ */
+typedef struct gss_union_ctx_id_t {
+	gss_OID         mech_type;
+	gss_ctx_id_t    internal_ctx_id;
+} gss_union_ctx_id_desc, *gss_union_ctx_id_t;
+
 int
 serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 {
-	krb5_gss_ctx_id_t       kctx = (krb5_gss_ctx_id_t)ctx;
+	krb5_gss_ctx_id_t kctx = ((gss_union_ctx_id_t)ctx)->internal_ctx_id;
 	char *p, *end;
 	static int constant_one = 1;
 	static int constant_zero = 0;

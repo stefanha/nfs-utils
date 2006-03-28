@@ -1,4 +1,13 @@
 2006-03-28 kwc@citi.umich.edu
+	Must still use knowledge of the glue context for pre-1.4 versions of MIT krb5
+	
+	We need to get access to the internal krb5 context pointer for
+	older (pre-1.4) versions of MIT Kerberos.  We get a pointer to
+	the gss glue's context.  Get the right pointer before accessing
+	the context information.
+	(really this time)
+	
+2006-03-28 kwc@citi.umich.edu
 	
 	Remove unused groups variable from get_ids() which was causing a compiler warning.
 	(really this time)
