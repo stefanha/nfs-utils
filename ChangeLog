@@ -1,3 +1,9 @@
+2006-03-28 kwc@citi.umich.edu
+	
+	Separate out context handling code for MIT Kerberos and SPKM3
+	into their own file.
+	(Really this time)
+	
 2006-03-28 Kevin Coffman <kwc@citi.umich.edu>
 	User-selectable idmapping cache lifetime
 	
