@@ -467,7 +467,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar RELEASE statedir statduser enable_nfsv3 IDMAPD enable_nfsv4 CONFIG_NFSV4_TRUE CONFIG_NFSV4_FALSE GSSD SVCGSSD enable_gss CONFIG_GSS_TRUE CONFIG_GSS_FALSE kprefix secure_statd CONFIG_RQUOTAD_TRUE CONFIG_RQUOTAD_FALSE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE LIBWRAP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CPP LN_S EGREP ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL CC_FOR_BUILD LD ac_ct_LD LIBSOCKET LIBNSL LIBCRYPT LIBBSD KRBDIR KRBLIBS KRBCFLAGS K5VERS ALLOCA LIBOBJS CFLAGS_FOR_BUILD CXXFLAGS_FOR_BUILD CPPFLAGS_FOR_BUILD LDFLAGS_FOR_BUILD AM_CPPFLAGS AM_CFLAGS ACLOCAL_AMFLAGS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar RELEASE statedir statduser enable_nfsv3 IDMAPD enable_nfsv4 CONFIG_NFSV4_TRUE CONFIG_NFSV4_FALSE GSSD SVCGSSD enable_gss CONFIG_GSS_TRUE CONFIG_GSS_FALSE kprefix secure_statd CONFIG_RQUOTAD_TRUE CONFIG_RQUOTAD_FALSE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE LIBWRAP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CPP LN_S EGREP ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL CC_FOR_BUILD LD ac_ct_LD PKG_CONFIG ac_pt_PKG_CONFIG RPCSECGSS_CFLAGS RPCSECGSS_LIBS LIBSOCKET LIBNSL LIBCRYPT LIBBSD KRBDIR KRBLIBS KRBCFLAGS K5VERS ALLOCA LIBOBJS CFLAGS_FOR_BUILD CXXFLAGS_FOR_BUILD CPPFLAGS_FOR_BUILD LDFLAGS_FOR_BUILD AM_CPPFLAGS AM_CFLAGS ACLOCAL_AMFLAGS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -948,6 +948,18 @@ ac_env_FFLAGS_set=${FFLAGS+set}
 ac_env_FFLAGS_value=$FFLAGS
 ac_cv_env_FFLAGS_set=${FFLAGS+set}
 ac_cv_env_FFLAGS_value=$FFLAGS
+ac_env_PKG_CONFIG_set=${PKG_CONFIG+set}
+ac_env_PKG_CONFIG_value=$PKG_CONFIG
+ac_cv_env_PKG_CONFIG_set=${PKG_CONFIG+set}
+ac_cv_env_PKG_CONFIG_value=$PKG_CONFIG
+ac_env_RPCSECGSS_CFLAGS_set=${RPCSECGSS_CFLAGS+set}
+ac_env_RPCSECGSS_CFLAGS_value=$RPCSECGSS_CFLAGS
+ac_cv_env_RPCSECGSS_CFLAGS_set=${RPCSECGSS_CFLAGS+set}
+ac_cv_env_RPCSECGSS_CFLAGS_value=$RPCSECGSS_CFLAGS
+ac_env_RPCSECGSS_LIBS_set=${RPCSECGSS_LIBS+set}
+ac_env_RPCSECGSS_LIBS_value=$RPCSECGSS_LIBS
+ac_cv_env_RPCSECGSS_LIBS_set=${RPCSECGSS_LIBS+set}
+ac_cv_env_RPCSECGSS_LIBS_value=$RPCSECGSS_LIBS
 
 #
 # Report the --help message.
@@ -1074,6 +1086,11 @@ Some influential environment variables:
   CXXCPP      C++ preprocessor
   F77         Fortran 77 compiler command
   FFLAGS      Fortran 77 compiler flags
+  PKG_CONFIG  path to pkg-config utility
+  RPCSECGSS_CFLAGS
+              C compiler flags for RPCSECGSS, overriding pkg-config
+  RPCSECGSS_LIBS
+              linker flags for RPCSECGSS, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -5601,7 +5618,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 5604 "configure"' > conftest.$ac_ext
+  echo '#line 5621 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -6498,7 +6515,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:6501:" \
+echo "$as_me:6518:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -7559,11 +7576,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7562: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7579: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7566: \$? = $ac_status" >&5
+   echo "$as_me:7583: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7827,11 +7844,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7830: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7847: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7834: \$? = $ac_status" >&5
+   echo "$as_me:7851: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7931,11 +7948,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7934: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7951: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7938: \$? = $ac_status" >&5
+   echo "$as_me:7955: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10256,7 +10273,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10259 "configure"
+#line 10276 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10356,7 +10373,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10359 "configure"
+#line 10376 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12694,11 +12711,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12697: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12714: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12701: \$? = $ac_status" >&5
+   echo "$as_me:12718: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12798,11 +12815,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12801: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12818: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12805: \$? = $ac_status" >&5
+   echo "$as_me:12822: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14359,11 +14376,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14362: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14379: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14366: \$? = $ac_status" >&5
+   echo "$as_me:14383: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14463,11 +14480,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14466: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14483: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14470: \$? = $ac_status" >&5
+   echo "$as_me:14487: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16653,11 +16670,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16656: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16673: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16660: \$? = $ac_status" >&5
+   echo "$as_me:16677: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16921,11 +16938,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16924: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16941: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16928: \$? = $ac_status" >&5
+   echo "$as_me:16945: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17025,11 +17042,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17028: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17045: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17032: \$? = $ac_status" >&5
+   echo "$as_me:17049: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20778,12 +20795,198 @@ fi
 
 done
 
-            PKG_CHECK_MODULES(RPCSECGSS, librpcsecgss, ,
-      AC_MSG_ERROR([Unable to locate information required to use librpcsecgss.
-       If you have pkgconfig installed, you might try setting environment
-       variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig])
+            if test "$enable_gss" = yes; then
 
-    )
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_ac_pt_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+
+if test -n "$ac_pt_PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $ac_pt_PKG_CONFIG" >&5
+echo "${ECHO_T}$ac_pt_PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+  PKG_CONFIG=$ac_pt_PKG_CONFIG
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	echo "$as_me:$LINENO: checking pkg-config is at least version $_pkg_min_version" >&5
+echo $ECHO_N "checking pkg-config is at least version $_pkg_min_version... $ECHO_C" >&6
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+	else
+		echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+		PKG_CONFIG=""
+	fi
+
+fi
+
+pkg_failed=no
+echo "$as_me:$LINENO: checking for RPCSECGSS" >&5
+echo $ECHO_N "checking for RPCSECGSS... $ECHO_C" >&6
+
+if test -n "$PKG_CONFIG"; then
+    if test -n "$RPCSECGSS_CFLAGS"; then
+        pkg_cv_RPCSECGSS_CFLAGS="$RPCSECGSS_CFLAGS"
+    else
+        if test -n "$PKG_CONFIG" && \
+    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"librpcsecgss\"") >&5
+  ($PKG_CONFIG --exists --print-errors "librpcsecgss") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_RPCSECGSS_CFLAGS=`$PKG_CONFIG --cflags "librpcsecgss" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+    fi
+else
+	pkg_failed=untried
+fi
+if test -n "$PKG_CONFIG"; then
+    if test -n "$RPCSECGSS_LIBS"; then
+        pkg_cv_RPCSECGSS_LIBS="$RPCSECGSS_LIBS"
+    else
+        if test -n "$PKG_CONFIG" && \
+    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"librpcsecgss\"") >&5
+  ($PKG_CONFIG --exists --print-errors "librpcsecgss") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_RPCSECGSS_LIBS=`$PKG_CONFIG --libs "librpcsecgss" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+    fi
+else
+	pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        RPCSECGSS_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "librpcsecgss"`
+        else
+	        RPCSECGSS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "librpcsecgss"`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$RPCSECGSS_PKG_ERRORS" >&5
+
+	{ { echo "$as_me:$LINENO: error: Unable to locate information required to use librpcsecgss.
+       If you have pkgconfig installed, you might try setting environment
+       variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig" >&5
+echo "$as_me: error: Unable to locate information required to use librpcsecgss.
+       If you have pkgconfig installed, you might try setting environment
+       variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+elif test $pkg_failed = untried; then
+	{ { echo "$as_me:$LINENO: error: Unable to locate information required to use librpcsecgss.
+       If you have pkgconfig installed, you might try setting environment
+       variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig" >&5
+echo "$as_me: error: Unable to locate information required to use librpcsecgss.
+       If you have pkgconfig installed, you might try setting environment
+       variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+else
+	RPCSECGSS_CFLAGS=$pkg_cv_RPCSECGSS_CFLAGS
+	RPCSECGSS_LIBS=$pkg_cv_RPCSECGSS_LIBS
+        echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+	:
+fi
+    fi
 
 fi
 if test "$knfsd_cv_glibc2" = no; then
@@ -28126,6 +28329,10 @@ s,@LIBTOOL@,$LIBTOOL,;t t
 s,@CC_FOR_BUILD@,$CC_FOR_BUILD,;t t
 s,@LD@,$LD,;t t
 s,@ac_ct_LD@,$ac_ct_LD,;t t
+s,@PKG_CONFIG@,$PKG_CONFIG,;t t
+s,@ac_pt_PKG_CONFIG@,$ac_pt_PKG_CONFIG,;t t
+s,@RPCSECGSS_CFLAGS@,$RPCSECGSS_CFLAGS,;t t
+s,@RPCSECGSS_LIBS@,$RPCSECGSS_LIBS,;t t
 s,@LIBSOCKET@,$LIBSOCKET,;t t
 s,@LIBNSL@,$LIBNSL,;t t
 s,@LIBCRYPT@,$LIBCRYPT,;t t

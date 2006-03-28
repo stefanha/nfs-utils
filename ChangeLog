@@ -1,3 +1,6 @@
+2006-03-28 NeilBrown <neilb@suse.de>
+	1.0.8-pre3, aclocal/autoconf/automake
+	
 2006-03-28 kwc@citi.umich.edu
 	Use PKGCONFIG to locate gssapi and rpcsecgss header files
 	

@@ -150,12 +150,14 @@ if test "$enable_nfsv4" = yes; then
     AC_CHECK_HEADERS(nfsidmap.h, ,[AC_MSG_ERROR(libnfsidmap needed for nfsv4 support)])
     dnl librpcsecgss already has a dependency on libgssapi,
     dnl so we don't need to do an explicit check for libgssapi here
-    PKG_CHECK_MODULES(RPCSECGSS, librpcsecgss, [],
+    if test "$enable_gss" = yes; then
+     PKG_CHECK_MODULES(RPCSECGSS, librpcsecgss, [],
       [AC_MSG_ERROR([Unable to locate information required to use librpcsecgss.
        If you have pkgconfig installed, you might try setting environment
        variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig])
       ]
-    )
+     )
+    fi
 
 fi
 if test "$knfsd_cv_glibc2" = no; then

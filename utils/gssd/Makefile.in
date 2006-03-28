@@ -68,7 +68,7 @@ am_gssd_OBJECTS = $(am__objects_1) gssd-gssd.$(OBJEXT) \
 	gssd-krb5_util.$(OBJEXT)
 gssd_OBJECTS = $(am_gssd_OBJECTS)
 am__DEPENDENCIES_1 =
-gssd_DEPENDENCIES = $(am__DEPENDENCIES_1)
+gssd_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__objects_2 = svcgssd-context.$(OBJEXT) \
 	svcgssd-context_mit.$(OBJEXT) \
 	svcgssd-context_heimdal.$(OBJEXT) \
@@ -80,7 +80,7 @@ am_svcgssd_OBJECTS = $(am__objects_2) svcgssd-cacheio.$(OBJEXT) \
 	svcgssd-svcgssd_proc.$(OBJEXT)
 svcgssd_OBJECTS = $(am_svcgssd_OBJECTS)
 svcgssd_DEPENDENCIES = ../../support/nfs/libnfs.a \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 sbinSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(sbin_SCRIPTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/support/include
@@ -179,8 +179,11 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 RELEASE = @RELEASE@
+RPCSECGSS_CFLAGS = @RPCSECGSS_CFLAGS@
+RPCSECGSS_LIBS = @RPCSECGSS_LIBS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -193,6 +196,7 @@ ac_ct_F77 = @ac_ct_F77@
 ac_ct_LD = @ac_ct_LD@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@

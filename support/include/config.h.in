@@ -38,9 +38,6 @@
    authgss_set_debug_level */
 #undef HAVE_AUTHGSS_SET_DEBUG_LEVEL
 
-/* Define this if you want to use BSD signal semantics */
-#undef HAVE_BSD_SIGNALS
-
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
@@ -96,23 +93,14 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
-/* Define this if the Kerberos GSS library supports gss_krb5_ccache_name */
-#undef HAVE_GSS_KRB5_CCACHE_NAME
-
 /* Define to 1 if you have the `hasmntopt' function. */
 #undef HAVE_HASMNTOPT
-
-/* Define this if you have Heimdal Kerberos libraries */
-#undef HAVE_HEIMDAL
 
 /* Define to 1 if you have the `inet_ntoa' function. */
 #undef HAVE_INET_NTOA
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
-
-/* Define this if you have MIT Kerberos libraries */
-#undef HAVE_KRB5
 
 /* Define to 1 if you have the <libintl.h> header file. */
 #undef HAVE_LIBINTL_H
@@ -123,10 +111,6 @@
 /* Define to 1 if `lstat' has the bug that it succeeds when given the
    zero-length file name argument. */
 #undef HAVE_LSTAT_EMPTY_STRING_BUG
-
-/* Define this if the Kerberos GSS library supports
-   gss_krb5_export_lucid_sec_context */
-#undef HAVE_LUCID_CONTEXT_SUPPORT
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
@@ -166,10 +150,6 @@
 
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
-
-/* Define this if the Kerberos GSS library supports
-   gss_krb5_set_allowable_enctypes */
-#undef HAVE_SET_ALLOWABLE_ENCTYPES
 
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
@@ -273,12 +253,6 @@
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
 
-/* Define this as the Kerberos version number */
-#undef KRB5_VERSION
-
-/* tcp-wrapper */
-#undef LIBWRAP
-
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
@@ -363,11 +337,6 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Define this if the private function, gss_krb5_cache_name, must be used to
-   tell the Kerberos library which credentials cache to use. Otherwise, this
-   is done by setting the KRB5CCNAME environment variable */
-#undef USE_GSS_KRB5_CCACHE_NAME
 
 /* Version number of package */
 #undef VERSION
