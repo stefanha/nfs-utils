@@ -178,6 +178,12 @@ fail:
 static void
 destroy_client(struct clnt_info *clp)
 {
+	if (clp->krb5_poll_index != -1)
+		memset(&pollarray[clp->krb5_poll_index], 0,
+					sizeof(struct pollfd));
+	if (clp->spkm3_poll_index != -1)
+		memset(&pollarray[clp->spkm3_poll_index], 0,
+					sizeof(struct pollfd));
 	if (clp->dir_fd != -1) close(clp->dir_fd);
 	if (clp->krb5_fd != -1) close(clp->krb5_fd);
 	if (clp->spkm3_fd != -1) close(clp->spkm3_fd);
@@ -216,15 +222,20 @@ process_clnt_dir_files(struct clnt_info * clp)
 	char	sname[32];
 	char	info_file_name[32];
 
-	snprintf(kname, sizeof(kname), "%s/krb5", clp->dirname);
-	clp->krb5_fd = open(kname, O_RDWR);
-	snprintf(sname, sizeof(sname), "%s/spkm3", clp->dirname);
-	clp->spkm3_fd = open(sname, O_RDWR);
+	if (clp->krb5_fd == -1) {
+		snprintf(kname, sizeof(kname), "%s/krb5", clp->dirname);
+		clp->krb5_fd = open(kname, O_RDWR);
+	}
+	if (clp->spkm3_fd == -1) {
+		snprintf(sname, sizeof(sname), "%s/spkm3", clp->dirname);
+		clp->spkm3_fd = open(sname, O_RDWR);
+	}
 	if((clp->krb5_fd == -1) && (clp->spkm3_fd == -1))
 		return -1;
 	snprintf(info_file_name, sizeof(info_file_name), "%s/info",
 			clp->dirname);
-	if (read_service_info(info_file_name, &clp->servicename,
+	if ((clp->servicename == NULL) &&
+	     read_service_info(info_file_name, &clp->servicename,
 				&clp->servername, &clp->prog, &clp->vers,
 				&clp->protocol))
 		return -1;
@@ -247,6 +258,31 @@ get_poll_index(int *ind)
 		printerr(0, "ERROR: No pollarray slots open\n");
 		return -1;
 	}
+	return 0;
+}
+
+
+static int
+insert_clnt_poll(struct clnt_info *clp)
+{
+	if ((clp->krb5_fd != -1) && (clp->krb5_poll_index == -1)) {
+		if (get_poll_index(&clp->krb5_poll_index)) {
+			printerr(0, "ERROR: Too many krb5 clients\n");
+			return -1;
+		}
+		pollarray[clp->krb5_poll_index].fd = clp->krb5_fd;
+		pollarray[clp->krb5_poll_index].events |= POLLIN;
+	}
+
+	if ((clp->spkm3_fd != -1) && (clp->spkm3_poll_index == -1)) {
+		if (get_poll_index(&clp->spkm3_poll_index)) {
+			printerr(0, "ERROR: Too many spkm3 clients\n");
+			return -1;
+		}
+		pollarray[clp->spkm3_poll_index].fd = clp->spkm3_fd;
+		pollarray[clp->spkm3_poll_index].events |= POLLIN;
+	}
+
 	return 0;
 }
 
@@ -273,23 +309,8 @@ process_clnt_dir(char *dir)
 	if (process_clnt_dir_files(clp))
 		goto fail_keep_client;
 
-	if(clp->krb5_fd != -1) {
-		if (get_poll_index(&clp->krb5_poll_index)) {
-			printerr(0, "ERROR: Too many krb5 clients\n");
-			goto fail_destroy_client;
-		}
-		pollarray[clp->krb5_poll_index].fd = clp->krb5_fd;
-		pollarray[clp->krb5_poll_index].events |= POLLIN;
-	}
-
-	if(clp->spkm3_fd != -1) {
-		if (get_poll_index(&clp->spkm3_poll_index)) {
-			printerr(0, "ERROR: Too many spkm3 clients\n");
-			goto fail_destroy_client;
-		}
-		pollarray[clp->spkm3_poll_index].fd = clp->spkm3_fd;
-		pollarray[clp->spkm3_poll_index].events |= POLLIN;
-	}
+	if (insert_clnt_poll(clp))
+		goto fail_destroy_client;
 
 	return;
 
@@ -314,18 +335,50 @@ init_client_list(void)
 	pollarray = calloc(pollsize, sizeof(struct pollfd));
 }
 
+/*
+ * This is run after a DNOTIFY signal, and should clear up any
+ * directories that are no longer around, and re-scan any existing
+ * directories, since the DNOTIFY could have been in there.
+ */
 static void
-destroy_client_list(void)
+update_old_clients(struct dirent **namelist, int size)
+{
+	struct clnt_info *clp;
+	void *saveprev;
+	int i, stillhere;
+
+	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next) {
+		stillhere = 0;
+		for (i=0; i < size; i++) {
+			if (!strcmp(clp->dirname, namelist[i]->d_name)) {
+				stillhere = 1;
+				break;
+			}
+		}
+		if (!stillhere) {
+			printerr(2, "destroying client %s\n", clp->dirname);
+			saveprev = clp->list.tqe_prev;
+			TAILQ_REMOVE(&clnt_list, clp, list);
+			destroy_client(clp);
+			clp = saveprev;
+		}
+	}
+	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next) {
+		if (!process_clnt_dir_files(clp))
+			insert_clnt_poll(clp);
+	}
+}
+
+/* Search for a client by directory name, return 1 if found, 0 otherwise */
+static int
+find_client(char *dirname)
 {
 	struct clnt_info	*clp;
 
-	printerr(1, "processing client list\n");
-
-	while (clnt_list.tqh_first != NULL) {
-		clp = clnt_list.tqh_first;
-		TAILQ_REMOVE(&clnt_list, clp, list);
-		destroy_client(clp);
-	}
+	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next)
+		if (!strcmp(clp->dirname, dirname))
+			return 1;
+	return 0;
 }
 
 /* Used to read (and re-read) list of clients, set up poll array. */
@@ -333,9 +386,7 @@ int
 update_client_list(void)
 {
 	struct dirent **namelist;
-	int i,j;
-
-	destroy_client_list();
+	int i, j;
 
 	if (chdir(pipefsdir) < 0) {
 		printerr(0, "ERROR: can't chdir to %s: %s\n",
@@ -343,17 +394,17 @@ update_client_list(void)
 		return -1;
 	}
 
-	memset(pollarray, 0, pollsize * sizeof(struct pollfd));
-
 	j = scandir(pipefsdir, &namelist, NULL, alphasort);
 	if (j < 0) {
 		printerr(0, "ERROR: can't scandir %s: %s\n",
 			 pipefsdir, strerror(errno));
 		return -1;
 	}
+	update_old_clients(namelist, j);
 	for (i=0; i < j; i++) {
 		if (i < FD_ALLOC_BLOCK
-				&& !strncmp(namelist[i]->d_name, "clnt", 4))
+				&& !strncmp(namelist[i]->d_name, "clnt", 4)
+				&& !find_client(namelist[i]->d_name))
 			process_clnt_dir(namelist[i]->d_name);
 		free(namelist[i]);
 	}
