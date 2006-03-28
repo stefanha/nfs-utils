@@ -37,14 +37,11 @@ gssd_SOURCES = \
 	krb5_util.h \
 	write_bytes.h
 
-gssd_LDADD = -lrpcsecgss -lgssapi -ldl $(KRBLIBS)
+gssd_LDADD = $(RPCSECGSS_LIBS) $(KRBLIBS)
 gssd_LDFLAGS = -Wl,-rpath=$(KRBDIR)/lib
 
-gssd_CPPFLAGS = -I$(top_srcdir)/support/rpc/include \
-	      $(AM_CPPFLAGS) $(CPPFLAGS)
-		
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
-	      $(KRBCFLAGS)
+	      $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
 
 svcgssd_SOURCES = \
 	$(COMMON_SRCS) \

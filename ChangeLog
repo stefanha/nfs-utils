@@ -1,4 +1,16 @@
 2006-03-28 kwc@citi.umich.edu
+	Use PKGCONFIG to locate gssapi and rpcsecgss header files
+	
+	Instead of having separate copies of the gssapi and rpcsecgss
+	header files, or depending on the Kerberos gssapi header,
+	locate the headers now installed with the libgssapi and librpcsecgss
+	libraries.
+	
+	Remove local copies of the gssapi and rpcsecgss header files.
+	
+	This depends on the configure_use_autotools patch.
+	
+2006-03-28 kwc@citi.umich.edu
 	Add debugging to better detect negotiation of enctype not supported by kernel
 	
 	Print debugging message indicating the type of encryption keys being sent

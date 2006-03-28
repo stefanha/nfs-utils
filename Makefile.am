@@ -37,23 +37,7 @@ EXTRA_DIST = \
 	\
 	aclocal/nfs-utils.m4 \
 	aclocal/kerberos5.m4 \
-	aclocal/tcp-wrappers.m4 \
-	\
-	support/rpc/include/rpc/auth_gss.h \
-	support/rpc/include/rpc/auth.h \
-	support/rpc/include/rpc/auth_unix.h \
-	support/rpc/include/rpc/clnt.h \
-	support/rpc/include/rpc/pmap_clnt.h \
-	support/rpc/include/rpc/pmap_prot.h \
-	support/rpc/include/rpc/pmap_rmt.h \
-	support/rpc/include/rpc/rpc_des.h \
-	support/rpc/include/rpc/rpc.h \
-	support/rpc/include/rpc/rpc_msg.h \
-	support/rpc/include/rpc/svc_auth.h \
-	support/rpc/include/rpc/svc.h \
-	support/rpc/include/rpc/types.h \
-	support/rpc/include/rpc/xdr.h
-
+	aclocal/tcp-wrappers.m4
 
 install-data-hook:
 	if [ ! -d $(DESTDIR)$(statedir) ]; then mkdir -p $(DESTDIR)$(statedir); fi
