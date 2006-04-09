@@ -472,6 +472,7 @@ out_err:
  * gss context with a server.
  */
 int create_auth_rpc_client(struct clnt_info *clp,
+			   CLIENT **clnt_return,
 			   AUTH **auth_return,
 			   uid_t uid,
 			   int authtype)
@@ -489,6 +490,16 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	struct addrinfo		ai_hints, *a = NULL;
 	char			service[64];
 	char			*at_sign;
+
+	/* Create the context as the user (not as root) */
+	save_uid = geteuid();
+	if (seteuid(uid) != 0) {
+		printerr(0, "WARNING: Failed to seteuid for "
+			    "user with uid %d\n", uid);
+		goto out_fail;
+	}
+	printerr(2, "creating context using euid %d (save_uid %d)\n",
+			geteuid(), save_uid);
 
 	sec.qop = GSS_C_QOP_DEFAULT;
 	sec.svc = RPCSEC_GSS_SVC_NONE;
@@ -526,16 +537,6 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		}
 #endif
 	}
-
-	/* Create the context as the user (not as root) */
-	save_uid = geteuid();
-	if (seteuid(uid) != 0) {
-		printerr(0, "WARNING: Failed to seteuid for "
-			    "user with uid %d\n", uid);
-		goto out_fail;
-	}
-	printerr(2, "creating context using euid %d (save_uid %d)\n",
-			geteuid(), save_uid);
 
 	/* create an rpc connection to the nfs server */
 
@@ -634,29 +635,28 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		goto out_fail;
 	}
 
-	/* Restore euid to original value */
-	if (seteuid(save_uid) != 0) {
-		printerr(0, "WARNING: Failed to restore euid"
-			    " to uid %d\n", save_uid);
-		goto out_fail;
-	}
-	save_uid = -1;
-
 	/* Success !!! */
+	rpc_clnt->cl_auth = auth;
+	*clnt_return = rpc_clnt;
 	*auth_return = auth;
 	retval = 0;
 
-  out_fail:
-	if ((save_uid != -1) && (seteuid(save_uid) != 0)) {
-		printerr(0, "WARNING: Failed to restore euid"
-			    " to uid %d (in error path)\n", save_uid);
-	}
+  out:
 	if (sec.cred != GSS_C_NO_CREDENTIAL)
 		gss_release_cred(&min_stat, &sec.cred);
-	if (rpc_clnt) clnt_destroy(rpc_clnt);
   	if (a != NULL) freeaddrinfo(a);
-
+	/* Restore euid to original value */
+	if ((save_uid != -1) && (seteuid(save_uid) != 0)) {
+		printerr(0, "WARNING: Failed to restore euid"
+			    " to uid %d\n", save_uid);
+	}
 	return retval;
+
+  out_fail:
+	/* Only destroy here if failure.  Otherwise, caller is responsible */
+	if (rpc_clnt) clnt_destroy(rpc_clnt);
+
+	goto out;
 }
 
 
@@ -668,7 +668,8 @@ void
 handle_krb5_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
-	AUTH			*auth;
+	CLIENT			*rpc_clnt = NULL;
+	AUTH			*auth = NULL;
 	struct authgss_private_data pd;
 	gss_buffer_desc		token;
 	char			**credlist = NULL;
@@ -678,6 +679,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 
 	token.length = 0;
 	token.value = NULL;
+	memset(&pd, 0, sizeof(struct authgss_private_data));
 
 	if (read(clp->krb5_fd, &uid, sizeof(uid)) < sizeof(uid)) {
 		printerr(0, "WARNING: failed reading uid from krb5 "
@@ -700,7 +702,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 		}
 		for (ccname = credlist; ccname && *ccname; ccname++) {
 			gssd_setup_krb5_machine_gss_ccache(*ccname);
-			if ((create_auth_rpc_client(clp, &auth, uid,
+			if ((create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
 						    AUTHTYPE_KRB5)) == 0) {
 				/* Success! */
 				success++;
@@ -724,7 +726,8 @@ handle_krb5_upcall(struct clnt_info *clp)
 		/* Tell krb5 gss which credentials cache to use */
 		gssd_setup_krb5_user_gss_ccache(uid, clp->servername);
 
-		if (create_auth_rpc_client(clp, &auth, uid, AUTHTYPE_KRB5)) {
+		if ((create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
+							AUTHTYPE_KRB5)) != 0) {
 			printerr(0, "WARNING: Failed to create krb5 context "
 				    "for user with uid %d for server %s\n",
 				 uid, clp->servername);
@@ -748,14 +751,20 @@ handle_krb5_upcall(struct clnt_info *clp)
 
 	do_downcall(clp->krb5_fd, uid, &pd, &token);
 
+out:
 	if (token.value)
 		free(token.value);
-out:
+	if (pd.pd_ctx_hndl.length != 0)
+		authgss_free_private_data(&pd);
+	if (auth)
+		AUTH_DESTROY(auth);
+	if (rpc_clnt)
+		clnt_destroy(rpc_clnt);
 	return;
 
 out_return_error:
 	do_error_downcall(clp->krb5_fd, uid, -1);
-	return;
+	goto out;
 }
 
 /*
@@ -766,7 +775,8 @@ void
 handle_spkm3_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
-	AUTH			*auth;
+	CLIENT			*rpc_clnt = NULL;
+	AUTH			*auth = NULL;
 	struct authgss_private_data pd;
 	gss_buffer_desc		token;
 
@@ -781,7 +791,7 @@ handle_spkm3_upcall(struct clnt_info *clp)
 		goto out;
 	}
 
-	if (create_auth_rpc_client(clp, &auth, uid, AUTHTYPE_SPKM3)) {
+	if (create_auth_rpc_client(clp, &rpc_clnt, &auth, uid, AUTHTYPE_SPKM3)) {
 		printerr(0, "WARNING: Failed to create spkm3 context for "
 			    "user with uid %d\n", uid);
 		goto out_return_error;
@@ -803,12 +813,16 @@ handle_spkm3_upcall(struct clnt_info *clp)
 
 	do_downcall(clp->spkm3_fd, uid, &pd, &token);
 
+out:
 	if (token.value)
 		free(token.value);
-out:
+	if (auth)
+		AUTH_DESTROY(auth);
+	if (rpc_clnt)
+		clnt_destroy(rpc_clnt);
 	return;
 
 out_return_error:
 	do_error_downcall(clp->spkm3_fd, uid, -1);
-	return;
+	goto out;
 }

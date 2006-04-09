@@ -1,4 +1,10 @@
 2006-04-10 kwc@citi.umich.edu
+	Fix memory leak of the AUTH structure on context negotiations
+	
+	Free AUTH structure after completing context negotiation and sending
+	context information to the kernel.
+	
+2006-04-10 kwc@citi.umich.edu
 	Fix support/include/config.h.in such as would be done be running autoheader.
 	
 2006-03-28 NeilBrown <neilb@suse.de>
