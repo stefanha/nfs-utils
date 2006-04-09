@@ -1,3 +1,6 @@
+2006-04-10 kwc@citi.umich.edu
+	Fix support/include/config.h.in such as would be done be running autoheader.
+	
 2006-03-28 NeilBrown <neilb@suse.de>
 	1.0.8-pre3, aclocal/autoconf/automake
 	
