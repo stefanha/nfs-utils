@@ -237,7 +237,7 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 	int retcode = 0;
 
 	printerr(2, "DEBUG: serialize_krb5_ctx: lucid version!\n");
-	maj_stat = gss_export_lucid_sec_context(&min_stat, ctx,
+	maj_stat = gss_export_lucid_sec_context(&min_stat, &ctx,
 						1, &return_ctx);
 	if (maj_stat != GSS_S_COMPLETE) {
 		pgsserr("gss_export_lucid_sec_context",

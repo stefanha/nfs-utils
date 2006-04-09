@@ -1,4 +1,10 @@
 2006-04-10 kwc@citi.umich.edu
+	Update calls to gss_export_lucid_sec_context()
+	
+	Change the calls to gss_export_lucid_sec_context() to match the corrected
+	interface definition in libgssapi-0.9.
+	
+2006-04-10 kwc@citi.umich.edu
 	Plug memory leaks in svcgssd
 	
 	Various memory leaks in the svcgssd context processing are eliminated.

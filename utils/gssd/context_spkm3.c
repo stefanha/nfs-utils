@@ -149,7 +149,7 @@ serialize_spkm3_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 	printerr(1, "serialize_spkm3_ctx called\n");
 
 	printerr(2, "DEBUG: serialize_spkm3_ctx: lucid version!\n");
-	maj_stat = gss_export_lucid_sec_context(&min_stat, ctx, 1, &ret_ctx);
+	maj_stat = gss_export_lucid_sec_context(&min_stat, &ctx, 1, &ret_ctx);
 	if (maj_stat != GSS_S_COMPLETE)
 		goto out_err;
 
