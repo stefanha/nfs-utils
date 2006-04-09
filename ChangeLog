@@ -1,4 +1,9 @@
 2006-04-10 kwc@citi.umich.edu
+	Plug memory leaks in svcgssd
+	
+	Various memory leaks in the svcgssd context processing are eliminated.
+	
+2006-04-10 kwc@citi.umich.edu
 	Fix memory leak of the AUTH structure on context negotiations
 	
 	Free AUTH structure after completing context negotiation and sending

@@ -203,10 +203,12 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 	if (!(sname = calloc(name.length + 1, 1))) {
 		printerr(0, "WARNING: get_ids: error allocating %d bytes "
 			"for sname\n", name.length + 1);
+		gss_release_buffer(&min_stat, &name);
 		goto out;
 	}
 	memcpy(sname, name.value, name.length);
 	printerr(1, "sname = %s\n", sname);
+	gss_release_buffer(&min_stat, &name);
 
 	res = -EINVAL;
 	if ((secname = mech2file(mech)) == NULL) {
@@ -281,6 +283,7 @@ handle_nullreq(FILE *f) {
 				in_handle = {.value = in_handle_buf},
 				out_handle = {.value = out_handle_buf},
 				ctx_token = {.value = NULL},
+				ignore_out_tok = {.value = NULL},
 	/* XXX isn't there a define for this?: */
 				null_token = {.value = NULL};
 	u_int32_t		ret_flags;
@@ -288,6 +291,7 @@ handle_nullreq(FILE *f) {
 	gss_name_t		client_name;
 	gss_OID			mech = GSS_C_NO_OID;
 	u_int32_t		maj_stat = GSS_S_FAILURE, min_stat = 0;
+	u_int32_t		ignore_min_stat;
 	struct svc_cred		cred;
 	static char		*lbuf = NULL;
 	static int		lbuflen = 0;
@@ -352,8 +356,10 @@ handle_nullreq(FILE *f) {
 	if (get_ids(client_name, mech, &cred)) {
 		/* get_ids() prints error msg */
 		maj_stat = GSS_S_BAD_NAME; /* XXX ? */
+		gss_release_name(&ignore_min_stat, &client_name);
 		goto out_err;
 	}
+	gss_release_name(&ignore_min_stat, &client_name);
 
 
 	/* Context complete. Pass handle_seq in out_handle to use
@@ -370,6 +376,9 @@ handle_nullreq(FILE *f) {
 		maj_stat = GSS_S_FAILURE;
 		goto out_err;
 	}
+	/* We no longer need the gss context */
+	gss_delete_sec_context(&ignore_min_stat, &ctx, &ignore_out_tok);
+
 	do_svc_downcall(&out_handle, &cred, mech, &ctx_token);
 continue_needed:
 	send_response(f, &in_handle, &in_tok, maj_stat, min_stat,
@@ -377,10 +386,14 @@ continue_needed:
 out:
 	if (ctx_token.value != NULL)
 		free(ctx_token.value);
+	if (out_tok.value != NULL)
+		gss_release_buffer(&ignore_min_stat, &out_tok);
 	printerr(1, "finished handling null request\n");
 	return;
 
 out_err:
+	if (ctx != GSS_C_NO_CONTEXT)
+		gss_delete_sec_context(&ignore_min_stat, &ctx, &ignore_out_tok);
 	send_response(f, &in_handle, &in_tok, maj_stat, min_stat,
 			&null_token, &null_token);
 	goto out;
