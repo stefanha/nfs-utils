@@ -39,6 +39,8 @@ AC_DEFUN([AC_TCP_WRAPPERS],[
                 AC_MSG_RESULT(yes)
                 AC_SUBST(LIBWRAP)
                 AC_DEFINE([LIBWRAP], [1], [tcp-wrapper])
+                AC_DEFINE([HAVE_LIBWRAP], [1], [tcp-wrapper])
+                AC_DEFINE([HAVE_TCP_WRAPPER], [1], [tcp-wrapper])
                 TCPW_MSG="yes"
                 ],[
                 AC_MSG_ERROR([*** libwrap missing])
@@ -49,4 +51,6 @@ AC_DEFUN([AC_TCP_WRAPPERS],[
     ]
   )
   AC_SUBST(LIBWRAP)
+  AC_SUBST(HAVE_LIBWRAP)
+  AC_SUBST(HAVE_TCP_WRAPPER)
 ])

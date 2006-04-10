@@ -120,6 +120,9 @@
 /* Define to 1 if you have the <libintl.h> header file. */
 #undef HAVE_LIBINTL_H
 
+/* tcp-wrapper */
+#undef HAVE_LIBWRAP
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -257,6 +260,9 @@
 
 /* Define to 1 if you have the <sys/vfs.h> header file. */
 #undef HAVE_SYS_VFS_H
+
+/* tcp-wrapper */
+#undef HAVE_TCP_WRAPPER
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
