@@ -1,3 +1,6 @@
+2006-04-10 NeilBrown <neilb@suse.de>
+	Add checking for innetgr back to configure.in
+	
 2006-04-10 kwc@citi.umich.edu
 	Update calls to gss_export_lucid_sec_context()
 	
