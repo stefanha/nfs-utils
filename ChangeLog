@@ -1,7 +1,11 @@
 2006-04-10 "Kevin Coffman" <kwc@citi.umich.edu>
+	Check for sufficient version of librpcsecgss and libgssapi
+	in configure.in
+
+2006-04-10 "Kevin Coffman" <kwc@citi.umich.edu>
 	Update aclocal/tcp-wrappers.m4 to define HAVE_LIBWRAP and
 	HAVE_TCP_WRAPPERS as appropriate.	
-	
+
 2006-04-10 NeilBrown <neilb@suse.de>
 	Add checking for innetgr back to configure.in
 	
