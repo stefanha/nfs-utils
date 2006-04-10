@@ -200,7 +200,8 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 			maj_stat, min_stat, mech);
 		goto out;
 	}
-	if (!(sname = calloc(name.length + 1, 1))) {
+	if (name.length >= 0xffff || /* be certain name.length+1 doesn't overflow */
+	    !(sname = calloc(name.length + 1, 1))) {
 		printerr(0, "WARNING: get_ids: error allocating %d bytes "
 			"for sname\n", name.length + 1);
 		gss_release_buffer(&min_stat, &name);

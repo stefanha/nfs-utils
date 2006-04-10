@@ -547,9 +547,10 @@ nfsdcb(int fd, short which, void *data)
 	if (which != EV_READ)
 		goto out;
 
-	if ((len = read(ic->ic_fd, buf, sizeof(buf))) == -1) {
+	if ((len = read(ic->ic_fd, buf, sizeof(buf))) <= 0) {
 		idmapd_warnx("nfsdcb: read(%s) failed: errno %d (%s)",
-			     ic->ic_path, errno, strerror(errno));
+			     ic->ic_path, len?errno:0, 
+			     len?strerror(errno):"End of File");
 		goto out;
 	}
 

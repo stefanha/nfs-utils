@@ -127,10 +127,10 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 		goto fail;
 	close(fd);
 
-	numfields = sscanf(buf,"RPC server: %s\n"
-		   "service: %s %s version %s\n"
-		   "address: %s\n"
-		   "protocol: %s\n",
+	numfields = sscanf(buf,"RPC server: %127s\n"
+		   "service: %127s %15s version %15s\n"
+		   "address: %127s\n"
+		   "protocol: %15s\n",
 		   dummy,
 		   service, program, version,
 		   address,

@@ -1,3 +1,15 @@
+2006-04-10 NeilBrown <neilb@suse.de>
+	Various paranoia checks:
+	gssd_proc.c: pass max_field sizes to sscanf to avoid buffer
+	  overflow
+	svcgssd_proc.c: range_check name.length, to ensure name.length+1
+	  doesn't wrap
+	idmapd.c(nfsdcb): make sure at least one byte is read before
+	 zeroing the last byte that was read, otherwise memory corruption
+	 is possible.
+
+	Found by SuSE security audit.
+	
 2006-04-10 "Kevin Coffman" <kwc@citi.umich.edu>
 	Check for sufficient version of librpcsecgss and libgssapi
 	in configure.in
