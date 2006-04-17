@@ -37,7 +37,9 @@
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef HAVE_IFADDRS_H
 #include <ifaddrs.h>
+#endif /* HAVE_IFADDRS_H */
 #include "sm_inter.h"
 #include "statd.h"
 #include "notlist.h"
@@ -94,6 +96,8 @@ statd_get_socket(int port)
 out_success:
 	return sockfd;
 }
+
+#ifdef HAVE_IFADDRS_H
 /*
  * Using the NL_ADDR(lp), reset (if needed) the hostname
  * that will be put in the SM_NOTIFY to the hostname
@@ -138,6 +142,7 @@ reset_my_name(notify_list *lp)
 	}
 	return;
 }
+#endif /* HAVE_IFADDRS_H */
 /*
  * Try to resolve host name for notify/callback request
  *
@@ -379,9 +384,10 @@ process_entry(int sockfd, notify_list *lp)
 		 * set the NL_MY_NAME(lp) hostname to the 
 		 * one associated with the network interface
 		 */
+#ifdef HAVE_IFADDRS_H
 		if (!(run_mode & STATIC_HOSTNAME))
 			reset_my_name(lp);
-
+#endif /* HAVE_IFADDRS_H */
 		func = (xdrproc_t) xdr_stat_chge;
 		new_stat.state = MY_STATE;
 		new_stat.mon_name = NL_MY_NAME(lp);
