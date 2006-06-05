@@ -1,5 +1,5 @@
 2006-06-05 NeilBrown <neilb@suse.de>
-	Remove debian/ at request of Debian maintainer "Steinar H. Gunderson" <sesse@debian.org>
+	- Remove debian/ at request of Debian maintainer "Steinar H. Gunderson" <sesse@debian.org>
 	- fix_exportfs_with_multiple_matches.diff: Fixes a problem with exportfs -o
 	  and multiple entries of the same type for the same patch that matches
 	  a given client. The entire rationale and problem description can be found
@@ -19,6 +19,12 @@
 	- mountd state directory:
 	  Let the user select (via a new parameter) the path to the NFS
 	  state directory for mountd, to match the statd functionality.
+	         "Steinar H. Gunderson" <sesse@debian.org>
+	- fix nhfsrun signal:
+	  nhfsrun is supposed to be able to be signalled with SIGUSR1, but
+	  the signal trapped is number 30, which is something else
+	  entirely (SIGPWR). This patch simply changes it to say "USR1",
+	  which gets it right no matter what the value is.
 	         "Steinar H. Gunderson" <sesse@debian.org>
 	
 2006-04-12 NeilBrown <neilb@suse.de>

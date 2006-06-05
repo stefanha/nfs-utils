@@ -46,7 +46,7 @@ INCR=10
 # SIGUSR1 is used by nhfsstone to synchronize child processes.
 #
 nothing() { echo -n ""; }
-trap nothing 30
+trap nothing USR1
 
 rm -f $OUTFILE
 
