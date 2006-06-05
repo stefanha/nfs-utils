@@ -109,6 +109,13 @@ Using this option usually improves performance, but at the cost that
 an unclean server restart (i.e. a crash) can cause data to be lost or
 corrupted.
 
+.TP
+.IR sync
+Reply to requests only after the changes have been committed to stable
+storage (see
+.IR async
+above).
+
 In releases of nfs-utils upto and including 1.0.0, this option was the
 default.  In this and future releases,
 .I sync

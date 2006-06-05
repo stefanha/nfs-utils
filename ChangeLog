@@ -11,8 +11,12 @@
 	        "Steinar H. Gunderson" <sesse@debian.org>
 	- Only treat '#' as starting a comment when at the start of a
 	  token, otherwise '#' in filenames cannot be read.
-	        NeilBrown	
-	
+	        NeilBrown
+	- document sync option:
+	  Document the 'sync' option in the exports(5) man page -- ATM
+	  only the 'async' option is documented, which is not very
+	  symmetric. :-)  "Steinar H. Gunderson" <sesse@debian.org>
+
 2006-04-12 NeilBrown <neilb@suse.de>
 	Remove **/Makefile.in, aclocal.m4, configure, and
 	 support/include/config.h.in from source control
