@@ -167,7 +167,7 @@ putexportent(struct exportent *ep)
 
 	fp = efp->x_fp;
 	for (i=0; esc[i]; i++)
-	        if (iscntrl(esc[i]) || esc[i] == '"' || esc[i] == '\\'|| isspace(esc[i]))
+	        if (iscntrl(esc[i]) || esc[i] == '"' || esc[i] == '\\' || esc[i] == '#' || isspace(esc[i]))
 			fprintf(fp, "\\%03o", esc[i]);
 		else
 			fprintf(fp, "%c", esc[i]);
