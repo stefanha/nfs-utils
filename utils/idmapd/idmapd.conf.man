@@ -14,9 +14,9 @@ The
 .Nm
 configuration file has two sections, initiated by the strings
 [General] and [Mapping].  Each section may contain lines of the form
-
+.Dl ""
 .Dl variable = value
-
+.Dl ""
 The variables allowed in the General section are
 .Va Verbosity,
 .Va Pipefs-Directory,
@@ -37,13 +37,13 @@ which have the same effect as the
 and
 .Fl G
 commandline options.
-
+'
 .Sh EXAMPLES
-
+'
 An example
 .Pa /etc/idmapd.conf
 file:
-
+'
 .Bd -literal
 [General]
 
@@ -56,7 +56,7 @@ Domain = localdomain
 Nobody-User = nobody
 Nobody-Group = nobody
 .Ed
-
+'
 .Sh SEE ALSO
 .Xr idmapd 8
 .\".Sh SEE ALSO

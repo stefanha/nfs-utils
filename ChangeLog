@@ -26,6 +26,7 @@
 	  entirely (SIGPWR). This patch simply changes it to say "USR1",
 	  which gets it right no matter what the value is.
 	         "Steinar H. Gunderson" <sesse@debian.org>
+	- Minor man page tidy up
 	
 2006-04-12 NeilBrown <neilb@suse.de>
 	Remove **/Makefile.in, aclocal.m4, configure, and
