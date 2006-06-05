@@ -1,9 +1,0 @@
-# Number of servers to start up
-RPCNFSDCOUNT=8
-
-# Options for rpc.mountd
-RPCMOUNTDOPTS=
-
-# If you are not running NFS with RPCSEC_GSS security, and wish to
-# disable the gssd server daemon, then set NEED_SVCGSSD to "no".
-NEED_SVCGSSD=no

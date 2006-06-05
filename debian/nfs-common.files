@@ -1,7 +1,0 @@
-usr/sbin/nfsstat
-usr/sbin/rpc.gssd
-usr/sbin/rpc.idmapd
-usr/share/man/man8/*lockd*
-usr/share/man/man8/*statd*
-usr/share/man/man8/nfsstat*
-usr/share/man/man8/showmount*
