@@ -1,6 +1,11 @@
 2006-06-05 NeilBrown <neilb@suse.de>
 	Remove debian/ at request of Debian maintainer "Steinar H. Gunderson" <sesse@debian.org>
+	- fix_exportfs_with_multiple_matches.diff: Fixes a problem with exportfs -o
+	  and multiple entries of the same type for the same patch that matches
+	  a given client. The entire rationale and problem description can be found
+	  at http://bugs.debian.org/245449 (fumihiko kakuma <kakmy@mvh.biglobe.ne.jp>)
 
+	
 2006-04-12 NeilBrown <neilb@suse.de>
 	Remove **/Makefile.in, aclocal.m4, configure, and
 	 support/include/config.h.in from source control

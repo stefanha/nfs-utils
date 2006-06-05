@@ -131,7 +131,7 @@ export_add(nfs_export *exp)
 		xlog(L_FATAL, "unknown client type in export_add");
 
 	epp = exportlist + type;
-	while (*epp && slen < strlen((*epp)->m_export.e_path))
+	while (*epp && slen <= strlen((*epp)->m_export.e_path))
 		epp = &((*epp)->m_next);
 	exp->m_next = *epp;
 	*epp = exp;
