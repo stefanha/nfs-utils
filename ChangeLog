@@ -9,6 +9,9 @@
 	  escaped (as with quotes, spaces, etc.), so they won't be treated
 	  as a comment when they're read back in again.
 	        "Steinar H. Gunderson" <sesse@debian.org>
+	- Only treat '#' as starting a comment when at the start of a
+	  token, otherwise '#' in filenames cannot be read.
+	        NeilBrown	
 	
 2006-04-12 NeilBrown <neilb@suse.de>
 	Remove **/Makefile.in, aclocal.m4, configure, and
