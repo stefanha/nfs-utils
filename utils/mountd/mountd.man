@@ -119,6 +119,12 @@ The third will be the path that the client is mounting.
 The last is the number of concurrent mounts that we believe the client
 has of that path.
 .TP
+.BI "\-P," "" " \-\-state\-directory\-path "  directory
+specify a directory in which to place statd state information.
+If this option is not specified the default of
+.BR /var/lib/nfs
+is used.
+.TP
 .B \-V " or " \-\-nfs-version
 This option can be used to request that
 .B rpc.mountd
