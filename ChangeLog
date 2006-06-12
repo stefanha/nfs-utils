@@ -41,6 +41,10 @@
 
 	Old glibc's don't have ifaddrs.h
 	
+2006-06-12 Amit Gud <agud@redhat.com>
+	Added the mount functionality from util-linux.
+	Added --without-mount configure option.
+
 2006-04-12 NeilBrown <neilb@suse.de>
 	Set version to 1.0.8, 
 	aclocal -I aclocal ; autoheader ; automake ; autoconf

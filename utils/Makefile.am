@@ -14,6 +14,10 @@ if CONFIG_GSS
 OPTDIRS += gssd
 endif
 
+if CONFIG_NOMOUNT
+OPTDIRS += mount
+endif
+
 SUBDIRS = \
 	exportfs \
 	lockd \
