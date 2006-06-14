@@ -22,6 +22,7 @@
 #include <netdb.h>
 #include <rpc/rpc.h>
 #include <sys/socket.h>
+#include <sys/fcntl.h>
 #include <errno.h>
 
 #ifdef _LIBC
@@ -110,6 +111,26 @@ svc_socket (u_long number, int type, int protocol, int reuse)
 	      sock = -1;
 	    }
 	}
+    }
+
+  if (sock >= 0 && protocol == IPPROTO_TCP)
+    {
+	/* Make the TCP rendezvous socket non-block to avoid
+	 * problems with blocking in accept() after a spurious
+	 * wakeup from the kernel */
+	int flags;
+	if ((flags = fcntl(sock, F_GETFL)) < 0)
+	  {
+	      perror (_("svc_socket: can't get socket flags"));
+	      (void) __close (sock);
+	      sock = -1;
+	  }
+	else if (fcntl(sock, F_SETFL, flags|O_NONBLOCK) < 0)
+	  {
+	      perror (_("svc_socket: can't set socket flags"));
+	      (void) __close (sock);
+	      sock = -1;
+	  }
     }
 
   return sock;
