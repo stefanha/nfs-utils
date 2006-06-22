@@ -14,7 +14,7 @@ if CONFIG_GSS
 OPTDIRS += gssd
 endif
 
-if CONFIG_NOMOUNT
+if CONFIG_MOUNT
 OPTDIRS += mount
 endif
 
