@@ -37,7 +37,7 @@
 #include "nfs_mount.h"
 #include "nfs4_mount.h"
 #include "nfsumount.h"
-#include "nfsmount.h"
+#include "mount.h"
 
 char *progname;
 int nomtab;
