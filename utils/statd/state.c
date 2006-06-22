@@ -28,7 +28,6 @@ void
 change_state (void)
 {
   int fd, size;
-  extern short int restart;
   
   if ((fd = open (SM_STAT_PATH, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
     die ("open (%s): %s", SM_STAT_PATH, strerror (errno));

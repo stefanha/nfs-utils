@@ -429,7 +429,7 @@ cache_get_filehandle(nfs_export *exp, int len, char *p)
 	if (failed)
 		return NULL;
 	memset(fh.fh_handle, 0, sizeof(fh.fh_handle));
-	fh.fh_size = qword_get(&bp, fh.fh_handle, NFS3_FHSIZE);
+	fh.fh_size = qword_get(&bp, (char *)fh.fh_handle, NFS3_FHSIZE);
 	return &fh;
 }
 

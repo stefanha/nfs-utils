@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <netdb.h>
 #include "xmalloc.h"
 #include "misc.h"

@@ -268,7 +268,9 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			clnt = NL_NEXT(clnt);
 	}
 
+#ifdef RESTRICTED_STATD
  failure:
+#endif
 	note(N_WARNING, "Received erroneous SM_UNMON request from %s for %s",
 		my_name, mon_name);
 	return (&result);
@@ -336,6 +338,8 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 		dprintf(N_DEBUG, "SM_UNMON_ALL request from %s with no "
 			"SM_MON requests from it.", my_name);
 	}
+#ifdef RESTRICTED_STATD
  failure:
+#endif
 	return (&result);
 }

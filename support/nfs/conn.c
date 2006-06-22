@@ -7,6 +7,7 @@
  */
 
 #include <errno.h>
+#include <unistd.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <rpc/pmap_clnt.h>

@@ -88,6 +88,6 @@ extern int run_mode;
  * as to why they're global.
  */
 extern char *name_p;		/* program basename */
-extern char *version_p;		/* program version */
+extern const char *version_p;	/* program version */
 
 extern int		re_notify; /* time to re-read notify list */

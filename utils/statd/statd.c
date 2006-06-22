@@ -51,7 +51,7 @@ int	run_mode = 0;		/* foreground logging mode */
  * two copies of each - one in main(), one static in log.c... 
  * It also eliminates the 256-char static in log.c */
 char *name_p = NULL;
-char *version_p = NULL;
+const char *version_p = NULL;
 
 /* PRC: a high-availability callout program can be specified with -H
  * When this is done, the program will receive callouts whenever clients
@@ -374,7 +374,7 @@ int main (int argc, char **argv)
 #endif
 	
 	if (!(run_mode & MODE_NODAEMON)) {
-		int filedes, fdmax, tempfd;
+		int tempfd;
 
 		if (pipe(pipefds)<0) {
 			perror("statd: unable to create pipe");

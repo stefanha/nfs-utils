@@ -35,7 +35,7 @@ extern void my_svc_run(void);
 
 static void		usage(const char *, int exitcode);
 static exports		get_exportlist(void);
-static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, int *, int v3);
+static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, mountstat3 *, int v3);
 
 int new_cache = 0;
 
@@ -346,11 +346,11 @@ mount_mnt_3_svc(struct svc_req *rqstp, dirpath *path, mountres3 *res)
 	struct nfs_fh_len *fh;
 
 	xlog(D_CALL, "MNT3(%s) called", *path);
-	if ((fh = get_rootfh(rqstp, path, (int *) &res->fhs_status, 1)) != NULL) {
+	if ((fh = get_rootfh(rqstp, path, &res->fhs_status, 1)) != NULL) {
 		struct mountres3_ok	*ok = &res->mountres3_u.mountinfo;
 
 		ok->fhandle.fhandle3_len = fh->fh_size;
-		ok->fhandle.fhandle3_val = fh->fh_handle;
+		ok->fhandle.fhandle3_val = (char *)fh->fh_handle;
 		ok->auth_flavors.auth_flavors_len
 			= sizeof(flavors)/sizeof(flavors[0]);
 		ok->auth_flavors.auth_flavors_val = flavors;
@@ -359,7 +359,7 @@ mount_mnt_3_svc(struct svc_req *rqstp, dirpath *path, mountres3 *res)
 }
 
 static struct nfs_fh_len *
-get_rootfh(struct svc_req *rqstp, dirpath *path, int *error, int v3)
+get_rootfh(struct svc_req *rqstp, dirpath *path, mountstat3 *error, int v3)
 {
 	struct sockaddr_in *sin =
 		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);

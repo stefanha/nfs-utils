@@ -228,10 +228,12 @@ rpc_logcall(struct svc_req *rqstp, char *xname, char *arg)
 		break;
 	case AUTH_UNIX: {
 		struct authunix_parms *unix_cred;
+		time_t time;
 		struct tm *tm;
 
 		unix_cred = (struct authunix_parms *) rqstp->rq_clntcred;
-		tm = localtime(&unix_cred->aup_time);
+		time = unix_cred->aup_time;
+		tm = localtime(&time);
 		snprintf(sp, buflen, "UNIX %d/%d/%d %02d:%02d:%02d %s %d.%d",
 			tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
 			tm->tm_hour, tm->tm_min, tm->tm_sec,
