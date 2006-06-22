@@ -180,6 +180,10 @@ if test "$enable_gss" = yes; then
   dnl 'gss' also depends on nfsidmap.h - at least for svcgssd_proc.c
   AC_CHECK_HEADERS(nfsidmap.h, ,AC_MSG_ERROR([libnfsidmap needed for gss support]))
   AC_CHECK_HEADERS(spkm3.h, ,AC_MSG_WARN([could not locate SPKM3 header; will not have SPKM3 support]))
+  dnl the nfs4_set_debug function doesn't appear in all version of the library
+  AC_CHECK_LIB(nfsidmap, nfs4_set_debug,
+	       AC_DEFINE(HAVE_NFS4_SET_DEBUG,1,
+			 [Whether nfs4_set_debug() is present in libnfsidmap]),)
 
   dnl Check for Kerberos V5
   AC_KERBEROS_V5

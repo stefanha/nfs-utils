@@ -345,7 +345,9 @@ main(int argc, char **argv)
 		errx(1, "Could not find group \"%s\"", nobodygroup);
 	nobodygid = gr->gr_gid;
 
+#ifdef HAVE_NFS4_SET_DEBUG
 	nfs4_set_debug(verbose, idmapd_warnx);
+#endif
 	if (conf_path == NULL)
 		conf_path = _PATH_IDMAPDCONF;
 	if (nfs4_init_name_mapping(conf_path))
