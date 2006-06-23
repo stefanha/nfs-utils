@@ -376,7 +376,7 @@ probe_port(clnt_addr_t *server,
 						inet_ntoa(saddr->sin_addr), prog, *p_vers,
 						*p_prot == IPPROTO_UDP ? "udp" : "tcp", p_port);
 				}
-				if (clnt_ping(saddr, prog, *p_vers, *p_prot))
+				if (clnt_ping(saddr, prog, *p_vers, *p_prot, NULL))
 					goto out_ok;
 				if (rpc_createerr.cf_stat == RPC_TIMEDOUT)
 					goto out_bad;

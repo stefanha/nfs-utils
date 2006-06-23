@@ -189,9 +189,10 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 	static struct nfs4_mount_data data;
 	static char hostdir[1024];
 	static char ip_addr[16] = "127.0.0.1";
-	static struct sockaddr_in server_addr;
+	static struct sockaddr_in server_addr, client_addr;
 	static int pseudoflavour[MAX_USER_FLAVOUR];
 	int num_flavour = 0;
+	int ip_addr_in_opts = 0;
 
 	char *hostname, *dirname, *old_opts;
 	char new_opts[1024];
@@ -302,6 +303,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 								opteq+1);
 				strncpy(ip_addr,opteq+1, sizeof(ip_addr));
 				ip_addr[sizeof(ip_addr)-1] = '\0';
+				ip_addr_in_opts = 1;
 			} else if (!strcmp(opt, "sec")) {
 				num_flavour = parse_sec(opteq+1, pseudoflavour);
 				if (!num_flavour)
@@ -412,9 +414,19 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 				NFS_PROGRAM, 4, data.proto == IPPROTO_UDP ? "udp" : "tcp", 
 				ntohs(server_addr.sin_port));
 		}
-		clnt_ping(&server_addr, NFS_PROGRAM, 4, data.proto);
-		if (rpc_createerr.cf_stat == RPC_SUCCESS)
+		client_addr.sin_family = 0;
+		client_addr.sin_addr.s_addr = 0;
+		clnt_ping(&server_addr, NFS_PROGRAM, 4, data.proto, &client_addr);
+		if (rpc_createerr.cf_stat == RPC_SUCCESS) {
+			if (!ip_addr_in_opts &&
+			    client_addr.sin_family != 0 &&
+			    client_addr.sin_addr.s_addr != 0) {
+				snprintf(ip_addr, sizeof(ip_addr), "%s",
+					 inet_ntoa(client_addr.sin_addr));
+				data.client_addr.len = strlen(ip_addr);
+			}
 			break;
+		}
 
 		switch(rpc_createerr.cf_stat){
 		case RPC_TIMEDOUT:

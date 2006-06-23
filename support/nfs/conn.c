@@ -92,7 +92,7 @@ int get_socket(struct sockaddr_in *saddr, u_int p_prot, int resvp)
 			return RPC_ANYSOCK;
 		}
 	}
-	if (type == SOCK_STREAM) {
+	if (type == SOCK_STREAM || type == SOCK_DGRAM) {
 		cc = connect(so, (struct sockaddr *)saddr, namelen);
 		if (cc < 0) {
 			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
@@ -118,7 +118,7 @@ int get_socket(struct sockaddr_in *saddr, u_int p_prot, int resvp)
  */
 int
 clnt_ping(struct sockaddr_in *saddr, const u_long prog, const u_long vers,
-	  const u_int prot)
+	  const u_int prot, struct sockaddr_in *caddr)
 {
 	CLIENT *clnt=NULL;
 	int sock, stat;
@@ -160,8 +160,15 @@ clnt_ping(struct sockaddr_in *saddr, const u_long prog, const u_long vers,
 		rpc_createerr.cf_stat = stat;
 	}
 	clnt_destroy(clnt);
-	if (sock != -1)
+	if (sock != -1) {
+		if (caddr) {
+			/* Get the address of our end of this connection */
+			int len = sizeof(*caddr);
+			if (getsockname(sock, caddr, &len) != 0)
+				caddr->sin_family = 0;
+		}
 		close(sock);
+	}
 
 	if (stat == RPC_SUCCESS)
 		return 1;
