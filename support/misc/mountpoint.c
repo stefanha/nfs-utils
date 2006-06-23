@@ -20,15 +20,21 @@ is_mountpoint(char *path)
 	 */
 	char *dotdot;
 	struct stat stb, pstb;
+	int rv;
 
 	dotdot = malloc(strlen(path)+4);
+	if (!dotdot)
+		return 0;
 	strcat(strcpy(dotdot, path), "/..");
 	if (lstat(path, &stb) != 0 ||
 	    lstat(dotdot, &pstb) != 0)
-		return 0;
-
-	if (stb.st_dev != pstb.st_dev
-	    || stb.st_ino == pstb.st_ino)
-		return 1;
-	return 0;
+		rv = 0;
+	else
+		if (stb.st_dev != pstb.st_dev ||
+		    stb.st_ino == pstb.st_ino)
+			rv = 1;
+		else
+			rv = 0;
+	free(dotdot);
+	return rv;
 }

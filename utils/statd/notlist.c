@@ -61,8 +61,12 @@ nlist_new(char *my_name, char *mon_name, int state)
 	NL_TIMES(new) = MAX_TRIES;
 	NL_STATE(new) = state;
 	if (!(NL_MY_NAME(new) = xstrdup(my_name))
-		       	|| !(NL_MON_NAME(new) = xstrdup(mon_name)))
+	    || !(NL_MON_NAME(new) = xstrdup(mon_name))) {
+		if (NL_MY_NAME(new))
+			free(NL_MY_NAME(new));
+		free(new);
 		return NULL;
+	}
 
 	return new;
 }

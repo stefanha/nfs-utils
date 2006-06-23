@@ -259,9 +259,9 @@ cache_flush(int force)
 		"nfsd.export",
 		NULL
 	};
-	stb.st_mtime = time(0);
-	if (!force)
-		stat(_PATH_ETAB, &stb);
+	if (force ||
+	    stat(_PATH_ETAB, &stb) != 0)
+		stb.st_mtime = time(0);
 	
 	sprintf(stime, "%ld\n", stb.st_mtime);
 	for (c=0; cachelist[c]; c++) {

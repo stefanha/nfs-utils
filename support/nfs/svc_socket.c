@@ -42,7 +42,7 @@ svc_socket (u_long number, int type, int protocol, int reuse)
   socklen_t len = sizeof (struct sockaddr_in);
   char rpcdata [1024], servdata [1024];
   struct rpcent rpcbuf, *rpcp;
-  struct servent servbuf, *servp;
+  struct servent servbuf, *servp = NULL;
   int sock, ret;
   const char *proto = protocol == IPPROTO_TCP ? "tcp" : "udp";
 
