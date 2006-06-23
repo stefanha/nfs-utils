@@ -22,9 +22,8 @@ is_mountpoint(char *path)
 	struct stat stb, pstb;
 	int rv;
 
-	dotdot = malloc(strlen(path)+4);
-	if (!dotdot)
-		return 0;
+	dotdot = xmalloc(strlen(path)+4);
+
 	strcat(strcpy(dotdot, path), "/..");
 	if (lstat(path, &stb) != 0 ||
 	    lstat(dotdot, &pstb) != 0)
