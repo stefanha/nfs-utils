@@ -12,14 +12,45 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <syslog.h>
 
 #include "nfslib.h"
 
+static void
+nfssvc_versbits(unsigned int ctlbits)
+{
+	int fd, n, off;
+	char buf[BUFSIZ], *ptr;
+
+	ptr = buf;
+	off = 0;
+	fd = open("/proc/fs/nfsd/versions", O_WRONLY);
+	if (fd < 0)
+		return;
+
+	for (n = NFSD_MINVERS; n <= NFSD_MAXVERS; n++) {
+		if (NFSCTL_VERISSET(ctlbits, n))
+		    off += snprintf(ptr+off, BUFSIZ - off, "+%d ", n);
+		else
+		    off += snprintf(ptr+off, BUFSIZ - off, "-%d ", n);
+	}
+	snprintf(ptr+off, BUFSIZ - off, "\n");
+	if (write(fd, buf, strlen(buf)) != strlen(buf)) {
+		syslog(LOG_ERR, "nfssvc: Setting version failed: errno %d (%s)", 
+			errno, strerror(errno));
+	}
+	close(fd);
+
+	return;
+}
 int
-nfssvc(int port, int nrservs)
+nfssvc(int port, int nrservs, unsigned int versbits)
 {
 	struct nfsctl_arg	arg;
 	int fd;
+
+	nfssvc_versbits(versbits);
 
 	fd = open("/proc/fs/nfsd/threads", O_WRONLY);
 	if (fd < 0)
