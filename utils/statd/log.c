@@ -29,7 +29,9 @@
 
 static pid_t	mypid;
 								/* Turns on logging to console/stderr. */
+#if 0
 static int	opt_debug = 0;	/* Will be command-line option, eventually */
+#endif
 
 void log_init()
 {
