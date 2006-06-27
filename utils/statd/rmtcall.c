@@ -46,6 +46,10 @@
 #include "log.h"
 #include "ha-callout.h"
 
+#if SIZEOF_SOCKLEN_T - 0 == 0
+#define socklen_t int
+#endif
+
 #define MAXMSGSIZE	(2048 / sizeof(unsigned int))
 
 static unsigned long	xid = 0;	/* RPC XID counter */
@@ -278,7 +282,7 @@ recv_rply(int sockfd, struct sockaddr_in *sin, u_long *portp)
 	struct rpc_msg		mesg;
 	notify_list		*lp = NULL;
 	XDR			xdr, *xdrs = &xdr;
-	int			alen = sizeof(*sin);
+	socklen_t		alen = sizeof(*sin);
 
 	/* Receive message */
 	if ((msglen = recvfrom(sockfd, msgbuf, sizeof(msgbuf), 0,
