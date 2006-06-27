@@ -1,4 +1,4 @@
-#ifndef lint
+#if 0
 static char sccsid[] = "@(#)nhfsstone.c 1.22 90/05/08 Copyright (c) 1990, Legato Systems Inc";
 #endif
 

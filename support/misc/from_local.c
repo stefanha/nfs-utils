@@ -35,7 +35,7 @@
  * Mountain View, California  94043
  */
 
-#ifndef lint
+#if 0
 static char sccsid[] = "@(#) from_local.c 1.3 96/05/31 15:52:57";
 #endif
 

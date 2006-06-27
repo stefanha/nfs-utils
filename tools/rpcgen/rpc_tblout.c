@@ -28,7 +28,7 @@
  * Mountain View, California  94043
  */
 
-#ifndef lint
+#if 0
 static char sccsid[] = "@(#)rpc_tblout.c 1.4 89/02/22 (C) 1988 SMI";
 #endif
 
