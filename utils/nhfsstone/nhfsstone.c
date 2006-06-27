@@ -10,6 +10,7 @@ static char sccsid[] = "@(#)nhfsstone.c 1.22 90/05/08 Copyright (c) 1990, Legato
  * Ported to Linux by Olaf Kirch <okir@monad.swb.de>
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -312,7 +313,11 @@ main(int argc, char **argv)
 	int pid;		/* process id */
 	int delay;		/* msecs since last checked current time */
 	int randnum;		/* a random number */
+#if HAVE_SIGPROCMASK
+	sigset_t oldmask;	/* saved signal mask */
+#else
 	int oldmask;		/* saved signal mask */
+#endif
 	int sampletime;		/* secs between reading kernel stats */
 	char *opts;		/* option parsing */
 	int pct;
@@ -478,7 +483,20 @@ main(int argc, char **argv)
 
 	(void) signal(SIGINT, cleanup);
 	(void) signal(SIGUSR1, startup);
+#if HAVE_SIGPROCMASK
+	{
+		sigset_t mask;
+		sigemptyset(&mask);
+		sigaddset(&mask, SIGUSR1);
+		sigprocmask(SIG_BLOCK, &mask, &oldmask);
+	}
+#else
+	/*
+	 * sigblock() is marked deprecated in modern
+	 * glibc and hence generates a warning.
+	 */
 	oldmask = sigblock(sigmask(SIGUSR1));
+#endif
 
 	if (ncalls == 0) {
 		if (runtime == 0) {
@@ -630,7 +648,11 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+#if HAVE_SIGPROCMASK
+	sigsuspend(&oldmask);
+#else
 	sigpause(oldmask);
+#endif
 
 	/*
 	 * Initialize counters
