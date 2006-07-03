@@ -38,7 +38,6 @@ static int verbosity = 0;
 static int fg = 0;
 
 static char message_buf[500];
-static char tmp_buf[500];
 
 void initerr(char *progname, int set_verbosity, int set_fg)
 {
@@ -48,45 +47,47 @@ void initerr(char *progname, int set_verbosity, int set_fg)
 		openlog(progname, LOG_PID, LOG_DAEMON);
 }
 
+
 void printerr(int priority, char *format, ...)
 {
 	va_list args;
 	int ret;
+	int buf_used, buf_available;
+	char *buf;
 
-	/* aggregate lines: only print buffer when we get to the end of a
-	 * line or run out of space: */
+	/* Don't bother formatting a message we're never going to print! */
+	if (priority > verbosity)
+		return;
+
+	buf_used = strlen(message_buf);
+	/* subtract 4 to leave room for "...\n" if necessary */
+	buf_available = sizeof(message_buf) - buf_used - 4;
+	buf = message_buf + buf_used;
+
+	/*
+	 * Aggregate lines: only print buffer when we get to the
+	 * end of a line or run out of space
+	 */
 	va_start(args, format);
-	ret = vsnprintf(tmp_buf, sizeof(tmp_buf), format, args);
+	ret = vsnprintf(buf, buf_available, format, args);
 	va_end(args);
-	if ((ret < 0) || (ret >= sizeof(tmp_buf)))
-		goto output;
-	if (strlen(tmp_buf) + strlen(message_buf) + 1 > sizeof(message_buf))
-			goto output;
-	strcat(message_buf, tmp_buf);
-	if (tmp_buf[strlen(tmp_buf) - 1] == '\n')
-		goto output;
-	return;
-output:
-	priority -= verbosity;
-	if (priority < 0)
-		priority = 0;
-	if (fg) {
-		if (priority == 0)
-			fprintf(stderr, "%s", message_buf);
-	} else {
-		int sys_pri;
-		switch (priority) {
-			case 0:
-				sys_pri = LOG_ERR;
-				break;
-			case 1:
-				sys_pri = LOG_DEBUG;
-				break;
-			default:
-				goto out;
-		}
-		syslog(sys_pri, "%s", message_buf);
+
+	if (ret < 0)
+		goto printit;
+	if (ret >= buf_available) {
+		/* Indicate we're truncating */
+		strcat(message_buf, "...\n");
+		goto printit;
 	}
-out:
+	if (message_buf[strlen(message_buf) - 1] == '\n')
+		goto printit;
+	return;
+printit:
+	if (fg) {
+		fprintf(stderr, "%s", message_buf);
+	} else {
+		syslog(LOG_ERR, "%s", message_buf);
+	}
+	/* reset the buffer */
 	memset(message_buf, 0, sizeof(message_buf));
 }
