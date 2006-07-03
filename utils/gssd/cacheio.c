@@ -55,6 +55,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "err_util.h"
 
 void qword_add(char **bpp, int *lp, char *str)
@@ -264,7 +265,8 @@ int readline(int fd, char **buf, int *lenp)
 	}
 	len = read(fd, *buf, *lenp);
 	if (len <= 0) {
-		printerr(2, "read error in readline: %d\n", len);
+		printerr(0, "readline: read error: len %d errno %d (%s)\n",
+			 len, errno, strerror(errno));
 		return 0;
 	}
 	while ((*buf)[len-1] != '\n') {
@@ -280,12 +282,14 @@ int readline(int fd, char **buf, int *lenp)
 		*buf = new;
 		nl = read(fd, *buf +len, *lenp - len);
 		if (nl <= 0 ) {
-			printerr(2, "read error in readline: %d\n", nl);
+			printerr(0, "readline: read error: len %d "
+				 "errno %d (%s)\n", nl, errno, strerror(errno));
 			return 0;
 		}
 		len += nl;
 	}
 	(*buf)[len-1] = 0;
-	printerr(1, "read line with %d characters:\n%s\n", *lenp, *buf);
+	printerr(3, "readline: read %d chars into buffer of size %d:\n%s\n",
+		 len, *lenp, *buf);
 	return 1;
 }

@@ -140,7 +140,7 @@ send_response(FILE *f, gss_buffer_desc *in_handle, gss_buffer_desc *in_token,
 		return -1;
 	}
 	*bp = '\0';
-	printerr(1, "writing message: %s", buf);
+	printerr(3, "writing message: %s", buf);
 	if (write(g, buf, bp - buf) == -1) {
 		printerr(0, "WARNING: failed to write message\n");
 		close(g);
