@@ -280,11 +280,16 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
 {
 	u_int maj_stat, min_stat;
 	gss_cred_id_t credh;
+	gss_OID_set_desc  desired_mechs;
 	krb5_enctype enctypes[] = { ENCTYPE_DES_CBC_CRC };
 	int num_enctypes = sizeof(enctypes) / sizeof(enctypes[0]);
 
+	/* We only care about getting a krb5 cred */
+	desired_mechs.count = 1;
+	desired_mechs.elements = &krb5oid;
+
 	maj_stat = gss_acquire_cred(&min_stat, NULL, 0,
-				    GSS_C_NULL_OID_SET, GSS_C_INITIATE,
+				    &desired_mechs, GSS_C_INITIATE,
 				    &credh, NULL, NULL);
 
 	if (maj_stat != GSS_S_COMPLETE) {
