@@ -86,7 +86,7 @@ typedef struct _krb5_gss_ctx_id_rec {
    uint64_t seq_recv;		/* gssint_uint64 */
    void *seqstate;
    krb5_auth_context auth_context;
-   gss_buffer_desc *mech_used;	/* gss_OID_desc */
+   gss_OID_desc *mech_used;	/* gss_OID_desc */
     /* Protocol spec revision
        0 => RFC 1964 with 3DES and RC4 enhancements
        1 => draft-ietf-krb-wg-gssapi-cfx-01
@@ -123,7 +123,7 @@ typedef struct _krb5_gss_ctx_id_rec {
 	int established;
 	int big_endian;
 	krb5_auth_context auth_context;
-	gss_buffer_desc *mech_used;
+	gss_OID_desc *mech_used;
 	int nctypes;
 	krb5_cksumtype *ctypes;
 } krb5_gss_ctx_id_rec, *krb5_gss_ctx_id_t;
@@ -343,7 +343,7 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 	if (WRITE_BYTES(&p, end, kctx->endtime)) goto out_err;
 	word_seq_send = kctx->seq_send;
 	if (WRITE_BYTES(&p, end, word_seq_send)) goto out_err;
-	if (write_buffer(&p, end, kctx->mech_used)) goto out_err;
+	if (write_oid(&p, end, kctx->mech_used)) goto out_err;
 
 	printerr(2, "serialize_krb5_ctx: serializing keys with "
 		 "enctype %d and length %d\n",

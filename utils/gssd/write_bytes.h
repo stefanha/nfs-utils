@@ -56,7 +56,7 @@ write_buffer(char **p, char *end, gss_buffer_desc *arg)
 	int len = (int)arg->length;		/* make an int out of size_t */
 	if (WRITE_BYTES(p, end, len))
 		return -1;
-	if (*p + arg->length > end)
+	if (*p + len > end)
 		return -1;
 	memcpy(*p, arg->value, len);
 	*p += len;
