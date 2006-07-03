@@ -1,3 +1,187 @@
+commit 49b164d978ee6266df7ba0bd335cb34337e7c381
+Author: Steve Dickson <SteveD@redhat.com>
+Date:   Mon Jul 3 09:52:00 2006 +1000
+
+    Allow rpc.nfsd to suppress tcp or udp, and listen on a specific address.
+    
+     -T       - will suppressing listening for TCP connection.
+     -U       - will suppress UDP
+     -H host  - will only listen on that local address
+     -p port  - will listen on that port.
+    
+    This requires kernel patches which will hopefully be in 2.6.19 and possibly some
+    earlier test and vendor kernels.
+
+commit fde2ae7794047a698feeaf17963d690a1e660a80
+Author: Steve Dickson <SteveD@redhat.com>
+Date:   Mon Jun 26 15:23:19 2006 +1000
+
+    Add support for suppressing different NFS versions.
+    
+    e.g.  -N 2
+    means that NFSv2 won't be supported, just v3 and v4 (if the kernel
+    supports them).
+
+commit 0523fd513c6baa8dbf45d1a7afea2044262aeb3d
+Author: Neil Brown <neilb@suse.de>
+Date:   Fri Jun 23 17:10:56 2006 +1000
+
+    Further coverity related cleanups.
+    
+    Greg Banks suggested some variations, particularly improved
+    use of xmalloc/xstrdup functions.  Thanks.
+
+commit 2e075a16da4963f54cd556403ca9e15a68de27fd
+Author: Neil Brown <neilb@suse.de>
+Date:   Fri Jun 23 14:38:33 2006 +1000
+
+    Fix various issues discovered by Coverity
+    
+    Thanks to Michael Halcrow for finding them.
+
+commit ff42180930a444cea7f19e55e2cd2bfe6d3f108b
+Author: Neil Brown <neilb@suse.de>
+Date:   Fri Jun 23 14:06:00 2006 +1000
+
+    Fix comment parsing (again)
+    
+    Bruce Fields noticed that I broke comment parsing...
+    
+    as xskip() is always called before xgettok(), that is the
+    best place to put xskipcomment and still maintain proper
+    semantics of xskip and xgettok.
+
+commit bec968578d97eabc63ae4a12bdeb2b33f40baec4
+Author: Amit Gud <agud@redhat.com>
+Date:   Thu Jun 22 12:51:04 2006 -0400
+
+    Change mount configure option to --enable-mount
+    
+    Change the configure option from --with-mount to --enable-mount.
+    
+    Signed-off-by: Amit Gud <agud@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit ceeffc1f76485b4084b2c61f4ff3c40e4f51c3b8
+Author: Amit Gud <gud@eth.net>
+Date:   Thu Jun 22 12:49:24 2006 -0400
+
+    Merge nfsmount.x and mount.x into mount.x
+    
+    
+    Merge utils/mount/nfsmount.x and support/export/mount.x into support/export/mount.x.
+    
+    Signed-off-by: Amit Gud <agud@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit c2db41e8abb6ddc9d03a0c91c6db043fa0f85a8f
+Author: Neil Brown <neilb@suse.de>
+Date:   Fri Jun 23 13:37:08 2006 +1000
+
+    Try to make sure that clientid used for NFSv4 is reliable.
+    
+    We need to give an IP address to identify this client to the
+    server.
+    The current code does a gethostbyname of the hostname. One
+    some systems this returns 127.0.0.1 or similar, which is not useful.
+    
+    Instead, use getsockname of the sock used to connect to the server
+    to confirm that the server is working.  This gives the address on the
+    interface that was chosen to talk to that server, which is the
+    best address we can find (if there is a NAT in the way, it might
+    still not work, but in that case there is nothing we can do).
+
+commit 11d34d11153df198103a57291937ea9ff8b7356e
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Wed Jun 14 22:48:10 2006 +1000
+
+    multiple threads for mountd
+    
+    
+    How about the attached patch against nfs-utils tot?  It
+    adds a -t option to set the number of forked workers.
+    Default is 1 thread, i.e. the old behaviour.
+    
+    I've verified that showmount -e, the Ogata mount client,
+    and a real mount from Linux and IRIX boxes work with and
+    without the new option.
+    
+    I've verified that you can manually kill any of the workers
+    without the portmap registration going away, that killing
+    all the workers causes the manager process to wake up and
+    unregister, and killing the manager process causes the
+    workers to be killed and portmap unregistered.
+    
+    I've verified that all the workers have file descriptors
+    for the udp socket and the tcp rendezvous socket, that
+    connections are balanced across all the workers if service
+    times are sufficiently long, and that performance is
+    improved by that parallelism, at least for small numbers
+    of threads.  For example, with 60 parallel MOUNT calls
+    and a testing patch to make DNS lookups take 100 milliseconds
+    time to perform all mounts (averaged over 5 runs) is:
+    
+    num		elapsed
+    threads		time (sec)
+     ------		----------
+    1		13.125
+    2 		 6.859
+    3		 4.836
+    4	 	 3.841
+    5		 3.303
+    6		 3.100
+    7		 3.078
+    8		 3.018
+    
+    Greg.
+    --
+    Greg Banks, R&D Software Engineer, SGI Australian Software Group.
+    I don't speak for SGI.
+
+commit db96d056578338dd1bb0371dc84638973c187ec6
+Author: Neil Brown <neilb@suse.de>
+Date:   Fri Jun 16 13:16:09 2006 +1000
+
+    Remove some temporary files that shouldn't be in 'git'.
+    
+    	deleted:  compile
+    	deleted:  config.guess
+    	deleted:  config.sub
+    	deleted:  depcomp
+    	deleted:  install-sh
+    	deleted:  ltmain.sh
+    	deleted:  missing
+
+commit 82b53188aaffad0e237461f8f1274794166feb3a
+Author: Neil Brown <neilb@suse.de>
+Date:   Fri Jun 16 13:09:26 2006 +1000
+
+    Add support to auto-generate nfsmount* files for new nfs.mount program
+
+commit 4e2bae795e5eaf9922f0b966ab5df64994c836a2
+Author: Amit Gud <agud@redhat.com>
+Date:   Mon Jun 12 19:08:27 2006 -0400
+
+    Move NFS mount code from util-linux to nfs-utils - part 2
+    
+    Adds the support functions needed for mount and umount. This
+    functionality will someday be available in the form of shared mount
+    library.
+    
+    Signed-off-by: Amit Gud <agud@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit a0520fa1a41bd33815b331b660b4545f2723495c
+Author: Amit Gud <agud@redhat.com>
+Date:   Mon Jun 12 19:06:36 2006 -0400
+
+    Move NFS mount code from util-linux to nfs-utils - part 1
+    
+    Adds the mount directory and the code to mount and umount the NFS file system.
+    
+    Signed-off-by: Amit Gud <agud@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
 2006-06-05 NeilBrown <neilb@suse.de>
 	- Remove debian/ at request of Debian maintainer "Steinar H. Gunderson" <sesse@debian.org>
 	- fix_exportfs_with_multiple_matches.diff: Fixes a problem with exportfs -o
