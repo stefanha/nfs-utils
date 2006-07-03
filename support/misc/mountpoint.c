@@ -4,7 +4,7 @@
  */
 
 #include <string.h>
-#include <malloc.h>
+#include "xcommon.h"
 #include <sys/stat.h>
 
 int
