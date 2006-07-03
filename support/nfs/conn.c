@@ -6,6 +6,7 @@
  *
  */
 
+#include "config.h"
 #include <errno.h>
 #include <unistd.h>
 #include <rpc/rpc.h>
@@ -17,6 +18,10 @@
 #include <arpa/inet.h>
 
 #include "conn.h"
+
+#if SIZEOF_SOCKLEN_T - 0 == 0
+#define socklen_t int
+#endif
 
 extern int verbose;
 
@@ -164,7 +169,7 @@ clnt_ping(struct sockaddr_in *saddr, const u_long prog, const u_long vers,
 	if (sock != -1) {
 		if (caddr) {
 			/* Get the address of our end of this connection */
-			int len = sizeof(*caddr);
+			socklen_t len = sizeof(*caddr);
 			if (getsockname(sock, caddr, &len) != 0)
 				caddr->sin_family = 0;
 		}
