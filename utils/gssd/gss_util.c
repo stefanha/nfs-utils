@@ -224,3 +224,28 @@ gssd_acquire_cred(char *server_name)
 
 	return (maj_stat == GSS_S_COMPLETE);
 }
+
+int gssd_check_mechs(void)
+{
+	u_int32_t maj_stat, min_stat;
+	gss_OID_set supported_mechs = GSS_C_NO_OID_SET;
+	int retval = -1;
+
+	maj_stat = gss_indicate_mechs(&min_stat, &supported_mechs);
+	if (maj_stat != GSS_S_COMPLETE) {
+		printerr(0, "Unable to obtain list of supported mechanisms. "
+			 "Check that gss library is properly configured.\n");
+		goto out;
+	}
+	if (supported_mechs == GSS_C_NO_OID_SET ||
+	    supported_mechs->count == 0) {
+		printerr(0, "Unable to obtain list of supported mechanisms. "
+			 "Check that gss library is properly configured.\n");
+		goto out;
+	}
+	maj_stat = gss_release_oid_set(&min_stat, &supported_mechs);
+	retval = 0;
+out:
+	return retval;
+}
+

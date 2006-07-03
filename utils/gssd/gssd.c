@@ -145,6 +145,9 @@ main(int argc, char *argv[])
 			    "support setting debug level\n");
 #endif
 
+	if (gssd_check_mechs() != 0)
+		errx(1, "Problem with gssapi library");
+
 	if (!fg && daemon(0, 0) < 0)
 		errx(1, "fork");
 

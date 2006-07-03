@@ -204,6 +204,11 @@ main(int argc, char *argv[])
 			    "support setting debug level\n");
 #endif
 
+	if (gssd_check_mechs() != 0) {
+		printerr(0, "ERROR: Problem with gssapi library\n");
+		exit(1);
+	}
+
 	if (!fg)
 		mydaemon(0, 0);
 

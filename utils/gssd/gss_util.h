@@ -40,5 +40,6 @@ extern gss_cred_id_t	gssd_creds;
 int gssd_acquire_cred(char *server_name);
 void pgsserr(char *msg, u_int32_t maj_stat, u_int32_t min_stat,
 	const gss_OID mech);
+int gssd_check_mechs(void);
 
 #endif /* _GSS_UTIL_H_ */
