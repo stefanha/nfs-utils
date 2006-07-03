@@ -244,6 +244,8 @@ int qword_get_int(char **bpp, int *anint)
 	return 0;
 }
 
+#define READLINE_BUFFER_INCREMENT 2048
+
 int readline(int fd, char **buf, int *lenp)
 {
 	/* read a line into *buf, which is malloced *len long
@@ -254,11 +256,11 @@ int readline(int fd, char **buf, int *lenp)
 	int len;
 
 	if (*lenp == 0) {
-		char *b = malloc(128);
+		char *b = malloc(READLINE_BUFFER_INCREMENT);
 		if (b == NULL)
 			return 0;
 		*buf = b;
-		*lenp = 128;
+		*lenp = READLINE_BUFFER_INCREMENT;
 	}
 	len = read(fd, *buf, *lenp);
 	if (len <= 0) {
@@ -271,7 +273,7 @@ int readline(int fd, char **buf, int *lenp)
 	 */
 		char *new;
 		int nl;
-		*lenp += 128;
+		*lenp += READLINE_BUFFER_INCREMENT;
 		new = realloc(*buf, *lenp);
 		if (new == NULL)
 			return 0;
