@@ -95,11 +95,6 @@ xgettok(XFILE *xfp, char sepa, char *tok, int len)
 
 	while (i < len && (c = xgetc(xfp)) != EOF &&
 	       (quoted || (c != sepa && !isspace(c)))) {
-		if (!quoted && i == 0 && c == '#') {
-			c = xskipcomment(xfp);
-			xfp->x_line++;
-			break;
-		}
 		if (c == '"') {
 			quoted = !quoted;
 			continue;
@@ -164,7 +159,12 @@ xskip(XFILE *xfp, char *str)
 {
 	int	c;
 
-	while ((c = xgetc(xfp)) != EOF && strchr(str, c));
+	while ((c = xgetc(xfp)) != EOF) {
+		if (c == '#')
+			c = xskipcomment(xfp);
+		if (strchr(str, c) == NULL)
+			break;
+	}
 	xungetc(c, xfp);
 }
 

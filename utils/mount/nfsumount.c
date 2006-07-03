@@ -30,7 +30,7 @@
 #include "conn.h"
 
 #include "mount_constants.h"
-#include "nfsmount.h"
+#include "mount.h"
 #include "nfsumount.h"
 
 #if !defined(MNT_FORCE)

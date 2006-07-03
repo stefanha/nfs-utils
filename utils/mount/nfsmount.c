@@ -59,7 +59,7 @@
 
 #include "conn.h"
 #include "xcommon.h"
-#include "nfsmount.h"
+#include "mount.h"
 #include "nfsumount.h"
 #include "nfs_mount.h"
 #include "mount_constants.h"
@@ -376,7 +376,7 @@ probe_port(clnt_addr_t *server,
 						inet_ntoa(saddr->sin_addr), prog, *p_vers,
 						*p_prot == IPPROTO_UDP ? "udp" : "tcp", p_port);
 				}
-				if (clnt_ping(saddr, prog, *p_vers, *p_prot))
+				if (clnt_ping(saddr, prog, *p_vers, *p_prot, NULL))
 					goto out_ok;
 				if (rpc_createerr.cf_stat == RPC_TIMEDOUT)
 					goto out_bad;
@@ -1084,11 +1084,11 @@ nfsmount(const char *spec, const char *node, int *flags,
 		}
 #if NFS_MOUNT_VERSION >= 5
 		mountres = &mntres.nfsv3.mountres3_u.mountinfo;
-		i = mountres->auth_flavours.auth_flavours_len;
+		i = mountres->auth_flavors.auth_flavors_len;
 		if (i <= 0) 
-			goto noauth_flavours;
+			goto noauth_flavors;
 
-		flavor = mountres->auth_flavours.auth_flavours_val;
+		flavor = mountres->auth_flavors.auth_flavors_val;
 		while (--i >= 0) {
 			if (flavor[i] == data.pseudoflavor)
 				yum = 1;
@@ -1106,7 +1106,7 @@ nfsmount(const char *spec, const char *node, int *flags,
 			nfs_call_umount(&mnt_server, &dirname);
 			goto fail;
 		}
-noauth_flavours:
+noauth_flavors:
 #endif
 		fhandle = &mntres.nfsv3.mountres3_u.mountinfo.fhandle;
 		memset(data.old_root.data, 0, NFS_FHSIZE);

@@ -201,7 +201,6 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
 				      free(qfpathname);
 				      continue;
 			      }
-			      free(qfpathname);
 			      lseek(fd, (long) dqoff(id), L_SET);
 			      switch (read(fd, &dq_dqb, sizeof(struct dqblk))) {
 			      case 0:/* EOF */
@@ -215,6 +214,7 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
 				      break;
 			      default:   /* ERROR */
 				      close(fd);
+				      free(qfpathname);
 				      continue;
 			      }
 			      close(fd);
@@ -228,6 +228,7 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
 		      dqb.dqb_btime = dq_dqb.dqb_btime;
 		      dqb.dqb_itime = dq_dqb.dqb_itime;
 	      }
+	      free(qfpathname);
          endmntent(fp);
 
          if (err && (flags & ACTIVE)) {

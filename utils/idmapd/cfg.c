@@ -487,8 +487,10 @@ conf_get_list (char *section, char *tag)
       if (!node)
 	goto cleanup;
       node->field = strdup (field);
-      if (!node->field)
+      if (!node->field) {
+	free(node);
 	goto cleanup;
+      }
       TAILQ_INSERT_TAIL (&list->fields, node, link);
     }
   free (liststr);
@@ -523,8 +525,10 @@ conf_get_tag_list (char *section)
 	if (!node)
 	  goto cleanup;
 	node->field = strdup (cb->tag);
-	if (!node->field)
+	if (!node->field) {
+	  free(node);
 	  goto cleanup;
+	}
 	TAILQ_INSERT_TAIL (&list->fields, node, link);
       }
   return list;
@@ -708,7 +712,7 @@ conf_remove (int transaction, char *section, char *tag)
   return 0;
 
  fail:
-  if (node->section)
+  if (node && node->section)
     free (node->section);
   if (node)
     free (node);

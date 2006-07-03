@@ -31,7 +31,8 @@ typedef struct {
 static const struct timeval TIMEOUT = { 20, 0 };
 static const struct timeval RETRY_TIMEOUT = { 3, 0 };
 
-int clnt_ping(struct sockaddr_in *, const u_long, const u_long, const u_int);
+int clnt_ping(struct sockaddr_in *, const u_long, const u_long, const u_int,
+	      struct sockaddr_in *);
 u_long nfsvers_to_mnt(const u_long);
 u_long mntvers_to_nfs(const u_long);
 int get_socket(struct sockaddr_in *, u_int, int);

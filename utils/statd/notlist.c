@@ -54,15 +54,13 @@ nlist_new(char *my_name, char *mon_name, int state)
 {
 	notify_list	*new;
 
-	if (!(new = (notify_list *) xmalloc(sizeof(notify_list))))
-		return NULL;
+	new = (notify_list *) xmalloc(sizeof(notify_list));
 	memset(new, 0, sizeof(*new));
 
 	NL_TIMES(new) = MAX_TRIES;
 	NL_STATE(new) = state;
-	if (!(NL_MY_NAME(new) = xstrdup(my_name))
-		       	|| !(NL_MON_NAME(new) = xstrdup(mon_name)))
-		return NULL;
+	NL_MY_NAME(new) = xstrdup(my_name);
+	NL_MON_NAME(new) = xstrdup(mon_name);
 
 	return new;
 }

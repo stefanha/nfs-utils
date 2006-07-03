@@ -1006,10 +1006,15 @@ mydaemon(int nochdir, int noclose)
 
 	if (noclose == 0) {
 		tempfd = open("/dev/null", O_RDWR);
-		dup2(tempfd, 0);
-		dup2(tempfd, 1);
-		dup2(tempfd, 2);
-		closeall(3);
+		if (tempfd < 0)
+			tempfd = open("/", O_RDONLY);
+		if (tempfd >= 0) {
+			dup2(tempfd, 0);
+			dup2(tempfd, 1);
+			dup2(tempfd, 2);
+			closeall(3);
+		} else
+			closeall(0);
 	}
 
 	return;

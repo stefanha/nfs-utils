@@ -6,7 +6,7 @@
 .SH NAME
 rpc.nfsd \- NFS server process
 .SH SYNOPSIS
-.BI "/usr/sbin/rpc.nfsd [-p " port "] " nproc
+.BI "/usr/sbin/rpc.nfsd [" options "]" " "nproc
 .SH DESCRIPTION
 The
 .B rpc.nfsd
@@ -22,10 +22,38 @@ server provides an ancillary service needed to satisfy mount requests
 by NFS clients.
 .SH OPTIONS
 .TP
-.BI \-p " port"
+.B \-H " or " \-\-host  hostname
+specify a particular hostname (or address) that NFS requests will
+be accepted on. By default,
+.B rpc.nfsd
+will accept NFS requests on all known network addresses.
+Note that
+.B lockd
+(which performs file locking services for NFS) may still accept
+request on all known network addresses.  This may change in future
+releases of the Linux Kernel.
+.TP
+.B \-p " or " \-\-port  port
 specify a diferent port to listen on for NFS requests. By default,
 .B rpc.nfsd
 will listen on port 2049.
+.TP
+.B \-N " or " \-\-no-nfs-version vers
+This option can be used to request that 
+.B rpc.nfsd
+does not offer certain versions of NFS. The current version of
+.B rpc.nfsd
+can support both NFS version 2,3 and the newer version 4.
+.TP
+.B \-T " or " \-\-no-tcp
+Disable 
+.B rpc.nfsd 
+from accepting TCP connections from clients.
+.TP
+.B \-U " or " \-\-no-udp
+Disable
+.B rpc.nfsd
+from accepting UDP connections from clients.
 .TP
 .I nproc
 specify the number of NFS server threads. By default, just one

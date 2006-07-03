@@ -94,6 +94,7 @@ get_definition(void)
 		def_const(defp);
 		break;
 	case TOK_EOF:
+		free(defp);
 		return (NULL);
 	default:
 		error("definition keyword expected");
@@ -290,7 +291,6 @@ def_union(definition *defp)
   declaration dec;
   case_list *cases;
   case_list **tailp;
-  int flag;
 
   defp->def_kind = DEF_UNION;
   scan(TOK_IDENT, &tok);
@@ -309,7 +309,6 @@ def_union(definition *defp)
     cases->case_name = tok.str;
     scan(TOK_COLON, &tok);
     /* now peek at next token */
-    flag=0;
     if(peekscan(TOK_CASE,&tok))
       {
 
@@ -325,14 +324,6 @@ def_union(definition *defp)
       
 	  }while(peekscan(TOK_CASE,&tok));
       }
-    else
-      if(flag)
-	{
-
-	  *tailp = cases;
-	  tailp = &cases->next;
-	  cases = ALLOC(case_list);
-	};
 
     get_declaration(&dec, DEF_UNION);
     cases->case_decl = dec;
