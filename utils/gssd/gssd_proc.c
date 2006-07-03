@@ -493,13 +493,13 @@ int create_auth_rpc_client(struct clnt_info *clp,
 
 	/* Create the context as the user (not as root) */
 	save_uid = geteuid();
-	if (seteuid(uid) != 0) {
-		printerr(0, "WARNING: Failed to seteuid for "
+	if (setfsuid(uid) != 0) {
+		printerr(0, "WARNING: Failed to setfsuid for "
 			    "user with uid %d\n", uid);
 		goto out_fail;
 	}
-	printerr(2, "creating context using euid %d (save_uid %d)\n",
-			geteuid(), save_uid);
+	printerr(2, "creating context using fsuid %d (save_uid %d)\n",
+			uid, save_uid);
 
 	sec.qop = GSS_C_QOP_DEFAULT;
 	sec.svc = RPCSEC_GSS_SVC_NONE;
@@ -646,9 +646,9 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		gss_release_cred(&min_stat, &sec.cred);
   	if (a != NULL) freeaddrinfo(a);
 	/* Restore euid to original value */
-	if ((save_uid != -1) && (seteuid(save_uid) != 0)) {
-		printerr(0, "WARNING: Failed to restore euid"
-			    " to uid %d\n", save_uid);
+	if ((save_uid != -1) && (setfsuid(save_uid) != uid)) {
+		printerr(0, "WARNING: Failed to restore fsuid"
+			    " to uid %d from %d\n", save_uid, uid);
 	}
 	return retval;
 
