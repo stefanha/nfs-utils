@@ -25,11 +25,12 @@
 static unsigned char need_escaping[] = { ' ', '\t', '\n', '\\' };
 
 static char *
-mangle(const unsigned char *s) {
+mangle(const char *arg) {
+	const unsigned char *s = (const unsigned char *)arg;
 	char *ss, *sp;
 	int n;
 
-	n = strlen(s);
+	n = strlen(arg);
 	ss = sp = xmalloc(4*n+1);
 	while(1) {
 		for (n = 0; n < sizeof(need_escaping); n++) {
