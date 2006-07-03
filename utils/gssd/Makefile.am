@@ -66,6 +66,9 @@ svcgssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 
 gss_clnt_send_err_SOURCES = gss_clnt_send_err.c
 
+gss_clnt_send_err_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
+		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
+
 MAINTAINERCLEANFILES = Makefile.in
 
 #######################################################################
