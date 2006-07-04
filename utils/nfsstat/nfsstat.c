@@ -29,6 +29,7 @@ static unsigned int	svcv3info[24];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	cltv3info[24];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	svcv4info[4];	/* NFSv4 call counts ([0] == 2) */
 static unsigned int	cltv4info[34];	/* NFSv4 call counts ([0] == 32) */
+static unsigned int	svcv4opinfo[42];/* NFSv4 call counts ([0] == 40) */
 static unsigned int	svcnetinfo[5];	/* 0  # of received packets
 					 * 1  UDP packets
 					 * 2  TCP packets
@@ -99,6 +100,16 @@ static const char *	nfscltv4name[32] = {
 	"statfs",    "readlink",  "readdir", "server_caps", "delegreturn",
 };
 
+static const char *     nfssvrv4opname[40] = {
+        "op0-unused",   "op1-unused", "op2-future",  "access",     "close",       "commit",
+        "create",       "delegpurge", "delegreturn", "getattr",    "getfh",       "link",
+        "lock",         "lockt",      "locku",       "lookup",     "lookup_root", "nverify",
+        "open",         "openattr",   "open_conf",   "open_dgrd",  "putfh",       "putpubfh",
+        "putrootfh",    "read",       "readdir",     "readlink",   "remove",      "rename",
+        "renew",        "restorefh",  "savefh",      "secinfo",    "setattr",     "setcltid",
+        "setcltidconf", "verify",     "write",       "rellockowner"
+};
+
 typedef struct statinfo {
 	char		*tag;
 	int		nrvals;
@@ -115,6 +126,7 @@ static statinfo		svcinfo[] = {
 	{ "proc2",      STRUCTSIZE(svcv2info),  svcv2info  },
 	{ "proc3",      STRUCTSIZE(svcv3info),  svcv3info  },
 	{ "proc4",      STRUCTSIZE(svcv4info),  svcv4info  },
+	{ "proc4ops",   STRUCTSIZE(svcv4opinfo),svcv4opinfo},
 	{ NULL,         0,                      NULL       }
 };
 
@@ -381,11 +393,16 @@ main(int argc, char **argv)
 				"Server nfs v3:\n",
 				nfsv3name, svcv3info + 1, sizeof(nfsv3name)/sizeof(char *)
 				);
-			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && svcv4info[0] && svcv4info[svcv4info[0]+1] != svcv4info[0]))
+			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && svcv4info[0] && svcv4info[svcv4info[0]+1] != svcv4info[0])) {
 				print_callstats(
 				"Server nfs v4:\n",
 				nfssvrv4name, svcv4info + 1, sizeof(nfssvrv4name)/sizeof(char *)
 				);
+				print_callstats(
+				"Server nfs v4 operations:\n",
+				nfssvrv4opname, svcv4opinfo + 1, sizeof(nfssvrv4opname)/sizeof(char *)
+				);
+			}
 		}
 	}
 
