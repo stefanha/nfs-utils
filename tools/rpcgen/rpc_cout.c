@@ -164,8 +164,6 @@ print_header(definition *def)
 
 	if (Inline == 0)
 		return;
-	/* May cause lint to complain. but  ... */
-	f_print(fout, "\t register int32_t *buf;\n\n");
 }
 
 static void
@@ -266,7 +264,8 @@ print_ifstat(int indent, char *prefix, char *type, relation rel,
 			} else {
 				print_ifopen(indent, "array");
 			}
-			print_ifarg("(char **)");
+			/* The (void*) avoids a gcc-4.1 warning */
+			print_ifarg("(char **)(void*)");
 			if (*objname == '&') {
 				f_print(fout, "%s.%s_val, (u_int *)%s.%s_len",
 					objname, name, objname, name);
@@ -390,18 +389,13 @@ emit_struct(definition *def)
 	char           *sizestr, *plus;
 	char            ptemp[256];
 	int             can_inline;
+	const char	*buf_declaration;
 
 
 	if (Inline == 0) {
 		for (dl = def->def.st.decls; dl != NULL; dl = dl->next)
 			print_stat(1, &dl->decl);
 	} else {
-
-		for (dl = def->def.st.decls; dl != NULL; dl = dl->next)
-			if (dl->decl.rel == REL_VECTOR) {
-				f_print(fout, "\t int i;\n");
-				break;
-			}
 		size = 0;
 		can_inline = 0;
 		for (dl = def->def.st.decls; dl != NULL; dl = dl->next)
@@ -444,6 +438,7 @@ emit_struct(definition *def)
 			i = 0;
 			size = 0;
 			sizestr = NULL;
+			buf_declaration = "int32_t *";
 			for (dl = def->def.st.decls; dl != NULL; dl = dl->next) {	/* xxx */
 
 				/* now walk down the list and check for basic types */
@@ -497,16 +492,17 @@ emit_struct(definition *def)
 
 							/* were already looking at a xdr_inlineable structure */
 							if (sizestr == NULL)
-								f_print(fout, "\t buf = XDR_INLINE(xdrs,%d * BYTES_PER_XDR_UNIT);",
-									size);
+								f_print(fout, "\t %sbuf = XDR_INLINE(xdrs,%d * BYTES_PER_XDR_UNIT);",
+									buf_declaration, size);
 							else if (size == 0)
 								f_print(fout,
-									"\t buf = XDR_INLINE(xdrs,%s * BYTES_PER_XDR_UNIT);",
-									sizestr);
+									"\t %sbuf = XDR_INLINE(xdrs,%s * BYTES_PER_XDR_UNIT);",
+									buf_declaration, sizestr);
 							else
 								f_print(fout,
-									"\t buf = XDR_INLINE(xdrs,(%d + %s)* BYTES_PER_XDR_UNIT);",
-									size, sizestr);
+									"\t %sbuf = XDR_INLINE(xdrs,(%d + %s)* BYTES_PER_XDR_UNIT);",
+									buf_declaration, size, sizestr);
+							buf_declaration = "";
 
 							f_print(fout, "\n\t   if (buf == NULL) {\n");
 
@@ -546,16 +542,17 @@ emit_struct(definition *def)
 
 					/* were already looking at a xdr_inlineable structure */
 					if (sizestr == NULL)
-						f_print(fout, "\t\tbuf = XDR_INLINE(xdrs,%d * BYTES_PER_XDR_UNIT);",
-							size);
+						f_print(fout, "\t\t%sbuf = XDR_INLINE(xdrs,%d * BYTES_PER_XDR_UNIT);",
+							buf_declaration, size);
 					else if (size == 0)
 						f_print(fout,
-							"\t\tbuf = XDR_INLINE(xdrs,%s * BYTES_PER_XDR_UNIT);",
-							sizestr);
+							"\t\t%sbuf = XDR_INLINE(xdrs,%s * BYTES_PER_XDR_UNIT);",
+							buf_declaration, sizestr);
 					else
 						f_print(fout,
-							"\t\tbuf = XDR_INLINE(xdrs,(%d + %s)* BYTES_PER_XDR_UNIT);",
-							size, sizestr);
+							"\t\t%sbuf = XDR_INLINE(xdrs,(%d + %s)* BYTES_PER_XDR_UNIT);",
+							buf_declaration, size, sizestr);
+					buf_declaration = "";
 
 					f_print(fout, "\n\t\tif (buf == NULL) {\n");
 
@@ -632,6 +629,7 @@ emit_inline(declaration *decl, int flag)
 		break;
 	case REL_VECTOR:
 		f_print(fout, "\t\t{ register %s *genp; \n", decl->type);
+		f_print(fout, "\t\t  int i;\n");
 		f_print(fout, "\t\t  for ( i = 0,genp=objp->%s;\n \t\t\ti < %s; i++){\n\t\t",
 			decl->name, decl->array_max);
 		emit_single_in_line(decl, flag, REL_VECTOR);
@@ -649,7 +647,7 @@ emit_single_in_line(declaration *decl, int flag, relation rel)
 	int freed=0;
 
 	if(flag == PUT)
-		f_print(fout,"\t\t IXDR_PUT_");
+		f_print(fout,"\t\t (void) IXDR_PUT_");
 	else    
 		if(rel== REL_ALIAS)
 			f_print(fout,"\t\t objp->%s = IXDR_GET_",decl->name);
