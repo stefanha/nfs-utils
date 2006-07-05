@@ -338,7 +338,7 @@ By default,
 '''in the password file at startup time. If it isn't found, a uid and gid
 .I exportfs
 chooses a uid and gid
-of -2 (i.e. 65534) for squashed access. These values can also be overridden by
+of 65534 for squashed access. These values can also be overridden by
 the
 .IR anonuid " and " anongid
 options.

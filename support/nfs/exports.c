@@ -89,8 +89,8 @@ getexportent(int fromkernel, int fromexports)
 		ee.e_flags &= ~NFSEXP_GATHERED_WRITES;
 	}
 	ee.e_maptype = CLE_MAP_IDENT;
-	ee.e_anonuid = -2;
-	ee.e_anongid = -2;
+	ee.e_anonuid = 65534;
+	ee.e_anongid = 65534;
 	ee.e_squids = NULL;
 	ee.e_sqgids = NULL;
 	ee.e_mountpoint = NULL;
@@ -271,8 +271,8 @@ mkexportent(char *hname, char *path, char *options)
 
 	ee.e_flags = EXPORT_DEFAULT_FLAGS;
 	ee.e_maptype = CLE_MAP_IDENT;
-	ee.e_anonuid = -2;
-	ee.e_anongid = -2;
+	ee.e_anonuid = 65534;
+	ee.e_anongid = 65534;
 	ee.e_squids = NULL;
 	ee.e_sqgids = NULL;
 	ee.e_mountpoint = NULL;
