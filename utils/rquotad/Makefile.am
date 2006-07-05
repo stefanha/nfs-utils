@@ -5,6 +5,8 @@ RPCGEN		= $(top_builddir)/tools/rpcgen/rpcgen
 GENFILES_XDR	= rquota_xdr.c
 GENFILES_H	= rquota.h
 
+BUILT_SOURCES	= $(GENFILES_H)
+
 GENFILES	= $(GENFILES_XDR) $(GENFILES_H)
 man8_MANS	= rquotad.man
 
