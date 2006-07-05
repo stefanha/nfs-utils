@@ -3,7 +3,10 @@
 CC=$(CC_FOR_BUILD)
 LIBTOOL = @LIBTOOL@ --tag=CC
 
-noinst_PROGRAMS = rpcdebug
+man8_MANS = rpcdebug.man
+EXTRA_DIST = $(man8_MANS)
+
+sbin_PROGRAMS = rpcdebug
 rpcdebug_SOURCES = rpcdebug.c
 rpcdebug_CFLAGS=$(CFLAGS_FOR_BUILD)
 rpcdebug_CPPFLAGS=$(CPPFLAGS_FOR_BUILD) -I$(top_srcdir)/support/include

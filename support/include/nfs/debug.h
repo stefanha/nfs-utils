@@ -11,9 +11,11 @@
 #define RPCDBG_AUTH		0x0010
 #define RPCDBG_PMAP		0x0020
 #define RPCDBG_SCHED		0x0040
+#define RPCDBG_TRANS		0x0080
 #define RPCDBG_SVCSOCK		0x0100
 #define RPCDBG_SVCDSP		0x0200
 #define RPCDBG_MISC		0x0400
+#define RPCDBG_CACHE		0x0800
 #define RPCDBG_ALL		0x7fff
 
 /*
@@ -59,6 +61,7 @@ enum {
 #define NLMDBG_CLNTSUBS		0x0020
 #define NLMDBG_SVCSUBS		0x0040
 #define NLMDBG_HOSTCACHE	0x0080
+#define NLMDBG_XDR		0x0100
 #define NLMDBG_ALL		0x7fff
 
 
@@ -70,6 +73,7 @@ enum {
 #define NFSDBG_XDR		0x0020
 #define NFSDBG_FILE		0x0040
 #define NFSDBG_ROOT		0x0080
+#define NFSDBG_CALLBACK		0x0100
 #define NFSDBG_ALL		0xFFFF
 
 #endif /* _NFS_DEBUG_H */

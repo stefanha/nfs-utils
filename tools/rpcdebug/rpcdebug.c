@@ -148,9 +148,11 @@ static struct flagmap {
 	FLAG(RPC,	AUTH),
 	FLAG(RPC,	PMAP),
 	FLAG(RPC,	SCHED),
+	FLAG(RPC,	TRANS),
 	FLAG(RPC,	SVCSOCK),
 	FLAG(RPC,	SVCDSP),
 	FLAG(RPC,	MISC),
+	FLAG(RPC,	CACHE),
 	FLAG(RPC,	ALL),
 
 	/* nfs */
@@ -162,7 +164,7 @@ static struct flagmap {
 	FLAG(NFS,       XDR),
 	FLAG(NFS,       FILE),
 	FLAG(NFS,       ROOT),
-	//	FLAG(NFS,       CALLBACK),
+	FLAG(NFS,       CALLBACK),
 	FLAG(NFS,	ALL),
 
 	/* nfsd */
@@ -187,6 +189,7 @@ static struct flagmap {
 	FLAG(NLM,	CLNTSUBS),
 	FLAG(NLM,	SVCSUBS),
 	FLAG(NLM,       HOSTCACHE),
+	FLAG(NLM,       XDR),
 	FLAG(NLM,	ALL),
 
       { NULL,		NULL,		0 }
