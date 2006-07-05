@@ -21,7 +21,7 @@ lists the set of clients who are mounting from that host.
 The output from
 .B showmount
 is designed to
-appear as though it were processesed through ``sort -u''.
+appear as though it were processed through ``sort -u''.
 .SH OPTIONS
 .TP
 .BR \-a " or " \-\-all
@@ -46,7 +46,7 @@ Suppress the descriptive headings from the output.
 .BR rpc.mountd (8),
 .BR rpc.nfsd (8)
 .SH BUGS
-The completeness and accurary of the information that
+The completeness and accuracy of the information that
 .B showmount
 displays varies according to the NFS server's implementation.
 .P

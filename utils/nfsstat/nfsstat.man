@@ -70,7 +70,7 @@ Display all of the above facilities.
 .RE
 .TP
 .B -v, --verbose
-This is equivient to \fB-o all\fR.
+This is equivalent to \fB-o all\fR.
 .SH EXAMPLES
 .TP
 .B nfsstat -o all -234
@@ -83,7 +83,7 @@ Same as above.
 Show all information about about active versions of \fBNFS\fR.
 .TP
 .B nfsstat --nfs --server -3
-Show statictics for \fBNFS\fR version 3 server.
+Show statistics for \fBNFS\fR version 3 server.
 .TP
 .B nfsstat -m
 Show information about mounted \fBNFS\fR filesystems.
@@ -117,7 +117,7 @@ The function of the \fB-v\fR and \fB-a\fR options have changed. The \fB-a\fR opt
 is now reserved for future use. The \fB-v\fR does what the \fB-a\fR option used to do,
 and the new \fB-[234]\fR options replace the \fB-v\fR option.
 .P
-The \fBDisplay\fR section should be more commplete.
+The \fBDisplay\fR section should be more complete.
 .P
 Further bugs can be found or reported at 
 .BR http://nfs.sf.net/ .

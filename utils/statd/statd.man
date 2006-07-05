@@ -14,7 +14,7 @@ rpc.statd \- NSM status monitor
 The
 .B rpc.statd
 server implements the NSM (Network Status Monitor) RPC protocol.
-This service is somewhat misnomed, since it doesn't actually provide
+This service is somewhat misnamed, since it doesn't actually provide
 active monitoring as one might suspect; instead, NSM implements a
 reboot notification service. It is used by the NFS file locking service,
 .BR rpc.lockd ,
