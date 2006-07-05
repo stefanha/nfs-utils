@@ -11,15 +11,11 @@ noinst_HEADERS = \
 	nfs_mntent.h \
 	nfs_paths.h \
 	nfslib.h \
-	rpcdispatch.h \
 	rpcmisc.h \
-	rpcsec.h \
 	tcpwrapper.h \
-	version.h \
 	xio.h \
 	xlog.h \
 	xmalloc.h \
-	xcommon.h \
-	ypupdate.h
+	xcommon.h
 
 MAINTAINERCLEANFILES = Makefile.in

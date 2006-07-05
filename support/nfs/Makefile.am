@@ -8,7 +8,3 @@ libnfs_a_SOURCES = exports.c rmtab.c xio.c rpcmisc.c rpcdispatch.c \
 
 MAINTAINERCLEANFILES = Makefile.in
 
-EXTRA_DIST = \
-	clients.c \
-	keytab.c \
-	ypupdate_xdr.c

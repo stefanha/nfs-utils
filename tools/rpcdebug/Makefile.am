@@ -3,8 +3,6 @@
 CC=$(CC_FOR_BUILD)
 LIBTOOL = @LIBTOOL@ --tag=CC
 
-EXTRA_DIST= neat_idea.c
-
 noinst_PROGRAMS = rpcdebug
 rpcdebug_SOURCES = rpcdebug.c
 rpcdebug_CFLAGS=$(CFLAGS_FOR_BUILD)

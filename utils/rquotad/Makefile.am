@@ -9,7 +9,7 @@ sbin_PROGRAMS	= rquotad
 EXTRA_DIST = rquota.x $(man8_MANS) NEW README.okir
 
 rquotad_SOURCES = rquota_server.c rquota_svc.c rquota_xdr.c quotactl.c \
-		  hasquota.c mntent.h pathnames.h rquota.h
+		  hasquota.c mntent.h rquota.h
 rquotad_LDADD = ../../support/export/libexport.a \
 		../../support/nfs/libnfs.a \
 		../../support/misc/libmisc.a \
