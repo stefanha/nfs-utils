@@ -1,5 +1,11 @@
 ## Process this file with automake to produce Makefile.in
 
+RPCGEN		= $(top_builddir)/tools/rpcgen/rpcgen
+
+GENFILES_XDR	= rquota_xdr.c
+GENFILES_H	= rquota.h
+
+GENFILES	= $(GENFILES_XDR) $(GENFILES_H)
 man8_MANS	= rquotad.man
 
 RPCPREFIX	= rpc.
@@ -18,6 +24,19 @@ rquotad_CPPFLAGS = $(AM_CPPFLAGS) $(CPPFLAGS) \
                    -I$(top_srcdir)/support/export
 
 MAINTAINERCLEANFILES = Makefile.in
+
+
+$(RPCGEN):
+	make -C $(top_srcdir)/tools/rpcgen all
+
+$(GENFILES_XDR): %_xdr.c: %.x $(RPCGEN)
+	test -f $@ && rm -rf $@ || true
+	$(RPCGEN) -c -o $@ $<
+
+
+$(GENFILES_H): %.h: %.x $(RPCGEN)
+	test -f $@ && rm -rf $@ || true
+	$(RPCGEN) -h -o $@ $<
 
 #######################################################################
 # The following allows the current practice of having

@@ -262,22 +262,22 @@ getquota_rslt *getquotainfo(int flags, caddr_t *argp, struct svc_req *rqstp)
    return(&result);
 }
 
-getquota_rslt *rquotaproc_getquota_1(getquota_args *argp, struct svc_req *rqstp)
+getquota_rslt *rquotaproc_getquota_1_svc(getquota_args *argp, struct svc_req *rqstp)
 {
    return(getquotainfo(0, (caddr_t *)argp, rqstp));
 }
 
-getquota_rslt *rquotaproc_getactivequota_1(getquota_args *argp, struct svc_req *rqstp)
+getquota_rslt *rquotaproc_getactivequota_1_svc(getquota_args *argp, struct svc_req *rqstp)
 {
    return(getquotainfo(ACTIVE, (caddr_t *)argp, rqstp));
 }
 
-getquota_rslt *rquotaproc_getquota_2(ext_getquota_args *argp, struct svc_req *rqstp)
+getquota_rslt *rquotaproc_getquota_2_svc(ext_getquota_args *argp, struct svc_req *rqstp)
 {
    return(getquotainfo(TYPE_EXTENDED, (caddr_t *)argp, rqstp));
 }
 
-getquota_rslt *rquotaproc_getactivequota_2(ext_getquota_args *argp, struct svc_req *rqstp)
+getquota_rslt *rquotaproc_getactivequota_2_svc(ext_getquota_args *argp, struct svc_req *rqstp)
 {
    return(getquotainfo(TYPE_EXTENDED | ACTIVE, (caddr_t *)argp, rqstp));
 }

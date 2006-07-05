@@ -47,15 +47,6 @@
 #define SIG_PF void(*)(int)
 #endif
 
-extern getquota_rslt *rquotaproc_getquota_1(getquota_args *argp,
-					    struct svc_req *rqstp);
-extern getquota_rslt *rquotaproc_getactivequota_1(getquota_args *argp,
-					          struct svc_req *rqstp);
-extern getquota_rslt *rquotaproc_getquota_2(ext_getquota_args *argp,
-					    struct svc_req *rqstp);
-extern getquota_rslt *rquotaproc_getactivequota_2(ext_getquota_args *argp,
-						  struct svc_req *rqstp);
-
 static struct option longopts[] =
 {
         { "help", 0, 0, 'h' },
@@ -113,13 +104,13 @@ static void rquotaprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
       case RQUOTAPROC_GETQUOTA:
          xdr_argument = (xdrproc_t) xdr_getquota_args;
          xdr_result = (xdrproc_t) xdr_getquota_rslt;
-         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getquota_1;
+         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getquota_1_svc;
          break;
 
       case RQUOTAPROC_GETACTIVEQUOTA:
          xdr_argument = (xdrproc_t) xdr_getquota_args;
          xdr_result = (xdrproc_t) xdr_getquota_rslt;
-         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getactivequota_1;
+         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getactivequota_1_svc;
          break;
 
       default:
@@ -188,13 +179,13 @@ static void rquotaprog_2(struct svc_req *rqstp, register SVCXPRT *transp)
       case RQUOTAPROC_GETQUOTA:
          xdr_argument = (xdrproc_t) xdr_ext_getquota_args;
          xdr_result = (xdrproc_t) xdr_getquota_rslt;
-         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getquota_2;
+         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getquota_2_svc;
          break;
 
       case RQUOTAPROC_GETACTIVEQUOTA:
          xdr_argument = (xdrproc_t) xdr_ext_getquota_args;
          xdr_result = (xdrproc_t) xdr_getquota_rslt;
-         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getactivequota_2;
+         local = (char *(*)(char *, struct svc_req *)) rquotaproc_getactivequota_2_svc;
          break;
 
       default:
