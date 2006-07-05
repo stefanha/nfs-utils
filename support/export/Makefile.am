@@ -39,6 +39,7 @@ $(GENFILES_XDR): %_xdr.c: %.x $(RPCGEN)
 $(GENFILES_H): %.h: %.x $(RPCGEN)
 	test -f $@ && rm -rf $@ || true
 	$(RPCGEN) -h -o $@ $<
+	rm -f $(top_builddir)/support/include/mount.h
 	$(LN_S) ../export/mount.h $(top_builddir)/support/include/mount.h
 
 MAINTAINERCLEANFILES = Makefile.in
