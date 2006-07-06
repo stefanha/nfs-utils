@@ -226,10 +226,9 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 		 * mapping.
 		 */
 		if (res == -ENOENT) {
-			cred->cr_uid = -2;	/* XXX */
-			cred->cr_gid = -2;	/* XXX */
-			cred->cr_groups[0] = -2;/* XXX */
-			cred->cr_ngroups = 1;
+			cred->cr_uid = 65534;	/* XXX */
+			cred->cr_gid = 65534;	/* XXX */
+			cred->cr_ngroups = 0;
 			res = 0;
 			goto out_free;
 		}
