@@ -38,7 +38,7 @@ gssd_SOURCES = \
 	write_bytes.h
 
 gssd_LDADD = $(RPCSECGSS_LIBS) $(KRBLIBS)
-gssd_LDFLAGS = -Wl,-rpath=$(KRBDIR)/lib
+gssd_LDFLAGS = $(KRBLDFLAGS)
 
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 	      $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)

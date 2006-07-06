@@ -72,6 +72,17 @@ AC_DEFUN([AC_KERBEROS_V5],[
   fi
   AC_MSG_RESULT($KRBDIR)
 
+  dnl Check if -rpath=$(KRBDIR)/lib is needed
+  echo "The current KRBDIR is $KRBDIR"
+  if test "$KRBDIR/lib" = "/lib" -o "$KRBDIR/lib" = "/usr/lib" \
+       -o "$KRBDIR/lib" = "//lib" -o "$KRBDIR/lib" = "/usr//lib" ; then
+    KRBLDFLAGS="";
+  elif /sbin/ldconfig -p | grep > /dev/null "=> $KRBDIR/lib/"; then
+    KRBLDFLAGS="";
+  else
+    KRBLDFLAGS="-Wl,-rpath=$KRBDIR/lib"
+  fi
+
   dnl Now check for functions within gssapi library
   AC_CHECK_LIB($gssapi_lib, gss_krb5_export_lucid_sec_context,
     AC_DEFINE(HAVE_LUCID_CONTEXT_SUPPORT, 1, [Define this if the Kerberos GSS library supports gss_krb5_export_lucid_sec_context]), ,$KRBLIBS)
@@ -88,6 +99,7 @@ AC_DEFUN([AC_KERBEROS_V5],[
   AC_SUBST([KRBDIR])
   AC_SUBST([KRBLIBS])
   AC_SUBST([KRBCFLAGS])
+  AC_SUBST([KRBLDFLAGS])
   AC_SUBST([K5VERS])
 
 ])
