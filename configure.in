@@ -109,9 +109,9 @@ AC_ARG_ENABLE(rquotad,
 
 AC_ARG_ENABLE(mount,
 	[AC_HELP_STRING([--enable-mount],
-			[Create mount.nfs and don't use the util-linux mount(8) functionality. @<:@default=yes@:>@])],
+			[Create mount.nfs and don't use the util-linux mount(8) functionality. @<:@default=no@:>@])],
 	enable_mount=$enableval,
-	enable_mount=yes)
+	enable_mount=no)
 	AM_CONDITIONAL(CONFIG_MOUNT, [test "$enable_mount" = "yes"])
 
 # Check whether user wants TCP wrappers support
