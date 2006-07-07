@@ -135,9 +135,12 @@ nfssvc(int port, int nrservs, unsigned int versbits, unsigned protobits,
 	struct nfsctl_arg	arg;
 	int fd;
 
-	nfssvc_setfds(port, protobits, haddr);
-
+	/* Note: must set versions before fds so that
+	 * the ports get registered with portmap against correct
+	 * versions
+	 */
 	nfssvc_versbits(versbits);
+	nfssvc_setfds(port, protobits, haddr);
 
 	fd = open(NFSD_THREAD_FILE, O_WRONLY);
 	if (fd < 0)
