@@ -59,7 +59,7 @@ svcgssd_LDADD = \
 	$(RPCSECGSS_LIBS) -lnfsidmap \
 	$(KRBLIBS)
 
-svcgssd_LDFLAGS = -Wl,-rpath=$(KRBDIR)/lib
+svcgssd_LDFLAGS = $(KRBLDFLAGS)
 
 svcgssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
