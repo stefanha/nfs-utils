@@ -1,3 +1,370 @@
+commit 7194d7d6320736c14f40d31c3738d40f3119ead5
+Author: Kevin Coffman <kwc@citi.umich.edu>
+Date:   Sat Jul 8 10:01:40 2006 +1000
+
+    Use uid/gid of -1 to indicate the export's anonuid/anongid should be used
+    
+    Kernel routine nfsd_setuser() in fs/nfsd/auth.c checks for the
+    value -1 and defaults the credential's fsuid/fsgid to the
+    correct anonuid/anongid values for the given export.  We should
+    be passing this value (-1) down when a name mapping cannot be found.
+    Thanks to J. Bruce Fields <bfields@fieldses.org> for the reference.
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    Acked-by: J. Bruce Fields <bfields@fieldses.org>
+
+commit b0604c623f7a98c6061dff19988722d3ae848bd7
+Author: Kevin Coffman <kwc@citi.umich.edu>
+Date:   Sat Jul 8 09:58:03 2006 +1000
+
+    Change svcgssd_LDFLAGS to match gssd_LDFLAGS
+
+commit 99414bd3eecf93f23c378d3bb3d45bc98f364abc
+Author: Neil Brown <neilb@suse.de>
+Date:   Sat Jul 8 09:41:58 2006 +1000
+
+    Disable building/installing mount.nfs by default.
+    
+    mount.nfs does not yet support 'user' option and some others.
+    To make it support this we need to make it setuid-root, and
+    some security isses need to be resolved before that can be done
+    safely.
+
+commit b0c3cbfee702c019dab0a22557bbf38e24dfcee1
+Author: Steve Dickson <steved@redhat.com>
+Date:   Sat Jul 8 09:35:02 2006 +1000
+
+    Call nfssvc_versbits before nfssvc_setfds
+    
+    nfssvc_versbits() has to be called before nfssvc_setfds()
+    for the version processing to work correctly
+
+commit 26fff911b21943f20e3937ae3f2d29a1572d2309
+Author: Neil Brown <neilb@suse.de>
+Date:   Thu Jul 6 13:05:11 2006 +1000
+
+    Only use -rpath for Kerberos libs when actually needed.
+    
+    Avoid usage of -rpath is generally safer, and is required by Debian policy.
+
+commit 28a7603b719f8d35bf22fd3018b610b489fec78f
+Author: Neil Brown <neilb@suse.de>
+Date:   Thu Jul 6 12:28:33 2006 +1000
+
+    Use 65534 instead of -2 in svcgssd_proc.c
+    
+    as this is more consistant across achitectures.
+
+commit 904de920ea4da3ad5604c417f0d784fcda83ed2a
+Author: Shankar Anand <shanand@novell.com>
+Date:   Tue Jul 4 08:50:56 2006 -0600
+
+    This patch adds code to nfsstat to read /proc/net/rpc/nfsd for nfsv4 server statistics and print them.
+    
+    Submitted by: Shankar Anand <shanand@novell.com>
+
+commit 2179c112b9a386ca3d51d0e19390ddfadd745030
+Author: Steinar H. Gunderson <sesse@debian.org>
+Date:   Wed Jul 5 15:55:45 2006 +1000
+
+    Fix typos in various man pages.
+
+commit 3419e37500dfd19cb2c246260dbd2bc0ee4704d4
+Author: Steinar H. Gunderson <sesse@debian.org>
+Date:   Wed Jul 5 15:51:30 2006 +1000
+
+    Use 65534 for anon uid/gid rather than -2
+    
+    This is more consistant across platforms.
+
+commit 65735eef8a9441901245f6047edafc50f2d97c97
+Author: Greg Banks <gnb@chook.melbourne.sgi.com>
+Date:   Wed Jul 5 13:37:21 2006 +1000
+
+    Update rpcdebug to know about new 2.6 debug flags.  Added
+    a manpage and installed rpcdebug (in sbindir).
+
+commit 23b3a9d0284d78cb6bf96b8cd44e9a4662ff60ae
+Author: Greg Banks <gnb@chook.melbourne.sgi.com>
+Date:   Wed Jul 5 12:22:45 2006 +1000
+
+    Ignore new generated files.
+
+commit 89053f3f440b629911cb994a293d5be73bb79bf9
+Author: Greg Banks <gnb@chook.melbourne.sgi.com>
+Date:   Wed Jul 5 12:20:20 2006 +1000
+
+    Add rquota.h to BUILT_SOURCES so rquotad builds on the first try.
+
+commit 66f9d8251c92124e46a209c47e5c0f7d3a0c4e6e
+Author: Neil Brown <neilb@suse.de>
+Date:   Wed Jul 5 11:06:09 2006 +1000
+
+    Generate rquota_xdr.c and rquota.h from rquota.x
+    
+    rquota_svc.c is still by-hand as it contains alot of extras.
+    These should really be moved to rquota_server.c
+
+commit 9f5b40b7a68fe0a2648565ecbd4b08bf60287130
+Author: Neil Brown <neilb@suse.de>
+Date:   Wed Jul 5 10:41:03 2006 +1000
+
+    Remove some files that old, unused, unneeded.
+    
+    	deleted:  support/export/keys.c
+    	deleted:  support/include/rpcdispatch.h
+    	deleted:  support/include/rpcsec.h
+    	deleted:  support/include/version.h
+    	deleted:  support/include/ypupdate.h
+    	deleted:  support/nfs/clients.c
+    	deleted:  support/nfs/keytab.c
+    	deleted:  support/nfs/ypupdate_xdr.c
+    	deleted:  support/rpc/include/Makefile.am
+    	deleted:  tools/rpcdebug/neat_idea.c
+    	deleted:  utils/mountd/mount_xdr.c
+    	deleted:  utils/rquotad/pathnames.h
+
+commit fbb1602bbd34cbe89dd55ca6eaaa19432237db1d
+Author: Neil Brown <neilb@suse.de>
+Date:   Wed Jul 5 10:30:51 2006 +1000
+
+    Avoid error creating an existing symlink
+    
+    Just remove the link first.
+
+commit 0bc710a5a2b695039613a917e009dba3552ab1cc
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:33:54 2006 -0400
+
+    Don't depend on Kerberos headers when checking librpcsecgss in configure
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Older versions of MIT Kerberos are missing an OID definition, causing
+    the configure checks for librpcsecgss to fail.  We shouldn't be depending
+    on their libraries during the configure.
+
+commit 5bfa10c94c44f082dc211a5fb431e2202ea9bb35
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Tue Jul 4 18:33:56 2006 +1000
+
+    Eliminate warnings from code generated by rpcgen
+    
+     - unused variable 'buf'
+        - emit a declaration for `buf' on demand.
+     - unused variable 'i'
+        - declare i immediately before use
+     - unused value from IXDR_PUT_
+        - cast to (void)
+     - type-punned pointer reference
+        - cast to (void*) first :-(
+
+commit acae444246635ec2ca8990d53e685c9062d73091
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:43 2006 -0400
+
+    Handle mapping failure from get_ids.
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Temporary patch to do default mapping if we get an error while trying to
+    map a gss principal to the appropriate uid/gid.  This currently returns
+    hardcoded values.  This may be correct, or we may need to try and figure
+    out the correct values to match the anonuid/anongid for the export.
+
+commit 1f1b05a65ef3dc6597c7bc1e2a38f38ae95bf230
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:38 2006 -0400
+
+    Properly report errors in readline() function
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Change message priorities for errors and debug messages.
+
+commit ee664fd246d77010af13fb557407c612752a5ea8
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:33 2006 -0400
+
+    Change default buffer size increment for readline()
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    The readline routine expects much smaller messages than we are passing.
+    Change the default initial allocation and increment value from 128
+    to 2048.  This saves many calls to realloc().
+
+commit 3da69ce5c4fac5677e91aa20e60750ab8de2ab97
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:27 2006 -0400
+
+    Clean up the printerr() logging function.
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Update the printerr() function to:
+    
+    1) Determine whether we'll print the message before going to all the
+       work of formatting it.
+    2) Don't just toss away messages that are too long for the buffer.
+       Print what we can and give an indication of the truncation with
+       "..." at the end.
+    3) Use a single buffer rather than two.
+    4) Messages either go to syslog (with level ERR) or stderr.  Don't
+       send some messages to syslog level DEBUG.
+
+commit 0b2a5b574c7ffd99aa3226d36e1d261826405625
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:21 2006 -0400
+
+    Use setfsuid() rather than seteuid() while creating contexts
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    As suggested by Olaf Kirch <okir@suse.de>, use setfsuid() rather than
+    seteuid() when creating a gss context.  This prevents users from using
+    credentials that do not belong to them, while also preventing them from
+    doing things like killing, renicing, or changing the priority of the
+    gssd process while it is processing the context creation.
+
+commit 0f899e6d862994ffb437ae73e087c4a21ab59723
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:16 2006 -0400
+
+    Limit acquire_cred call to to Kerberos only
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Specify that the acquire_cred call should only be concerned with returning
+    Kerberos credentials since this is Kerberos-only functionality.
+
+commit 3829bb90e764cd72c0009cb32a8b39d0fab89d81
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:10 2006 -0400
+
+    Check that the gssapi library is usable early on.
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Do a call to determine mechanisms supported by the gssapi library early.
+    This allows us to discover early in case the gssapi library is somehow
+    misconfigured.  We can bail out early and give a meaningful message
+    rather than getting errors on each attempt at a context negotiation.
+
+commit 119c3e9aafe84c0f7c2846c46ad5e6f5eeece0da
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:34:05 2006 -0400
+
+    Fix problems with 64-bit big-endian machines
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Correct the definition of mech_used in the gss context to use gss_OID_desc.
+    This fixes problems on 64-bit machines when referencing the OID.
+    
+    Also updates write_buffer function to use u_int rather than size_t when
+    doing calculations.
+
+commit c3f05548d7b3d586e7eebbdde9339617e88530f3
+Author: kwc@citi.umich.edu <kwc@citi.umich.edu>
+Date:   Mon Jul 3 18:33:59 2006 -0400
+
+    Define CFLAGS for gss_clnt_send_err compile
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
+    
+    Add CFLAGS to make sure we find and use the correct gssapi.h when
+    building gss_clnt_send_err
+
+commit 4e9ed06f8f8a0cd9f34a6830c0ff14344a528042
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Mon Jul 3 15:59:54 2006 +1000
+
+    Use socklen_t some more to avoid warnings.
+
+commit 6c40236820fda8960af891f41aa9d53f8bbe50a2
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Mon Jul 3 15:39:41 2006 +1000
+
+    Fix warning about pointer signedness differing.
+
+commit 3bf702b1a914b3867117b74d519c55fa68f4dc28
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Mon Jul 3 15:17:34 2006 +1000
+
+    Include the right header to get xmalloc() declaration.
+
+commit 940c7c304d4a43c00c27529cdddc7c87db6eef87
+Merge: b90d201... a503848...
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Mon Jul 3 14:21:48 2006 +1000
+
+    Merge branch 'master' of git://linux-nfs.org/nfs-utils
+
+commit b90d201551aaa712c011c3d5de900fad714a26a6
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Tue Jun 27 21:30:18 2006 +1000
+
+    Comment out unused variable.
+
+commit 33beb42d3d2cd13a82ddbbdc4275d2a048030ae3
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Tue Jun 27 21:22:59 2006 +1000
+
+    Comment out the decades-old SCCS id strings from the original Sun
+    distribution.  They cause compile warnings, there is no longer any
+    reason to try to build them into the binaries, and gcc seems to be
+    eliding some of them anyway.
+
+commit 3172063ead6b99611d049a59938808a6358f48a4
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Tue Jun 27 20:55:07 2006 +1000
+
+    Detect if glibc provides socklen_t and use that instead
+    of int in those cases which generate compile warnings,
+    e.g. the last argument of recvfrom().
+
+commit a09eeb36c2c45151b9bb89f5015da0c584799716
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Tue Jun 27 20:28:02 2006 +1000
+
+    Replace the deprecated sigblock() with more modern
+    signal functions to avoid compile warnings.
+
+commit 93608a52655abf5ac23404c4b5cc05fe575a9c04
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Thu Jun 22 18:01:10 2006 +1000
+
+    Fix a number of the easier compile warnings: unused variables,
+    unused labels, constness, signedness.
+
+commit a07343ee0da4f0974a23b673ae1b0d482c7426a1
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Thu Jun 22 17:31:24 2006 +1000
+
+    Detect presence of nfs4_set_debug() in libnfsidmap and
+    don't bother calling it if it's missing.
+
+commit dcfcb677b39443b6392db3234fd50498bc158507
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Thu Jun 22 17:19:17 2006 +1000
+
+    Remove useless m4 quoting around args to PKG_CHECK_MODULES().
+
+commit 24d303ffae686192bda0a5996e8590219dcc82e7
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Thu Jun 22 17:16:19 2006 +1000
+
+    Do m4 quoting of AC_MSG_ERROR() and AC_MSG_WARN() as
+    the autoconf people intended.  This avoids errors in
+    autoconf on SLES10.
+
+commit 66a699d953727d3a992cc09ed5304b83d661a737
+Author: Greg Banks <gnb@melbourne.sgi.com>
+Date:   Thu Jun 22 16:51:44 2006 +1000
+
+    Add a .gitignore file to suppress the files generated
+    during autogen, configure and build.
 commit 49b164d978ee6266df7ba0bd335cb34337e7c381
 Author: Steve Dickson <SteveD@redhat.com>
 Date:   Mon Jul 3 09:52:00 2006 +1000
