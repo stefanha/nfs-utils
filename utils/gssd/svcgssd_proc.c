@@ -224,10 +224,13 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 		 * -ENOENT means there was no mapping, any other error
 		 * value means there was an error trying to do the
 		 * mapping.
+		 * If there was no mapping, we send down the value -1
+		 * to indicate that the anonuid/anongid for the export
+		 * should be used.
 		 */
 		if (res == -ENOENT) {
-			cred->cr_uid = 65534;	/* XXX */
-			cred->cr_gid = 65534;	/* XXX */
+			cred->cr_uid = -1;
+			cred->cr_gid = -1;
 			cred->cr_ngroups = 0;
 			res = 0;
 			goto out_free;
