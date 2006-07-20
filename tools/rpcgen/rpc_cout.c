@@ -692,7 +692,7 @@ upcase(char *str)
 	char           *ptr, *hptr;
 
 
-	ptr = (char *) malloc(strlen(str));
+	ptr = (char *) malloc(strlen(str)+1);
 	if (ptr == (char *) NULL) {
 		f_print(stderr, "malloc failed \n");
 		exit(1);
