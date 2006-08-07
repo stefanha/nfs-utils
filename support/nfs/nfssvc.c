@@ -28,11 +28,25 @@
 static void
 nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 {
-	int fd, on=1;
+	int fd, n, on=1;
 	char buf[BUFSIZ];
 	int udpfd = -1, tcpfd = -1;
 	struct sockaddr_in sin;
 
+	fd = open(NFSD_PORTS_FILE, O_RDONLY);
+	if (fd < 0)
+		return;
+	n = read(fd, buf, BUFSIZ);
+	close(fd);
+	if (n != 0)
+		return;
+	/* there are no ports currently open, so it is safe to
+	 * try to open some and pass them through.
+	 * Note: If the user explicitly asked for 'udp', then
+	 * we should probably check if that is open, and should
+	 * open it if not.  However we don't yet.  All sockets
+	 * have to be opened when the first daemon is started.
+	 */
 	fd = open(NFSD_PORTS_FILE, O_WRONLY);
 	if (fd < 0)
 		return;

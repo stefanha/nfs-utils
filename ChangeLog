@@ -1,5 +1,15 @@
 Author: NeilBrown <neilb@cse.unsw.edu.au>
-Date:  Mon Aug  7 14:01:35 EST 2006
+Date:  Mon Aug  7 16:35:03 AEST 2006
+
+    support/nfs/nfssvc.c:  if any ports are already open,
+	   don't try to open any more.  
+	 This means that once nfsd is running
+	     rpc.nfsd  X
+	 will just change the number of threads, not the
+	 ports in use.
+
+Author: NeilBrown <neilb@cse.unsw.edu.au>
+Date:  Mon Aug  7 14:01:35 AEST 2006
 
     Remove warning if neither 'sync' or 'async' present.
     Add warning of neither 'subtree_check' or 'no_subtree_check' present.

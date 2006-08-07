@@ -2,7 +2,7 @@
 .\" nfsd(8)
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
-.TH rpc.nfsd 8 "31 May 1999"
+.TH rpc.nfsd 8 "7 Aug 2006"
 .SH NAME
 rpc.nfsd \- NFS server process
 .SH SYNOPSIS
@@ -64,6 +64,17 @@ load created by the NFS clients, but a useful starting point is
 the
 .BR nfsstat (8)
 program.
+.P
+Note that if the NFS server is already running, then the options for
+specifying host, port, and protocol will be ignored.  The number of
+processes given will be the only option considered, and the number of
+active
+.B nfsd
+processes will be increased or decreased to match this number.
+In particular
+.B rpc.nfsd 0
+will stop all threads and thus close any open connections.
+
 .SH SEE ALSO
 .BR rpc.mountd (8),
 .BR exportfs (8),
