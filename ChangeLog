@@ -1,3 +1,9 @@
+Author: NeilBrown <neilb@cse.unsw.edu.au>
+Date:  Mon Aug  7 14:01:35 EST 2006
+
+    Remove warning if neither 'sync' or 'async' present.
+    Add warning of neither 'subtree_check' or 'no_subtree_check' present.
+	
 commit 7194d7d6320736c14f40d31c3738d40f3119ead5
 Author: Kevin Coffman <kwc@citi.umich.edu>
 Date:   Sat Jul 8 10:01:40 2006 +1000

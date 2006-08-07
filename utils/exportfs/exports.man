@@ -117,7 +117,7 @@ storage (see
 above).
 
 In releases of nfs-utils upto and including 1.0.0, this option was the
-default.  In this and future releases,
+default.  In all subsequence releases,
 .I sync
 is the default, and
 .I async
@@ -216,6 +216,16 @@ exported with subtree checks enabled.
 The default of having subtree checks enabled, can be explicitly
 requested with
 .IR subtree_check .
+
+From release 1.1.0 of nfs-utils onwards, the default will be
+.I no_subtree_check
+as subtree_checking tends to cause more problems than it is worth.
+If you genuinely require subtree checking, you should explicitly put
+that option in the
+.B exports
+file.  If you put neither option,
+.I exportfs
+will warn you that the change is pending.
 
 .TP
 .IR insecure_locks

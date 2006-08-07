@@ -312,7 +312,7 @@ updateexportent(struct exportent *eep, char *options)
 static int
 parseopts(char *cp, struct exportent *ep, int warn)
 {
-	int	had_sync_opt = 0;
+	int	had_subtree_opt = 0;
 	char 	*flname = efname?efname:"command line";
 	int	flline = efp?efp->x_line:0;
 
@@ -344,13 +344,11 @@ parseopts(char *cp, struct exportent *ep, int warn)
 			ep->e_flags &= ~NFSEXP_INSECURE_PORT;
 		else if (!strcmp(opt, "insecure"))
 			ep->e_flags |= NFSEXP_INSECURE_PORT;
-		else if (!strcmp(opt, "sync")) {
-			had_sync_opt = 1;
+		else if (!strcmp(opt, "sync"))
 			ep->e_flags &= ~NFSEXP_ASYNC;
-		} else if (!strcmp(opt, "async")) {
-			had_sync_opt = 1;
+		else if (!strcmp(opt, "async"))
 			ep->e_flags |= NFSEXP_ASYNC;
-		} else if (!strcmp(opt, "nohide"))
+		else if (!strcmp(opt, "nohide"))
 			ep->e_flags |= NFSEXP_NOHIDE;
 		else if (!strcmp(opt, "hide"))
 			ep->e_flags &= ~NFSEXP_NOHIDE;
@@ -370,11 +368,13 @@ parseopts(char *cp, struct exportent *ep, int warn)
 			ep->e_flags |= NFSEXP_ALLSQUASH;
 		else if (strcmp(opt, "no_all_squash") == 0)
 			ep->e_flags &= ~NFSEXP_ALLSQUASH;
-		else if (strcmp(opt, "subtree_check") == 0)
+		else if (strcmp(opt, "subtree_check") == 0) {
+			had_subtree_opt = 1;
 			ep->e_flags &= ~NFSEXP_NOSUBTREECHECK;
-		else if (strcmp(opt, "no_subtree_check") == 0)
+		} else if (strcmp(opt, "no_subtree_check") == 0) {
+			had_subtree_opt = 1;
 			ep->e_flags |= NFSEXP_NOSUBTREECHECK;
-		else if (strcmp(opt, "auth_nlm") == 0)
+		} else if (strcmp(opt, "auth_nlm") == 0)
 			ep->e_flags &= ~NFSEXP_NOAUTHNLM;
 		else if (strcmp(opt, "no_auth_nlm") == 0)
 			ep->e_flags |= NFSEXP_NOAUTHNLM;
@@ -454,10 +454,10 @@ bad_option:
 	ep->e_nsqgids = nsqgids;
 
 out:
-	if (warn && !had_sync_opt && !(ep->e_flags & NFSEXP_READONLY))
-		xlog(L_WARNING, "%s [%d]: No 'sync' or 'async' option specified for export \"%s:%s\".\n"
-				"  Assuming default behaviour ('sync').\n"
-		     		"  NOTE: this default has changed from previous versions\n",
+	if (warn && !had_subtree_opt)
+		xlog(L_WARNING, "%s [%d]: Neither 'subtree_check' or 'no_subtree_check' specified for export \"%s:%s\".\n"
+				"  Assuming default behaviour ('subtree_check').\n"
+		     		"  NOTE: this default will change with nfs-utils version 1.1.0\n",
 
 				flname, flline,
 				ep->e_hostname, ep->e_path);
