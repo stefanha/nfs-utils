@@ -1,6 +1,15 @@
 Author: NeilBrown <neilb@cse.unsw.edu.au>
 Date:  Mon Aug  7 16:35:03 AEST 2006
 
+    Set version to 1.0.10
+	Note: 1.0.10 should be used in preference to
+	 1.0.9 especially with kernels 2.6.18 and later
+	 otherwise 'rpc.nfsd N' won't work to change the
+	 number of threads after nfsd has been started.
+	
+Author: NeilBrown <neilb@cse.unsw.edu.au>
+Date:  Mon Aug  7 16:35:03 AEST 2006
+
     support/nfs/nfssvc.c:  if any ports are already open,
 	   don't try to open any more.  
 	 This means that once nfsd is running
