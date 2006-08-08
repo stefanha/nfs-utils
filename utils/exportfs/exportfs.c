@@ -412,9 +412,9 @@ dump(int verbose)
 				c = dumpopt(c, "mapping=ugidd");
 			else if (ep->e_maptype == CLE_MAP_FILE)
 				c = dumpopt(c, "mapping=file");
-			if (ep->e_anonuid != -2)
+			if (ep->e_anonuid != 65534)
 				c = dumpopt(c, "anonuid=%d", ep->e_anonuid);
-			if (ep->e_anongid != -2)
+			if (ep->e_anongid != 65534)
 				c = dumpopt(c, "anongid=%d", ep->e_anongid);
 
 			printf("%c\n", (c != '(')? ')' : ' ');
