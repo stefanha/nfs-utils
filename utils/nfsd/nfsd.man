@@ -77,6 +77,7 @@ will stop all threads and thus close any open connections.
 
 .SH SEE ALSO
 .BR rpc.mountd (8),
+.BR exports (5),
 .BR exportfs (8),
 .BR rpc.rquotad (8),
 .BR nfsstat (8).
