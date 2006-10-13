@@ -147,8 +147,13 @@ AC_BSD_SIGNALS
 dnl *************************************************************
 dnl * Check for required libraries
 dnl *************************************************************
-AC_CHECK_LIB(socket, main, [LIBSOCKET="-lnsl"])
-AC_CHECK_LIB(nsl, main,	[LIBNSL="-lnsl"])
+AC_CHECK_FUNC(gethostbyname, , [AC_CHECK_LIB(nsl, gethostbyname, [LIBNSL="-lnsl"])])
+AC_SUBST(LIBNSL)
+
+AC_CHECK_FUNC(connect, ,
+      AC_CHECK_LIB(socket, connect, [LIBSOCKET="-lsocket"],
+                AC_MSG_ERROR(Function 'socket' not found.), $LIBNSL))
+
 AC_CHECK_LIB(crypt, crypt, [LIBCRYPT="-lcrypt"])
 if test "$enable_nfsv4" = yes; then
     AC_CHECK_LIB(event, event_dispatch, [libevent=1], AC_MSG_ERROR([libevent needed for nfsv4 support]))
@@ -170,7 +175,6 @@ if test "$knfsd_cv_glibc2" = no; then
     AC_CHECK_LIB(bsd, daemon, [LIBBSD="-lbsd"])
 fi
 AC_SUBST(LIBSOCKET)
-AC_SUBST(LIBNSL)
 AC_SUBST(LIBCRYPT)
 AC_SUBST(LIBBSD)
 
