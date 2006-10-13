@@ -334,6 +334,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 	char cc_name[BUFSIZ];
 	int code;
 	time_t now = time(0);
+	char *cache_type;
 
 	memset(&my_creds, 0, sizeof(my_creds));
 
@@ -380,7 +381,12 @@ gssd_get_single_krb5_cred(krb5_context context,
 	 * Initialize cache file which we're going to be using
 	 */
 
-	snprintf(cc_name, sizeof(cc_name), "FILE:%s/%s%s_%s",
+	if (use_memcache)
+	    cache_type = "MEMORY";
+	else
+	    cache_type = "FILE";
+	snprintf(cc_name, sizeof(cc_name), "%s:%s/%s%s_%s",
+		cache_type,
 		GSSD_DEFAULT_CRED_DIR, GSSD_DEFAULT_CRED_PREFIX,
 		GSSD_DEFAULT_MACHINE_CRED_SUFFIX, ple->realm);
 	ple->endtime = my_creds.times.endtime;

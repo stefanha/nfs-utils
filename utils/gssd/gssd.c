@@ -56,6 +56,7 @@
 char pipefsdir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
 char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR;
+int  use_memcache = 0;
 
 void
 sig_die(int signal)
@@ -92,13 +93,16 @@ main(int argc, char *argv[])
 	extern char *optarg;
 	char *progname;
 
-	while ((opt = getopt(argc, argv, "fvrmp:k:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "fvrmMp:k:d:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
 				break;
 			case 'm':
 				/* Accept but ignore this. Now the default. */
+				break;
+			case 'M':
+				use_memcache = 1;
 				break;
 			case 'v':
 				verbosity++;
