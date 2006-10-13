@@ -51,6 +51,7 @@
  *
  *	buf->length should be:
  *
+ *      version 4
  *	ctx_id 4 + 12
  *	qop 4
  *	mech_used 4 + 7
@@ -70,60 +71,58 @@ prepare_spkm3_ctx_buffer(gss_spkm3_lucid_ctx_t *lctx, gss_buffer_desc *buf)
 	char *p, *end;
 	unsigned int buf_size = 0;
 
-	buf_size = lctx->ctx_id.length +
-		sizeof(lctx->ctx_id.length) + sizeof(lctx->qop) +
+	buf_size = sizeof(lctx->version) +
+		lctx->ctx_id.length + sizeof(lctx->ctx_id.length) +
+		sizeof(lctx->endtime) +
 		sizeof(lctx->mech_used.length) + lctx->mech_used.length +
-		sizeof(lctx->ret_flags) + sizeof(lctx->req_flags) +
-		sizeof(lctx->share_key.length) + lctx->share_key.length +
+		sizeof(lctx->ret_flags) +
 		sizeof(lctx->conf_alg.length) + lctx->conf_alg.length +
 		sizeof(lctx->derived_conf_key.length) +
 		lctx->derived_conf_key.length +
 		sizeof(lctx->intg_alg.length) + lctx->intg_alg.length +
 		sizeof(lctx->derived_integ_key.length) +
-		lctx->derived_integ_key.length +
-		sizeof(lctx->keyestb_alg.length) + lctx->keyestb_alg.length +
-		sizeof(lctx->owf_alg.length) + lctx->owf_alg.length;
+		lctx->derived_integ_key.length;
 
 	if (!(buf->value = calloc(1, buf_size)))
 		goto out_err;
 	p = buf->value;
 	end = buf->value + buf_size;
 
+	if (WRITE_BYTES(&p, end, lctx->version))
+		goto out_err;
+	printerr(2, "DEBUG: exporting version = %d\n", lctx->version);
+
 	if (write_buffer(&p, end, &lctx->ctx_id))
 		goto out_err;
+	printerr(2, "DEBUG: exporting ctx_id(%d)\n", lctx->ctx_id.length);
 
-	if (WRITE_BYTES(&p, end, lctx->qop))
+	if (WRITE_BYTES(&p, end, lctx->endtime))
 		goto out_err;
+	printerr(2, "DEBUG: exporting endtime = %d\n", lctx->endtime);
 
 	if (write_buffer(&p, end, &lctx->mech_used))
 		goto out_err;
+	printerr(2, "DEBUG: exporting mech oid (%d)\n", lctx->mech_used.length);
 
 	if (WRITE_BYTES(&p, end, lctx->ret_flags))
 		goto out_err;
-
-	if (WRITE_BYTES(&p, end, lctx->req_flags))
-		goto out_err;
-
-	if (write_buffer(&p, end, &lctx->share_key))
-		goto out_err;
+	printerr(2, "DEBUG: exporting ret_flags = %d\n", lctx->ret_flags);
 
 	if (write_buffer(&p, end, &lctx->conf_alg))
 		goto out_err;
+	printerr(2, "DEBUG: exporting conf_alg oid (%d)\n", lctx->conf_alg.length);
 
 	if (write_buffer(&p, end, &lctx->derived_conf_key))
 		goto out_err;
+	printerr(2, "DEBUG: exporting conf key (%d)\n", lctx->derived_conf_key.length);
 
 	if (write_buffer(&p, end, &lctx->intg_alg))
 		goto out_err;
+	printerr(2, "DEBUG: exporting intg_alg oid (%d)\n", lctx->intg_alg.length);
 
 	if (write_buffer(&p, end, &lctx->derived_integ_key))
 		goto out_err;
-
-	if (write_buffer(&p, end, &lctx->keyestb_alg))
-		goto out_err;
-
-	if (write_buffer(&p, end, &lctx->owf_alg))
-		goto out_err;
+	printerr(2, "DEBUG: exporting intg key (%d)\n", lctx->derived_integ_key.length);
 
 	buf->length = p - (char *)buf->value;
 	return 0;
