@@ -47,6 +47,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <sys/fsuid.h>
 
 #include <stdio.h>
 #include <stdlib.h>

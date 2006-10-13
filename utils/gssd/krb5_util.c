@@ -178,6 +178,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, struct dirent **d)
 	struct dirent *best_match_dir = NULL;
 	struct stat best_match_stat, tmp_stat;
 
+	memset(&best_match_stat, 0, sizeof(best_match_stat));
 	*d = NULL;
 	n = scandir(ccachedir, &namelist, select_krb5_ccache, 0);
 	if (n < 0) {

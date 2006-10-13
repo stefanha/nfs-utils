@@ -183,7 +183,7 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	if (WRITE_BYTES(&p, end, lctx->endtime)) goto out_err;
 	word_send_seq = lctx->send_seq;	/* XXX send_seq is 64-bit */
 	if (WRITE_BYTES(&p, end, word_send_seq)) goto out_err;
-	if (write_buffer(&p, end, (gss_buffer_desc*)&krb5oid)) goto out_err;
+	if (write_oid(&p, end, &krb5oid)) goto out_err;
 
 	printerr(2, "prepare_krb5_rfc1964_buffer: serializing keys with "
 		 "enctype %d and length %d\n",
