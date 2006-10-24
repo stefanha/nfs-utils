@@ -1,4 +1,14 @@
 Author: Steinar H. Gunderson <sgunderson@bigfoot.com>
+Date:  Wed Sep 13 22:23:23 CEST 2006
+
+    Fix -n option to mountd
+
+    The getopt_long() option string in mountd was having a spurious
+    colon after the 'n', leading to the short form of --no-tcp not
+    being usable (expecting a parameter, contrary to the long form
+    and the documentation). Fix.
+    
+Author: Steinar H. Gunderson <sgunderson@bigfoot.com>
 Date:  Wed Sep 13 22:19:39 CEST 2006
 
     Document sensitive gids
