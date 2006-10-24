@@ -138,7 +138,7 @@ entries in
 (unless the
 .B -i
 option is given).
-In addition, the administrator may overide any options from these sources
+In addition, the administrator may override any options from these sources
 using the
 .B -o
 argument which takes a comma-separated list of options in the same fashion
@@ -167,7 +167,7 @@ all entries listed in
 are removed from the kernel export tables, and the file is cleared. This
 effectively shuts down all NFS activity.
 .P
-To remove individial export entries, one can specify a
+To remove individual export entries, one can specify a
 .I host:/path
 pair. This deletes the specified entry from
 .B xtab
@@ -184,7 +184,9 @@ option, the list of flags pertaining to each export are shown in addition.
 .\" -------------------- EXAMPLES ---------------------------------
 .SH EXAMPLES
 The following adds all directories listed in
-.B /etc/exports to /var/lib/nfs/xtab
+.B /etc/exports
+to
+.B /var/lib/nfs/xtab
 and pushes the resulting export entries into the kernel:
 .P
 .nf
@@ -214,7 +216,7 @@ across reboots.
 .P
 When unexporting a network or domain entry, any current exports to members
 of this group will be checked against the remaining valid exports and
-if they themselves are nolonger valid they will be removed.
+if they themselves are no longer valid they will be removed.
 .P
 .\" -------------------- SEE ALSO --------------------------------
 .SH SEE ALSO

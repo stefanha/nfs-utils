@@ -80,7 +80,7 @@ Show all information about all versions of \fBNFS\fR.
 Same as above.
 .TP
 .B nfsstat -o all
-Show all information about about active versions of \fBNFS\fR.
+Show all information about active versions of \fBNFS\fR.
 .TP
 .B nfsstat --nfs --server -3
 Show statistics for \fBNFS\fR version 3 server.

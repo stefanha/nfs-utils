@@ -88,7 +88,7 @@ rpcsec_gss and to make requirements on the IP address of the client.
 understands the following export options:
 .TP
 .IR secure "\*d
-This option requires that requests originate on an internet port less
+This option requires that requests originate on an Internet port less
 than IPPORT_RESERVED (1024). This option is on by default. To turn it
 off, specify
 .IR insecure .
@@ -116,13 +116,13 @@ storage (see
 .IR async
 above).
 
-In releases of nfs-utils upto and including 1.0.0, this option was the
+In releases of nfs-utils up to and including 1.0.0, this option was the
 default.  In all subsequence releases,
 .I sync
 is the default, and
 .I async
 must be explicit requested if needed.
-To help make system adminstrators aware of this change, 'exportfs'
+To help make system administrators aware of this change, 'exportfs'
 will issue a warning if neither
 .I sync
 nor
@@ -297,7 +297,7 @@ if, for example, the filesystem failed to mount due to a disc error.
 
 If a path is given (e.g.
 .IR mountpoint= "/path or " mp= /path)
-then the nominted path must be a mountpoint for the exportpoint to be
+then the nominated path must be a mountpoint for the exportpoint to be
 exported.
 
 .TP
