@@ -402,8 +402,11 @@ Here's the complete list of mapping options:
 .TP
 .IR root_squash
 Map requests from uid/gid 0 to the anonymous uid/gid. Note that this does
-not apply to any other uids that might be equally sensitive, such as user
-.IR bin .
+not apply to any other uids or gids that might be equally sensitive, such as
+user
+.IR bin 
+or group
+.IR staff .
 .TP
 .IR no_root_squash
 Turn off root squashing. This option is mainly useful for diskless clients.
