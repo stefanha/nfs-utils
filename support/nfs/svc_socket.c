@@ -64,7 +64,7 @@ svc_socket (u_long number, int type, int protocol, int reuse)
 	}
     }
 
-  __bzero ((char *) &addr, sizeof (addr));
+  memset (&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
 
   ret = getrpcbynumber_r (number, &rpcbuf, rpcdata, sizeof rpcdata,
