@@ -149,11 +149,7 @@ int add_mtab(char *fsname, char *mount_point, char *fstype, int flags, char *opt
 	ment.mnt_freq = 0;
 	ment.mnt_passno= 0;
 
-	if ((fd = open(MOUNTED"~", O_RDWR|O_CREAT|O_EXCL, 0600)) == -1)	{
-		fprintf(stderr, "Can't get "MOUNTED"~ lock file");
-		return 1;
-	}
-        close(fd);
+	lock_mtab();
 
         if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
 		fprintf(stderr, "Can't open " MOUNTED);
@@ -161,21 +157,22 @@ int add_mtab(char *fsname, char *mount_point, char *fstype, int flags, char *opt
 	}
 
         if (addmntent(mtab, &ment) == 1) {
+		endmntent(mtab);
+		unlock_mtab();
 		fprintf(stderr, "Can't write mount entry");
 		return 1;
 	}
 
         if (fchmod(fileno(mtab), 0644) == -1) {
+		endmntent(mtab);
+		unlock_mtab();
 		fprintf(stderr, "Can't set perms on " MOUNTED);
 		return 1;
 	}
 
 	endmntent(mtab);
 
-	if (unlink(MOUNTED"~") == -1) {
-		fprintf(stderr, "Can't remove "MOUNTED"~");
-		return 1;
-	}
+	unlock_mtab();
 
 	return 0;
 }
