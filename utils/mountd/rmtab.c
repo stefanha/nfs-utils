@@ -25,6 +25,8 @@
 
 #include <limits.h> /* PATH_MAX */
 
+extern int reverse_resolve;
+
 /* If new path is a link do not destroy it but place the
  * file where the link points.
  */
@@ -185,6 +187,8 @@ mountlist_list(void)
 	struct rmtabent		*rep;
 	struct stat		stb;
 	int			lockid;
+	struct in_addr		addr;
+	struct hostent		*he;
 
 	if ((lockid = xflock(_PATH_RMTAB, "r")) < 0)
 		return NULL;
@@ -204,8 +208,15 @@ mountlist_list(void)
 		setrmtabent("r");
 		while ((rep = getrmtabent(1, NULL)) != NULL) {
 			m = (mountlist) xmalloc(sizeof(*m));
-			m->ml_hostname = xstrdup(rep->r_client);
-			m->ml_directory = xstrdup(rep->r_path);
+
+			if (reverse_resolve &&
+			   inet_aton((const char *) rep->r_client, &addr) &&
+			   (he = gethostbyaddr(&addr, sizeof(addr), AF_INET)))
+				m->ml_hostname = xstrdup(he->h_name);
+			else
+				m->ml_hostname = xstrdup(rep->r_client);
+
+ 			m->ml_directory = xstrdup(rep->r_path);
 			m->ml_next = mlist;
 			mlist = m;
 		}

@@ -37,6 +37,7 @@ static void		usage(const char *, int exitcode);
 static exports		get_exportlist(void);
 static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, mountstat3 *, int v3);
 
+int reverse_resolve = 0;
 int new_cache = 0;
 
 /* PRC: a high-availability callout program can be specified with -H
@@ -557,7 +558,7 @@ main(int argc, char **argv)
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;
-	while ((c = getopt_long(argc, argv, "o:nFd:f:p:P:hH:N:V:vs:t:", longopts, NULL)) != EOF)
+	while ((c = getopt_long(argc, argv, "o:nFd:f:p:P:hH:N:V:vrs:t:", longopts, NULL)) != EOF)
 		switch (c) {
 		case 'o':
 			descriptors = atoi(optarg);
@@ -596,6 +597,9 @@ main(int argc, char **argv)
 			break;
 		case 'n':
 			_rpcfdtype = SOCK_DGRAM;
+			break;
+		case 'r':
+			reverse_resolve = 1;
 			break;
 		case 's':
 			if ((state_dir = xstrdup(optarg)) == NULL) {
