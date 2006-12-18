@@ -76,21 +76,15 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 	if (new_cache) {
 		int i;
 		/* return static nfs_export with details filled in */
-		if (my_client.m_naddr != 1 ||
-		    my_client.m_addrlist[0].s_addr != caller->sin_addr.s_addr) {
-			/* different client to last time, so do a lookup */
-			char *n;
-			my_client.m_naddr = 0;
-			my_client.m_addrlist[0] = caller->sin_addr;
-			n = client_compose(caller->sin_addr);
-			*error = unknown_host;
-			if (!n)
-				return NULL;
-			strcpy(my_client.m_hostname, *n?n:"DEFAULT");
-			free(n);
-			my_client.m_naddr = 1;
-		}
-
+		char *n;
+		my_client.m_addrlist[0] = caller->sin_addr;
+		n = client_compose(caller->sin_addr);
+		*error = unknown_host;
+		if (!n)
+			return NULL;
+		strcpy(my_client.m_hostname, *n?n:"DEFAULT");
+		free(n);
+		my_client.m_naddr = 1;
 		my_exp.m_client = &my_client;
 
 		exp = NULL;
