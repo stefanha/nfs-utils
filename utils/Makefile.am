@@ -24,7 +24,6 @@ SUBDIRS = \
 	mountd \
 	nfsd \
 	nfsstat \
-	nhfsstone \
 	showmount \
 	statd \
 	$(OPTDIRS)

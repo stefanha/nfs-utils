@@ -333,7 +333,6 @@ AC_CONFIG_FILES([
 	utils/mountd/Makefile
 	utils/nfsd/Makefile
 	utils/nfsstat/Makefile
-	utils/nhfsstone/Makefile
 	utils/rquotad/Makefile
 	utils/showmount/Makefile
 	utils/statd/Makefile])
