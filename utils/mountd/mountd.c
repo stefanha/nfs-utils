@@ -67,6 +67,7 @@ static struct option longopts[] =
 	{ "ha-callout", 1, 0, 'H' },
 	{ "state-directory-path", 1, 0, 's' },
 	{ "num-threads", 1, 0, 't' },
+	{ "reverse-lookup", 0, 0, 'r' },
 	{ NULL, 0, 0, 0 }
 };
 
