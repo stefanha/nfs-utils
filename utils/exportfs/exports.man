@@ -22,6 +22,11 @@ client may be immediately followed by a parenthesized, comma-separated
 list of export options for that client. No whitespace is permitted
 between a client and its option list.
 .PP
+Also, each line may have one or more specifications for default options
+after the path name, in the form of a dash ("\-") followed by an option
+list. The option list is used for all subsequent exports on that line
+only.
+.PP
 Blank lines are ignored.  A pound sign ("#") introduces a comment to the
 end of the line. Entries may be continued across newlines using a
 backslash. If an export name contains spaces it should be quoted using
@@ -499,6 +504,7 @@ is supposedly that of user joe).
 /usr            *.local.domain(ro) @trusted(rw)
 /home/joe       pc001(rw,all_squash,anonuid=150,anongid=100)
 /pub            (ro,insecure,all_squash)
+/srv/www        -sync,rw server @trusted @external(ro)
 '''/pub/private    (noaccess)
 .fi
 .PP
@@ -512,6 +518,9 @@ under the nobody account. The
 .I insecure 
 option in this entry also allows clients with NFS implementations that
 don't use a reserved port for NFS.
+The sixth line exports a directory read-write to the machine 'server'
+as well as the `@trusted' netgroup, and read-only to netgroup `@external',
+all three mounts with the `sync' option enabled.
 ''' The last line denies all NFS clients
 '''access to the private directory.
 '''.SH CAVEATS
