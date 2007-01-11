@@ -109,10 +109,10 @@ void qword_printint(FILE *f, int num)
 	fprintf(f, "%d ", num);
 }
 
-void qword_eol(FILE *f)
+int qword_eol(FILE *f)
 {
 	fprintf(f,"\n");
-	fflush(f);
+	return fflush(f);
 }
 
 

@@ -173,11 +173,13 @@ void qword_printint(FILE *f, int num)
 	printerr(2, "%d ", num);
 }
 
-void qword_eol(FILE *f)
+int qword_eol(FILE *f)
 {
+	int err;
 	fprintf(f,"\n");
-	fflush(f);
+	err = fflush(f);
 	printerr(2, "\n");
+	return err;
 }
 
 

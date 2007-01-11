@@ -72,6 +72,7 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 	FILE *f;
 	int i;
 	char *fname = NULL;
+	int err;
 
 	printerr(1, "doing downcall\n");
 	if ((fname = mech2file(mech)) == NULL)
@@ -93,9 +94,9 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 		qword_printint(f, cred->cr_groups[i]);
 	qword_print(f, fname);
 	qword_printhex(f, context_token->value, context_token->length);
-	qword_eol(f);
+	err = qword_eol(f);
 	fclose(f);
-	return 0;
+	return err;
 out_err:
 	printerr(0, "WARNING: downcall failed\n");
 	return -1;

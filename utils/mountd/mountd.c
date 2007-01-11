@@ -29,7 +29,7 @@
 
 extern void	cache_open(void);
 extern struct nfs_fh_len *cache_get_filehandle(nfs_export *exp, int len, char *p);
-extern void cache_export(nfs_export *exp);
+extern int cache_export(nfs_export *exp);
 
 extern void my_svc_run(void);
 
@@ -416,7 +416,10 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, mountstat3 *error, int v3)
 		 */
 		struct nfs_fh_len  *fh;
 
-		cache_export(exp);
+		if (cache_export(exp)) {
+			*error = NFSERR_ACCES;
+			return NULL;
+		}
 		fh = cache_get_filehandle(exp, v3?64:32, p);
 		if (fh == NULL) 
 			*error = NFSERR_ACCES;

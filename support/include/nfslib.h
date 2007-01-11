@@ -132,7 +132,7 @@ struct nfs_fh_len *	getfh_size(struct sockaddr *addr, const char *, int size);
 void qword_print(FILE *f, char *str);
 void qword_printhex(FILE *f, char *str, int slen);
 void qword_printint(FILE *f, int num);
-void qword_eol(FILE *f);
+int qword_eol(FILE *f);
 int readline(int fd, char **buf, int *lenp);
 int qword_get(char **bpp, char *dest, int bufsize);
 int qword_get_int(char **bpp, int *anint);

@@ -35,7 +35,7 @@
  * Record is terminated with newline.
  *
  */
-void cache_export_ent(char *domain, struct exportent *exp);
+int cache_export_ent(char *domain, struct exportent *exp);
 
 
 char *lbuf  = NULL;
@@ -352,12 +352,12 @@ int cache_process_req(fd_set *readfds)
  * % echo $domain $path $[now+30*60] $options $anonuid $anongid $fsid > /proc/net/rpc/nfsd.export/channel
  */
 
-void cache_export_ent(char *domain, struct exportent *exp)
+int cache_export_ent(char *domain, struct exportent *exp)
 {
-
+	int err;
 	FILE *f = fopen("/proc/net/rpc/nfsd.export/channel", "w");
 	if (!f)
-		return;
+		return -1;
 
 	qword_print(f, domain);
 	qword_print(f, exp->e_path);
@@ -366,28 +366,32 @@ void cache_export_ent(char *domain, struct exportent *exp)
 	qword_printint(f, exp->e_anonuid);
 	qword_printint(f, exp->e_anongid);
 	qword_printint(f, exp->e_fsid);
-	qword_eol(f);
+	err = qword_eol(f);
 
 	fclose(f);
+	return err;
 }
 
-void cache_export(nfs_export *exp)
+int cache_export(nfs_export *exp)
 {
+	int err;
 	FILE *f;
 
 	f = fopen("/proc/net/rpc/auth.unix.ip/channel", "w");
 	if (!f)
-		return;
+		return -1;
 
 	qword_print(f, "nfsd");
 	qword_print(f, inet_ntoa(exp->m_client->m_addrlist[0]));
 	qword_printint(f, time(0)+30*60);
 	qword_print(f, exp->m_client->m_hostname);
-	qword_eol(f);
+	err = qword_eol(f);
 	
 	fclose(f);
 
-	cache_export_ent(exp->m_client->m_hostname, &exp->m_export);
+	err = cache_export_ent(exp->m_client->m_hostname, &exp->m_export)
+		|| err;
+	return err;
 }
 
 /* Get a filehandle.
@@ -413,9 +417,10 @@ cache_get_filehandle(nfs_export *exp, int len, char *p)
 	qword_print(f, exp->m_client->m_hostname);
 	qword_print(f, p);
 	qword_printint(f, len);	
-	qword_eol(f);
+	failed = qword_eol(f);
 	
-	failed = (fgets(buf, sizeof(buf), f) == NULL);
+	if (!failed)
+		failed = (fgets(buf, sizeof(buf), f) == NULL);
 	fclose(f);
 	if (failed)
 		return NULL;

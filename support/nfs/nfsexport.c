@@ -38,6 +38,7 @@ exp_unexp(struct nfsctl_export *exp, int export)
 	char fsidstr[8];
 	__u16 dev;
 	__u32 inode;
+	int err;
 
 
 	f = fopen("/proc/net/rpc/nfsd.export/channel", "w");
@@ -53,7 +54,7 @@ exp_unexp(struct nfsctl_export *exp, int export)
 	} else
 		qword_printint(f, 1);
 
-	qword_eol(f);
+	err = qword_eol(f);
 	fclose(f);
 
 	if (stat(exp->ex_path, &stb) != 0)
@@ -71,7 +72,7 @@ exp_unexp(struct nfsctl_export *exp, int export)
 		} else
 			qword_printint(f, 1);
 
-		qword_eol(f);
+		err = qword_eol(f) || err;
 	}
 	qword_print(f,exp->ex_client);
 	qword_printint(f,0);
@@ -85,9 +86,9 @@ exp_unexp(struct nfsctl_export *exp, int export)
 		qword_print(f, exp->ex_path);
 	} else
 		qword_printint(f, 1);
-	qword_eol(f);
+	err = qword_eol(f) || err;
 	fclose(f);
-	return 0;
+	return err;
 }
 
 int
