@@ -40,7 +40,7 @@ bool_t		mount_mnt_3_svc(struct svc_req *, dirpath *, mountres3 *);
 
 void		mount_dispatch(struct svc_req *, SVCXPRT *);
 void		auth_init(char *export_file);
-int		auth_reload(void);
+time_t		auth_reload(void);
 nfs_export *	auth_authenticate(char *what, struct sockaddr_in *sin,
 					char *path);
 void		auth_export(nfs_export *exp);

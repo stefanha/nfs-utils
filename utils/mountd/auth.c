@@ -46,7 +46,7 @@ auth_init(char *exports)
 	xtab_mount_write();
 }
 
-int
+time_t
 auth_reload()
 {
 	struct stat		stb;
@@ -55,7 +55,7 @@ auth_reload()
 	if (stat(_PATH_ETAB, &stb) < 0)
 		xlog(L_FATAL, "couldn't stat %s", _PATH_ETAB);
 	if (stb.st_mtime == last_modified)
-		return 0;
+		return last_modified;
 	last_modified = stb.st_mtime;
 
 	export_freeall();
@@ -63,7 +63,7 @@ auth_reload()
 	// export_read(export_file);
 	xtab_export_read();
 
-	return 1;
+	return last_modified;
 }
 
 static nfs_export *
