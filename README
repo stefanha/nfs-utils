@@ -16,10 +16,9 @@ libraries.  They are available from
 Otherwise use --disable-nfsv4
 
 
-1. COMPILING WITHOUT PACKAGE MANAGEMENT
+1. COMPILING
 
-To compile without using a package management system, unpack the
-sources and run these commands:
+Unpack the sources and run these commands:
 
     # ./configure
     # make
@@ -28,38 +27,29 @@ To install binaries and documenation, run this command:
 
     # make install
 
-You will have to install the two NFS service scripts yourself.
-Service scripts for RedHat 6.x and 7.x are in etc/redhat.  They
-have been tested on RedHat 6.2 and 7.1.
 
+2. COMPILING FROM GIT
 
-2. COMPILING WITH RPM
+Getting nfs-utils for the first time:
 
-On RedHat 6.2 and 7.1, you can use
+	git clone git://linux-nfs.org/nfs-utils
 
-    # rpm -ta nfs-utils-1.0.1.tar.gz
+Updating to the latest head after you've already got it.
 
-to build the source and binary RPMs.
+	git pull
 
+Building requires that autotools be installed:
 
-3. COMPILING FOR DEBIAN
+	aclocal -I aclocal
+	autoheader
+	automake
+	autoconf
 
-The nfs-utils tree has an up-to-date debian directory, so the usual
-debian build scripts should work.  The simplest way to build binary
-debs, however, is simply to become root (or use fakeroot) and run:
-
-    # debian/rules binary
-
-
-4. REQUIRED VERSIONS OF OTHER TOOLS
-
-Proper NFS operation requires a 'mount' program from util-linux 2.11f
-or later.
-
+You may also need to copy ltmain.sh to the current directory if the
+above doesn't do that.  Usually there's a copy in
+/usr/share/libtool/ltmain.sh.  Finally, build as usual as above.
 
 Share And Enjoy!
 
     --	the nfs-utils developers
 	<nfs@lists.sourceforge.net>
-	26 Dec 2001
-
