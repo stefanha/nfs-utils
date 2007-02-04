@@ -40,6 +40,8 @@ $(GENFILES_H): %.h: %.x $(RPCGEN)
 	test -f $@ && rm -rf $@ || true
 	$(RPCGEN) -h -o $@ $<
 
+CLEANFILES = $(GENFILES)
+
 #######################################################################
 # The following allows the current practice of having
 # daemons renamed during the install to include RPCPREFIX
