@@ -126,7 +126,7 @@ default.  In all subsequence releases,
 .I sync
 is the default, and
 .I async
-must be explicit requested if needed.
+must be explicitly requested if needed.
 To help make system administrators aware of this change, 'exportfs'
 will issue a warning if neither
 .I sync
@@ -504,7 +504,7 @@ is supposedly that of user joe).
 /usr            *.local.domain(ro) @trusted(rw)
 /home/joe       pc001(rw,all_squash,anonuid=150,anongid=100)
 /pub            (ro,insecure,all_squash)
-/srv/www        -sync,rw server @trusted @external(ro)
+/srv/www        \-sync,rw server @trusted @external(ro)
 '''/pub/private    (noaccess)
 .fi
 .PP

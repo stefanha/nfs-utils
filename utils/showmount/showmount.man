@@ -21,7 +21,7 @@ lists the set of clients who are mounting from that host.
 The output from
 .B showmount
 is designed to
-appear as though it were processed through ``sort -u''.
+appear as though it were processed through ``sort \-u''.
 .SH OPTIONS
 .TP
 .BR \-a " or " \-\-all
