@@ -9,7 +9,7 @@
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
-.B "/sbin/rpc.statd [-F] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-H " prog "] [-V]"
+.B "rpc.statd [-F] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-H " prog "] [-V]"
 .SH DESCRIPTION
 The
 .B rpc.statd
