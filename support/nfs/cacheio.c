@@ -247,6 +247,7 @@ cache_flush(int force)
 	int c;
 	char stime[20];
 	char path[200];
+	time_t now;
 	/* Note: the order of these caches is important.
 	 * The need to be flushed in dependancy order. So
 	 * a cache that references items in another cache,
@@ -259,8 +260,10 @@ cache_flush(int force)
 		"nfsd.export",
 		NULL
 	};
+	now = time(0);
 	if (force ||
-	    stat(_PATH_ETAB, &stb) != 0)
+	    stat(_PATH_ETAB, &stb) != 0 ||
+	    stb.st_mtime > now)
 		stb.st_mtime = time(0);
 	
 	sprintf(stime, "%ld\n", stb.st_mtime);
