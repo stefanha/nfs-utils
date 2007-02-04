@@ -46,7 +46,6 @@ utils/showmount/showmount
 utils/statd/statd
 tools/locktest/testlk
 tools/getiversion/getiversion
-tools/getkversion/getkversion
 support/export/mount.h
 support/export/mount_clnt.c
 support/export/mount_xdr.c

@@ -319,7 +319,6 @@ AC_CONFIG_FILES([
 	support/nfs/Makefile
 	tools/Makefile
 	tools/getiversion/Makefile
-	tools/getkversion/Makefile
 	tools/locktest/Makefile
 	tools/nlmtest/Makefile
 	tools/rpcdebug/Makefile
