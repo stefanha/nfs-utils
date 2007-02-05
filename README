@@ -38,16 +38,12 @@ Updating to the latest head after you've already got it.
 
 	git pull
 
-Building requires that autotools be installed:
+Building requires that autotools be installed.  To invoke them
+simply
 
-	aclocal -I aclocal
-	autoheader
-	automake
-	autoconf
+	sh autogen.sh
 
-You may also need to copy ltmain.sh to the current directory if the
-above doesn't do that.  Usually there's a copy in
-/usr/share/libtool/ltmain.sh.  Finally, build as usual as above.
+Finally, build as usual as above.
 
 Share And Enjoy!
 
