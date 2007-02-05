@@ -7,7 +7,7 @@
 .SH NAME
 rpc.lockd \- start kernel lockd process
 .SH SYNOPSIS
-.B "/usr/sbin/rpc.lockd
+.B "rpc.lockd
 .SH DESCRIPTION
 The
 .B rpc.lockd

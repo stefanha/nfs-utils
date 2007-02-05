@@ -4,7 +4,7 @@
 .SH NAME
 showmount \- show mount information for an NFS server
 .SH SYNOPSIS
-.B /usr/sbin/showmount
+.B showmount
 .B "[\ \-adehv\ ]"
 .B "[\ \-\-all\ ]"
 .B "[\ \-\-directories\ ]"
