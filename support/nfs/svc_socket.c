@@ -113,11 +113,22 @@ svc_socket (u_long number, int type, int protocol, int reuse)
 	}
     }
 
-  if (sock >= 0 && protocol == IPPROTO_TCP)
+  if (sock >= 0)
     {
-	/* Make the TCP rendezvous socket non-block to avoid
-	 * problems with blocking in accept() after a spurious
-	 * wakeup from the kernel */
+	    /* This socket might be shared among multiple processes
+	     * if mountd is run multi-threaded.  So it is safest to
+	     * make it non-blocking, else all threads might wake
+	     * one will get the data, and the others will block
+	     * indefinitely.
+	     * In all cases, transaction on this socket are atomic
+	     * (accept for TCP, packet-read and packet-write for UDP)
+	     * so O_NONBLOCK will not confuse unprepared code causing
+	     * it to corrupt messages.
+	     * It generally safest to have O_NONBLOCK when doing an accept
+	     * as if we get a RST after the SYN and before accept runs,
+	     * we can block despite being told there was an acceptable
+	     * connection.
+	     */
 	int flags;
 	if ((flags = fcntl(sock, F_GETFL)) < 0)
 	  {
