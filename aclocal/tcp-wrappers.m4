@@ -4,29 +4,29 @@ AC_DEFUN([AC_TCP_WRAPPERS],[
   AC_ARG_WITH(tcp-wrappers,
     [  --with-tcp-wrappers[[=PATH]]      Enable tcpwrappers support
                  (optionally in PATH)],
-    [
-        if test "x$withval" != "xno" ; then
+    with_tcpw=$withval, $with_tcpw=yes)
+        if test "x$with_tcpw" != "xno" ; then
             saved_LIBS="$LIBS"
             saved_LDFLAGS="$LDFLAGS"
             saved_CPPFLAGS="$CPPFLAGS"
-            if test -n "${withval}" -a "${withval}" != "yes"; then
-                if test -d "${withval}/lib"; then
+            if test -n "${with_tcpw}" -a "${with_tcpw}" != "yes"; then
+                if test -d "${with_tcpw}/lib"; then
                     if test -n "${need_dash_r}"; then
-                        LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+                        LDFLAGS="-L${with_tcpw}/lib -R${with_tcpw}/lib ${LDFLAGS}"
                     else
-                        LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+                        LDFLAGS="-L${with_tcpw}/lib ${LDFLAGS}"
                     fi
                 else
                     if test -n "${need_dash_r}"; then
-                        LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+                        LDFLAGS="-L${with_tcpw} -R${with_tcpw} ${LDFLAGS}"
                     else
-                        LDFLAGS="-L${withval} ${LDFLAGS}"
+                        LDFLAGS="-L${with_tcpw} ${LDFLAGS}"
                     fi
                 fi
-                if test -d "${withval}/include"; then
-                    CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
+                if test -d "${with_tcpw}/include"; then
+                    CPPFLAGS="-I${with_tcpw}/include ${CPPFLAGS}"
                 else
-                    CPPFLAGS="-I${withval} ${CPPFLAGS}"
+                    CPPFLAGS="-I${with_tcpw} ${CPPFLAGS}"
                 fi
             fi
             LIBWRAP="-lwrap"
@@ -48,8 +48,6 @@ AC_DEFUN([AC_TCP_WRAPPERS],[
             ])
             LIBS="$saved_LIBS"
         fi
-    ]
-  )
   AC_SUBST(LIBWRAP)
   AC_SUBST(HAVE_LIBWRAP)
   AC_SUBST(HAVE_TCP_WRAPPER)
