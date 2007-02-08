@@ -113,9 +113,9 @@ interface to the mounted filesystems.
 .SH BUGS
 The default output has been changed.  To get the old default output you must run \fBnfsstat \-\-auto \-2\fR.
 .P
-The function of the \fB-v\fR and \fB-a\fR options have changed. The \fB-a\fR option
-is now reserved for future use. The \fB-v\fR does what the \fB-a\fR option used to do,
-and the new \fB-[234]\fR options replace the \fB-v\fR option.
+The function of the \fB\-v\fR and \fB\-a\fR options have changed. The \fB\-a\fR option
+is now reserved for future use. The \fB\-v\fR does what the \fB\-a\fR option used to do,
+and the new \fB\-[234]\fR options replace the \fB\-v\fR option.
 .P
 The \fBDisplay\fR section should be more complete.
 .P
