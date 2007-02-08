@@ -54,6 +54,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <nfsidmap.h>
 #include "nfslib.h"
 #include "svcgssd.h"
 #include "gss_util.h"
@@ -154,7 +155,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-n] [-f] [-v] [-r]\n",
+	fprintf(stderr, "usage: %s [-n] [-f] [-v] [-r] [-i]\n",
 		progname);
 	exit(1);
 }
@@ -166,14 +167,18 @@ main(int argc, char *argv[])
 	int fg = 0;
 	int verbosity = 0;
 	int rpc_verbosity = 0;
+	int idmap_verbosity = 0;
 	int opt;
 	extern char *optarg;
 	char *progname;
 
-	while ((opt = getopt(argc, argv, "fvrnp:")) != -1) {
+	while ((opt = getopt(argc, argv, "fivrnp:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
+				break;
+			case 'i':
+				idmap_verbosity++;
 				break;
 			case 'n':
 				get_creds = 0;
@@ -201,6 +206,13 @@ main(int argc, char *argv[])
 #else
 	if (rpc_verbosity > 0)
 		printerr(0, "Warning: rpcsec_gss library does not "
+			    "support setting debug level\n");
+#endif
+#ifdef HAVE_NFS4_SET_DEBUG
+        nfs4_set_debug(idmap_verbosity, NULL);
+#else
+	if (idmap_verbosity > 0)
+		printerr(0, "Warning: your nfsidmap library does not "
 			    "support setting debug level\n");
 #endif
 

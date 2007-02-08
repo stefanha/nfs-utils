@@ -2,11 +2,11 @@
 .\" rpc.svcgssd(8)
 .\"
 .\" Copyright (C) 2003 J. Bruce Fields <bfields@umich.edu>
-.TH rpc.svcgssd 8 "17 Mar 2003"
+.TH rpc.svcgssd 8 "12 Jan 2007"
 .SH NAME
 rpc.svcgssd \- server-side rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.svcgssd [-v] [-r] [-f] [-p pipefsdir]"
+.B "rpc.svcgssd [-v] [-r] [-i] [-f] [-p pipefsdir]"
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -30,6 +30,10 @@ Increases the verbosity of the output (can be specified multiple times).
 .TP
 .B -r
 If the rpcsec_gss library supports setting debug level,
+increases the verbosity of the output (can be specified multiple times).
+.TP
+.B -i
+If the nfsidmap library supports setting debug level,
 increases the verbosity of the output (can be specified multiple times).
 
 .SH SEE ALSO
