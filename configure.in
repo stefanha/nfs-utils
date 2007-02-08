@@ -8,6 +8,7 @@ AC_CONFIG_MACRO_DIR(aclocal)
 AM_INIT_AUTOMAKE
 AC_PREREQ(2.59)
 AC_PREFIX_DEFAULT(/usr)
+AM_MAINTAINER_MODE
 
 dnl *************************************************************
 dnl * Define the set of applicable options
