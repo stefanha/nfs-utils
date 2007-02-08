@@ -36,6 +36,7 @@
 void qword_add(char **bpp, int *lp, char *str);
 void qword_addhex(char **bpp, int *lp, char *buf, int blen);
 void qword_addint(char **bpp, int *lp, int n);
+void qword_adduint(char **bpp, int *lp, unsigned int n);
 void qword_addeol(char **bpp, int *lp);
 void qword_print(FILE *f, char *str);
 void qword_printhex(FILE *f, char *str, int slen);

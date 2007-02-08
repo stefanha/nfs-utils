@@ -125,8 +125,8 @@ send_response(FILE *f, gss_buffer_desc *in_handle, gss_buffer_desc *in_token,
 	qword_addhex(&bp, &blen, in_handle->value, in_handle->length);
 	qword_addhex(&bp, &blen, in_token->value, in_token->length);
 	qword_addint(&bp, &blen, 0x7fffffff); /*XXX need a better timeout */
-	qword_addint(&bp, &blen, maj_stat);
-	qword_addint(&bp, &blen, min_stat);
+	qword_adduint(&bp, &blen, maj_stat);
+	qword_adduint(&bp, &blen, min_stat);
 	qword_addhex(&bp, &blen, out_handle->value, out_handle->length);
 	qword_addhex(&bp, &blen, out_token->value, out_token->length);
 	qword_addeol(&bp, &blen);

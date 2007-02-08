@@ -132,6 +132,17 @@ void qword_addint(char **bpp, int *lp, int n)
 	*lp -= len;
 }
 
+void qword_adduint(char **bpp, int *lp, unsigned int n)
+{
+	int len;
+
+	len = snprintf(*bpp, *lp, "%u ", n);
+	if (len > *lp)
+		len = *lp;
+	*bpp += len;
+	*lp -= len;
+}
+
 void qword_addeol(char **bpp, int *lp)
 {
 	if (*lp <= 0)
