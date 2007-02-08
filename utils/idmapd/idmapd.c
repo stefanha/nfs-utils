@@ -464,7 +464,7 @@ dirscancb(int fd, short which, void *data)
 				goto next;
 
 			if ((ic = calloc(1, sizeof(*ic))) == NULL)
-				return;
+				goto out;
 			strlcpy(ic->ic_clid, ents[i]->d_name + 4,
 			    sizeof(ic->ic_clid));
 			path[0] = '\0';
@@ -474,7 +474,7 @@ dirscancb(int fd, short which, void *data)
 			if ((ic->ic_dirfd = open(path, O_RDONLY, 0)) == -1) {
 				idmapd_warn("dirscancb: open(%s)", path);
 				free(ic);
-				return;
+				goto out;
 			}
 
 			strlcat(path, "/idmap", sizeof(path));
@@ -486,7 +486,7 @@ dirscancb(int fd, short which, void *data)
 			if (nfsopen(ic) == -1) {
 				close(ic->ic_dirfd);
 				free(ic);
-				return;
+				goto out;
 			}
 
 			ic->ic_id = "Client";
@@ -512,6 +512,11 @@ dirscancb(int fd, short which, void *data)
 		} else
 			ic->ic_scanned = 0;
 	}
+
+out:
+	for (i = 0;  i < nent; i++)
+		free(ents[i]);
+	free(ents);
 	return;
 }
 
