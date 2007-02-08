@@ -16,6 +16,7 @@ COMMON_SRCS = \
 	context.c \
 	context_mit.c \
 	context_heimdal.c \
+	context_lucid.c \
 	context_spkm3.c \
 	gss_util.c \
 	gss_oids.c \
