@@ -236,6 +236,20 @@ void nfsd_fh(FILE *f)
 	return;		
 }
 
+static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *exp)
+{
+	qword_print(f, domain);
+	qword_print(f, path);
+	qword_printint(f, time(0)+30*60);
+	if (exp) {
+		qword_printint(f, exp->e_flags);
+		qword_printint(f, exp->e_anonuid);
+		qword_printint(f, exp->e_anongid);
+		qword_printint(f, exp->e_fsid);
+	}
+	return qword_eol(f);
+}
+
 void nfsd_export(FILE *f)
 {
 	/* requests are:
@@ -284,16 +298,12 @@ void nfsd_export(FILE *f)
 		}
 	}
 
-	qword_print(f, dom);
-	qword_print(f, path);
-	qword_printint(f, time(0)+30*60);
 	if (found) {
-		qword_printint(f, found->m_export.e_flags);
-		qword_printint(f, found->m_export.e_anonuid);
-		qword_printint(f, found->m_export.e_anongid);
-		qword_printint(f, found->m_export.e_fsid);
+		dump_to_cache(f, dom, path, &found->m_export);
+		mountlist_add(dom, path);
+	} else {
+		dump_to_cache(f, dom, path, NULL);
 	}
-	qword_eol(f);
  out:
 	if (dom) free(dom);
 	if (path) free(path);
@@ -359,16 +369,9 @@ int cache_export_ent(char *domain, struct exportent *exp)
 	if (!f)
 		return -1;
 
-	qword_print(f, domain);
-	qword_print(f, exp->e_path);
-	qword_printint(f, time(0)+30*60);
-	qword_printint(f, exp->e_flags);
-	qword_printint(f, exp->e_anonuid);
-	qword_printint(f, exp->e_anongid);
-	qword_printint(f, exp->e_fsid);
-	err = qword_eol(f);
-
+	err = dump_to_cache(f, domain, exp->e_path, exp);
 	fclose(f);
+	mountlist_add(domain, exp->e_path);
 	return err;
 }
 
