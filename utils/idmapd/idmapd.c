@@ -444,7 +444,7 @@ dirscancb(int fd, short which, void *data)
 {
 	int nent, i;
 	struct dirent **ents;
-	struct idmap_client *ic;
+	struct idmap_client *ic, *nextic;
 	char path[PATH_MAX];
 	struct idmap_clientq *icq = data;
 
@@ -498,7 +498,9 @@ dirscancb(int fd, short which, void *data)
 		}
 	}
 
-	TAILQ_FOREACH(ic, icq, ic_next) {
+	ic = TAILQ_FIRST(icq);
+	while(ic != NULL) {
+		nextic=TAILQ_NEXT(ic, ic_next);
 		if (!ic->ic_scanned) {
 			event_del(&ic->ic_event);
 			close(ic->ic_fd);
@@ -511,6 +513,7 @@ dirscancb(int fd, short which, void *data)
 			free(ic);
 		} else
 			ic->ic_scanned = 0;
+		ic = nextic;
 	}
 
 out:
