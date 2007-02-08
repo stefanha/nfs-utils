@@ -23,7 +23,14 @@ AC_DEFUN([AC_BSD_SIGNALS], [
 		kill(getpid(), SIGHUP); kill(getpid(), SIGHUP);
 		return (counter == 2)? 0 : 1;
 	}
-    ], knfsd_cv_bsd_signals=yes, knfsd_cv_bsd_signals=no)]) dnl
+    ], knfsd_cv_bsd_signals=yes, knfsd_cv_bsd_signals=no,
+    [
+      case "$host_os" in
+        *linux*) knfsd_cv_bsd_signals=no;;
+        *bsd*)   knfsd_cv_bsd_signals=yes;;
+        *)       AC_MSG_ERROR([unable to guess signal semantics for $host_os; please set knfsd_cv_bsd_signals]);;
+      esac
+    ])]) dnl
     AC_MSG_RESULT($knfsd_cv_bsd_signals)
     test $knfsd_cv_bsd_signals = yes && AC_DEFINE(HAVE_BSD_SIGNALS, 1, [Define this if you want to use BSD signal semantics])
 ])dnl

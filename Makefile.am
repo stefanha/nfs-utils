@@ -35,9 +35,12 @@ EXTRA_DIST = \
 	debian/nhfsstone.prerm \
 	debian/rules \
 	\
+	aclocal/bsdsignals.m4 \
 	aclocal/nfs-utils.m4 \
 	aclocal/kerberos5.m4 \
 	aclocal/tcp-wrappers.m4
+
+ACLOCAL_AMFLAGS = -I aclocal
 
 install-data-hook:
 	if [ ! -d $(DESTDIR)$(statedir) ]; then mkdir -p $(DESTDIR)$(statedir); fi
