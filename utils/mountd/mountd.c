@@ -39,6 +39,7 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, mountstat3 *, 
 
 int reverse_resolve = 0;
 int new_cache = 0;
+int manage_gids;
 
 /* PRC: a high-availability callout program can be specified with -H
  * When this is done, the program will receive callouts whenever clients
@@ -68,6 +69,7 @@ static struct option longopts[] =
 	{ "state-directory-path", 1, 0, 's' },
 	{ "num-threads", 1, 0, 't' },
 	{ "reverse-lookup", 0, 0, 'r' },
+	{ "manage-gids", 0, 0, 'g' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -567,8 +569,11 @@ main(int argc, char **argv)
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;
-	while ((c = getopt_long(argc, argv, "o:nFd:f:p:P:hH:N:V:vrs:t:", longopts, NULL)) != EOF)
+	while ((c = getopt_long(argc, argv, "o:nFd:f:p:P:hH:N:V:vrs:t:g", longopts, NULL)) != EOF)
 		switch (c) {
+		case 'g':
+			manage_gids = 1;
+			break;
 		case 'o':
 			descriptors = atoi(optarg);
 			if (descriptors <= 0) {
@@ -746,6 +751,6 @@ usage(const char *prog, int n)
 "	[-p|--port port] [-V version|--nfs-version version]\n"
 "	[-N version|--no-nfs-version version] [-n|--no-tcp]\n"
 "	[-H ha-callout-prog] [-s|--state-directory-path path]\n"
-"	[-t num|--num-threads=num]\n", prog);
+"	[-g|--manage-gids] [-t num|--num-threads=num]\n", prog);
 	exit(n);
 }

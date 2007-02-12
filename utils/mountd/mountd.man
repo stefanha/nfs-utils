@@ -143,6 +143,21 @@ can support both NFS version 2 and the newer version 3.
 Print the version of
 .B rpc.mountd
 and exit.
+.TP
+.B \-g " or " \-\-manage-gids
+Accept requests from the kernel to map user id numbers into  lists of
+group id numbers for use in access control.  An NFS request will
+normally (except when using Kerberos or other cryptographic
+authentication) contains a user-id and a list of group-ids.  Due to a
+limitation in the NFS protocol, at most 16 groups ids can be listed.
+If you use the
+.B \-g
+flag, then the list of group ids received from the client will be
+replaced by a list of group ids determined by an appropriate lookup on
+the server. Note that the 'primary' group id is not affected so a
+.I newgroup
+command on the client will still be effective.  This function requires
+a Linux Kernel with version at least 2.6.21.
 
 .SH TCP_WRAPPERS SUPPORT
 This

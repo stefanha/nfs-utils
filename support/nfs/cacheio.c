@@ -256,6 +256,7 @@ cache_flush(int force)
 	 */
 	static char *cachelist[] = {
 		"auth.unix.ip",
+		"auth.unix.gid",
 		"nfsd.fh",
 		"nfsd.export",
 		NULL

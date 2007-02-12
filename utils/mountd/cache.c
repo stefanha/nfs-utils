@@ -21,6 +21,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <ctype.h>
+#include <pwd.h>
+#include <grp.h>
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
@@ -99,6 +101,53 @@ void auth_unix_ip(FILE *f)
 
 	if (client) free(client);
 	
+}
+
+void auth_unix_gid(FILE *f)
+{
+	/* Request are
+	 *  uid
+	 * reply is
+	 *  uid expiry count list of group ids
+	 */
+	int uid;
+	struct passwd *pw;
+	gid_t glist[100], *groups = glist;
+	int ngroups = 100;
+	int rv, i;
+	char *cp;
+
+	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
+		return;
+
+	cp = lbuf;
+	if (qword_get_int(&cp, &uid) != 0)
+		return;
+
+	pw = getpwuid(uid);
+	if (!pw)
+		rv = -1;
+	else {
+		rv = getgrouplist(pw->pw_name, pw->pw_gid, groups, &ngroups);
+		if (rv == -1 && ngroups >= 100) {
+			groups = malloc(sizeof(gid_t)*ngroups);
+			if (!groups)
+				rv = -1;
+			else
+				rv = getgrouplist(pw->pw_name, pw->pw_gid,
+						  groups, &ngroups);
+		}
+	}
+	qword_printint(f, uid);
+	qword_printint(f, time(0)+30*60);
+	if (rv >= 0) {
+		qword_printint(f, ngroups);
+		for (i=0; i<ngroups; i++)
+			qword_printint(f, groups[i]);
+	}
+	qword_eol(f);
+	if (groups != glist)
+		free(groups);
 }
 
 int get_uuid(char *path, char *uuid, int uuidlen, char *u)
@@ -462,16 +511,20 @@ struct {
 	FILE *f;
 } cachelist[] = {
 	{ "auth.unix.ip", auth_unix_ip},
+	{ "auth.unix.gid", auth_unix_gid},
 	{ "nfsd.export", nfsd_export},
 	{ "nfsd.fh", nfsd_fh},
 	{ NULL, NULL }
 };
 
+extern int manage_gids;
 void cache_open(void) 
 {
 	int i;
-	for (i=0; cachelist[i].cache_name; i++ ){
+	for (i=0; cachelist[i].cache_name; i++ ) {
 		char path[100];
+		if (!manage_gids && cachelist[i].f == auth_unix_gid)
+			continue;
 		sprintf(path, "/proc/net/rpc/%s/channel", cachelist[i].cache_name);
 		cachelist[i].f = fopen(path, "r+");
 	}
@@ -529,7 +582,7 @@ int cache_export(nfs_export *exp)
 	if (exp->m_export.e_maptype != CLE_MAP_IDENT) {
 		xlog(L_ERROR, "%s: unsupported mapping; kernel supports only 'identity' (default)",
 		    exp->m_export.m_path);
-		return;
+		return -1;
 	}
 
 	f = fopen("/proc/net/rpc/auth.unix.ip/channel", "w");
