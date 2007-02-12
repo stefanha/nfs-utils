@@ -95,7 +95,7 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 		snprintf(buf, BUFSIZ,"%d\n", udpfd); 
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 			syslog(LOG_ERR, 
-			       "nfssvc: writting fds to kernel failed: errno %d (%s)", 
+			       "nfssvc: writing fds to kernel failed: errno %d (%s)", 
 			       errno, strerror(errno));
 		}
 		close(fd);
@@ -107,7 +107,7 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 		snprintf(buf, BUFSIZ,"%d\n", tcpfd); 
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 			syslog(LOG_ERR, 
-			       "nfssvc: writting fds to kernel failed: errno %d (%s)", 
+			       "nfssvc: writing fds to kernel failed: errno %d (%s)", 
 			       errno, strerror(errno));
 		}
 	}
