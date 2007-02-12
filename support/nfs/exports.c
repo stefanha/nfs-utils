@@ -220,6 +220,8 @@ putexportent(struct exportent *ep)
 	if (ep->e_flags & NFSEXP_FSID) {
 		fprintf(fp, "fsid=%d,", ep->e_fsid);
 	}
+	if (ep->e_uuid)
+		fprintf(fp, "fsid=%s,", ep->e_uuid);
 	if (ep->e_mountpoint)
 		fprintf(fp, "mountpoint%s%s,",
 			ep->e_mountpoint[0]?"=":"", ep->e_mountpoint);
@@ -302,6 +304,7 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_mountpoint = NULL;
 	ee.e_nsquids = 0;
 	ee.e_nsqgids = 0;
+	ee.e_uuid = NULL;
 
 	if (strlen(hname) >= sizeof(ee.e_hostname)) {
 		xlog(L_WARNING, "client name %s too long", hname);
@@ -328,6 +331,17 @@ updateexportent(struct exportent *eep, char *options)
 	if (parseopts(options, eep, 0, NULL) < 0)
 		return 0;
 	return 1;
+}
+
+
+static int valid_uuid(char *uuid)
+{
+	/* must have 32 hex digits */
+	int cnt;
+	for (cnt = 0 ; *uuid; uuid++)
+		if (isxdigit(*uuid))
+			cnt++;
+	return cnt == 32;
 }
 
 /*
@@ -445,13 +459,21 @@ bad_option:
 			}
 		} else if (strncmp(opt, "fsid=", 5) == 0) {
 			char *oe;
-			ep->e_fsid = strtoul(opt+5, &oe, 0);
-			if (opt[5]=='\0' || *oe != '\0') {
-				xlog(L_ERROR, "%s: %d: bad fsid \"%s\"\n",
-				     flname, flline, opt);	
-				goto bad_option;
+			if (strcmp(opt+5, "root") == 0) {
+				ep->e_fsid = 0;
+				ep->e_flags |= NFSEXP_FSID;
+			} else {
+				ep->e_fsid = strtoul(opt+5, &oe, 0);
+				if (opt[5]!='\0' && *oe == '\0') 
+					ep->e_flags |= NFSEXP_FSID;
+				else if (valid_uuid(opt+5))
+					ep->e_uuid = strdup(opt+7);
+				else {
+					xlog(L_ERROR, "%s: %d: bad fsid \"%s\"\n",
+					     flname, flline, opt);	
+					goto bad_option;
+				}
 			}
-			ep->e_flags |= NFSEXP_FSID;
 		} else if (strcmp(opt, "mountpoint")==0 ||
 			   strcmp(opt, "mp") == 0 ||
 			   strncmp(opt, "mountpoint=", 11)==0 ||

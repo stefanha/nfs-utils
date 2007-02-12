@@ -249,7 +249,7 @@ cache_flush(int force)
 	char path[200];
 	time_t now;
 	/* Note: the order of these caches is important.
-	 * The need to be flushed in dependancy order. So
+	 * They need to be flushed in dependancy order. So
 	 * a cache that references items in another cache,
 	 * as nfsd.fh entries reference items in nfsd.export,
 	 * must be flushed before the cache that it references.

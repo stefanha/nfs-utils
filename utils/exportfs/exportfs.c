@@ -404,6 +404,8 @@ dump(int verbose)
 				c = dumpopt(c, "no_acl");
 			if (ep->e_flags & NFSEXP_FSID)
 				c = dumpopt(c, "fsid=%d", ep->e_fsid);
+			if (ep->e_uuid)
+				c = dumpopt(c, "fsid=%s", ep->e_uuid);
 			if (ep->e_mountpoint)
 				c = dumpopt(c, "mountpoint%s%s", 
 					    ep->e_mountpoint[0]?"=":"", 

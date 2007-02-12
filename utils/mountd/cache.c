@@ -27,6 +27,20 @@
 #include "mountd.h"
 #include "xmalloc.h"
 
+#include "blkid/blkid.h"
+
+
+enum nfsd_fsid {
+	FSID_DEV = 0,
+	FSID_NUM,
+	FSID_MAJOR_MINOR,
+	FSID_ENCODE_DEV,
+	FSID_UUID4_INUM,
+	FSID_UUID8,
+	FSID_UUID16,
+	FSID_UUID16_INUM,
+};
+
 /*
  * Support routines for text-based upcalls.
  * Fields are separated by spaces.
@@ -87,6 +101,72 @@ void auth_unix_ip(FILE *f)
 	
 }
 
+int get_uuid(char *path, char *uuid, int uuidlen, char *u)
+{
+	/* extract hex digits from uuidstr and compose a uuid
+	 * of the given length (max 16), xoring bytes to make
+	 * a smaller uuid.  Then compare with uuid
+	 */
+	int i = 0;
+	const char *val;
+
+	if (path) {
+		static blkid_cache cache = NULL;
+		struct stat stb;
+		char *devname;
+		blkid_tag_iterate iter;
+		blkid_dev dev;
+		const char *type;
+		if (cache == NULL)
+			blkid_get_cache(&cache, NULL);
+
+		blkid_probe_all_new(cache);
+
+		if (stat(path, &stb) != 0)
+			return 0;
+		devname = blkid_devno_to_devname(stb.st_dev);
+		if (!devname)
+			return 0;
+		dev = blkid_get_dev(cache, devname, BLKID_DEV_NORMAL);
+		free(devname);
+		if (!dev)
+			return 0;
+		iter = blkid_tag_iterate_begin(dev);
+		if (!iter)
+			return 0;
+		while (blkid_tag_next(iter, &type, &val) == 0)
+			if (strcmp(type, "UUID") == 0)
+				break;
+		blkid_tag_iterate_end(iter);
+		if (!type)
+			return 0;
+	} else {
+		val = uuid;
+	}
+	
+	memset(u, 0, uuidlen);
+	for ( ; *val ; val++) {
+		char c = *val;
+		if (!isxdigit(c))
+			continue;
+		if (isalpha(c)) {
+			if (isupper(c))
+				c = c - 'A' + 10;
+			else
+				c = c - 'a' + 10;
+		} else
+			c = c - '0' + 0;
+		if ((i&1) == 0)
+			c <<= 4;
+		u[i/2] ^= c;
+		i++;
+		if (i == uuidlen*2)
+			i = 0;
+	}
+	return 1;
+}
+	
+
 void nfsd_fh(FILE *f)
 {
 	/* request are:
@@ -100,12 +180,15 @@ void nfsd_fh(FILE *f)
 	int fsidlen;
 	unsigned int dev, major=0, minor=0;
 	unsigned int inode=0;
+	unsigned long long inode64;
 	unsigned int fsidnum=0;
 	char fsid[32];
 	struct exportent *found = NULL;
 	nfs_export *exp;
 	int i;
 	int dev_missing = 0;
+	int uuidlen = 0;
+	char *fhuuid = NULL;
 
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
@@ -119,12 +202,12 @@ void nfsd_fh(FILE *f)
 		goto out;
 	if (qword_get_int(&cp, &fsidtype) != 0)
 		goto out;
-	if (fsidtype < 0 || fsidtype > 3)
+	if (fsidtype < 0 || fsidtype > 7)
 		goto out; /* unknown type */
 	if ((fsidlen = qword_get(&cp, fsid, 32)) <= 0)
 		goto out;
 	switch(fsidtype) {
-	case 0: /* 4 bytes: 2 major, 2 minor, 4 inode */
+	case FSID_DEV: /* 4 bytes: 2 major, 2 minor, 4 inode */
 		if (fsidlen != 8)
 			goto out;
 		memcpy(&dev, fsid, 4);
@@ -133,13 +216,13 @@ void nfsd_fh(FILE *f)
 		minor = ntohl(dev) & 0xFFFF;
 		break;
 
-	case 1: /* 4 bytes - fsid */
+	case FSID_NUM: /* 4 bytes - fsid */
 		if (fsidlen != 4)
 			goto out;
 		memcpy(&fsidnum, fsid, 4);
 		break;
 
-	case 2: /* 12 bytes: 4 major, 4 minor, 4 inode 
+	case FSID_MAJOR_MINOR: /* 12 bytes: 4 major, 4 minor, 4 inode 
 		 * This format is never actually used but was
 		 * an historical accident
 		 */
@@ -150,7 +233,7 @@ void nfsd_fh(FILE *f)
 		memcpy(&inode, fsid+8, 4);
 		break;
 
-	case 3: /* 8 bytes: 4 byte packed device number, 4 inode */
+	case FSID_ENCODE_DEV: /* 8 bytes: 4 byte packed device number, 4 inode */
 		/* This is *host* endian, not net-byte-order, because
 		 * no-one outside this host has any business interpreting it
 		 */
@@ -162,6 +245,33 @@ void nfsd_fh(FILE *f)
 		minor = (dev & 0xff) | ((dev >> 12) & 0xfff00);
 		break;
 
+	case FSID_UUID4_INUM: /* 4 byte inode number and 4 byte uuid */
+		if (fsidlen != 8)
+			goto out;
+		memcpy(&inode, fsid, 4);
+		uuidlen = 4;
+		fhuuid = fsid+4;
+		break;
+	case FSID_UUID8: /* 8 byte uuid */
+		if (fsidlen != 8)
+			goto out;
+		uuidlen = 8;
+		fhuuid = fsid;
+		break;
+	case FSID_UUID16: /* 16 byte uuid */
+		if (fsidlen != 16)
+			goto out;
+		uuidlen = 16;
+		fhuuid = fsid;
+		break;
+	case FSID_UUID16_INUM: /* 8 byte inode number and 16 byte uuid */
+		if (fsidlen != 24)
+			goto out;
+		memcpy(&inode64, fsid, 8);
+		inode = inode64;
+		uuidlen = 16;
+		fhuuid = fsid+8;
+		break;
 	}
 
 	auth_reload();
@@ -170,6 +280,7 @@ void nfsd_fh(FILE *f)
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i]; exp; exp = exp->m_next) {
 			struct stat stb;
+			char u[16];			
 
 			if (!client_member(dom, exp->m_client->m_hostname))
 				continue;
@@ -180,16 +291,41 @@ void nfsd_fh(FILE *f)
 				dev_missing ++;
 			if (stat(exp->m_export.e_path, &stb) != 0)
 				continue;
-			if (fsidtype == 1 &&
-			    ((exp->m_export.e_flags & NFSEXP_FSID) == 0 ||
-			     exp->m_export.e_fsid != fsidnum))
-				continue;
-			if (fsidtype != 1) {
+			switch(fsidtype){
+			case FSID_DEV:
+			case FSID_MAJOR_MINOR:
+			case FSID_ENCODE_DEV:
 				if (stb.st_ino != inode)
 					continue;
 				if (major != major(stb.st_dev) ||
 				    minor != minor(stb.st_dev))
 					continue;
+				break;
+			case FSID_NUM:
+				if (((exp->m_export.e_flags & NFSEXP_FSID) == 0 ||
+				     exp->m_export.e_fsid != fsidnum))
+					continue;
+				break;
+			case FSID_UUID4_INUM:
+			case FSID_UUID16_INUM:
+				if (stb.st_ino != inode)
+					continue;
+				goto check_uuid;
+			case FSID_UUID8:
+			case FSID_UUID16:
+				if (!is_mountpoint(exp->m_export.e_path))
+					continue;
+			check_uuid:
+				if (exp->m_export.e_uuid)
+					get_uuid(NULL, exp->m_export.e_uuid,
+						 uuidlen, u);
+				else if (get_uuid(exp->m_export.e_path, NULL,
+						  uuidlen, u) == 0)
+					continue;
+
+				if (memcmp(u, fhuuid, uuidlen) != 0)
+					continue;
+				break;
 			}
 			/* It's a match !! */
 			if (!found)
@@ -246,6 +382,16 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		qword_printint(f, exp->e_anonuid);
 		qword_printint(f, exp->e_anongid);
 		qword_printint(f, exp->e_fsid);
+ 		if (exp->e_uuid == NULL) {
+ 			char u[16];
+ 			if (get_uuid(exp->e_path, NULL, 16, u)) {
+ 				qword_print(f, "uuid");
+ 				qword_printhex(f, u, 16);
+ 			}
+ 		} else if (exp->e_uuid) {
+ 			qword_print(f, "uuid");
+ 			qword_printhex(f, exp->e_uuid, 16);
+ 		}
 	}
 	return qword_eol(f);
 }
