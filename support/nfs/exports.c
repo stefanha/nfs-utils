@@ -32,7 +32,7 @@
 #include "xio.h"
 
 #define EXPORT_DEFAULT_FLAGS	\
-  (NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES)
+  (NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES|NFSEXP_NOSUBTREECHECK)
 
 int export_errno;
 
@@ -537,8 +537,8 @@ bad_option:
 out:
 	if (warn && !had_subtree_opt)
 		xlog(L_WARNING, "%s [%d]: Neither 'subtree_check' or 'no_subtree_check' specified for export \"%s:%s\".\n"
-				"  Assuming default behaviour ('subtree_check').\n"
-		     		"  NOTE: this default will change with nfs-utils version 1.1.0\n",
+				"  Assuming default behaviour ('no_subtree_check').\n"
+		     		"  NOTE: this default has changed since nfs-utils version 1.0.x\n",
 
 				flname, flline,
 				ep->e_hostname, ep->e_path);
