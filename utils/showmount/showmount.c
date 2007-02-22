@@ -118,7 +118,7 @@ static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
 	FD_ZERO(&rset);
 	FD_SET(fd, &rset);
 
-	ret = select(fd + 1, &rset, NULL, NULL, tout);
+	ret = select(fd + 1, NULL, &rset, NULL, tout);
 	if (ret <= 0) {
 		if (ret == 0)
 			ret = -ETIMEDOUT;
@@ -185,6 +185,9 @@ static unsigned short getport(struct sockaddr_in *addr,
 			rpc_createerr.cf_error.re_errno = errno;
 			return 0;
 		}
+		client = clnttcp_create(&saddr,
+					PMAPPROG, PMAPVERS, &sock,
+					0, 0);
 	} else {
 		/*
 		 * bind to any unused port.  If we left this up to the rpc
@@ -213,10 +216,10 @@ static unsigned short getport(struct sockaddr_in *addr,
 			sock = RPC_ANYSOCK;
 			/* FALLTHROUGH */
 		}
+		client = clntudp_bufcreate(&saddr, PMAPPROG, PMAPVERS,
+					   tout, &sock, send_sz, recv_sz);
 	}
 
-	client = clntudp_bufcreate(&saddr, PMAPPROG, PMAPVERS,
-				   tout, &sock, send_sz, recv_sz);
 	if (!client) {
 		close(sock);
 		rpc_createerr.cf_stat = RPC_RPCBFAILURE;
