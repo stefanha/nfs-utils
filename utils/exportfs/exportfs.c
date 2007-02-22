@@ -418,7 +418,19 @@ dump(int verbose)
 				c = dumpopt(c, "anonuid=%d", ep->e_anonuid);
 			if (ep->e_anongid != 65534)
 				c = dumpopt(c, "anongid=%d", ep->e_anongid);
-
+			switch(ep->e_fslocmethod) {
+			case FSLOC_NONE:
+				break;
+			case FSLOC_REFER:
+				c = dumpopt(c, "refer=%s", ep->e_fslocdata);
+				break;
+			case FSLOC_REPLICA:
+				c = dumpopt(c, "replicas=%s", ep->e_fslocdata);
+				break;
+			case FSLOC_STUB:
+				c = dumpopt(c, "fsloc=stub");
+				break;
+			}
 			printf("%c\n", (c != '(')? ')' : ' ');
 		}
 	}

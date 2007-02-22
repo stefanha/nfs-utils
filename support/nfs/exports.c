@@ -100,6 +100,8 @@ getexportent(int fromkernel, int fromexports)
 		def_ee.e_squids = NULL;
 		def_ee.e_sqgids = NULL;
 		def_ee.e_mountpoint = NULL;
+		def_ee.e_fslocmethod = FSLOC_NONE;
+		def_ee.e_fslocdata = NULL;
 		def_ee.e_nsquids = 0;
 		def_ee.e_nsqgids = 0;
 
@@ -225,7 +227,22 @@ putexportent(struct exportent *ep)
 	if (ep->e_mountpoint)
 		fprintf(fp, "mountpoint%s%s,",
 			ep->e_mountpoint[0]?"=":"", ep->e_mountpoint);
-
+	switch (ep->e_fslocmethod) {
+	case FSLOC_NONE:
+		break;
+	case FSLOC_REFER:
+		fprintf(fp, "refer=%s,", ep->e_fslocdata);
+		break;
+	case FSLOC_REPLICA:
+		fprintf(fp, "replicas=%s,", ep->e_fslocdata);
+		break;
+	case FSLOC_STUB:
+		fprintf(fp, "fsloc=stub,");
+		break;
+	default:
+		xlog(L_ERROR, "unknown fsloc method for %s:%s",
+		     ep->e_hostname, ep->e_path);
+	}
 	fprintf(fp, "mapping=");
 	switch (ep->e_maptype) {
 	case CLE_MAP_IDENT:
@@ -288,6 +305,8 @@ dupexportent(struct exportent *dst, struct exportent *src)
 	}
 	if (src->e_mountpoint)
 		dst->e_mountpoint = strdup(src->e_mountpoint);
+	if (src->e_fslocdata)
+		dst->e_fslocdata = strdup(src->e_fslocdata);
 }
 
 struct exportent *
@@ -302,6 +321,8 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_squids = NULL;
 	ee.e_sqgids = NULL;
 	ee.e_mountpoint = NULL;
+	ee.e_fslocmethod = FSLOC_NONE;
+	ee.e_fslocdata = NULL;
 	ee.e_nsquids = 0;
 	ee.e_nsqgids = 0;
 	ee.e_uuid = NULL;
@@ -483,6 +504,20 @@ bad_option:
 				ep->e_mountpoint = strdup(mp+1);
 			else
 				ep->e_mountpoint = strdup("");
+		} else if (strncmp(opt, "fsloc=", 6) == 0) {
+			if (strcmp(opt+6, "stub") == 0)
+				ep->e_fslocmethod = FSLOC_STUB;
+			else {
+				xlog(L_ERROR, "%s:%d: bad option %s\n",
+				     flname, flline, opt);
+				goto bad_option;
+			}
+		} else if (strncmp(opt, "refer=", 6) == 0) {
+			ep->e_fslocmethod = FSLOC_REFER;
+			ep->e_fslocdata = strdup(opt+6);
+		} else if (strncmp(opt, "replicas=", 9) == 0) {
+			ep->e_fslocmethod = FSLOC_REPLICA;
+			ep->e_fslocdata = strdup(opt+9);
 		} else {
 			xlog(L_ERROR, "%s:%d: unknown keyword \"%s\"\n",
 					flname, flline, opt);

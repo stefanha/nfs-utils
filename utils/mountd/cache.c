@@ -28,6 +28,7 @@
 #include "exportfs.h"
 #include "mountd.h"
 #include "xmalloc.h"
+#include "fsloc.h"
 
 #include "blkid/blkid.h"
 
@@ -421,6 +422,29 @@ void nfsd_fh(FILE *f)
 	return;		
 }
 
+static void write_fsloc(FILE *f, struct exportent *ep, char *path)
+{
+	struct servers *servers;
+
+	if (ep->e_fslocmethod == FSLOC_NONE)
+		return;
+
+	servers = replicas_lookup(ep->e_fslocmethod, ep->e_fslocdata, path);
+	if (!servers)
+		return;
+	qword_print(f, "fsloc");
+	qword_printint(f, servers->h_num);
+	if (servers->h_num >= 0) {
+		int i;
+		for (i=0; i<servers->h_num; i++) {
+			qword_print(f, servers->h_mp[i]->h_host);
+			qword_print(f, servers->h_mp[i]->h_path);
+		}
+	}
+	qword_printint(f, servers->h_referral);
+	release_replicas(servers);
+}
+
 static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *exp)
 {
 	qword_print(f, domain);
@@ -441,6 +465,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  			qword_print(f, "uuid");
  			qword_printhex(f, exp->e_uuid, 16);
  		}
+		write_fsloc(f, &exp, path);
 	}
 	return qword_eol(f);
 }

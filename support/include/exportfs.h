@@ -23,6 +23,13 @@ enum {
 	MCL_MAXTYPES
 };
 
+enum {
+	FSLOC_NONE = 0,
+	FSLOC_REFER,
+	FSLOC_REPLICA,
+	FSLOC_STUB
+};
+
 typedef struct mclient {
 	struct mclient *	m_next;
 	char			m_hostname[NFSCLNT_IDMAX+1];
