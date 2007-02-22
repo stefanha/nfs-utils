@@ -331,7 +331,6 @@ AC_CONFIG_FILES([
 	utils/exportfs/Makefile
 	utils/gssd/Makefile
 	utils/idmapd/Makefile
-	utils/lockd/Makefile
 	utils/mount/Makefile
 	utils/mountd/Makefile
 	utils/nfsd/Makefile

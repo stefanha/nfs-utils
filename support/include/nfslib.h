@@ -144,9 +144,6 @@ int check_new_cache(void);
 
 void closeall(int min);
 
-/* lockd. */
-int			lockdsvc();
-
 int			svctcp_socket (u_long __number, int __reuse);
 int			svcudp_socket (u_long __number, int __reuse);
 
