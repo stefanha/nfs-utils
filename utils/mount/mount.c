@@ -274,16 +274,16 @@ static void mount_error(char *node)
 {
 	switch(errno) {
 		case ENOTDIR:
-			printf("%s: mount point %s is not a directory\n", progname, node);
+			fprintf(stderr, "%s: mount point %s is not a directory\n", progname, node);
 			break;
 		case EBUSY:
-			printf("%s: %s is already mounted or busy\n", progname, node);
+			fprintf(stderr, "%s: %s is already mounted or busy\n", progname, node);
 			break;
 		case ENOENT:
-			printf("%s: mount point %s does not exist\n", progname, node);
+			fprintf(stderr, "%s: mount point %s does not exist\n", progname, node);
 			break;
 		default:
-			printf("%s: %s\n", progname, strerror(errno));
+			fprintf(stderr, "%s: %s\n", progname, strerror(errno));
 	}
 }
 

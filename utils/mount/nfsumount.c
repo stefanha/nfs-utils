@@ -252,7 +252,7 @@ int _nfsumount(const char *spec, char *opts)
 		goto out_bad;
 	return nfs_call_umount(&mnt_server, &dirname);
  out_bad:
-	printf("%s: %s: not found or not mounted\n", progname, spec);
+	fprintf(stderr, "%s: %s: not found or not mounted\n", progname, spec);
 	return 0;
 }
 
