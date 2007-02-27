@@ -348,6 +348,20 @@ If the client asks for alternative locations for the export point, it
 will be given this list of alternatives. (Note that actual replication
 of the filesystem must be handled elsewhere.)
 
+.TP
+.IR refer= path@host[+host][:path@host[+host]]
+A client referencing the export point will be directed to choose from
+the given list an alternative location for the filesystem.
+(Note that the server must have a mountpoint here, though a different
+filesystem is not required; so, for example,
+.IR "mount --bind" " /path /path"
+is sufficient.)
+.TP
+.IR replicas= path@host[+host][:path@host[+host]]
+If the client asks for alternative locations for the export point, it
+will be given this list of alternatives. (Note that actual replication
+of the filesystem must be handled elsewhere.)
+
 .SS User ID Mapping
 .PP
 .I nfsd

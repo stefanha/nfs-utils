@@ -240,6 +240,8 @@ export_freeall(void)
 				xfree(exp->m_export.e_sqgids);
 			if (exp->m_export.e_mountpoint)
 				free(exp->m_export.e_mountpoint);
+			if (exp->m_export.e_fslocdata)
+				xfree(exp->m_export.e_fslocdata);
 			xfree(exp);
 		}
 		exportlist[i] = NULL;
