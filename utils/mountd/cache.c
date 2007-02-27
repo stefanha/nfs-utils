@@ -455,6 +455,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		qword_printint(f, exp->e_anonuid);
 		qword_printint(f, exp->e_anongid);
 		qword_printint(f, exp->e_fsid);
+		write_fsloc(f, exp, path);
  		if (exp->e_uuid == NULL) {
  			char u[16];
  			if (get_uuid(exp->e_path, NULL, 16, u)) {
@@ -465,7 +466,6 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  			qword_print(f, "uuid");
  			qword_printhex(f, exp->e_uuid, 16);
  		}
-		write_fsloc(f, &exp, path);
 	}
 	return qword_eol(f);
 }
