@@ -548,7 +548,7 @@ void cache_open(void)
 	int i;
 	for (i=0; cachelist[i].cache_name; i++ ) {
 		char path[100];
-		if (!manage_gids && cachelist[i].f == auth_unix_gid)
+		if (!manage_gids && cachelist[i].cache_handle == auth_unix_gid)
 			continue;
 		sprintf(path, "/proc/net/rpc/%s/channel", cachelist[i].cache_name);
 		cachelist[i].f = fopen(path, "r+");
