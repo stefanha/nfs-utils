@@ -427,9 +427,11 @@ dump(int verbose)
 			case FSLOC_REPLICA:
 				c = dumpopt(c, "replicas=%s", ep->e_fslocdata);
 				break;
+#ifdef DEBUG
 			case FSLOC_STUB:
 				c = dumpopt(c, "fsloc=stub");
 				break;
+#endif
 			}
 			printf("%c\n", (c != '(')? ')' : ' ');
 		}

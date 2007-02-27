@@ -40,16 +40,17 @@ static void replicas_print(struct servers *sp)
 {
 	int i;
 	if (!sp) {
-		syslog(LOG_INFO, "NULL replicas pointer");
+		xlog(L_NOTICE, "NULL replicas pointer\n");
 		return;
 	}
-	syslog(LOG_INFO, "replicas listsize=%i", sp->h_num);
+	xlog(L_NOTICE, "replicas listsize=%i\n", sp->h_num);
 	for (i=0; i<sp->h_num; i++) {
-		syslog(LOG_INFO, "%s:%s",
+		xlog(L_NOTICE, "    %s:%s\n",
 		       sp->h_mp[i]->h_host, sp->h_mp[i]->h_path);
 	}
 }
 
+#ifdef DEBUG
 /* Called by setting 'Method = stub' in config file.  Just returns
  * some syntactically correct gibberish for testing purposes.
  */
@@ -58,7 +59,7 @@ static struct servers *method_stub(char *key)
 	struct servers *sp;
 	struct mount_point *mp;
 
-	syslog(LOG_INFO, "called method_stub");
+	xlog(L_NOTICE, "called method_stub\n");
 	sp = malloc(sizeof(struct servers));
 	if (!sp)
 		return NULL;
@@ -74,6 +75,7 @@ static struct servers *method_stub(char *key)
 	sp->h_referral = 1;
 	return sp;
 }
+#endif	/* DEBUG */
 
 /* Scan @list, which is a NULL-terminated array of strings of the
  * form path@host[+host], and return corresponding servers structure.
@@ -99,7 +101,7 @@ static struct servers *parse_list(char **list)
 		}
 		cp = strchr(list[i], '@');
 		if ((!cp) || list[i][0] != '/') {
-			syslog(LOG_WARNING, "invalid entry '%s'", list[i]);
+			xlog(L_WARNING, "invalid entry '%s'", list[i]);
 			continue; /* XXX Need better error handling */
 		}
 		res->h_mp[i] = mp;
@@ -123,13 +125,13 @@ static struct servers *method_list(char *data)
 	int i, listsize;
 	struct servers *rv=NULL;
 
-	syslog(LOG_INFO, "method_list(%s)\n", data);
+	xlog(L_NOTICE, "method_list(%s)\n", data);
 	for (ptr--, listsize=1; ptr; ptr=index(ptr, ':'), listsize++)
 		ptr++;
 	list = malloc(listsize * sizeof(char *));
 	copy = strdup(data);
 	if (copy)
-		syslog(LOG_INFO, "converted to %s\n", copy);
+		xlog(L_NOTICE, "converted to %s\n", copy);
 	if (list && copy) {
 		ptr = copy;
 		for (i=0; i<listsize; i++) {
@@ -160,11 +162,13 @@ struct servers *replicas_lookup(int method, char *data, char *key)
 		if (sp)
 			sp->h_referral = 0;
 		break;
+#ifdef DEBUG
 	case FSLOC_STUB:
 		sp = method_stub(data);
 		break;
+#endif
 	default:
-		syslog(LOG_WARNING, "Unknown method = %i", method);
+		xlog(L_WARNING, "Unknown method = %i", method);
 	}
 	replicas_print(sp);
 	return sp;

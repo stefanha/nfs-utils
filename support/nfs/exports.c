@@ -236,9 +236,11 @@ putexportent(struct exportent *ep)
 	case FSLOC_REPLICA:
 		fprintf(fp, "replicas=%s,", ep->e_fslocdata);
 		break;
+#ifdef DEBUG
 	case FSLOC_STUB:
 		fprintf(fp, "fsloc=stub,");
 		break;
+#endif
 	default:
 		xlog(L_ERROR, "unknown fsloc method for %s:%s",
 		     ep->e_hostname, ep->e_path);
@@ -504,6 +506,7 @@ bad_option:
 				ep->e_mountpoint = strdup(mp+1);
 			else
 				ep->e_mountpoint = strdup("");
+#ifdef DEBUG
 		} else if (strncmp(opt, "fsloc=", 6) == 0) {
 			if (strcmp(opt+6, "stub") == 0)
 				ep->e_fslocmethod = FSLOC_STUB;
@@ -512,6 +515,7 @@ bad_option:
 				     flname, flline, opt);
 				goto bad_option;
 			}
+#endif
 		} else if (strncmp(opt, "refer=", 6) == 0) {
 			ep->e_fslocmethod = FSLOC_REFER;
 			ep->e_fslocdata = strdup(opt+6);
