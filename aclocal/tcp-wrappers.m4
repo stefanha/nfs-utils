@@ -4,7 +4,7 @@ AC_DEFUN([AC_TCP_WRAPPERS],[
   AC_ARG_WITH(tcp-wrappers,
     [  --with-tcp-wrappers[[=PATH]]      Enable tcpwrappers support
                  (optionally in PATH)],
-    with_tcpw=$withval, $with_tcpw=yes)
+    with_tcpw=$withval, with_tcpw=yes)
         if test "x$with_tcpw" != "xno" ; then
             saved_LIBS="$LIBS"
             saved_LDFLAGS="$LDFLAGS"
