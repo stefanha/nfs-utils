@@ -835,14 +835,14 @@ nfsmount(const char *spec, const char *node, int *flags,
 		     *nfs_pmap = &nfs_server.pmap;
 	struct pmap  save_mnt, save_nfs;
 
-	int fsock;
+	int fsock = -1;
 
 	mntres_t mntres;
 
 	struct stat statbuf;
 	char *s;
 	int bg, retry;
-	int retval;
+	int retval = EX_FAIL;
 	time_t t;
 	time_t prevt;
 	time_t timeout;
@@ -853,8 +853,6 @@ nfsmount(const char *spec, const char *node, int *flags,
 		*nfs_mount_vers = find_kernel_nfs_mount_version();
 	nfs_mount_version = *nfs_mount_vers;
 
-	retval = EX_FAIL;
-	fsock = -1;
 	if (strlen(spec) >= sizeof(hostdir)) {
 		fprintf(stderr, _("mount: "
 				  "excessively long host:dir argument\n"));
@@ -1122,20 +1120,22 @@ noauth_flavors:
 #endif
 	}
 
-	/* create nfs socket for kernel */
+	if (nfs_mount_version == 1) {
+		/* create nfs socket for kernel */
+		if (nfs_pmap->pm_prot == IPPROTO_TCP)
+			fsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		else
+			fsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		if (fsock < 0) {
+			perror(_("nfs socket"));
+			goto fail;
+		}
+		if (bindresvport(fsock, 0) < 0) {
+			perror(_("nfs bindresvport"));
+			goto fail;
+		}
+	}
 
-	if (nfs_pmap->pm_prot == IPPROTO_TCP)
-		fsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	else
-		fsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (fsock < 0) {
-		perror(_("nfs socket"));
-		goto fail;
-	}
-	if (bindresvport(fsock, 0) < 0) {
-		perror(_("nfs bindresvport"));
-		goto fail;
-	}
 #ifdef NFS_MOUNT_DEBUG
 	printf(_("using port %d for nfs deamon\n"), nfs_pmap->pm_port);
 #endif
@@ -1145,7 +1145,7 @@ noauth_flavors:
 	 * to avoid problems with multihomed hosts.
 	 * --Swen
 	 */
-	if (linux_version_code() <= 66314
+	if (linux_version_code() <= 0x01030a && fsock != -1
 	    && connect(fsock, (struct sockaddr *) nfs_saddr,
 		       sizeof (*nfs_saddr)) < 0) {
 		perror(_("nfs connect"));
