@@ -35,7 +35,7 @@ int clnt_ping(struct sockaddr_in *, const u_long, const u_long, const u_int,
 	      struct sockaddr_in *);
 u_long nfsvers_to_mnt(const u_long);
 u_long mntvers_to_nfs(const u_long);
-int get_socket(struct sockaddr_in *, u_int, int);
+int get_socket(struct sockaddr_in *, u_int, int, int);
 CLIENT * mnt_openclnt(clnt_addr_t *, int *);
 void mnt_closeclnt(CLIENT *, int);
 

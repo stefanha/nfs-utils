@@ -49,7 +49,7 @@ u_long mntvers_to_nfs(const u_long vers)
  * RPC_ANYSOCK is returned which will cause 
  * the RPC code to create the socket instead. 
  */
-int get_socket(struct sockaddr_in *saddr, u_int p_prot, int resvp)
+int get_socket(struct sockaddr_in *saddr, u_int p_prot, int resvp, int conn)
 {
 	int so, cc, type;
 	struct sockaddr_in laddr;
@@ -98,7 +98,7 @@ int get_socket(struct sockaddr_in *saddr, u_int p_prot, int resvp)
 			return RPC_ANYSOCK;
 		}
 	}
-	if (type == SOCK_STREAM || type == SOCK_DGRAM) {
+	if (type == SOCK_STREAM || (conn && type == SOCK_DGRAM)) {
 		cc = connect(so, (struct sockaddr *)saddr, namelen);
 		if (cc < 0) {
 			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
@@ -129,20 +129,37 @@ clnt_ping(struct sockaddr_in *saddr, const u_long prog, const u_long vers,
 	CLIENT *clnt=NULL;
 	int sock, stat;
 	static char clnt_res;
+	struct sockaddr dissolve;
 
 	rpc_createerr.cf_stat = stat = errno = 0;
-	sock = get_socket(saddr, prot, FALSE);
-	if (sock == RPC_ANYSOCK && errno == ETIMEDOUT) {
-		/*
-		 * TCP timeout. Bubble up the error to see 
-		 * how it should be handled.
-		 */
-		rpc_createerr.cf_stat = RPC_TIMEDOUT;
-		goto out_bad;
+	sock = get_socket(saddr, prot, FALSE, TRUE);
+	if (sock == RPC_ANYSOCK) {
+		if (errno == ETIMEDOUT) {
+			/*
+			 * TCP timeout. Bubble up the error to see 
+			 * how it should be handled.
+			 */
+			rpc_createerr.cf_stat = RPC_TIMEDOUT;
+		}
+		return 0;
+	}
+
+	if (caddr) {
+		/* Get the address of our end of this connection */
+		socklen_t len = sizeof(*caddr);
+		if (getsockname(sock, caddr, &len) != 0)
+			caddr->sin_family = 0;
 	}
 
 	switch(prot) {
 	case IPPROTO_UDP:
+		/* The socket is connected (so we could getsockname successfully),
+		 * but some servers on multi-homed hosts reply from
+		 * the wrong address, so if we stay connected, we lose the reply.
+		 */
+		dissolve.sa_family = AF_UNSPEC;
+		connect(sock, &dissolve, sizeof(dissolve));
+
 		clnt = clntudp_bufcreate(saddr, prog, vers,
 					 RETRY_TIMEOUT, &sock,
 					 RPCSMALLMSGSIZE, RPCSMALLMSGSIZE);
@@ -151,11 +168,11 @@ clnt_ping(struct sockaddr_in *saddr, const u_long prog, const u_long vers,
 		clnt = clnttcp_create(saddr, prog, vers, &sock,
 				      RPCSMALLMSGSIZE, RPCSMALLMSGSIZE);
 		break;
-	default:
-		goto out_bad;
 	}
-	if (!clnt)
-		goto out_bad;
+	if (!clnt) {
+		close(sock);
+		return 0;
+	}
 	memset(&clnt_res, 0, sizeof(clnt_res));
 	stat = clnt_call(clnt, NULLPROC,
 			 (xdrproc_t)xdr_void, (caddr_t)NULL,
@@ -166,21 +183,12 @@ clnt_ping(struct sockaddr_in *saddr, const u_long prog, const u_long vers,
 		rpc_createerr.cf_stat = stat;
 	}
 	clnt_destroy(clnt);
-	if (sock != -1) {
-		if (caddr) {
-			/* Get the address of our end of this connection */
-			socklen_t len = sizeof(*caddr);
-			if (getsockname(sock, caddr, &len) != 0)
-				caddr->sin_family = 0;
-		}
-		close(sock);
-	}
+	close(sock);
 
 	if (stat == RPC_SUCCESS)
 		return 1;
-
- out_bad:
-	return 0;
+	else
+		return 0;
 }
 
 CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
@@ -191,7 +199,7 @@ CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
 
 	/* contact the mount daemon via TCP */
 	mnt_saddr->sin_port = htons((u_short)mnt_pmap->pm_port);
-	*msock = get_socket(mnt_saddr, mnt_pmap->pm_prot, TRUE);
+	*msock = get_socket(mnt_saddr, mnt_pmap->pm_prot, TRUE, FALSE);
 
 	switch (mnt_pmap->pm_prot) {
 	case IPPROTO_UDP:

@@ -306,7 +306,7 @@ getport(
 	enum clnt_stat stat;
 
 	saddr->sin_port = htons (PMAPPORT);
-	socket = get_socket(saddr, prot, FALSE);
+	socket = get_socket(saddr, prot, FALSE, FALSE);
 
 	switch (prot) {
 	case IPPROTO_UDP:
