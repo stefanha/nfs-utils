@@ -638,7 +638,9 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				if (nfs_mount_version < 5) {
 					printf(_("Warning: ignoring sec=%s option\n"), secflavor);
 					continue;
-				} else if (!strcmp(secflavor, "sys"))
+				} else if (!strcmp(secflavor, "none"))
+					data->pseudoflavor = AUTH_NONE;
+				else if (!strcmp(secflavor, "sys"))
 					data->pseudoflavor = AUTH_SYS;
 				else if (!strcmp(secflavor, "krb5"))
 					data->pseudoflavor = AUTH_GSS_KRB5;
