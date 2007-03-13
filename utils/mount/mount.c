@@ -139,7 +139,6 @@ static char * fix_opts_string (int flags, const char *extra_opts) {
 int add_mtab(char *fsname, char *mount_point, char *fstype, int flags, char *opts, int freq, int passno)
 {
 	struct mntent ment;
-	int fd;
 	FILE *mtab;
 
 	ment.mnt_fsname = fsname;
