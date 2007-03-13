@@ -413,7 +413,15 @@ void nfsd_fh(FILE *f)
 	qword_print(f, dom);
 	qword_printint(f, fsidtype);
 	qword_printhex(f, fsid, fsidlen);
-	qword_printint(f, time(0)+30*60);
+	/* The fsid -> path lookup can be quite expensive as it
+	 * potentially stats and reads lots of devices, and some of those
+	 * might have spun-down.  The Answer is not likely to
+	 * change underneath us, and an 'exportfs -f' can always
+	 * remove this from the kernel, so use a really log
+	 * timeout.  Maybe this should be configurable on the command
+	 * line.
+	 */
+	qword_printint(f, 0x7fffffff);
 	if (found)
 		qword_print(f, found->e_path);
 	qword_eol(f);
