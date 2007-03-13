@@ -410,10 +410,6 @@ dump(int verbose)
 				c = dumpopt(c, "mountpoint%s%s", 
 					    ep->e_mountpoint[0]?"=":"", 
 					    ep->e_mountpoint);
-			if (ep->e_maptype == CLE_MAP_UGIDD)
-				c = dumpopt(c, "mapping=ugidd");
-			else if (ep->e_maptype == CLE_MAP_FILE)
-				c = dumpopt(c, "mapping=file");
 			if (ep->e_anonuid != 65534)
 				c = dumpopt(c, "anonuid=%d", ep->e_anonuid);
 			if (ep->e_anongid != 65534)
