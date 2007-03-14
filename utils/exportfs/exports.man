@@ -400,43 +400,6 @@ options.
 Finally, you can map all user requests to the
 anonymous uid by specifying the
 .IR all_squash " option.
-'''.PP 
-'''For the benefit of installations where uids differ between different
-'''machines, 
-'''.I nfsd
-'''provides several mechanism to dynamically map server uids to client
-'''uids and vice versa: static mapping files, NIS-based mapping, and
-'''.IR ugidd -based
-'''mapping.
-'''.PP
-'''.IR ugidd -based
-'''mapping is enabled with the 
-'''.I map_daemon
-'''option, and uses the UGID RPC protocol. For this to work, you have to run
-'''the
-'''.IR ugidd (8)
-'''mapping daemon on the client host. It is the least secure of the three methods,
-'''because by running
-'''.IR ugidd ,
-'''everybody can query the client host for a list of valid user names. You
-'''can protect yourself by restricting access to
-'''.I ugidd
-'''to valid hosts only. This can be done by entering the list of valid
-'''hosts into the
-'''.I hosts.allow
-'''or 
-'''.I hosts.deny
-'''file. The service name is
-'''.IR ugidd .
-'''For a description of the file's syntax, please read
-'''.IR hosts_access (5).
-'''.PP
-'''Static mapping is enabled by using the
-'''.I map_static
-'''option, which takes a file name as an argument that describes the mapping.
-'''NIS-based mapping queries the client's NIS server to obtain a mapping from
-'''user and group names on the server host to user and group names on the
-'''client.
 .PP
 Here's the complete list of mapping options:
 .TP
@@ -450,14 +413,6 @@ or group
 .TP
 .IR no_root_squash
 Turn off root squashing. This option is mainly useful for diskless clients.
-'''.TP
-'''.IR squash_uids " and " squash_gids
-'''This option specifies a list of uids or gids that should be subject to
-'''anonymous mapping. A valid list of ids looks like this:
-'''.IP
-'''.IR squash_uids=0-15,20,25-50
-'''.IP
-'''Usually, your squash lists will look a lot simpler.
 .TP
 .IR all_squash
 Map all uids and gids to the anonymous user. Useful for NFS-exported
@@ -465,60 +420,6 @@ public FTP directories, news spool directories, etc. The opposite option
 is 
 .IR no_all_squash ,
 which is the default setting.
-'''.TP
-'''.IR map_daemon
-'''This option turns on dynamic uid/gid mapping. Each uid in an NFS request
-'''will be translated to the equivalent server uid, and each uid in an
-'''NFS reply will be mapped the other way round. This option requires that
-'''.IR rpc.ugidd (8)
-'''runs on the client host. The default setting is
-'''.IR map_identity ,
-'''which leaves all uids untouched. The normal squash options apply regardless
-'''of whether dynamic mapping is requested or not.
-'''.TP
-'''.IR map_static
-'''This option enables static mapping. It specifies the name of the file
-'''that describes the uid/gid mapping, e.g.
-'''.IP
-'''.IR map_static=/etc/nfs/foobar.map
-'''.IP
-'''The file's format looks like this
-'''.IP
-'''.nf
-'''.ta +3i
-'''# Mapping for client foobar:
-'''#    remote     local
-'''uid  0-99       -       # squash these
-'''uid  100-500    1000    # map 100-500 to 1000-1400
-'''gid  0-49       -       # squash these
-'''gid  50-100     700     # map 50-100 to 700-750
-'''.fi
-'''.TP
-'''.IR map_nis
-'''This option enables NIS-based uid/gid mapping. For instance, when
-'''the server encounters the uid 123 on the server, it will obtain the
-'''login name associated with it, and contact the NFS client's NIS server
-'''to obtain the uid the client associates with the name.
-'''.IP
-'''In order to do this, the NFS server must know the client's NIS domain.
-'''This is specified as an argument to the
-'''.I map_nis
-'''options, e.g.
-'''.IP
-'''.I map_nis=foo.com
-'''.IP
-'''Note that it may not be sufficient to simply specify the NIS domain
-'''here; you may have to take additional actions before
-'''.I nfsd
-'''is actually able to contact the server. If your distribution uses
-'''the NYS library, you can specify one or more NIS servers for the
-'''client's domain in
-'''.IR /etc/yp.conf .
-'''If you are using a different NIS library, you may have to obtain a
-'''special
-'''.IR ypbind (8)
-'''daemon that can be configured via
-'''.IR yp.conf .
 .TP
 .IR anonuid " and " anongid
 These options explicitly set the uid and gid of the anonymous account.
