@@ -139,7 +139,7 @@ static void complain(int err, const char *dev) {
   }
 }
 
-int add_mtab2(const char *spec, const char *node, const char *type,
+int del_mtab(const char *spec, const char *node, const char *type,
 		const char *opts, struct mntentchn *mc)
 {
 	int umnt_err, umnt_err2, res;
@@ -375,13 +375,13 @@ int nfsumount(int argc, char *argv[])
 	if(mc) {
 		ret = _nfsumount(mc->m.mnt_fsname, mc->m.mnt_opts);
 		if(ret)
-			ret = add_mtab2(mc->m.mnt_fsname, mc->m.mnt_dir,
+			ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir,
 				mc->m.mnt_type, mc->m.mnt_opts, mc);
 	}
 	else {
 		ret = _nfsumount(spec, NULL);
 		if(ret)
-			ret = add_mtab2(spec, spec, spec, spec, NULL);
+			ret = del_mtab(spec, spec, spec, spec, NULL);
 	}
 
 	return(ret);
