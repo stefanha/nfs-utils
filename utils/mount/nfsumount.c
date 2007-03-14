@@ -257,6 +257,7 @@ int _nfsumount(const char *spec, const char *opts)
 	char *hostname;
 	char *dirname;
 	clnt_addr_t mnt_server = { &hostname, };
+	struct mntent mnt = { .mnt_opts = opts };
 	struct pmap *pmap = &mnt_server.pmap;
 	char *p;
 
@@ -290,14 +291,20 @@ int _nfsumount(const char *spec, const char *opts)
 	}
 
 	pmap->pm_prog = MOUNTPROG;
-	pmap->pm_vers = MOUNTVERS;
+	pmap->pm_vers = MOUNTVERS_NFSV3;
 	pmap->pm_prot = get_mntproto(spec);
 	if (opts && (p = strstr(opts, "mountprog=")) && isdigit(*(p+10)))
 		pmap->pm_prog = atoi(p+10);
 	if (opts && (p = strstr(opts, "mountport=")) && isdigit(*(p+10)))
 		pmap->pm_port = atoi(p+10);
-	if (opts && (p = strstr(opts, "nfsvers=")) && isdigit(*(p+8)))
-		pmap->pm_vers = nfsvers_to_mnt(atoi(p+8));
+	if (opts && hasmntopt(&mnt, "v2"))
+		pmap->pm_vers = nfsvers_to_mnt(2);
+	if (opts && hasmntopt(&mnt, "v3"))
+		pmap->pm_vers = nfsvers_to_mnt(3);
+	if (opts && hasmntopt(&mnt, "v4"))
+		pmap->pm_vers = nfsvers_to_mnt(4);
+	if (opts && (p = strstr(opts, "vers=")) && isdigit(*(p+5)))
+		pmap->pm_vers = nfsvers_to_mnt(atoi(p+5));
 	if (opts && (p = strstr(opts, "mountvers=")) && isdigit(*(p+10)))
 		pmap->pm_vers = atoi(p+10);
 
