@@ -902,7 +902,6 @@ nfsmount(const char *spec, const char *node, int *flags,
 #if NFS_MOUNT_VERSION >= 2
 	data.namlen	= NAME_MAX;
 #endif
-	data.pseudoflavor = AUTH_SYS;
 
 	bg = 0;
 	retry = 10000;		/* 10000 minutes ~ 1 week */
@@ -1090,6 +1089,15 @@ nfsmount(const char *spec, const char *node, int *flags,
 
 		flavor = mountres->auth_flavors.auth_flavors_val;
 		while (--i >= 0) {
+			/* If no flavour requested, use first simple
+			 * flavour that is offered.
+			 */
+			if (! (data.flags & NFS_MOUNT_SECFLAVOUR) &&
+			    (flavor[i] == AUTH_SYS ||
+			     flavor[i] == AUTH_NONE)) {
+				data.pseudoflavor = flavor[i];
+				data.flags |= NFS_MOUNT_SECFLAVOUR;
+			}
 			if (flavor[i] == data.pseudoflavor)
 				yum = 1;
 #ifdef NFS_MOUNT_DEBUG
@@ -1102,7 +1110,7 @@ nfsmount(const char *spec, const char *node, int *flags,
 				"mount: %s:%s failed, "
 				"security flavor not supported\n",
 				hostname, dirname);
-			/* server has registered us in mtab, send umount */
+			/* server has registered us in rmtab, send umount */
 			nfs_call_umount(&mnt_server, &dirname);
 			goto fail;
 		}
