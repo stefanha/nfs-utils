@@ -55,24 +55,11 @@ extern int probe_mntport(clnt_addr_t *);
 extern int nfs_gethostbyname(const char *, struct sockaddr_in *);
 
 static inline enum clnt_stat
-nfs3_umount(dirpath *argp, CLIENT *clnt)
+nfs_umount(dirpath *argp, CLIENT *clnt)
 {
-	static char clnt_res;
-	memset (&clnt_res, 0, sizeof(clnt_res));
 	return clnt_call(clnt, MOUNTPROC_UMNT,
 			 (xdrproc_t) xdr_dirpath, (caddr_t)argp,
-			 (xdrproc_t) xdr_void, (caddr_t) &clnt_res,
-			 TIMEOUT);
-}
-
-static inline enum clnt_stat
-nfs2_umount(dirpath *argp, CLIENT *clnt)
-{
-	static char clnt_res;
-	memset (&clnt_res, 0, sizeof(clnt_res));
-	return clnt_call(clnt, MOUNTPROC_UMNT,
-			 (xdrproc_t) xdr_dirpath, (caddr_t)argp,
-			 (xdrproc_t) xdr_void, (caddr_t) &clnt_res,
+			 (xdrproc_t) xdr_void, NULL,
 			 TIMEOUT);
 }
 
@@ -82,25 +69,26 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 	enum clnt_stat res = 0;
 	int msock;
 
-	clnt = mnt_openclnt(mnt_server, &msock);
-	if (!clnt)
-		goto out_bad;
 	switch (mnt_server->pmap.pm_vers) {
 	case 3:
-		res = nfs3_umount(argp, clnt);
-		break;
 	case 2:
 	case 1:
-		res = nfs2_umount(argp, clnt);
+		if (!probe_mntport(mnt_server))
+			goto out_bad;
+		clnt = mnt_openclnt(mnt_server, &msock);
+		if (!clnt)
+			goto out_bad;
+		res = nfs_umount(argp, clnt);
+		mnt_closeclnt(clnt, msock);
+		if (res == RPC_SUCCESS)
+			return 1;
 		break;
 	default:
+		res = 1;
 		break;
 	}
-	mnt_closeclnt(clnt, msock);
-	if (res == RPC_SUCCESS)
-		return 1;
  out_bad:
-	return 0;
+	return res;
 }
 
 u_int get_mntproto(const char *);
@@ -309,8 +297,6 @@ int _nfsumount(const char *spec, const char *opts)
 		pmap->pm_vers = atoi(p+10);
 
 	if (!nfs_gethostbyname(hostname, &mnt_server.saddr))
-		goto out_bad;
-	if (!probe_mntport(&mnt_server))
 		goto out_bad;
 	return nfs_call_umount(&mnt_server, &dirname);
  out_bad:
