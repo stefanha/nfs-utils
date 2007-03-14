@@ -91,33 +91,28 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 	return res;
 }
 
-u_int get_mntproto(const char *);
-u_int
-get_mntproto(const char *dirname)
+struct mntentchn *
+getmntentchn(const char *dir)
 {
-	FILE *mtab;
-	struct mntent mntbuf;
-	char tmpbuf[BUFSIZ];
-	u_int proto = IPPROTO_TCP; /* assume tcp */
+	mntFILE *mfp;
+	nfs_mntent_t *mnt;
+	struct mntentchn *mc = NULL;
 
-	 mtab = setmntent ("/proc/mounts", "r");
-	 if (mtab == NULL)
-	 	mtab = setmntent (_PATH_MOUNTED, "r");
-	if (mtab == NULL)
-		return proto;
+	mfp = nfs_setmntent ("/proc/mounts", "r");
+	if (mfp == NULL || mfp->mntent_fp == NULL)
+		return NULL;
 
-	while(getmntent_r(mtab, &mntbuf, tmpbuf, sizeof (tmpbuf))) {
-		if (strcmp(mntbuf.mnt_type, "nfs"))
+	while ((mnt = nfs_getmntent(mfp)) != NULL) {
+		if(strcmp(mnt->mnt_fsname, dir) && strcmp(mnt->mnt_dir, dir))
 			continue;
-		if (strcmp(dirname,  mntbuf.mnt_fsname))
-			continue;
-		if (hasmntopt(&mntbuf, "udp"))
-			proto = IPPROTO_UDP;
-		break;
+
+		if (!mc)
+			mc = (struct mntentchn *)xmalloc(sizeof(*mc));
+		mc->m = *mnt;
 	}
-	endmntent (mtab);
 
-	return proto;
+	nfs_endmntent(mfp);
+	return mc;
 }
 
 /* complain about a failed umount */
@@ -280,7 +275,7 @@ int _nfsumount(const char *spec, const char *opts)
 
 	pmap->pm_prog = MOUNTPROG;
 	pmap->pm_vers = MOUNTVERS_NFSV3;
-	pmap->pm_prot = get_mntproto(spec);
+	pmap->pm_prot = IPPROTO_TCP;
 	if (opts && (p = strstr(opts, "mountprog=")) && isdigit(*(p+10)))
 		pmap->pm_prog = atoi(p+10);
 	if (opts && (p = strstr(opts, "mountport=")) && isdigit(*(p+10)))
@@ -295,6 +290,8 @@ int _nfsumount(const char *spec, const char *opts)
 		pmap->pm_vers = nfsvers_to_mnt(atoi(p+5));
 	if (opts && (p = strstr(opts, "mountvers=")) && isdigit(*(p+10)))
 		pmap->pm_vers = atoi(p+10);
+	if (opts && (hasmntopt(&mnt, "udp") || hasmntopt(&mnt, "proto=udp")))
+		pmap->pm_prot = IPPROTO_UDP;
 
 	if (!nfs_gethostbyname(hostname, &mnt_server.saddr))
 		goto out_bad;
@@ -361,8 +358,15 @@ int nfsumount(int argc, char *argv[])
 			return 0;
 		}
 	}
+	
+	if (spec == NULL || (*spec != '/' && strchr(spec,':') == NULL)) {
+		printf(_("umount: %s: not found\n"), spec);
+		return 0;
+	}
 
-	mc = getmntdirbackward(spec, NULL);
+	mc = getmntentchn(spec);
+	if (!mc)
+		mc = getmntdirbackward(spec, NULL);
 	if (!mc)
 		mc = getmntdevbackward(spec, NULL);
 	if (!mc && verbose)
