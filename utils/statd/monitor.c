@@ -42,7 +42,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	notify_list	*clnt;
 	struct in_addr	my_addr;
 #ifdef RESTRICTED_STATD
-	struct in_addr	mon_addr, caller;
+	struct in_addr	caller;
 #else
 	struct hostent	*hostinfo = NULL;
 #endif
@@ -87,6 +87,11 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		goto failure;
 	}
 
+#if 0
+	This is not usable anymore.  Linux-kernel can be configured to use
+	host names with NSM so that multi-homed hosts are handled properly.
+		NeilBrown 15mar2007
+
 	/* 3.	mon_name must be an address in dotted quad.
 	 *	Again, specific to the linux kernel lockd.
 	 */
@@ -96,22 +101,25 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 			mon_name);
 		goto failure;
 	}
-#else
+#endif
+#endif
 	/*
 	 * Check hostnames.  If I can't look them up, I won't monitor.  This
 	 * might not be legal, but it adds a little bit of safety and sanity.
 	 */
 
 	/* must check for /'s in hostname!  See CERT's CA-96.09 for details. */
-	if (strchr(mon_name, '/')) {
-		note(N_CRIT, "SM_MON request for hostname containing '/': %s",
-			mon_name);
+	if (strchr(mon_name, '/') || mon_name[0] == '.') {
+		note(N_CRIT, "SM_MON request for hostname containing '/' "
+		     "or starting '.': %s", mon_name);
 		note(N_CRIT, "POSSIBLE SPOOF/ATTACK ATTEMPT!");
 		goto failure;
 	} else if (gethostbyname(mon_name) == NULL) {
 		note(N_WARNING, "gethostbyname error for %s", mon_name);
 		goto failure;
-	} else if (!(hostinfo = gethostbyname(my_name))) {
+	}
+#ifndef RESTRICTED_STATD
+	if (!(hostinfo = gethostbyname(my_name))) {
 		note(N_WARNING, "gethostbyname error for %s", my_name);
 		goto failure;
 	} else

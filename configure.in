@@ -91,7 +91,7 @@ AC_ARG_ENABLE(secure-statd,
 	[AC_HELP_STRING([--enable-secure-statd],
                         [Only lockd can use statd (security)])],
 	test "$enableval" = "yes" && secure_statd=yes,
-	secure_statd=no)
+	secure_statd=yes)
 	if test "$secure_statd" = yes; then
 		AC_DEFINE(RESTRICTED_STATD, 1, [Define this if you want to enable various security checks in statd. These checks basically keep anyone but lockd from using this service.])
 	fi
