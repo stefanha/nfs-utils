@@ -124,7 +124,7 @@ nfs_endmntent (mntFILE *mfp) {
 }
 
 int
-nfs_addmntent (mntFILE *mfp, nfs_mntent_t *mnt) {
+nfs_addmntent (mntFILE *mfp, struct mntent *mnt) {
 	char *m1, *m2, *m3, *m4;
 	int res;
 
@@ -147,10 +147,10 @@ nfs_addmntent (mntFILE *mfp, nfs_mntent_t *mnt) {
 }
 
 /* Read the next entry from the file fp. Stop reading at an incorrect entry. */
-nfs_mntent_t *
+struct mntent *
 nfs_getmntent (mntFILE *mfp) {
 	static char buf[4096];
-	static nfs_mntent_t me;
+	static struct mntent me;
 	char *s;
 
  again:

@@ -5,15 +5,7 @@
 
 #ifndef _NFS_MNTENT_H
 #define _NFS_MNTENT_H
-
-typedef struct nfs_mntent_s {
-	const char *mnt_fsname;
-	const char *mnt_dir;
-	const char *mnt_type;
-	const char *mnt_opts;
-	int mnt_freq;
-	int mnt_passno;
-} nfs_mntent_t;
+#include <mntent.h>
 
 #define ERR_MAX 5
 
@@ -27,8 +19,8 @@ typedef struct mntFILEstruct {
 
 mntFILE *nfs_setmntent (const char *file, char *mode);
 void nfs_endmntent (mntFILE *mfp);
-int nfs_addmntent (mntFILE *mfp, nfs_mntent_t *mnt);
+int nfs_addmntent (mntFILE *mfp, struct mntent *mnt);
 struct nfs_mntent *my_getmntent (mntFILE *mfp);
-nfs_mntent_t *nfs_getmntent (mntFILE *mfp);
+struct mntent *nfs_getmntent (mntFILE *mfp);
 
 #endif /* _NFS_MNTENT_H */

@@ -124,7 +124,7 @@ discard_mntentchn(struct mntentchn *mc0) {
 static void
 read_mntentchn(mntFILE *mfp, const char *fnam, struct mntentchn *mc0) {
 	struct mntentchn *mc = mc0;
-	nfs_mntent_t *mnt;
+	struct mntent *mnt;
 
 	while ((mnt = nfs_getmntent(mfp)) != NULL) {
 		if (!streq(mnt->mnt_type, MNTTYPE_IGNORE)) {
@@ -444,7 +444,7 @@ lock_mtab (void) {
  */
 
 void
-update_mtab (const char *dir, nfs_mntent_t *instead) {
+update_mtab (const char *dir, struct mntent *instead) {
 	mntFILE *mfp, *mftmp;
 	const char *fnam = MOUNTED;
 	struct mntentchn mtabhead;	/* dummy */

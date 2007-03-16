@@ -147,7 +147,7 @@ int del_mtab(const char *spec, const char *node)
                 res = mount(spec, node, NULL,
                             MS_MGC_VAL | MS_REMOUNT | MS_RDONLY, NULL);
                 if (res == 0) {
-                        nfs_mntent_t remnt;
+                        struct mntent remnt;
                         fprintf(stderr,
                                 _("umount: %s busy - remounted read-only\n"),
                                 spec);
