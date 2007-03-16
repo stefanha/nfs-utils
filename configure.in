@@ -3,7 +3,6 @@ dnl
 AC_INIT([linux nfs-utils],[1.0.11],[nfs@lists.sf.net],[nfs-utils])
 AC_CANONICAL_BUILD([])
 AC_CANONICAL_HOST([])
-AC_CONFIG_SRCDIR(tools/getiversion/getiversion.c)
 AC_CONFIG_MACRO_DIR(aclocal)
 AM_INIT_AUTOMAKE
 AC_PREREQ(2.59)
@@ -141,6 +140,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
 
 if test "x$cross_compiling" = "xno"; then
 	CC_FOR_BUILD=${CC_FOR_BUILD-${CC-gcc}}
@@ -334,7 +334,6 @@ AC_CONFIG_FILES([
 	support/misc/Makefile
 	support/nfs/Makefile
 	tools/Makefile
-	tools/getiversion/Makefile
 	tools/locktest/Makefile
 	tools/nlmtest/Makefile
 	tools/rpcdebug/Makefile
