@@ -24,15 +24,16 @@ To mount via NFS version 2, use the
 .BR nfs
 file system type and specify
 .BR nfsvers=2 .
-Version 2 is the default protocol version for the
-.BR nfs
-file system type when
-.BR nfsvers=
-is not specified on the mount command.
 To mount via NFS version 3, use the
 .BR nfs
 file system type and specify
 .BR nfsvers=3 .
+Version 3 is the default protocol version for the
+.BR nfs
+file system type when
+.BR nfsvers=
+is not specified on the mount command and both client and server
+support it.
 To mount via NFS version 4, use the
 .BR nfs4
 file system type.
@@ -45,8 +46,8 @@ file system type.
 These file system types share similar mount options;
 the differences are listed below.
 .P
-Here is an example from an \fI/etc/fstab\fP file for an NFSv2 mount
-over UDP.
+Here is an example from an \fI/etc/fstab\fP file for an NFSv3 mount
+over TCP.
 .sp
 .nf
 .ta 2.5i +0.75i +0.75i +1.0i
@@ -195,7 +196,10 @@ many other operating systems.
 .I nolock
 Disable NFS locking. Do not start lockd.
 This has to be used with some old NFS servers
-that don't support locking.
+that don't support locking.  Note that applications can
+still get locks on files, but the locks only provide exclusion
+locally.  Other clients mounting the same filesystem
+will not be able to detect the locks.
 .TP 1.5i
 .I bg
 If the first NFS mount attempt times out, retry the mount
@@ -266,12 +270,12 @@ Note that there is a performance penalty when using integrity
 or privacy.
 .TP 1.5i
 .I tcp
-Mount the NFS filesystem using the TCP protocol instead of the
-default UDP protocol.  Many NFS servers only support UDP.
+Mount the NFS filesystem using the TCP protocol.  This is the default
+if it is supported by both client and server.  Many NFS servers only
+support UDP.
 .TP 1.5i
 .I udp
-Mount the NFS filesystem using the UDP protocol.  This
-is the default.
+Mount the NFS filesystem using the UDP protocol.
 .P
 All of the non-value options have corresponding nooption forms.
 For example, nointr means don't allow file operations to be
@@ -439,14 +443,6 @@ interrupted.
 .SH AUTHOR
 "Rick Sladkey" <jrs@world.std.com>
 .SH BUGS
-The posix, and nocto options are parsed by mount
-but currently are silently ignored.
-.P
-The tcp and namlen options are implemented but are not currently
-supported by the Linux kernel.
-.P
-The umount command should notify the server
-when an NFS filesystem is unmounted.
 .P
 Checking files on NFS filesystem referenced by file descriptors (i.e. the 
 .BR fcntl 
