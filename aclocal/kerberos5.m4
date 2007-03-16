@@ -36,6 +36,8 @@ AC_DEFUN([AC_KERBEROS_V5],[
       AC_DEFINE_UNQUOTED(KRB5_VERSION, $K5VERS, [Define this as the Kerberos version number])
       if test -f $dir/include/gssapi/gssapi_krb5.h -a \
                 \( -f $dir/lib/libgssapi_krb5.a -o \
+                   -f $dir/lib64/libgssapi_krb5.a -o \
+                   -f $dir/lib64/libgssapi_krb5.so -o \
                    -f $dir/lib/libgssapi_krb5.so \) ; then
          AC_DEFINE(HAVE_KRB5, 1, [Define this if you have MIT Kerberos libraries])
          KRBDIR="$dir"
