@@ -192,8 +192,8 @@ read_fstab()
 	mfp = nfs_setmntent (fnam, "r");
 	if (mfp == NULL || mfp->mntent_fp == NULL) {
 		int errsv = errno;
-		error(_("warning: can't open %s: %s"),
-			_PATH_FSTAB, strerror (errsv));
+		nfs_error(_("warning: can't open %s: %s"),
+			  _PATH_FSTAB, strerror (errsv));
 		return;
 	}
 	read_mntentchn(mfp, fnam, mc);
