@@ -191,7 +191,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, struct dirent **d)
 				 namelist[i]->d_name);
 			snprintf(statname, sizeof(statname),
 				 "%s/%s", ccachedir, namelist[i]->d_name);
-			if (stat(statname, &tmp_stat)) {
+			if (lstat(statname, &tmp_stat)) {
 				printerr(0, "Error doing stat on file '%s'\n",
 					 statname);
 				free(namelist[i]);
