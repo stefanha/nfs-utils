@@ -190,7 +190,7 @@ int del_mtab(const char *spec, const char *node)
 /*
  * Returns 1 if everything went well, else 0.
  */
-int _nfsumount(const char *spec, const char *opts)
+int _nfsumount(const char *spec, char *opts)
 {
 	char *hostname;
 	char *dirname;
