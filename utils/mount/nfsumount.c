@@ -17,12 +17,14 @@
  *
  */
 
+#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 #include <getopt.h>
 #include <mntent.h>
 #include <sys/mount.h>
 #include <ctype.h>
+#include <pwd.h>
 
 #include "xcommon.h"
 #include "fstab.h"
@@ -323,6 +325,35 @@ int nfsumount(int argc, char *argv[])
 		mc = getmntdevbackward(spec, NULL);
 	if (!mc && verbose)
 		printf(_("Could not find %s in mtab\n"), spec);
+
+	if (getuid() != 0) {
+		/* only permitted if "user=" or "users" is in mount options */
+		if (!mc) {
+		only_root:
+			fprintf(stderr,"%s: You are not permitted to unmount %s\n",
+				progname, spec);
+			return 0;
+		}
+		if (hasmntopt(&mc->m, "users") == NULL) {
+			char *opt = hasmntopt(&mc->m, "user");
+			struct passwd *pw;
+			char *comma;
+			int len;
+			if (!opt)
+				goto only_root;
+			if (opt[5] != '=')
+				goto only_root;
+			comma = strchr(opt, ',');
+			if (comma)
+				len = comma - (opt + 5);
+			else
+				len = strlen(opt+5);
+			pw = getpwuid(getuid());
+			if (pw == NULL || strlen(pw->pw_name) != len
+			    || strncmp(pw->pw_name, opt+5, len) != 0)
+				goto only_root;
+		}
+	}
 
 	ret = 0;
 	if (mc) {
