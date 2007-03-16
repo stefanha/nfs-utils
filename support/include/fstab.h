@@ -11,7 +11,6 @@ struct mntentchn {
 	nfs_mntent_t m;
 };
 
-struct mntentchn *mtab_head (void);
 struct mntentchn *getmntoptfile (const char *file);
 struct mntentchn *getmntdirbackward (const char *dir, struct mntentchn *mc);
 struct mntentchn *getmntdevbackward (const char *dev, struct mntentchn *mc);

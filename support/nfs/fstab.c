@@ -83,7 +83,7 @@ static int got_mtab = 0;
 
 static void read_mounttable(void);
 
-struct mntentchn *
+static struct mntentchn *
 mtab_head() {
 	if (!got_mtab)
 		read_mounttable();
