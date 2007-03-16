@@ -490,6 +490,7 @@ void nfsd_export(FILE *f)
 	int i;
 	char *dom, *path;
 	nfs_export *exp, *found = NULL;
+	int found_type = 0;
 
 
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
@@ -516,9 +517,10 @@ void nfsd_export(FILE *f)
 				continue;
 			if (strcmp(path, exp->m_export.e_path))
 				continue;
-			if (!found)
+			if (!found) {
 				found = exp;
-			else {
+				found_type = i;
+			} else if (found_type == i) {
 				xlog(L_WARNING, "%s exported to both %s and %s in %s",
 				     path, exp->m_client->m_hostname, found->m_client->m_hostname,
 				     dom);
