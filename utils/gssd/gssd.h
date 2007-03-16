@@ -62,6 +62,7 @@ extern char			pipefsdir[PATH_MAX];
 extern char			keytabfile[PATH_MAX];
 extern char			ccachedir[PATH_MAX];
 extern int			use_memcache;
+extern int			root_uses_machine_creds;
 
 TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 

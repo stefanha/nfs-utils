@@ -2,11 +2,11 @@
 .\" rpc.gssd(8)
 .\"
 .\" Copyright (C) 2003 J. Bruce Fields <bfields@umich.edu>
-.TH rpc.gssd 8 "17 Mar 2003"
+.TH rpc.gssd 8 "14 Mar 2007"
 .SH NAME
 rpc.gssd \- rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.gssd [-f] [-k keytab] [-p pipefsdir] [-v] [-r] [-d ccachedir]"
+.B "rpc.gssd [-f] [-n] [-k keytab] [-p pipefsdir] [-v] [-r] [-d ccachedir]"
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -25,6 +25,19 @@ Runs
 .B rpc.gssd
 in the foreground and sends output to stderr (as opposed to syslogd)
 .TP
+.B -n
+By default,
+.B rpc.gssd
+treats accesses by the user with UID 0 specially, and uses
+"machine credentials" for all accesses by that user which
+require Kerberos authentication.
+With the \-n option, "machine credentials" will not be used
+for accesses by UID 0.  Instead, credentials must be obtained
+manually like all other users.  Use of this option means that
+"root" must manually obtain Kerberos credentials before
+attemtpting to mount an nfs filesystem requiring Kerberos
+authentication.
+.TP
 .B -k keytab
 Tells
 .B rpc.gssd
@@ -32,15 +45,6 @@ to use the keys for principals nfs/hostname in
 .I keytab
 to obtain machine credentials.
 The default value is "/etc/krb5.keytab".
-.\".TP
-.\".B -m
-.\"Ordinarily,
-.\".B rpc.gssd
-.\"looks for a cached ticket for user $UID in /tmp/krb5cc_$UID.
-.\"With the -m option, the user with uid 0 will be treated specially, and will
-.\"be mapped instead to the credentials for the principal nfs/hostname found in
-.\"the keytab file.
-.\"(This option is now the default and is ignored if specified.)
 .TP
 .B -p path
 Tells

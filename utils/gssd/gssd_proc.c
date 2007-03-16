@@ -675,6 +675,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 	gss_buffer_desc		token;
 	char			**credlist = NULL;
 	char			**ccname;
+	int			create_resp = -1;
 
 	printerr(1, "handling krb5 upcall\n");
 
@@ -688,49 +689,52 @@ handle_krb5_upcall(struct clnt_info *clp)
 		goto out;
 	}
 
-	if (uid == 0) {
-		int success = 0;
-
-		/*
-		 * Get a list of credential cache names and try each
-		 * of them until one works or we've tried them all
-		 */
-		if (gssd_get_krb5_machine_cred_list(&credlist)) {
-			printerr(0, "WARNING: Failed to obtain machine "
-				    "credentials for connection to "
-				    "server %s\n", clp->servername);
-				goto out_return_error;
-		}
-		for (ccname = credlist; ccname && *ccname; ccname++) {
-			gssd_setup_krb5_machine_gss_ccache(*ccname);
-			if ((create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
-						    AUTHTYPE_KRB5)) == 0) {
-				/* Success! */
-				success++;
-				break;
-			}
-			printerr(2, "WARNING: Failed to create krb5 context "
-				    "for user with uid %d with credentials "
-				    "cache %s for server %s\n",
-				 uid, *ccname, clp->servername);
-		}
-		gssd_free_krb5_machine_cred_list(credlist);
-		if (!success) {
-			printerr(0, "WARNING: Failed to create krb5 context "
-				    "for user with uid %d with any "
-				    "credentials cache for server %s\n",
-				 uid, clp->servername);
-			goto out_return_error;
-		}
-	}
-	else {
+	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0)) {
 		/* Tell krb5 gss which credentials cache to use */
 		gssd_setup_krb5_user_gss_ccache(uid, clp->servername);
 
-		if ((create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
-							AUTHTYPE_KRB5)) != 0) {
+		create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
+						     AUTHTYPE_KRB5);
+	}
+	if (create_resp != 0) {
+		if (uid == 0 && root_uses_machine_creds == 1) {
+			int success = 0;
+
+			/*
+			 * Get a list of credential cache names and try each
+			 * of them until one works or we've tried them all
+			 */
+			if (gssd_get_krb5_machine_cred_list(&credlist)) {
+				printerr(0, "WARNING: Failed to obtain machine "
+					 "credentials for connection to "
+					 "server %s\n", clp->servername);
+					goto out_return_error;
+			}
+			for (ccname = credlist; ccname && *ccname; ccname++) {
+				gssd_setup_krb5_machine_gss_ccache(*ccname);
+				if ((create_auth_rpc_client(clp, &rpc_clnt,
+							    &auth, uid,
+							    AUTHTYPE_KRB5)) == 0) {
+					/* Success! */
+					success++;
+					break;
+				}
+				printerr(2, "WARNING: Failed to create krb5 context "
+					 "for user with uid %d with credentials "
+					 "cache %s for server %s\n",
+					 uid, *ccname, clp->servername);
+			}
+			gssd_free_krb5_machine_cred_list(credlist);
+			if (!success) {
+				printerr(0, "WARNING: Failed to create krb5 context "
+					 "for user with uid %d with any "
+					 "credentials cache for server %s\n",
+					 uid, clp->servername);
+				goto out_return_error;
+			}
+		} else {
 			printerr(0, "WARNING: Failed to create krb5 context "
-				    "for user with uid %d for server %s\n",
+				 "for user with uid %d for server %s\n",
 				 uid, clp->servername);
 			goto out_return_error;
 		}
