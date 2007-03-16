@@ -80,19 +80,19 @@
  *	with an index into pollarray[], and other basic data about that client.
  *
  * Directory structure: created by the kernel nfs client
- *      /pipefsdir/clntXX             : one per rpc_clnt struct in the kernel
- *      /pipefsdir/clntXX/krb5        : read uid for which kernel wants
- *      				 a context, write the resulting context
- *      /pipefsdir/clntXX/info        : stores info such as server name
+ *      {pipefs_nfsdir}/clntXX             : one per rpc_clnt struct in the kernel
+ *      {pipefs_nfsdir}/clntXX/krb5        : read uid for which kernel wants
+ *					    a context, write the resulting context
+ *      {pipefs_nfsdir}/clntXX/info        : stores info such as server name
  *
  * Algorithm:
- *      Poll all /pipefsdir/clntXX/krb5 files.  When ready, data read
+ *      Poll all {pipefs_nfsdir}/clntXX/krb5 files.  When ready, data read
  *      is a uid; performs rpcsec_gss context initialization protocol to
  *      get a cred for that user.  Writes result to corresponding krb5 file
  *      in a form the kernel code will understand.
  *      In addition, we make sure we are notified whenever anything is
- *      created or destroyed in pipefsdir/ or in an of the clntXX directories,
- *      and rescan the whole pipefsdir when this happens.
+ *      created or destroyed in {pipefs_nfsdir} or in an of the clntXX directories,
+ *      and rescan the whole {pipefs_nfsdir} when this happens.
  */
 
 struct pollfd * pollarray;
@@ -389,16 +389,16 @@ update_client_list(void)
 	struct dirent **namelist;
 	int i, j;
 
-	if (chdir(pipefsdir) < 0) {
+	if (chdir(pipefs_nfsdir) < 0) {
 		printerr(0, "ERROR: can't chdir to %s: %s\n",
-			 pipefsdir, strerror(errno));
+			 pipefs_nfsdir, strerror(errno));
 		return -1;
 	}
 
-	j = scandir(pipefsdir, &namelist, NULL, alphasort);
+	j = scandir(pipefs_nfsdir, &namelist, NULL, alphasort);
 	if (j < 0) {
 		printerr(0, "ERROR: can't scandir %s: %s\n",
-			 pipefsdir, strerror(errno));
+			 pipefs_nfsdir, strerror(errno));
 		return -1;
 	}
 	update_old_clients(namelist, j);

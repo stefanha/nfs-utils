@@ -53,7 +53,8 @@
 #include "gss_util.h"
 #include "krb5_util.h"
 
-char pipefsdir[PATH_MAX] = GSSD_PIPEFS_DIR;
+char pipefs_dir[PATH_MAX] = GSSD_PIPEFS_DIR;
+char pipefs_nfsdir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
 char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR;
 int  use_memcache = 0;
@@ -116,8 +117,8 @@ main(int argc, char *argv[])
 				rpc_verbosity++;
 				break;
 			case 'p':
-				strncpy(pipefsdir, optarg, sizeof(pipefsdir));
-				if (pipefsdir[sizeof(pipefsdir)-1] != '\0')
+				strncpy(pipefs_dir, optarg, sizeof(pipefs_dir));
+				if (pipefs_dir[sizeof(pipefs_dir)-1] != '\0')
 					errx(1, "pipefs path name too long");
 				break;
 			case 'k':
@@ -135,10 +136,10 @@ main(int argc, char *argv[])
 				break;
 		}
 	}
-	strncat(pipefsdir + strlen(pipefsdir), "/" GSSD_SERVICE_NAME,
-		sizeof(pipefsdir)-strlen(pipefsdir));
-	if (pipefsdir[sizeof(pipefsdir)-1] != '\0')
-		errx(1, "pipefs path name too long");
+	snprintf(pipefs_nfsdir, sizeof(pipefs_nfsdir), "%s/%s",
+		 pipefs_dir, GSSD_SERVICE_NAME);
+	if (pipefs_nfsdir[sizeof(pipefs_nfsdir)-1] != '\0')
+		errx(1, "pipefs_nfsdir path name too long");
 
 	if ((progname = strrchr(argv[0], '/')))
 		progname++;
