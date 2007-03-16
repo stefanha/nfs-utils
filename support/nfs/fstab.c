@@ -80,14 +80,25 @@ mtab_is_writable() {
 
 struct mntentchn mounttable;
 static int got_mtab = 0;
+struct mntentchn fstab;
+static int got_fstab = 0;
 
 static void read_mounttable(void);
+static void read_fstab(void);
 
 static struct mntentchn *
 mtab_head() {
 	if (!got_mtab)
 		read_mounttable();
 	return &mounttable;
+}
+
+static struct mntentchn *
+fstab_head()
+{
+	if (!got_fstab)
+		read_fstab();
+	return &fstab;
 }
 
 static void
@@ -167,6 +178,27 @@ read_mounttable() {
         read_mntentchn(mfp, fnam, mc);
 }
 
+static void
+read_fstab()
+{
+	mntFILE *mfp = NULL;
+	const char *fnam;
+	struct mntentchn *mc = &fstab;
+
+	got_fstab = 1;
+	mc->nxt = mc->prev = NULL;
+
+	fnam = _PATH_FSTAB;
+	mfp = nfs_setmntent (fnam, "r");
+	if (mfp == NULL || mfp->mntent_fp == NULL) {
+		int errsv = errno;
+		error(_("warning: can't open %s: %s"),
+			_PATH_FSTAB, strerror (errsv));
+		return;
+	}
+	read_mntentchn(mfp, fnam, mc);
+}
+
 /*
  * Given the directory name NAME, and the place MCPREV we found it last time,
  * try to find more occurrences.
@@ -197,6 +229,32 @@ getmntdevbackward (const char *name, struct mntentchn *mcprev) {
 		mcprev = mc0;
 	for (mc = mcprev->prev; mc && mc != mc0; mc = mc->prev)
 		if (streq(mc->m.mnt_fsname, name))
+			return mc;
+	return NULL;
+}
+
+/* Find the dir FILE in fstab.  */
+struct mntentchn *
+getfsfile (const char *file)
+{
+	struct mntentchn *mc, *mc0;
+
+	mc0 = fstab_head();
+	for (mc = mc0->nxt; mc && mc != mc0; mc = mc->nxt)
+		if (streq(mc->m.mnt_dir, file))
+			return mc;
+	return NULL;
+}
+
+/* Find the device SPEC in fstab.  */
+struct mntentchn *
+getfsspec (const char *spec)
+{
+	struct mntentchn *mc, *mc0;
+
+	mc0 = fstab_head();
+	for (mc = mc0->nxt; mc && mc != mc0; mc = mc->nxt)
+		if (streq(mc->m.mnt_fsname, spec))
 			return mc;
 	return NULL;
 }

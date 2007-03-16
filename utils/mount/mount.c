@@ -28,6 +28,7 @@
 #include <sys/mount.h>
 #include <getopt.h>
 #include <mntent.h>
+#include <pwd.h>
 
 #include "fstab.h"
 #include "xcommon.h"
@@ -75,6 +76,11 @@ struct opt_map {
   int  mask;                    /* flag mask value */
 };
 
+/* Custom mount options for our own purposes.  */
+#define MS_DUMMY	0x00000000
+#define MS_USERS	0x40000000
+#define MS_USER		0x80000000
+
 static const struct opt_map opt_map[] = {
   { "defaults", 0, 0, 0         },      /* default options */
   { "ro",       1, 0, MS_RDONLY },      /* read-only */
@@ -91,6 +97,20 @@ static const struct opt_map opt_map[] = {
   { "remount",  0, 0, MS_REMOUNT},      /* Alter flags of mounted FS */
   { "bind",     0, 0, MS_BIND   },      /* Remount part of tree elsewhere */
   { "rbind",    0, 0, MS_BIND|MS_REC }, /* Idem, plus mounted subtrees */
+  { "auto",     0, 0, MS_DUMMY },       /* Can be mounted using -a */
+  { "noauto",   0, 0, MS_DUMMY },       /* Can  only be mounted explicitly */
+  { "users",    1, 0, MS_USERS|MS_NOEXEC|MS_NOSUID|MS_NODEV  },
+  					/* Allow ordinary user to mount */
+  { "nousers",  0, 1, MS_DUMMY  },      /* Forbid ordinary user to mount */
+  { "user",     1, 0, MS_USER|MS_NOEXEC|MS_NOSUID|MS_NODEV  },
+  					/* Allow ordinary user to mount */
+  { "nouser",   0, 1, MS_DUMMY   },     /* Forbid ordinary user to mount */
+  { "owner",    0, 0, MS_DUMMY  },      /* Let the owner of the device mount */
+  { "noowner",  0, 0, MS_DUMMY  },      /* Device owner has no special privs */
+  { "group",    0, 0, MS_DUMMY  },      /* Let the group of the device mount */
+  { "nogroup",  0, 0, MS_DUMMY  },      /* Device group has no special privs */
+  { "_netdev",  0, 0, MS_DUMMY},        /* Device requires network */
+  { "comment",  0, 0, MS_DUMMY},        /* fstab comment only (kudzu,_netdev)*/
 
   /* add new options here */
 #ifdef MS_NOSUB
@@ -105,6 +125,7 @@ static const struct opt_map opt_map[] = {
   { "mand",     0, 0, MS_MANDLOCK },    /* Allow mandatory locks on this FS */
   { "nomand",   0, 1, MS_MANDLOCK },    /* Forbid mandatory locks on this FS */
 #endif
+  { "loop",     1, 0, MS_DUMMY   },      /* use a loop device */
 #ifdef MS_NOATIME
   { "atime",    0, 1, MS_NOATIME },     /* Update access time */
   { "noatime",  0, 0, MS_NOATIME },     /* Do not update access time */
@@ -122,6 +143,15 @@ static char * fix_opts_string (int flags, const char *extra_opts) {
 	char *new_opts;
 
 	new_opts = xstrdup((flags & MS_RDONLY) ? "ro" : "rw");
+	if (flags & MS_USER) {
+		/* record who mounted this so they can unmount */
+		struct passwd *pw = getpwuid(getuid());
+		if(pw)
+			new_opts = xstrconcat3(new_opts, ",user=", pw->pw_name);
+	}
+	if (flags & MS_USERS)
+		new_opts = xstrconcat3(new_opts, ",users", "");
+	
 	for (om = opt_map; om->opt != NULL; om++) {
 		if (om->skip)
 			continue;
@@ -282,15 +312,11 @@ int main(int argc, char *argv[])
 	int c, flags = 0, nfs_mount_vers = 0, mnt_err = 1, fake = 0;
 	char *spec, *mount_point, *extra_opts = NULL;
 	char *mount_opts = NULL, *p;
+	uid_t uid = getuid();
 
 	progname = argv[0];
 	if ((p = strrchr(progname, '/')) != NULL)
 		progname = p+1;
-
-	if (getuid() != 0) {
-		printf("%s: only root can do that.\n", progname);
-		exit(1);
-	}
 
 	if(!strncmp(progname, "umount", strlen("umount"))) {
 		if(argc < 2) {
@@ -375,9 +401,34 @@ int main(int argc, char *argv[])
 	}
 
 	spec = argv[1];
-	mount_point = canonicalize(argv[2]);
+	mount_point = argv[2];
+
+	if (uid != 0) {
+		/* don't even think about it unless options exactly
+		 * make fstab
+		 */
+		struct mntentchn *mc;
+
+		if ((mc = getfsfile(mount_point)) == NULL ||
+		    strcmp(mc->m.mnt_fsname, spec) != 0 ||
+		    strcmp(mc->m.mnt_opts, mount_opts) != 0) {
+			fprintf(stderr, "%s: permission died - no match for fstab\n",
+				progname);
+			exit(1);
+		}
+		mounttype = 0;
+	}
+
+	mount_point = canonicalize(mount_point);
 	
 	parse_opts(mount_opts, &flags, &extra_opts);
+
+	if (uid != 0) {
+	    if (! (flags & (MS_USERS | MS_USER))) {
+		    fprintf(stderr, "%s: permission denied\n", progname);
+		    exit(1);
+	    }
+	}
 
 	if (!strcmp(progname, "mount.nfs4") || nfs_mount_vers == 4) {
 		nfs_mount_vers = 4;

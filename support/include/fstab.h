@@ -3,6 +3,10 @@
 
 #include "nfs_mntent.h"
 
+#ifndef _PATH_FSTAB
+#define _PATH_FSTAB "/etc/fstab"
+#endif
+
 int mtab_is_writable(void);
 int mtab_does_not_exist(void);
 
@@ -14,6 +18,9 @@ struct mntentchn {
 struct mntentchn *getmntoptfile (const char *file);
 struct mntentchn *getmntdirbackward (const char *dir, struct mntentchn *mc);
 struct mntentchn *getmntdevbackward (const char *dev, struct mntentchn *mc);
+
+struct mntentchn *getfsfile (const char *file);
+struct mntentchn *getfsspec (const char *spec);
 
 void lock_mtab (void);
 void unlock_mtab (void);
