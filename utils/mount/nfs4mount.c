@@ -50,6 +50,7 @@
 #endif
 
 extern int verbose;
+extern int sloppy;
 
 char *IDMAPLCK = DEFAULT_DIR "/rpcidmapd";
 #define idmapd_check() do { \
@@ -308,7 +309,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 				num_flavour = parse_sec(opteq+1, pseudoflavour);
 				if (!num_flavour)
 					goto fail;
-			} else if (!strcmp(opt, "addr")) {
+			} else if (!strcmp(opt, "addr") || sloppy) {
 				/* ignore */;
 			} else {
 				printf(_("unknown nfs mount parameter: "
@@ -335,7 +336,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 				nocto = !val;
 			else if (!strcmp(opt, "ac"))
 				noac = !val;
-			else {
+			else if (!sloppy) {
 				printf(_("unknown nfs mount option: "
 					 "%s%s\n"), val ? "" : "no", opt);
 				goto fail;

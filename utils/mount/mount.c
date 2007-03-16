@@ -43,6 +43,7 @@ char *progname;
 int nomtab;
 int verbose;
 int mounttype;
+int sloppy;
 
 static struct option longopts[] = {
   { "fake", 0, 0, 'f' },
@@ -190,6 +191,7 @@ void mount_usage()
 	printf("\t-w\t\tMount file system read-write\n");
 	printf("\t-f\t\tFake mount, don't actually mount\n");
 	printf("\t-n\t\tDo not update /etc/mtab\n");
+	printf("\t-s\t\tTolerate sloppy mount options rather than failing.\n");
 	printf("\t-h\t\tPrint this help\n");
 	printf("\tversion\t\tnfs4 - NFS version 4, nfs - older NFS version supported\n");
 	printf("\tnfsoptions\tRefer mount.nfs(8) or nfs(5)\n\n");
@@ -311,7 +313,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	while ((c = getopt_long (argc - 2, argv + 2, "rt:vVwfno:h",
+	while ((c = getopt_long (argc - 2, argv + 2, "rt:vVwfno:hs",
 				longopts, NULL)) != -1) {
 		switch (c) {
 		case 'r':
@@ -340,6 +342,9 @@ int main(int argc, char *argv[])
 				mount_opts = xstrconcat3(mount_opts, ",", optarg);
 			else
 				mount_opts = xstrdup(optarg);
+			break;
+		case 's':
+			++sloppy;
 			break;
 		case 128: /* bind */
 			mounttype = MS_BIND;

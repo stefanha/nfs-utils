@@ -104,6 +104,7 @@ typedef union {
 static char errbuf[BUFSIZ];
 static char *erreob = &errbuf[BUFSIZ];
 extern int verbose;
+extern int sloppy;
 
 /* Convert RPC errors into strings */
 int rpc_strerror(int);
@@ -606,13 +607,17 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			} else if (!strcmp(opt, "namlen")) {
 				if (nfs_mount_version >= 2)
 					data->namlen = val;
+				else if (sloppy)
+					continue;
 				else
 					goto bad_parameter;
 #endif
 			} else if (!strcmp(opt, "addr")) {
 				/* ignore */;
 				continue;
- 			} else
+ 			} else if (sloppy)
+				continue;
+			else
 				goto bad_parameter;
 			sprintf(cbuf, "%s=%s,", opt, opteq+1);
 		} else if (opteq) {
@@ -629,7 +634,9 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 					mnt_pmap->pm_prot = IPPROTO_TCP;
 					data->flags |= NFS_MOUNT_TCP;
 #endif
-				} else
+				} else if (sloppy)
+					continue;
+				else
 					goto bad_parameter;
 #if NFS_MOUNT_VERSION >= 5
 			} else if (!strcmp(opt, "sec")) {
@@ -660,6 +667,8 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 					data->pseudoflavor = AUTH_GSS_SPKMI;
 				else if (!strcmp(secflavor, "spkm3p"))
 					data->pseudoflavor = AUTH_GSS_SPKMP;
+				else if (sloppy)
+					continue;
 				else {
 					printf(_("Warning: Unrecognized security flavor %s.\n"),
 						secflavor);
@@ -679,7 +688,9 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 					goto bad_parameter;
  				}
  				strncpy(data->context, context, NFS_MAX_CONTEXT_LEN);
- 			} else
+ 			} else if (sloppy)
+				continue;
+			else
 				goto bad_parameter;
 			sprintf(cbuf, "%s=%s,", opt, opteq+1);
 		} else {
@@ -766,6 +777,8 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 #endif
 			} else {
 			bad_option:
+				if (sloppy)
+					continue;
 				printf(_("Unsupported nfs mount option: "
 					 "%s%s\n"), val ? "" : "no", opt);
 				goto out_bad;
