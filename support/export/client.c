@@ -329,6 +329,7 @@ add_name(char *old, char *add)
 		strcat(new, ",");
 		strcat(new, cp);
 	}
+	free(old);
 	return new;
 }
 
