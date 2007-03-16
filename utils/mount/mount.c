@@ -386,7 +386,7 @@ int main(int argc, char *argv[])
 	else if (!strcmp(progname, "mount.nfs")) {
 		int need_statd = 0;
 		mnt_err = nfsmount(spec, mount_point, &flags,
-				   &extra_opts, &mount_opts, &nfs_mount_vers,
+				   &extra_opts, &mount_opts,
 				   0, &need_statd);
 		if (!mnt_err && !fake && need_statd)
 			start_statd();

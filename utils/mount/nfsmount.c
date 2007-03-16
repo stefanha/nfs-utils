@@ -830,7 +830,7 @@ nfsmnt_check_compat(const struct pmap *nfs_pmap, const struct pmap *mnt_pmap)
 
 int
 nfsmount(const char *spec, const char *node, int *flags,
-	 char **extra_opts, char **mount_opts, int *nfs_mount_vers,
+	 char **extra_opts, char **mount_opts,
 	 int running_bg, int *need_statd)
 {
 	static char *prev_bg_host;
@@ -860,11 +860,7 @@ nfsmount(const char *spec, const char *node, int *flags,
 	time_t prevt;
 	time_t timeout;
 
-	/* The version to try is either specified or 0
-	   In case it is 0 we tell the caller what we tried */
-	if (!*nfs_mount_vers)
-		*nfs_mount_vers = find_kernel_nfs_mount_version();
-	nfs_mount_version = *nfs_mount_vers;
+	nfs_mount_version = find_kernel_nfs_mount_version();
 
 	if (strlen(spec) >= sizeof(hostdir)) {
 		fprintf(stderr, _("mount: "
