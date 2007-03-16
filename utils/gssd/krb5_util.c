@@ -485,6 +485,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 			printerr(0, "WARNING: Skipping keytab entry because "
 				    "we failed to unparse principal name: %s\n",
 				 error_message(code));
+			krb5_kt_free_entry(context, &kte);
 			continue;
 		}
 		printerr(2, "Processing keytab entry for principal '%s'\n",
@@ -510,6 +511,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 #else
 				free(pname);
 #endif
+				krb5_kt_free_entry(context, &kte);
 				retval = ENOMEM;
 				goto out;
 			}
@@ -533,6 +535,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 #else
 				free(pname);
 #endif
+				krb5_kt_free_entry(context, &kte);
 				retval = ENOMEM;
 				goto out;
 			}
@@ -546,6 +549,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 #else
 				free(pname);
 #endif
+				krb5_kt_free_entry(context, &kte);
 				retval = code;
 				goto out;
 			}
@@ -565,6 +569,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 #else
 		free(pname);
 #endif
+		krb5_kt_free_entry(context, &kte);
 	}
 
 	if ((code = krb5_kt_end_seq_get(context, kt, &cursor))) {
