@@ -324,16 +324,17 @@ int nfsumount(int argc, char *argv[])
 	if (!mc && verbose)
 		printf(_("Could not find %s in mtab\n"), spec);
 
+	ret = 0;
 	if (mc) {
-		ret = _nfsumount(mc->m.mnt_fsname, mc->m.mnt_opts);
+		if (!lazy)
+			ret = _nfsumount(mc->m.mnt_fsname, mc->m.mnt_opts);
 		if(ret)
 			ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
-	} else {
-		if (*spec != '/')
+	} else if (*spec != '/') {
+		if (!lazy)
 			ret = _nfsumount(spec, "tcp,v3");
-		else
-			ret = del_mtab(NULL, spec);
-	}
+	} else
+		ret = del_mtab(NULL, spec);
 
 	return(ret);
 }
