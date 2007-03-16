@@ -1,5 +1,9 @@
 ## Process this file with automake to produce Makefile.in
 
+# These binaries go in /sbin (not /usr/sbin), and that cannot be
+# overriden at config time.
+sbindir = /sbin
+
 man8_MANS	= mount.nfs.man umount.nfs.man
 
 sbin_PROGRAMS	= mount.nfs
@@ -14,9 +18,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 install-exec-hook:
 	(cd $(DESTDIR)$(sbindir) && \
-	  ln -sf $(sbin_PROGRAMS) mount.nfs4 && \
-	  ln -sf $(sbin_PROGRAMS) umount.nfs && \
-	  ln -sf $(sbin_PROGRAMS) umount.nfs4)
+	  ln -sf mount.nfs mount.nfs4 && \
+	  ln -sf mount.nfs umount.nfs && \
+	  ln -sf mount.nfs umount.nfs4)
 uninstall-hook:
 	(cd $(DESTDIR)$(sbindir) && \
 	    rm -f mount.nfs4 umount.nfs umount.nfs4)
