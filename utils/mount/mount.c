@@ -255,6 +255,26 @@ static void mount_error(char *node)
 	}
 }
 
+static void start_statd()
+{
+	/* If /var/run/rpc.statd.pid exists and is non-empty,
+	 * assume statd already running.
+	 * If START_STATD not defined, or defined to a non-existent file,
+	 * don't bother,
+	 * else run that file (typically a shell script)
+	 */
+	struct stat stb;
+	if (stat("/var/run/rpc.statd.pid", &stb) == 0 &&
+	    stb.st_size > 0)
+		return;
+#ifdef START_STATD
+	if (stat(START_STATD, &stb) ==0 &&
+	    S_ISREG(stb.st_mode) &&
+	    (stb.st_mode & S_IXUSR))
+		system(START_STATD);
+#endif
+}
+
 int main(int argc, char *argv[])
 {
 	int c, flags = 0, nfs_mount_vers = 0, mnt_err = 1, fake = 0;
@@ -358,11 +378,13 @@ int main(int argc, char *argv[])
 		nfs_mount_vers = 4;
 		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, &mount_opts, 0);
 	}
-	else {
-		if (!strcmp(progname, "mount.nfs")) {
-			mnt_err = nfsmount(spec, mount_point, &flags,
-					&extra_opts, &mount_opts, &nfs_mount_vers, 0);
-		}
+	else if (!strcmp(progname, "mount.nfs")) {
+		int need_statd = 0;
+		mnt_err = nfsmount(spec, mount_point, &flags,
+				   &extra_opts, &mount_opts, &nfs_mount_vers,
+				   0, &need_statd);
+		if (!mnt_err && !fake && need_statd)
+			start_statd();
 	}
 
 	if (!mnt_err && !fake) {

@@ -818,7 +818,7 @@ nfsmnt_check_compat(const struct pmap *nfs_pmap, const struct pmap *mnt_pmap)
 int
 nfsmount(const char *spec, const char *node, int *flags,
 	 char **extra_opts, char **mount_opts, int *nfs_mount_vers,
-	 int running_bg)
+	 int running_bg, int *need_statd)
 {
 	static char *prev_bg_host;
 	char hostdir[1024];
@@ -1185,6 +1185,7 @@ noauth_flavors:
 	strcat(new_opts, cbuf);
 
 	*extra_opts = xstrdup(new_opts);
+	*need_statd = ! (data.flags & NFS_MOUNT_NONLM);
 	return 0;
 
 	/* abort */
