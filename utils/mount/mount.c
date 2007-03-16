@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
 			umount_usage();
 			exit(1);
 		}
-		return(nfsumount(argc, argv));
+		exit(nfsumount(argc, argv) ? 0 : 1);
 	}
 
 	if ((argc < 2)) {
