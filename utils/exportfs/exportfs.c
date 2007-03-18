@@ -218,6 +218,7 @@ export_all(int verbose)
 			exp->m_xtabent = 1;
 			exp->m_mayexport = 1;
 			exp->m_changed = 1;
+			exp->m_warned = 0;
 		}
 	}
 }
@@ -274,6 +275,7 @@ exportfs(char *arg, char *options, int verbose)
 	exp->m_xtabent = 1;
 	exp->m_mayexport = 1;
 	exp->m_changed = 1;
+	exp->m_warned = 0;
 	if (hp) free (hp);
 }
 

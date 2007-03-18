@@ -520,10 +520,12 @@ void nfsd_export(FILE *f)
 			if (!found) {
 				found = exp;
 				found_type = i;
-			} else if (found_type == i) {
-				xlog(L_WARNING, "%s exported to both %s and %s in %s",
-				     path, exp->m_client->m_hostname, found->m_client->m_hostname,
+			} else if (found_type == i && found->m_warned == 0) {
+				xlog(L_WARNING, "%s exported to both %s and %s, "
+				     "arbitrarily choosing options from first",
+				     path, found->m_client->m_hostname, exp->m_client->m_hostname,
 				     dom);
+				found->m_warned = 1;
 			}
 		}
 	}

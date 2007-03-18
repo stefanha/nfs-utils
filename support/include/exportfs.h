@@ -47,7 +47,9 @@ typedef struct mexport {
 	int			m_exported;	/* known to knfsd. -1 means not sure */
 	int			m_xtabent  : 1,	/* xtab entry exists */
 				m_mayexport: 1,	/* derived from xtabbed */
-				m_changed  : 1; /* options (may) have changed */
+				m_changed  : 1, /* options (may) have changed */
+				m_warned   : 1; /* warned about multiple exports
+						 * matching one client */
 } nfs_export;
 
 extern nfs_client *		clientlist[MCL_MAXTYPES];

@@ -90,6 +90,7 @@ export_init(nfs_export *exp, nfs_client *clp, struct exportent *nep)
 	exp->m_xtabent = 0;
 	exp->m_mayexport = 0;
 	exp->m_changed = 0;
+	exp->m_warned = 0;
 	exp->m_client = clp;
 	clp->m_count++;
 }
@@ -115,6 +116,7 @@ export_dup(nfs_export *exp, struct hostent *hp)
 	new->m_exported = 0;
 	new->m_xtabent = 0;
 	new->m_changed = 0;
+	new->m_warned = 0;
 	export_add(new);
 
 	return new;
