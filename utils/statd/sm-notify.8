@@ -1,0 +1,114 @@
+.\"
+.\" sm-notify(8)
+.\"
+.\" Copyright (C) 2004 Olaf Kirch <okir@suse.de>
+.TH sm-notify 8 "8 Mar 2004
+.SH NAME
+sm-notify \- Send out NSM reboot notifications
+.SH SYNOPSIS
+.BI "/sbin/sm-notify [-d] [-q] [-m " time "]
+.SH DESCRIPTION
+File locking over NFS requires a facility to notify peers in
+case of a reboot, so that clients can reclaim locks after
+a server crash, and/or
+servers can release locks held by the rebooted client.
+.PP
+This is a two-step process: during normal
+operations, a mechanism is required to keep track of which
+hosts need to be informed of a reboot. And of course,
+notifications need to be sent out during reboot.
+The protocol used for this is called NSM, for
+.IR "Network Status Monitor" .
+.PP
+Commonly, these two features are provided by the
+.B rpc.statd
+daemon.
+The SuSE Linux Kernel includes a kernel level implementation
+of
+.BR statd ", "
+which keeps track of the hosts that need notifications, and
+accepts reboot notifications.
+.PP
+This is complemented by the
+.B sm-notify
+application, which is responsible for sending out the reboot
+notifications.
+.SS Operation
+For each NFS client or server machine to be monitored,
+the kernel level
+.B statd
+creates a file in
+.BR /var/lib/nfs/sm ", "
+and removes the file if monitoring is no longer required.
+.PP
+When the machine is rebooted,
+.B sm-notify
+iterates through these files and notifies the peer
+.B statd
+server on those machines.
+.PP
+Each machine has an
+.I "NSM state" ,
+which is basically an integer counter that is incremented
+each time the machine reboots. This counter is stored
+in
+.BR /var/lib/nfs/state ,
+and updated by
+.BR sm-notify .
+.SH OPTIONS
+.TP
+.BI -m " failtime
+When notifying hosts,
+.B sm-notify
+will try to contact each host for up to 15 minutes,
+and will give up if unable to reach it within this time
+frame.
+.IP
+Using the
+.B -m
+option, you can override this. A value of 0 tells
+sm-notify to retry indefinitely; any other value is
+interpreted as the maximum retry time in minutes.
+.TP
+.BI -v " ipaddr
+This option tells
+.B sm-notify
+to bind to the specified
+.IR ipaddr ,
+so that all notification packets originate from this address.
+This is useful for NFS failover.
+.TP
+.BI -p " port
+instructs
+.B sm-notify
+to bind to the indicated IP
+.IR port
+number. If this option is not given, it will try to bind to
+a randomly chosen privileged port below 1024.
+.TP
+.B -q
+Be quiet. This suppresses all messages except error
+messages while collecting the list of hosts.
+.TP
+.B -n
+Do not update the NSM state. This is for testing only.
+.TP
+.B -d
+Enables debugging.
+By default,
+.B sm-notify
+forks and puts itself in the background after obtaining the
+list of hosts from
+.BR /var/lib/nfs/sm .
+.SH FILES
+.BR /var/lib/nfs/state
+.br
+.BR /var/lib/nfs/sm/*
+.br
+.BR /var/lib/nfs/sm.bak/*
+.SH SEE ALSO
+.BR rpc.nfsd(8),
+.BR portmap(8)
+.SH AUTHORS
+.br
+Olaf Kirch <okir@suse.de>
