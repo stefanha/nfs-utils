@@ -52,7 +52,7 @@ enum nfsd_fsid {
  * Record is terminated with newline.
  *
  */
-int cache_export_ent(char *domain, struct exportent *exp);
+int cache_export_ent(char *domain, struct exportent *exp, char *p);
 
 
 char *lbuf  = NULL;
@@ -408,7 +408,7 @@ void nfsd_fh(FILE *f)
 	}
 
 	if (found)
-		cache_export_ent(dom, found);
+		cache_export_ent(dom, found, found->e_path);
 
 	qword_print(f, dom);
 	qword_printint(f, fsidtype);
@@ -466,7 +466,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		write_fsloc(f, exp, path);
  		if (exp->e_uuid == NULL) {
  			char u[16];
- 			if (get_uuid(exp->e_path, NULL, 16, u)) {
+ 			if (get_uuid(path, NULL, 16, u)) {
  				qword_print(f, "uuid");
  				qword_printhex(f, u, 16);
  			}
@@ -598,7 +598,7 @@ int cache_process_req(fd_set *readfds)
  * % echo $domain $path $[now+30*60] $options $anonuid $anongid $fsid > /proc/net/rpc/nfsd.export/channel
  */
 
-int cache_export_ent(char *domain, struct exportent *exp)
+int cache_export_ent(char *domain, struct exportent *exp, char *path)
 {
 	int err;
 	FILE *f = fopen("/proc/net/rpc/nfsd.export/channel", "w");
@@ -606,12 +606,52 @@ int cache_export_ent(char *domain, struct exportent *exp)
 		return -1;
 
 	err = dump_to_cache(f, domain, exp->e_path, exp);
-	fclose(f);
 	mountlist_add(domain, exp->e_path);
+
+	while ((exp->e_flags & NFSEXP_CROSSMOUNT) && path) {
+		/* really an 'if', but we can break out of
+		 * a 'while' more easily */
+		/* Look along 'path' for other filesystems
+		 * and export them with the same options
+		 */
+		struct stat stb;
+		int l = strlen(exp->e_path);
+		int dev;
+
+		if (strlen(path) <= l || path[l] != '/' ||
+		    strncmp(exp->e_path, path, l) != 0)
+			break;
+		if (stat(exp->e_path, &stb) != 0)
+			break;
+		dev = stb.st_dev;
+		while(path[l] == '/') {
+			char c;
+			int err;
+
+			l++;
+			while (path[l] != '/' && path[l])
+				l++;
+			c = path[l];
+			path[l] = 0;
+			err = lstat(path, &stb);
+			path[l] = c;
+			if (err < 0)
+				break;
+			if (stb.st_dev == dev)
+				continue;
+			dev = stb.st_dev;
+			path[l] = 0;
+			dump_to_cache(f, domain, path, exp);
+			path[l] = c;
+		}
+		break;
+	}
+
+	fclose(f);
 	return err;
 }
 
-int cache_export(nfs_export *exp)
+int cache_export(nfs_export *exp, char *path)
 {
 	int err;
 	FILE *f;
@@ -628,7 +668,7 @@ int cache_export(nfs_export *exp)
 	
 	fclose(f);
 
-	err = cache_export_ent(exp->m_client->m_hostname, &exp->m_export)
+	err = cache_export_ent(exp->m_client->m_hostname, &exp->m_export, path)
 		|| err;
 	return err;
 }
