@@ -9,7 +9,7 @@
 .SH NAME
 rpc.statd \- NSM status monitor
 .SH SYNOPSIS
-.B "rpc.statd [-F] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-H " prog "] [-V]"
+.B "rpc.statd [-FNL] [-d] [-?] [-n " name "] [-o " port "] [-p " port "] [-H " prog "] [-V]"
 .SH DESCRIPTION
 The
 .B rpc.statd
@@ -25,7 +25,9 @@ For each NFS client or server machine to be monitored,
 .B rpc.statd
 creates a file in
 .BR /var/lib/nfs/sm .
-When starting, it iterates through these files and notifies the
+When starting, it normally runs
+.B sm-notify
+to iterate through these files and notify the
 peer
 .B rpc.statd
 on those machines.
@@ -101,6 +103,21 @@ Causes statd to run in the notify-only mode. When started in this mode, the
 statd program will check its state directory, send notifications to any
 monitored nodes, and exit once the notifications have been sent. This mode is
 used to enable Highly Available NFS implementations (i.e. HA-NFS).
+This mode is deprecated \-
+.B sm-notify
+should be used directly instead.
+.TP
+.BR -L , " --no-notify
+Inhibits the running of
+.BR sm-notify .
+If
+.B sm-notify
+is run by some other script at boot time, there is no need for
+.B statd
+to start sm-notify itself.  This can be appropriate if starting of
+statd needs to be delayed until it is actually need.  In such cases
+.B sm-notify
+should still be run at boot time.
 .TP
 .BI "\-H, " "" " \-\-ha-callout " prog
 Specify a high availability callout program, which will receive callouts

@@ -82,7 +82,7 @@ extern int run_mode;
  * that just came back up, for ex, when failing over a HA service to
  * another host.... */
 #define STATIC_HOSTNAME 8	/* Always use the hostname set by -n */
-
+#define	MODE_NO_NOTIFY	16	/* Don't notify peers of a reboot */
 /*
  * Program name and version pointers -- See statd.c for the reasoning
  * as to why they're global.

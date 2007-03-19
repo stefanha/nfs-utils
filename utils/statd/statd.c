@@ -70,6 +70,7 @@ static struct option longopts[] =
 	{ "state-directory-path", 1, 0, 'P' },
 	{ "notify-mode", 0, 0, 'N' },
 	{ "ha-callout", 1, 0, 'H' },
+	{ "no-notify", 0, 0, 'L' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -158,6 +159,7 @@ usage()
 	fprintf(stderr,"      -n, --name           Specify a local hostname.\n");
 	fprintf(stderr,"      -P                   State directory path.\n");
 	fprintf(stderr,"      -N                   Run in notify only mode.\n");
+	fprintf(stderr,"      -L, --no-notify      Do not perform any notification.\n");
 	fprintf(stderr,"      -H                   Specify a high-availability callout program.\n");
 }
 
@@ -274,7 +276,7 @@ int main (int argc, char **argv)
 	MY_NAME = NULL;
 
 	/* Process command line switches */
-	while ((arg = getopt_long(argc, argv, "h?vVFNH:dn:p:o:P:", longopts, NULL)) != EOF) {
+	while ((arg = getopt_long(argc, argv, "h?vVFNH:dn:p:o:P:L", longopts, NULL)) != EOF) {
 		switch (arg) {
 		case 'V':	/* Version */
 		case 'v':
@@ -285,6 +287,9 @@ int main (int argc, char **argv)
 			break;
 		case 'N':
 			run_mode |= MODE_NOTIFY_ONLY;
+			break;
+		case 'L': /* Listen only */
+			run_mode |= MODE_NO_NOTIFY;
 			break;
 		case 'd':	/* No daemon only - log to stderr */
 			run_mode |= MODE_LOG_STDERR;
@@ -458,15 +463,16 @@ int main (int argc, char **argv)
 	create_pidfile();
 	atexit(truncate_pidfile);
 
-	switch (pid = fork()) {
-	case 0:
-		run_sm_notify(out_port);
-		break;
-	case -1:
-		break;
-	default:
-		waitpid(pid, NULL, 0);
-	}
+	if (! (run_mode & MODE_NO_NOTIFY))
+		switch (pid = fork()) {
+		case 0:
+			run_sm_notify(out_port);
+			break;
+		case -1:
+			break;
+		default:
+			waitpid(pid, NULL, 0);
+		}
 
 	drop_privs();
 
@@ -496,15 +502,17 @@ int main (int argc, char **argv)
 		 * responding to SM_SIMU_CRASH is an important use cases to
 		 * get perfect.
 		 */
-		switch (pid = fork()) {
-		case 0:
-			run_sm_notify(out_port);
-			break;
-		case -1:
-			break;
-		default:
-			waitpid(pid, NULL, 0);
-		}
+		if (! (run_mode & MODE_NO_NOTIFY))
+			switch (pid = fork()) {
+			case 0:
+				run_sm_notify(out_port);
+				break;
+			case -1:
+				break;
+			default:
+				waitpid(pid, NULL, 0);
+			}
+
 	}
 	return 0;
 }
