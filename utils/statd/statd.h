@@ -90,4 +90,3 @@ extern int run_mode;
 extern char *name_p;		/* program basename */
 extern const char *version_p;	/* program version */
 
-extern int		re_notify; /* time to re-read notify list */

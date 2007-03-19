@@ -59,7 +59,7 @@ static int		sockfd = -1;	/* notify socket */
  * Initialize callback socket
  */
 int
-statd_get_socket(int port)
+statd_get_socket(void)
 {
 	struct sockaddr_in	sin;
 
@@ -76,77 +76,14 @@ statd_get_socket(int port)
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = INADDR_ANY;
-	/*
-	 * If a local hostname is given (-n option to statd), bind to the address
-	 * specified. This is required to support clients that ignore the mon_name in
-	 * the statd protocol but use the source address from the request packet.
-	 */
-	if (MY_NAME) {
-		struct hostent *hp = gethostbyname(MY_NAME);
-		if (hp)
-			sin.sin_addr = *(struct in_addr *) hp->h_addr;
-	}
-	if (port != 0) {
-		sin.sin_port = htons(port);
-		if (bind(sockfd, &sin, sizeof(sin)) == 0)
-			goto out_success;
-		note(N_CRIT, "statd: failed to bind to outgoing port, %d\n"
-				"       falling back on randomly chosen port\n", port);
-	}
+
 	if (bindresvport(sockfd, &sin) < 0) {
 		dprintf(N_WARNING,
 			"process_hosts: can't bind to reserved port\n");
 	}
-out_success:
 	return sockfd;
 }
 
-#ifdef HAVE_IFADDRS_H
-/*
- * Using the NL_ADDR(lp), reset (if needed) the hostname
- * that will be put in the SM_NOTIFY to the hostname
- * that is associated with the network interface 
- * that was monitored
- */
-static void
-reset_my_name(notify_list *lp)
-{
-	struct ifaddrs *ifa = NULL, *ifap;
-	struct in_addr netaddr, tmp;
-	struct sockaddr_in *sin, *nsin;
-	struct hostent *hp;
-
-	netaddr.s_addr = inet_netof(NL_ADDR(lp));
-	if (getifaddrs(&ifa) >= 0) {
-		for (ifap = ifa; ifap != NULL; ifap = ifap->ifa_next) {
-			if (!(ifap->ifa_flags & IFF_UP))
-				continue;
-
-			note(N_DEBUG, "ifa_name %s\n", ifap->ifa_name);
-			if (ifap->ifa_addr == NULL)
-				continue;
-			if (ifap->ifa_addr->sa_family != AF_INET)
-				continue;
-
-			sin = (struct sockaddr_in *)ifap->ifa_addr;
-			nsin = (struct sockaddr_in *)ifap->ifa_netmask;
-			tmp.s_addr = sin->sin_addr.s_addr & nsin->sin_addr.s_addr;
-			if (memcmp(&tmp.s_addr, &netaddr.s_addr, sizeof(netaddr.s_addr)))
-				continue;
-			hp = gethostbyaddr((char *)&sin->sin_addr, 
-				sizeof(sin->sin_addr), AF_INET);
-			if (hp == NULL)
-				continue;
-			if (strcmp(NL_MY_NAME(lp), hp->h_name)) {
-				free(NL_MY_NAME(lp));
-				NL_MY_NAME(lp)= strdup(hp->h_name);
-				note(N_DEBUG, "NL_MY_NAME %s\n", NL_MY_NAME(lp));
-			}
-		}
-	}
-	return;
-}
-#endif /* HAVE_IFADDRS_H */
 /*
  * Try to resolve host name for notify/callback request
  *
@@ -159,10 +96,7 @@ try_to_resolve(notify_list *lp)
 {
 	char		*hname;
 
-	if (NL_TYPE(lp) == NOTIFY_REBOOT)
-		hname = NL_MON_NAME(lp);
-	else
-		hname = NL_MY_NAME(lp);
+	hname = NL_MY_NAME(lp);
 	if (!inet_aton(hname, &(NL_ADDR(lp)))) {
 		note(N_ERROR, "%s is not an dotted-quad address", hname);
 		NL_TIMES(lp) = 0;
@@ -182,10 +116,7 @@ try_to_resolve(notify_list *lp)
 	struct hostent	*hp;
 	char		*hname;
 
-	if (NL_TYPE(lp) == NOTIFY_REBOOT)
-		hname = NL_MON_NAME(lp);
-	else
-		hname = NL_MY_NAME(lp);
+	hname = NL_MY_NAME(lp);
 
 	dprintf(N_DEBUG, "Trying to resolve %s.", hname);
 	if (!(hp = gethostbyname(hname))) {
@@ -356,7 +287,6 @@ process_entry(int sockfd, notify_list *lp)
 {
 	struct sockaddr_in	sin;
 	struct status		new_status;
-	stat_chge		new_stat;
 	xdrproc_t		func;
 	void			*objp;
 	u_int32_t		proc, vers, prog;
@@ -375,49 +305,19 @@ process_entry(int sockfd, notify_list *lp)
 	sin.sin_port   = lp->port;
 	/* LH - moved address into switch */
 
-	switch (NL_TYPE(lp)) {
-	case NOTIFY_REBOOT:
-		prog = SM_PROG;
-		vers = SM_VERS;
-		proc = SM_NOTIFY;
+	prog = NL_MY_PROG(lp);
+	vers = NL_MY_VERS(lp);
+	proc = NL_MY_PROC(lp);
 
-		/* Use source address for notify replies */
-		sin.sin_addr   = lp->addr;
-		/* 
-		 * Unless a static hostname has been defined
-		 * set the NL_MY_NAME(lp) hostname to the 
-		 * one associated with the network interface
-		 */
-#ifdef HAVE_IFADDRS_H
-		if (!(run_mode & STATIC_HOSTNAME))
-			reset_my_name(lp);
-#endif /* HAVE_IFADDRS_H */
-		func = (xdrproc_t) xdr_stat_chge;
-		new_stat.state = MY_STATE;
-		new_stat.mon_name = NL_MY_NAME(lp);
+	/* __FORCE__ loopback for callbacks to lockd ... */
+	/* Just in case we somehow ignored it thus far */
+	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-		objp = &new_stat;
-		break;
-	case NOTIFY_CALLBACK:
-		prog = NL_MY_PROG(lp);
-		vers = NL_MY_VERS(lp);
-		proc = NL_MY_PROC(lp);
-
-		/* __FORCE__ loopback for callbacks to lockd ... */
-		/* Just in case we somehow ignored it thus far */
-		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-		func = (xdrproc_t) xdr_status;
-		objp = &new_status;
-		new_status.mon_name = NL_MON_NAME(lp);
-		new_status.state    = NL_STATE(lp);
-		memcpy(new_status.priv, NL_PRIV(lp), SM_PRIV_SIZE);
-		break;
-	default:
-		note(N_ERROR, "notify_host: unknown notify type %d",
-				NL_TYPE(lp));
-		return 0;
-	}
+	func = (xdrproc_t) xdr_status;
+	objp = &new_status;
+	new_status.mon_name = NL_MON_NAME(lp);
+	new_status.state    = NL_STATE(lp);
+	memcpy(new_status.priv, NL_PRIV(lp), SM_PRIV_SIZE);
 
 	lp->xid = xmit_call(sockfd, &sin, prog, vers, proc, func, objp);
 	if (!lp->xid) {
@@ -455,12 +355,7 @@ process_reply(FD_SET_TYPE *rfds)
 			return 1;
 		}
 		note(N_WARNING, "recv_rply: [%s] service %d not registered",
-			inet_ntoa(lp->addr),
-			NL_TYPE(lp) == NOTIFY_REBOOT? SM_PROG : NL_MY_PROG(lp));
-	} else if (NL_TYPE(lp) == NOTIFY_REBOOT) {
-		dprintf(N_DEBUG, "Notification of %s succeeded.",
-			NL_MON_NAME(lp));
-		xunlink(SM_BAK_DIR, NL_MON_NAME(lp), 0);
+			inet_ntoa(lp->addr), NL_MY_PROG(lp));
 	} else {
 		dprintf(N_DEBUG, "Callback to %s (for %d) succeeded.",
 			NL_MY_NAME(lp), NL_MON_NAME(lp));
@@ -481,7 +376,7 @@ process_notify_list(void)
 	time_t		now;
 	int		fd;
 
-	if ((fd = statd_get_socket(0)) < 0)
+	if ((fd = statd_get_socket()) < 0)
 		return 0;
 
 	while ((entry = notify) != NULL && NL_WHEN(entry) < time(&now)) {
@@ -489,20 +384,12 @@ process_notify_list(void)
 			NL_WHEN(entry) = time(NULL) + NOTIFY_TIMEOUT;
 			nlist_remove(&notify, entry);
 			nlist_insert_timer(&notify, entry);
-		} else if (NL_TYPE(entry) == NOTIFY_CALLBACK) {
+		} else {
 			note(N_ERROR,
 				"Can't callback %s (%d,%d), giving up.",
 					NL_MY_NAME(entry),
 					NL_MY_PROG(entry),
 					NL_MY_VERS(entry));
-			nlist_free(&notify, entry);
-		} else {
-			note(N_ERROR,
-				"Can't notify %s, giving up.",
-					NL_MON_NAME(entry));
-			/* PRC: do the HA callout */
-			ha_callout("del-client", NL_MON_NAME(entry), NL_MY_NAME(entry), -1);
-			xunlink(SM_BAK_DIR, NL_MON_NAME(entry), 0);
 			nlist_free(&notify, entry);
 		}
 	}

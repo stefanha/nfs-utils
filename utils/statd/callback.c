@@ -49,7 +49,6 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 		if (NL_STATE(lp) != argp->state) {
 			NL_STATE(lp) = argp->state;
 			call = nlist_clone(lp);
-			NL_TYPE(call) = NOTIFY_CALLBACK;
 			nlist_insert(&notify, call);
 		}
 		lp = NL_NEXT(lp);

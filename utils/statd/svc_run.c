@@ -64,7 +64,6 @@ static int	svc_stop = 0;
  * requests are put.
  */
 notify_list *	notify = NULL;
-int	re_notify = 0;
 
 /*
  * Jump-off function.
@@ -91,13 +90,6 @@ my_svc_run(void)
 	for (;;) {
 		if (svc_stop)
 			return;
-		if (re_notify) {
-			change_state();
-			dprintf(N_DEBUG, "Notifying...(new state %d)",
-								MY_STATE);
-			notify_hosts();
-			re_notify = 0;
-		}
 
 		/* Ah, there are some notifications to be processed */
 		while (notify && NL_WHEN(notify) <= time(&now)) {
@@ -114,9 +106,7 @@ my_svc_run(void)
 							tv.tv_sec);
 			selret = select(FD_SETSIZE, &readfds,
 				(void *) 0, (void *) 0, &tv);
-		} else if (run_mode & MODE_NOTIFY_ONLY)
-			return;
-		else {
+		} else {
 			dprintf(N_DEBUG, "Waiting for client connections.");
 			selret = select(FD_SETSIZE, &readfds,
 				(void *) 0, (void *) 0, (struct timeval *) 0);

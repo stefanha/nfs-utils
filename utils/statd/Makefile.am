@@ -14,8 +14,8 @@ GENFILES	= $(GENFILES_CLNT) $(GENFILES_SVC) $(GENFILES_XDR) $(GENFILES_H)
 RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PROGRAMS	= statd sm-notify
-statd_SOURCES = callback.c notlist.c log.c misc.c monitor.c notify.c \
-	        simu.c stat.c statd.c state.c svc_run.c rmtcall.c \
+statd_SOURCES = callback.c notlist.c log.c misc.c monitor.c \
+	        simu.c stat.c statd.c svc_run.c rmtcall.c \
 	        sm_inter_clnt.c sm_inter_svc.c sm_inter_xdr.c log.h \
 	        notlist.h statd.h system.h version.h sm_inter.h
 sm_notify_SOURCES = sm-notify.c

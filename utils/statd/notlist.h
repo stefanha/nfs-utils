@@ -20,13 +20,9 @@ struct notify_list {
   struct notify_list	*prev;	/* Linked list backward pointer. */
   u_int32_t		xid;	/* XID of MS_NOTIFY RPC call */
   time_t		when;	/* notify: timeout for re-xmit */
-  int			type;	/* type of notify (REBOOT/CALLBACK) */
 };
 
 typedef struct notify_list notify_list;
-
-#define NOTIFY_REBOOT	0	/* notify remote of our reboot */
-#define NOTIFY_CALLBACK	1	/* notify client of remote reboot */
 
 /*
  * Global Variables
@@ -67,4 +63,3 @@ extern notify_list *	nlist_gethost(notify_list *, char *, int);
 #define NL_MY_PROG(L)	(NL_MY_ID((L)).my_prog)
 #define NL_MY_VERS(L)	(NL_MY_ID((L)).my_vers)
 #define NL_WHEN(L)	((L)->when)
-#define NL_TYPE(L)	((L)->type)
