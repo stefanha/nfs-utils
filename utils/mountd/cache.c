@@ -23,6 +23,7 @@
 #include <ctype.h>
 #include <pwd.h>
 #include <grp.h>
+#include <mntent.h>
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
@@ -215,7 +216,31 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 	}
 	return 1;
 }
-	
+
+/* Iterate through /etc/mtab, finding mountpoints
+ * at or below a given path
+ */
+static char *next_mnt(void **v, char *p)
+{
+	FILE *f;
+	struct mntent *me;
+	int l = strlen(p);
+	if (*v == NULL) {
+		f = setmntent("/etc/mtab", "r");
+		*v = f;
+	} else
+		f = *v;
+	while ((me = getmntent(f)) != NULL &&
+	       (strncmp(me->mnt_dir, p, l) != 0 ||
+		me->mnt_dir[l] != '/'))
+		;
+	if (me == NULL) {
+		endmntent(f);
+		*v = NULL;
+		return NULL;
+	}
+	return me->mnt_dir;
+}
 
 void nfsd_fh(FILE *f)
 {
@@ -234,6 +259,7 @@ void nfsd_fh(FILE *f)
 	unsigned int fsidnum=0;
 	char fsid[32];
 	struct exportent *found = NULL;
+	char *found_path = NULL;
 	nfs_export *exp;
 	int i;
 	int dev_missing = 0;
@@ -328,9 +354,35 @@ void nfsd_fh(FILE *f)
 
 	/* Now determine export point for this fsid/domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		nfs_export *next_exp;
+		for (exp = exportlist[i]; exp; exp = next_exp) {
 			struct stat stb;
-			char u[16];			
+			char u[16];
+			char *path;
+
+			if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT) {
+				static nfs_export *prev = NULL;
+				static void *mnt = NULL;
+				
+				if (prev == exp) {
+					/* try a submount */
+					path = next_mnt(&mnt, exp->m_export.e_path);
+					if (!path) {
+						next_exp = exp->m_next;
+						prev = NULL;
+						continue;
+					}
+					next_exp = exp;
+				} else {
+					prev = exp;
+					mnt = NULL;
+					path = exp->m_export.e_path;
+					next_exp = exp;
+				}
+			} else {
+				path = exp->m_export.e_path;
+				next_exp = exp->m_next;
+			}
 
 			if (!client_member(dom, exp->m_client->m_hostname))
 				continue;
@@ -339,7 +391,7 @@ void nfsd_fh(FILE *f)
 					   exp->m_export.e_mountpoint:
 					   exp->m_export.e_path))
 				dev_missing ++;
-			if (stat(exp->m_export.e_path, &stb) != 0)
+			if (stat(path, &stb) != 0)
 				continue;
 			switch(fsidtype){
 			case FSID_DEV:
@@ -363,13 +415,13 @@ void nfsd_fh(FILE *f)
 				goto check_uuid;
 			case FSID_UUID8:
 			case FSID_UUID16:
-				if (!is_mountpoint(exp->m_export.e_path))
+				if (!is_mountpoint(path))
 					continue;
 			check_uuid:
 				if (exp->m_export.e_uuid)
 					get_uuid(NULL, exp->m_export.e_uuid,
 						 uuidlen, u);
-				else if (get_uuid(exp->m_export.e_path, NULL,
+				else if (get_uuid(path, NULL,
 						  uuidlen, u) == 0)
 					continue;
 
@@ -378,12 +430,13 @@ void nfsd_fh(FILE *f)
 				break;
 			}
 			/* It's a match !! */
-			if (!found)
+			if (!found) {
 				found = &exp->m_export;
-			else if (strcmp(found->e_path, exp->m_export.e_path)!= 0)
+				found_path = strdup(path);
+			} else if (strcmp(found->e_path, exp->m_export.e_path)!= 0)
 			{
 				xlog(L_WARNING, "%s and %s have same filehandle for %s, using first",
-				     found->e_path, exp->m_export.e_path, dom);
+				     found_path, path, dom);
 			}
 		}
 	}
@@ -408,7 +461,7 @@ void nfsd_fh(FILE *f)
 	}
 
 	if (found)
-		cache_export_ent(dom, found, found->e_path);
+		cache_export_ent(dom, found, found_path);
 
 	qword_print(f, dom);
 	qword_printint(f, fsidtype);
