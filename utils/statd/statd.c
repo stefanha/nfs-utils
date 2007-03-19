@@ -251,6 +251,7 @@ int main (int argc, char **argv)
 	int arg;
 	int port = 0, out_port = 0;
 	struct rlimit rlim;
+	int once = 1;
 
 	int pipefds[2] = { -1, -1};
 	char status;
@@ -474,7 +475,6 @@ int main (int argc, char **argv)
 			waitpid(pid, NULL, 0);
 		}
 
-	drop_privs();
 
 	for (;;) {
 		pmap_unset (SM_PROG, SM_VERS);
@@ -490,6 +490,10 @@ int main (int argc, char **argv)
 		/* this registers both UDP and TCP services */
 		rpc_init("statd", SM_PROG, SM_VERS, sm_prog_1, port);
 
+		if (once) {
+			once = 0;
+			drop_privs();
+		}
 		/*
 		 * Handle incoming requests:  SM_NOTIFY socket requests, as
 		 * well as callbacks from lockd.
