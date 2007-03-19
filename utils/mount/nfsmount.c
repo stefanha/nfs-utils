@@ -548,15 +548,31 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 	struct pmap *mnt_pmap = &mnt_server->pmap;
 	struct pmap *nfs_pmap = &nfs_server->pmap;
 	int len;
-	char *opt, *opteq;
+	char *opt, *opteq, *p, *opt_b;
 	char *mounthost = NULL;
 	char cbuf[128];
+	int open_quote = 0;
 
 	data->flags = 0;
 	*bg = 0;
 
 	len = strlen(new_opts);
-	for (opt = strtok(old_opts, ","); opt; opt = strtok(NULL, ",")) {
+	for (p=old_opts, opt_b=NULL; p && *p; p++) {
+		if (!opt_b)
+			opt_b = p;		/* begin of the option item */
+		if (*p == '"')
+			open_quote ^= 1;	/* reverse the status */
+		if (open_quote)
+			continue;		/* still in a quoted block */
+		if (*p == ',')
+			*p = '\0';		/* terminate the option item */
+		if (*p == '\0' || *(p+1) == '\0') {
+			opt = opt_b;		/* opt is useful now */
+			opt_b = NULL;
+		}
+		else
+			continue;		/* still somewhere in the option item */
+
 		if (strlen(opt) >= sizeof(cbuf))
 			goto bad_parameter;
 		if ((opteq = strchr(opt, '=')) && isdigit(opteq[1])) {
@@ -680,14 +696,24 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			        mounthost=xstrndup(opteq+1,
 						   strcspn(opteq+1," \t\n\r,"));
 			 else if (!strcmp(opt, "context")) {
- 				char *context = opteq + 1;
- 				
- 				if (strlen(context) > NFS_MAX_CONTEXT_LEN) {
- 					printf(_("context parameter exceeds limit of %d\n"),
- 						 NFS_MAX_CONTEXT_LEN);
+				char *context = opteq + 1;
+				int ctxlen = strlen(context);
+
+				if (ctxlen > NFS_MAX_CONTEXT_LEN) {
+					printf(_("context parameter exceeds limit of %d\n"),
+						 NFS_MAX_CONTEXT_LEN);
 					goto bad_parameter;
- 				}
- 				strncpy(data->context, context, NFS_MAX_CONTEXT_LEN);
+				}
+				/* The context string is in the format of
+				 * "system_u:object_r:...".  We only want
+				 * the context str between the quotes.
+				 */
+				if (*context == '"')
+					strncpy(data->context, context+1,
+							ctxlen-2);
+				else
+					strncpy(data->context, context,
+							NFS_MAX_CONTEXT_LEN);
  			} else if (sloppy)
 				continue;
 			else

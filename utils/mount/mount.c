@@ -261,18 +261,30 @@ static void parse_opts (const char *options, int *flags, char **extra_opts)
 {
 	if (options != NULL) {
 		char *opts = xstrdup(options);
-		char *opt;
-		int len = strlen(opts) + 20;
+		char *opt, *p;
+		int len = strlen(opts);
+		int open_quote = 0;
 
 		*extra_opts = xmalloc(len);
 		**extra_opts = '\0';
 
-		for (opt = strtok(opts, ","); opt; opt = strtok(NULL, ","))
-			parse_opt(opt, flags, *extra_opts, len);
-
+		for (p=opts, opt=NULL; p && *p; p++) {
+			if (!opt)
+				opt = p;		/* begin of the option item */
+			if (*p == '"')
+				open_quote ^= 1;	/* reverse the status */
+			if (open_quote)
+				continue;		/* still in a quoted block */
+			if (*p == ',')
+				*p = '\0';		/* terminate the option item */
+			/* end of option item or last item */
+			if (*p == '\0' || *(p+1) == '\0') {
+				parse_opt(opt, flags, *extra_opts, len);
+				opt = NULL;
+			}
+		}
 		free(opts);
 	}
-
 }
 
 static void mount_error(char *node)
