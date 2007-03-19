@@ -443,18 +443,18 @@ int main(int argc, char *argv[])
 			start_statd();
 	}
 
-	if (fake)
-		return 0;
 	if (mnt_err)
 		exit(EX_FAIL);
 
-	mnt_err = do_mount_syscall(spec, mount_point,
-				   nfs_mount_vers == 4 ? "nfs4" : "nfs",
-				   flags, mount_opts);
-		
-	if (mnt_err) {
-		mount_error(mount_point);
-		exit(EX_FAIL);
+	if (!fake) {
+		mnt_err = do_mount_syscall(spec, mount_point,
+					   nfs_mount_vers == 4 ? "nfs4" : "nfs",
+					   flags, mount_opts);
+
+		if (mnt_err) {
+			mount_error(mount_point);
+			exit(EX_FAIL);
+		}
 	}
 
 	if (!nomtab)
