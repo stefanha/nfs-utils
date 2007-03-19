@@ -515,11 +515,36 @@ void nfsd_export(FILE *f)
 		for (exp = exportlist[i]; exp; exp = exp->m_next) {
 			if (!client_member(dom, exp->m_client->m_hostname))
 				continue;
-			if (strcmp(path, exp->m_export.e_path))
+			if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT) {
+				/* if path is a mountpoint below e_path, then OK */
+				int l = strlen(exp->m_export.e_path);
+				if (strcmp(path, exp->m_export.e_path) == 0 ||
+				    (strncmp(path, exp->m_export.e_path, l) == 0 &&
+				     path[l] == '/' &&
+				     is_mountpoint(path)))
+					/* ok */;
+				else
+					continue;
+			} else if (strcmp(path, exp->m_export.e_path) != 0)
 				continue;
 			if (!found) {
 				found = exp;
 				found_type = i;
+				continue;
+			}
+			/* If one is a CROSSMOUNT, then prefer the longest path */
+			if (((found->m_export.e_flags & NFSEXP_CROSSMOUNT) ||
+			     (found->m_export.e_flags & NFSEXP_CROSSMOUNT)) &&
+			    strlen(found->m_export.e_path) !=
+			    strlen(found->m_export.e_path)) {
+
+				if (strlen(exp->m_export.e_path) >
+				    strlen(found->m_export.e_path)) {
+					found = exp;
+					found_type = i;
+				}
+				continue;
+
 			} else if (found_type == i && found->m_warned == 0) {
 				xlog(L_WARNING, "%s exported to both %s and %s, "
 				     "arbitrarily choosing options from first",
