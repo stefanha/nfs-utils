@@ -50,6 +50,22 @@ in
 .BR /var/lib/nfs/state ,
 and updated by
 .BR sm-notify .
+.SS Security
+.B sm-notify
+has little need for root privileges and so drops them as soon as
+possible.
+It continues to need to make changes to the
+.B sm
+and
+.B sm.bak
+directories so to be able to drop privileges, these must be writable
+by a non-privileged user.  If these directories are owned by a
+non-root user,
+.B sm-notify
+will drop privilege to match that user once it has created sockets for
+sending out request (for which it needs privileged) but before it
+processes any reply (which is the most likely source of possible
+privilege abuse).
 .SH OPTIONS
 .TP
 .BI -m " failtime

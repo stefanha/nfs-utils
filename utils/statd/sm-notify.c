@@ -81,6 +81,7 @@ static void		addr_set_port(nsm_address *, int);
 static int		host_lookup(int, const char *, nsm_address *);
 void			nsm_log(int fac, const char *fmt, ...);
 static int		record_pid();
+static void		drop_privs(void);
 
 static struct nsm_host *	hosts = NULL;
 
@@ -242,6 +243,8 @@ notify(void)
 
 	if (opt_max_retry)
 		failtime = time(NULL) + opt_max_retry;
+
+	drop_privs();
 
 	while (hosts) {
 		struct pollfd	pfd;
@@ -710,4 +713,32 @@ static int record_pid()
 	write(fd, pid, strlen(pid));
 	close(fd);
 	return 1;
+}
+
+/* Drop privileges to match owner of state-directory
+ * (in case a reply triggers some unknown bug).
+ */
+static void drop_privs(void)
+{
+	struct stat st;
+
+	if (stat(_SM_DIR_PATH, &st) == -1 &&
+	    stat(_SM_BASE_PATH, &st) == -1) {
+		st.st_uid = 0;
+		st.st_gid = 0;
+	}
+
+	if (st.st_uid == 0) {
+		nsm_log(LOG_WARNING,
+			"sm-notify running as root. chown %s to choose different user\n",
+		    _SM_DIR_PATH);
+		return;
+	}
+
+	setgroups(0, NULL);
+	if (setgid(st.st_gid) == -1
+	    || setuid(st.st_uid) == -1) {
+		nsm_log(LOG_ERR, "Fail to drop privileges");
+		exit(1);
+	}
 }
