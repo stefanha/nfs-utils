@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <netdb.h>
 #include <errno.h>
+#include <grp.h>
 
 #ifndef BASEDIR
 #define BASEDIR		"/var/lib/nfs"
