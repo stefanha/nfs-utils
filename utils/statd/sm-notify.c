@@ -80,6 +80,7 @@ static int		addr_get_port(nsm_address *);
 static void		addr_set_port(nsm_address *, int);
 static int		host_lookup(int, const char *, nsm_address *);
 void			nsm_log(int fac, const char *fmt, ...);
+static int		record_pid();
 
 static struct nsm_host *	hosts = NULL;
 
@@ -87,9 +88,13 @@ int
 main(int argc, char **argv)
 {
 	int	c;
+	int	force = 0;
 
-	while ((c = getopt(argc, argv, "dm:np:v:qP:")) != -1) {
+	while ((c = getopt(argc, argv, "dm:np:v:qP:f")) != -1) {
 		switch (c) {
+		case 'f':
+			force = 1;
+			break;
 		case 'd':
 			opt_debug++;
 			break;
@@ -131,8 +136,16 @@ main(int argc, char **argv)
 	}
 
 	if (optind < argc) {
-usage:		fprintf(stderr, "sm-notify [-d]\n");
+usage:		fprintf(stderr,
+			"Usage: sm-notify [-dfq] [-m max-retry-minutes] [-p srcport]\n"
+			"            [-P /path/to/state/directory] [-N my_host_name\n");
 		return 1;
+	}
+
+	if (strcmp(_SM_BASE_PATH, BASEDIR) == 0) {
+		if (record_pid() == 0 && force == 0 && opt_update_state == 0)
+			/* already run, don't try again */
+			exit(0);
 	}
 
 	if (opt_srcaddr) {
@@ -677,4 +690,24 @@ nsm_log(int fac, const char *fmt, ...)
 		fputs("\n", stderr);
 	}
 	va_end(ap);
+}
+
+/*
+ * Record pid in /var/run/sm-notify.pid
+ * This file should remain until a reboot, even if the
+ * program exits.
+ * If file already exists, fail.
+ */
+static int record_pid()
+{
+	char pid[20];
+	int fd;
+
+	snprintf(pid, 20, "%d\n", getpid());
+	fd = open("/var/run/sm-notify.pid", O_CREAT|O_EXCL|O_WRONLY, 0600);
+	if (!fd)
+		return 0;
+	write(fd, pid, strlen(pid));
+	close(fd);
+	return 1;
 }

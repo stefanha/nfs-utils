@@ -6,7 +6,7 @@
 .SH NAME
 sm-notify \- Send out NSM reboot notifications
 .SH SYNOPSIS
-.BI "/sbin/sm-notify [-d] [-q] [-m " time "] [-p " port "] [-P " path "] [-v " my_name " ]
+.BI "/sbin/sm-notify [-dfq] [-m " time "] [-p " port "] [-P " path "] [-v " my_name " ]
 .SH DESCRIPTION
 File locking over NFS (v2 and v3) requires a facility to notify peers in
 case of a reboot, so that clients can reclaim locks after
@@ -101,8 +101,31 @@ and the file
 .B state
 must exist in that directory with the standard names.
 .TP
+.B -f
+If the state path has not been reset with
+.BR -P ,
+.B sm-notify
+will normally create a file in
+.B /var/run
+to indicate that it has been
+run.  If this file is found when
+.B sm-notify
+starts, it will not run again (as it is normally only needed once per
+reboot).
+If
+.B -f
+(for
+.BR force )
+is given,
+.B sm-notify
+will run even if the file in
+.B /var/run
+is present.
+.TP
 .B -n
-Do not update the NSM state. This is for testing only.
+Do not update the NSM state. This is for testing only.  Setting this
+flag implies
+.BR -f .
 .TP
 .B -d
 Enables debugging.
@@ -117,6 +140,8 @@ list of hosts from
 .BR /var/lib/nfs/sm/*
 .br
 .BR /var/lib/nfs/sm.bak/*
+.br
+.BR /var/run/sm-notify.pid
 .SH SEE ALSO
 .BR rpc.nfsd(8),
 .BR portmap(8)
