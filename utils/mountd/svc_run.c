@@ -57,6 +57,32 @@
 void cache_set_fds(fd_set *fdset);
 int cache_process_req(fd_set *readfds);
 
+#if LONG_MAX != INT_MAX	
+/* bug in glibc 2.3.6 and earlier, we need
+ * our own svc_getreqset
+ */
+static void
+my_svc_getreqset (fd_set *readfds)
+{
+	fd_mask mask;
+	fd_mask *maskp;
+	int setsize;
+	int sock;
+	int bit;
+
+	setsize = _rpc_dtablesize ();
+	if (setsize > FD_SETSIZE)
+		setsize = FD_SETSIZE;
+	maskp = readfds->fds_bits;
+	for (sock = 0; sock < setsize; sock += NFDBITS)
+		for (mask = *maskp++;
+		     (bit = ffsl (mask));
+		     mask ^= (1L << (bit - 1)))
+			svc_getreq_common (sock + bit - 1);
+}
+#define svc_getreqset my_svc_getreqset
+
+#endif
 
 /*
  * The heart of the server.  A crib from libc for the most part...
