@@ -27,9 +27,14 @@
 #define BASEDIR		"/var/lib/nfs"
 #endif
 
-#define _SM_STATE_PATH	BASEDIR "/state"
-#define	_SM_DIR_PATH	BASEDIR "/sm"
-#define	_SM_BAK_PATH	_SM_DIR_PATH ".bak"
+#define DEFAULT_SM_STATE_PATH	BASEDIR "/state"
+#define	DEFAULT_SM_DIR_PATH	BASEDIR "/sm"
+#define	DEFAULT_SM_BAK_PATH	DEFAULT_SM_DIR_PATH ".bak"
+
+char *_SM_BASE_PATH = BASEDIR;
+char *_SM_STATE_PATH = DEFAULT_SM_STATE_PATH;
+char *_SM_DIR_PATH = DEFAULT_SM_DIR_PATH;
+char *_SM_BAK_PATH = DEFAULT_SM_BAK_PATH;
 
 #define NSM_PROG	100024
 #define NSM_PROGRAM	100024
@@ -84,7 +89,7 @@ main(int argc, char **argv)
 {
 	int	c;
 
-	while ((c = getopt(argc, argv, "dm:np:v:q")) != -1) {
+	while ((c = getopt(argc, argv, "dm:np:v:qP:")) != -1) {
 		switch (c) {
 		case 'd':
 			opt_debug++;
@@ -104,6 +109,23 @@ main(int argc, char **argv)
 		case 'q':
 			opt_quiet = 1;
 			break;
+		case 'P':
+			_SM_BASE_PATH = strdup(optarg);
+			_SM_STATE_PATH = malloc(strlen(optarg)+1+sizeof("state"));
+			_SM_DIR_PATH = malloc(strlen(optarg)+1+sizeof("sm"));
+			_SM_BAK_PATH = malloc(strlen(optarg)+1+sizeof("sm.bak"));
+			if (_SM_BASE_PATH == NULL ||
+			    _SM_STATE_PATH == NULL ||
+			    _SM_DIR_PATH == NULL ||
+			    _SM_BAK_PATH == NULL) {
+				nsm_log(LOG_WARNING, "unable to allocate memory");
+				exit(1);
+			}
+			strcat(strcpy(_SM_STATE_PATH, _SM_BASE_PATH), "/state");
+			strcat(strcpy(_SM_DIR_PATH, _SM_BASE_PATH), "/sm");
+			strcat(strcpy(_SM_BAK_PATH, _SM_BASE_PATH), "/sm.bak");
+			break;
+
 		default:
 			goto usage;
 		}
