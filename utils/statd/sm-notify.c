@@ -76,7 +76,6 @@ static void		backup_hosts(const char *, const char *);
 static void		get_hosts(const char *);
 static void		insert_host(struct nsm_host *);
 struct nsm_host *	find_host(uint32_t);
-static int		addr_parse(int, const char *, nsm_address *);
 static int		addr_get_port(nsm_address *);
 static void		addr_set_port(nsm_address *, int);
 static int		host_lookup(int, const char *, nsm_address *);
@@ -207,8 +206,7 @@ notify(void)
 
 	/* Bind source IP if provided on command line */
 	if (opt_srcaddr) {
-		if (!addr_parse(AF_INET, opt_srcaddr, &local_addr)
-		 && !host_lookup(AF_INET, opt_srcaddr, &local_addr)) {
+		if (!host_lookup(AF_INET, opt_srcaddr, &local_addr)) {
 			nsm_log(LOG_WARNING,
 				"Not a valid hostname or address: \"%s\"\n",
 				opt_srcaddr);
@@ -483,9 +481,7 @@ get_hosts(const char *dirname)
 			host = calloc(1, sizeof(*host));
 
 		snprintf(path, sizeof(path), "%s/%s", dirname, de->d_name);
-		if (!addr_parse(AF_INET, de->d_name, &host->addr)
-		 && !addr_parse(AF_INET6, de->d_name, &host->addr)
-		 && !host_lookup(AF_INET, de->d_name, &host->addr)) {
+		if (!host_lookup(AF_UNSPEC, de->d_name, &host->addr)) {
 			nsm_log(LOG_WARNING,
 				"%s doesn't seem to be a valid address, skipped",
 				de->d_name);
@@ -616,22 +612,6 @@ nsm_get_state(int update)
 /*
  * Address handling utilities
  */
-static int
-addr_parse(int af, const char *name, nsm_address *addr)
-{
-	void	*ptr;
-
-	if (af == AF_INET)
-		ptr = &((struct sockaddr_in *) addr)->sin_addr;
-	else if (af == AF_INET6)
-		ptr = &((struct sockaddr_in6 *) addr)->sin6_addr;
-	else
-		return 0;
-	if (inet_pton(af, name, ptr) <= 0)
-		return 0;
-	((struct sockaddr *) addr)->sa_family = af;
-	return 1;
-}
 
 int
 addr_get_port(nsm_address *addr)
