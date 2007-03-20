@@ -288,6 +288,7 @@ int nfsumount(int argc, char *argv[])
 	argv += 1;
 	argc -= 1;
 
+	argv[0] = argv[-1]; /* So that getopt error messages are correct */
 	while ((c = getopt_long (argc, argv, "fvnrlh",
 				umount_longopts, NULL)) != -1) {
 

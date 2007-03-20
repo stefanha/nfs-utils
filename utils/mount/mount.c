@@ -350,6 +350,7 @@ int main(int argc, char *argv[])
 	spec = argv[1];
 	mount_point = argv[2];
 
+	argv[2] = argv[0]; /* so that getopt error messages are correct */
 	while ((c = getopt_long (argc - 2, argv + 2, "rt:vVwfno:hs",
 				longopts, NULL)) != -1) {
 		switch (c) {
@@ -448,7 +449,7 @@ int main(int argc, char *argv[])
 	if (mount_point == NULL ||
 	    mount_point[0] != '/') {
 		fprintf(stderr, "%s: unknown mount point %s\n",
-			progname, argv[2]);
+			progname, mount_point ? : "");
 		exit(1);
 	}
 	
