@@ -25,7 +25,11 @@
 #include <grp.h>
 
 #ifndef BASEDIR
-#define BASEDIR		"/var/lib/nfs"
+# ifdef NFS_STATEDIR
+#  define BASEDIR		NFS_STATEDIR
+# else
+#  define BASEDIR		"/var/lib/nfs"
+# endif
 #endif
 
 #define DEFAULT_SM_STATE_PATH	BASEDIR "/state"
