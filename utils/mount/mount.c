@@ -262,7 +262,7 @@ static void parse_opts (const char *options, int *flags, char **extra_opts)
 	if (options != NULL) {
 		char *opts = xstrdup(options);
 		char *opt, *p;
-		int len = strlen(opts);
+		int len = strlen(opts) + 1;		/* include room for a null */
 		int open_quote = 0;
 
 		*extra_opts = xmalloc(len);
@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (strcmp(progname, "mount.nfsv4") == 0)
+	if (strcmp(progname, "mount.nfs4") == 0)
 		nfs_mount_vers = 4;
 
 	if (uid != 0) {
