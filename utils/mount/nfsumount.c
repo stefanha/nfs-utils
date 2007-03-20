@@ -313,6 +313,10 @@ int nfsumount(int argc, char *argv[])
 			return 0;
 		}
 	}
+	if (optind != argc) {
+		umount_usage();
+		return 0;
+	}
 	
 	if (spec == NULL || (*spec != '/' && strchr(spec,':') == NULL)) {
 		printf(_("umount: %s: not found\n"), spec);
@@ -325,6 +329,13 @@ int nfsumount(int argc, char *argv[])
 		mc = getmntdevbackward(spec, NULL);
 	if (!mc && verbose)
 		printf(_("Could not find %s in mtab\n"), spec);
+
+	if (mc && strcmp(mc->m.mnt_type, "nfs") != 0 &&
+	    strcmp(mc->m.mnt_type, "nfs4") != 0) {
+		fprintf(stderr, "umount.nfs: %s on %s it not an nfs filesystem\n",
+			mc->m.mnt_fsname, mc->m.mnt_dir);
+		exit(1);
+	}
 
 	if (getuid() != 0) {
 		/* only permitted if "user=" or "users" is in mount options */
