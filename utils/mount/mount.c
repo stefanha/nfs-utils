@@ -320,6 +320,9 @@ int main(int argc, char *argv[])
 	uid_t uid = getuid();
 
 	progname = argv[0];
+	if (!progname)
+		exit(2);
+
 	if ((p = strrchr(progname, '/')) != NULL)
 		progname = p+1;
 
@@ -331,18 +334,21 @@ int main(int argc, char *argv[])
 		exit(nfsumount(argc, argv) ? 0 : 1);
 	}
 
-	if ((argc < 2)) {
-		mount_usage();
-		exit(1);
-	}
-
-	if(argv[1][0] == '-') {
+	if(argv[1] && argv[1][0] == '-') {
 		if(argv[1][1] == 'V')
 			printf("%s ("PACKAGE_STRING")\n", progname);
 		else
 			mount_usage();
 		return 0;
 	}
+
+	if ((argc < 3)) {
+		mount_usage();
+		exit(1);
+	}
+
+	spec = argv[1];
+	mount_point = argv[2];
 
 	while ((c = getopt_long (argc - 2, argv + 2, "rt:vVwfno:hs",
 				longopts, NULL)) != -1) {
@@ -351,7 +357,15 @@ int main(int argc, char *argv[])
 			flags |= MS_RDONLY;
 			break;
 		case 't':
-			nfs_mount_vers = (strncmp(optarg, "nfs4", 4)) ? 0 : 4;
+			if (strcmp(optarg, "nfs4") == 0)
+				nfs_mount_vers = 4;
+			else if (strcmp(optarg, "nfs") == 0)
+				nfs_mount_vers = 0;
+			else {
+				fprintf(stderr, "%s: unknown filesystem type: %s\n",
+					progname, optarg);
+				exit(1);
+			}
 			break;
 		case 'v':
 			++verbose;
@@ -404,18 +418,24 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 	}
+	if (optind != argc-2) {
+		/* Extra non-option words at the end... */
+		mount_usage();
+		exit(1);
+	}
 
-	spec = argv[1];
-	mount_point = argv[2];
+	if (strcmp(progname, "mount.nfsv4") == 0)
+		nfs_mount_vers = 4;
 
 	if (uid != 0) {
 		/* don't even think about it unless options exactly
-		 * make fstab
+		 * match fstab
 		 */
 		struct mntentchn *mc;
 
 		if ((mc = getfsfile(mount_point)) == NULL ||
 		    strcmp(mc->m.mnt_fsname, spec) != 0 ||
+		    strcmp(mc->m.mnt_type, (nfs_mount_vers == 4 ? "nfs4":"nfs")) != 0 || 
 		    strcmp(mc->m.mnt_opts, mount_opts) != 0) {
 			fprintf(stderr, "%s: permission died - no match for fstab\n",
 				progname);
@@ -425,6 +445,12 @@ int main(int argc, char *argv[])
 	}
 
 	mount_point = canonicalize(mount_point);
+	if (mount_point == NULL ||
+	    mount_point[0] != '/') {
+		fprintf(stderr, "%s: unknown mount point %s\n",
+			progname, argv[2]);
+		exit(1);
+	}
 	
 	parse_opts(mount_opts, &flags, &extra_opts);
 
@@ -435,11 +461,9 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	if (!strcmp(progname, "mount.nfs4") || nfs_mount_vers == 4) {
-		nfs_mount_vers = 4;
+	if (nfs_mount_vers == 4)
 		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, &mount_opts, 0);
-	}
-	else if (!strcmp(progname, "mount.nfs")) {
+	else {
 		int need_statd = 0;
 		mnt_err = nfsmount(spec, mount_point, &flags,
 				   &extra_opts, &mount_opts,
