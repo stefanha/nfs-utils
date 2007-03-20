@@ -436,12 +436,18 @@ int main(int argc, char *argv[])
 
 		if ((mc = getfsfile(mount_point)) == NULL ||
 		    strcmp(mc->m.mnt_fsname, spec) != 0 ||
-		    strcmp(mc->m.mnt_type, (nfs_mount_vers == 4 ? "nfs4":"nfs")) != 0 || 
-		    strcmp(mc->m.mnt_opts, mount_opts) != 0) {
+		    strcmp(mc->m.mnt_type, (nfs_mount_vers == 4 ? "nfs4":"nfs")) != 0
+		    ) {
 			fprintf(stderr, "%s: permission died - no match for fstab\n",
 				progname);
 			exit(1);
 		}
+		/* 'mount' munges the options from fstab before passing them
+		 * to us, so it is non-trivial to test that we have the correct
+		 * set of options and we don't want to trust what the user
+		 * gave us, so just take whatever is in fstab
+		 */
+		mount_opts = strdup(mc->m.mnt_opts);
 		mounttype = 0;
 	}
 
@@ -479,7 +485,8 @@ int main(int argc, char *argv[])
 	if (!fake) {
 		mnt_err = do_mount_syscall(spec, mount_point,
 					   nfs_mount_vers == 4 ? "nfs4" : "nfs",
-					   flags, mount_opts);
+					   flags & ~(MS_USER|MS_USERS) ,
+					   mount_opts);
 
 		if (mnt_err) {
 			mount_error(mount_point);

@@ -341,6 +341,11 @@ int nfsumount(int argc, char *argv[])
 	if (getuid() != 0) {
 		/* only permitted if "user=" or "users" is in mount options */
 		if (!mc) {
+			/* umount might call us twice.  The second time there will
+			 * be no entry in mtab and we should just exit quietly
+			 */
+			return 0;
+
 		only_root:
 			fprintf(stderr,"%s: You are not permitted to unmount %s\n",
 				progname, spec);
@@ -353,7 +358,7 @@ int nfsumount(int argc, char *argv[])
 			int len;
 			if (!opt)
 				goto only_root;
-			if (opt[5] != '=')
+			if (opt[4] != '=')
 				goto only_root;
 			comma = strchr(opt, ',');
 			if (comma)
