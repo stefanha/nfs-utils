@@ -1,6 +1,5 @@
 ## Process this file with automake to produce Makefile.in
 
-RPCGEN		= $(top_builddir)/tools/rpcgen/rpcgen
 
 GENFILES_XDR	= rquota_xdr.c
 GENFILES_H	= rquota.h
@@ -27,9 +26,13 @@ rquotad_CPPFLAGS = $(AM_CPPFLAGS) $(CPPFLAGS) \
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
+if CONFIG_RPCGEN
+RPCGEN		= $(top_builddir)/tools/rpcgen/rpcgen
 $(RPCGEN):
 	make -C $(top_srcdir)/tools/rpcgen all
+else
+RPCGEN = @RPCGEN_PATH@
+endif
 
 $(GENFILES_XDR): %_xdr.c: %.x $(RPCGEN)
 	test -f $@ && rm -rf $@ || true

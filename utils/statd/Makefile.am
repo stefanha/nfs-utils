@@ -2,8 +2,6 @@
 
 man8_MANS = statd.man sm-notify.man
 
-RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen
-
 GENFILES_CLNT	= sm_inter_clnt.c
 GENFILES_SVC	= sm_inter_svc.c
 GENFILES_XDR	= sm_inter_xdr.c
@@ -29,8 +27,13 @@ sm_notify_LDADD = $(LIBNSL)
 
 EXTRA_DIST = sim_sm_inter.x sm_inter.x $(man8_MANS) COPYRIGHT simulate.c
 
+if CONFIG_RPCGEN
+RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen
 $(RPCGEN):
 	make -C ../../tools/rpcgen all
+else
+RPCGEN = @RPCGEN_PATH@
+endif
 
 $(GENFILES_CLNT): %_clnt.c: %.x $(RPCGEN)
 	test -f $@ && rm -rf $@ || true
