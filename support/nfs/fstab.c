@@ -101,6 +101,7 @@ fstab_head()
 	return &fstab;
 }
 
+#if 0
 static void
 my_free(const void *s) {
 	if (s)
@@ -120,6 +121,7 @@ discard_mntentchn(struct mntentchn *mc0) {
 		free(mc);
 	}
 }
+#endif
 
 static void
 read_mntentchn(mntFILE *mfp, const char *fnam, struct mntentchn *mc0) {
@@ -444,7 +446,8 @@ lock_mtab (void) {
  */
 
 void
-update_mtab (const char *dir, struct mntent *instead) {
+update_mtab (const char *dir, struct mntent *instead)
+{
 	mntFILE *mfp, *mftmp;
 	const char *fnam = MOUNTED;
 	struct mntentchn mtabhead;	/* dummy */
@@ -513,8 +516,14 @@ update_mtab (const char *dir, struct mntent *instead) {
 		}
 	}
 
+#if 0
+	/* the chain might have strings copied from 'instead',
+	 * so we cannot safely free it.
+	 * And there is no need anyway because we are going to exit
+	 * shortly.  So just don't call discard_mntentchn....
+	 */
 	discard_mntentchn(mc0);
-
+#endif
 	if (fchmod (fileno (mftmp->mntent_fp),
 		    S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH) < 0) {
 		int errsv = errno;

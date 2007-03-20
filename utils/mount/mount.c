@@ -179,6 +179,11 @@ int add_mtab(char *fsname, char *mount_point, char *fstype, int flags, char *opt
 	ment.mnt_freq = 0;
 	ment.mnt_passno= 0;
 
+	if(flags & MS_REMOUNT) {
+		update_mtab(ment.mnt_dir, &ment);
+		return 0;
+	}
+
 	lock_mtab();
 
         if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
