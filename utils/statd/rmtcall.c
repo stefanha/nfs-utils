@@ -84,62 +84,6 @@ statd_get_socket(void)
 	return sockfd;
 }
 
-/*
- * Try to resolve host name for notify/callback request
- *
- * When compiled with RESTRICTED_STATD defined, we expect all
- * host names to be dotted quads. See monitor.c for details. --okir
- */
-#ifdef RESTRICTED_STATD
-static int
-try_to_resolve(notify_list *lp)
-{
-	char		*hname;
-
-	hname = NL_MY_NAME(lp);
-	if (!inet_aton(hname, &(NL_ADDR(lp)))) {
-		note(N_ERROR, "%s is not an dotted-quad address", hname);
-		NL_TIMES(lp) = 0;
-		return 0;
-	}
-
-	/* XXX: In order to handle multi-homed hosts, we could do
-	 * a reverse lookup, a forward lookup, and cycle through
-	 * all the addresses.
-	 */
-	return 1;
-}
-#else
-static int
-try_to_resolve(notify_list *lp)
-{
-	struct hostent	*hp;
-	char		*hname;
-
-	hname = NL_MY_NAME(lp);
-
-	dprintf(N_DEBUG, "Trying to resolve %s.", hname);
-	if (!(hp = gethostbyname(hname))) {
-		herror("gethostbyname");
-		NL_TIMES(lp) -= 1;
-		return 0;
-	}
-
-	if (hp->h_addrtype != AF_INET) {
-		note(N_ERROR, "%s is not an AF_INET address", hname);
-		NL_TIMES(lp) = 0;
-		return 0;
-	}
-
-	/* FIXME: should try all addresses for multi-homed hosts in
-	 * alternation because one interface might be down/unreachable. */
-	NL_ADDR(lp) = *(struct in_addr *) hp->h_addr;
-
-	dprintf(N_DEBUG, "address of %s is %s", hname, inet_ntoa(NL_ADDR(lp)));
-	return 1;
-}
-#endif
-
 static unsigned long
 xmit_call(int sockfd, struct sockaddr_in *sin,
 	  u_int32_t prog, u_int32_t vers, u_int32_t proc,
@@ -292,8 +236,6 @@ process_entry(int sockfd, notify_list *lp)
 	u_int32_t		proc, vers, prog;
 /* 	__u32			proc, vers, prog; */
 
-	if (lp->addr.s_addr == INADDR_ANY && !try_to_resolve(lp))
-		return NL_TIMES(lp);
 	if (NL_TIMES(lp) == 0) {
 		note(N_DEBUG, "Cannot notify %s, giving up.\n",
 					inet_ntoa(NL_ADDR(lp)));
@@ -321,8 +263,8 @@ process_entry(int sockfd, notify_list *lp)
 
 	lp->xid = xmit_call(sockfd, &sin, prog, vers, proc, func, objp);
 	if (!lp->xid) {
-		note(N_WARNING, "notify_host: failed to notify %s\n",
-				inet_ntoa(lp->addr));
+		note(N_WARNING, "notify_host: failed to notify port %d\n",
+				ntohs(lp->port));
 	}
 	NL_TIMES(lp) -= 1;
 
