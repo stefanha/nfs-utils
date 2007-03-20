@@ -31,7 +31,9 @@
 #include "xmalloc.h"
 #include "fsloc.h"
 
+#ifdef USE_BLKID
 #include "blkid/blkid.h"
+#endif
 
 
 enum nfsd_fsid {
@@ -152,6 +154,7 @@ void auth_unix_gid(FILE *f)
 		free(groups);
 }
 
+#if USE_BLKID
 int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 {
 	/* extract hex digits from uuidstr and compose a uuid
@@ -216,6 +219,7 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 	}
 	return 1;
 }
+#endif
 
 /* Iterate through /etc/mtab, finding mountpoints
  * at or below a given path
@@ -418,6 +422,7 @@ void nfsd_fh(FILE *f)
 				if (!is_mountpoint(path))
 					continue;
 			check_uuid:
+#if USE_BLKID
 				if (exp->m_export.e_uuid)
 					get_uuid(NULL, exp->m_export.e_uuid,
 						 uuidlen, u);
@@ -428,6 +433,9 @@ void nfsd_fh(FILE *f)
 				if (memcmp(u, fhuuid, uuidlen) != 0)
 					continue;
 				break;
+#else
+				continue;
+#endif
 			}
 			/* It's a match !! */
 			if (!found) {
@@ -517,6 +525,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		qword_printint(f, exp->e_anongid);
 		qword_printint(f, exp->e_fsid);
 		write_fsloc(f, exp, path);
+#if USE_BLKID
  		if (exp->e_uuid == NULL) {
  			char u[16];
  			if (get_uuid(path, NULL, 16, u)) {
@@ -527,6 +536,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  			qword_print(f, "uuid");
  			qword_printhex(f, exp->e_uuid, 16);
  		}
+#endif
 	}
 	return qword_eol(f);
 }
