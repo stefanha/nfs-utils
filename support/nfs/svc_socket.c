@@ -162,7 +162,7 @@ svctcp_socket (u_long number, int reuse)
 int
 svcudp_socket (u_long number, int reuse)
 {
-  return svc_socket (number, SOCK_DGRAM, IPPROTO_UDP, reuse);
+  return svc_socket (number, SOCK_DGRAM, IPPROTO_UDP, 0);
 }
 
 #ifdef TEST
