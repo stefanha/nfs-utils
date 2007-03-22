@@ -144,7 +144,7 @@ main(int argc, char **argv)
 	if (optind < argc) {
 usage:		fprintf(stderr,
 			"Usage: sm-notify [-dfq] [-m max-retry-minutes] [-p srcport]\n"
-			"            [-P /path/to/state/directory] [-N my_host_name\n");
+			"            [-P /path/to/state/directory] [-v my_host_name]\n");
 		return 1;
 	}
 
