@@ -230,12 +230,10 @@ static void run_sm_notify(int outport)
 		av[ac++] = op;
 	}
 	if (run_mode & STATIC_HOSTNAME) {
-		av[ac++] = "-N";
+		av[ac++] = "-v";
 		av[ac++] = MY_NAME;
 	}
 	av[ac] = NULL;
-	fprintf(stderr, "%s: -N deprecated, consider using /usr/sbin/sm-notify directly\n",
-		name_p);
 	execv(av[0], av);
 	fprintf(stderr, "%s: failed to run %s\n", name_p, av[0]);
 	exit(2);
@@ -369,8 +367,11 @@ int main (int argc, char **argv)
 		exit(-1);
 	}
 
-	if (run_mode & MODE_NOTIFY_ONLY)
+	if (run_mode & MODE_NOTIFY_ONLY) {
+		fprintf(stderr, "%s: -N deprecated, consider using /usr/sbin/sm-notify directly\n",
+			name_p);
 		run_sm_notify(out_port);
+	}
 
 
 	if (!(run_mode & MODE_NODAEMON)) {
