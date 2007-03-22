@@ -99,11 +99,9 @@ static const struct opt_map opt_map[] = {
   { "rbind",    0, 0, MS_BIND|MS_REC }, /* Idem, plus mounted subtrees */
   { "auto",     0, 0, MS_DUMMY },       /* Can be mounted using -a */
   { "noauto",   0, 0, MS_DUMMY },       /* Can  only be mounted explicitly */
-  { "users",    1, 0, MS_USERS|MS_NOEXEC|MS_NOSUID|MS_NODEV  },
-  					/* Allow ordinary user to mount */
+  { "users",    1, 0, MS_USERS },	/* Allow ordinary user to mount */
   { "nousers",  0, 1, MS_DUMMY  },      /* Forbid ordinary user to mount */
-  { "user",     1, 0, MS_USER|MS_NOEXEC|MS_NOSUID|MS_NODEV  },
-  					/* Allow ordinary user to mount */
+  { "user",     1, 0, MS_USER  },	/* Allow ordinary user to mount */
   { "nouser",   0, 1, MS_DUMMY   },     /* Forbid ordinary user to mount */
   { "owner",    0, 0, MS_DUMMY  },      /* Let the owner of the device mount */
   { "noowner",  0, 0, MS_DUMMY  },      /* Device owner has no special privs */
