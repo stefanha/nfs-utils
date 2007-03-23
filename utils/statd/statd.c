@@ -476,6 +476,8 @@ int main (int argc, char **argv)
 			waitpid(pid, NULL, 0);
 		}
 
+	/* Make sure we have a privilege port for calling into the kernel */
+	statd_get_socket();
 
 	for (;;) {
 		pmap_unset (SM_PROG, SM_VERS);
