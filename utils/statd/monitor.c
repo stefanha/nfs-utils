@@ -145,7 +145,8 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		if (matchhostname(NL_MY_NAME(clnt), my_name) &&
 		    NL_MY_PROC(clnt) == id->my_proc &&
 		    NL_MY_PROG(clnt) == id->my_prog &&
-		    NL_MY_VERS(clnt) == id->my_vers) {
+		    NL_MY_VERS(clnt) == id->my_vers &&
+		    memcmp(NL_PRIV(clnt), argp->priv, SM_PRIV_SIZE) == 0) {
 			/* Hey!  We already know you guys! */
 			dprintf(N_DEBUG,
 				"Duplicate SM_MON request for %s "
