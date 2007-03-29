@@ -56,6 +56,7 @@ struct nsm_host {
 	char *			name;
 	char *			path;
 	nsm_address		addr;
+	struct addrinfo		*ai;
 	time_t			last_used;
 	time_t			send_next;
 	unsigned int		timeout;
@@ -83,7 +84,7 @@ static void		insert_host(struct nsm_host *);
 struct nsm_host *	find_host(uint32_t);
 static int		addr_get_port(nsm_address *);
 static void		addr_set_port(nsm_address *, int);
-static int		host_lookup(int, const char *, nsm_address *);
+static struct addrinfo	*host_lookup(int, const char *);
 void			nsm_log(int fac, const char *fmt, ...);
 static int		record_pid();
 static void		drop_privs(void);
@@ -225,12 +226,14 @@ notify(void)
 
 	/* Bind source IP if provided on command line */
 	if (opt_srcaddr) {
-		if (!host_lookup(AF_INET, opt_srcaddr, &local_addr)) {
+		struct addrinfo *ai = host_lookup(AF_INET, opt_srcaddr);
+		if (!ai) {
 			nsm_log(LOG_WARNING,
 				"Not a valid hostname or address: \"%s\"\n",
 				opt_srcaddr);
 			exit(1);
 		}
+		memcpy(&local_addr, ai->ai_addr, ai->ai_addrlen);
 		/* We know it's IPv4 at this point */
 	}
 
@@ -322,9 +325,19 @@ notify_host(int sock, struct nsm_host *host)
 	*p++ = htonl(2);
 
 	/* If we retransmitted 4 times, reset the port to force
-	 * a new portmap lookup (in case statd was restarted)
+	 * a new portmap lookup (in case statd was restarted).
+	 * We also rotate through multiple IP addresses at this
+	 * point.
 	 */
 	if (host->retries >= 4) {
+		struct addrinfo *hold = host->ai;
+		struct addrinfo **next = &host->ai;
+		*next = hold->ai_next;
+		while ( *next )
+			next = & (*next)->ai_next;
+		*next = hold;
+		hold->ai_next = NULL;
+		memcpy(&host->addr, hold->ai_addr, hold->ai_addrlen);
 		addr_set_port(&host->addr, 0);
 		host->retries = 0;
 	}
@@ -437,6 +450,7 @@ recv_reply(int sock)
 			free(hp->name);
 			free(hp->path);
 			free(hp);
+			freeaddrinfo(hp->ai);
 			return;
 		}
 	}
@@ -502,7 +516,11 @@ get_hosts(const char *dirname)
 			host = calloc(1, sizeof(*host));
 
 		snprintf(path, sizeof(path), "%s/%s", dirname, de->d_name);
-		if (!host_lookup(AF_UNSPEC, de->d_name, &host->addr)) {
+		if (stat(path, &stb) < 0)
+			continue;
+
+		host->ai = host_lookup(AF_UNSPEC, de->d_name);
+		if (! host->ai) {
 			nsm_log(LOG_WARNING,
 				"%s doesn't seem to be a valid address, skipped",
 				de->d_name);
@@ -510,12 +528,11 @@ get_hosts(const char *dirname)
 			continue;
 		}
 
-		if (stat(path, &stb) < 0)
-			continue;
 		host->last_used = stb.st_mtime;
 		host->timeout = NSM_TIMEOUT;
 		host->path = strdup(path);
 		host->name = strdup(de->d_name);
+		host->retries = 100; /* force address retry */
 
 		insert_host(host);
 		host = NULL;
@@ -658,25 +675,19 @@ addr_set_port(nsm_address *addr, int port)
 	}
 }
 
-static int
-host_lookup(int af, const char *name, nsm_address *addr)
+static struct addrinfo *
+host_lookup(int af, const char *name)
 {
 	struct addrinfo	hints, *ai;
-	int okay = 0;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = af;
+	hints.ai_protocol = IPPROTO_UDP;
 
 	if (getaddrinfo(name, NULL, &hints, &ai) != 0)
-		return 0;
+		return NULL;
 
-	if (ai->ai_addrlen < sizeof(*addr)) {
-		memcpy(addr, ai->ai_addr, ai->ai_addrlen);
-		okay = 1;
-	}
-
-	freeaddrinfo(ai);
-	return okay;
+	return ai;
 }
 
 /*
