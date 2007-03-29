@@ -139,27 +139,25 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 * I'll just do a quickie success return and things should
 	 * be happy.
 	 */
-	if (rtnl) {
-		notify_list    *temp = rtnl;
+	clnt = rtnl;
 
-		while ((temp = nlist_gethost(temp, mon_name, 0))) {
-			if (matchhostname(NL_MY_NAME(temp), my_name) &&
-				NL_MY_PROC(temp) == id->my_proc &&
-				NL_MY_PROG(temp) == id->my_prog &&
-				NL_MY_VERS(temp) == id->my_vers) {
-				/* Hey!  We already know you guys! */
-				dprintf(N_DEBUG,
-					"Duplicate SM_MON request for %s "
-					"from procedure on %s",
-					mon_name, my_name);
+	while ((clnt = nlist_gethost(clnt, mon_name, 0))) {
+		if (matchhostname(NL_MY_NAME(clnt), my_name) &&
+		    NL_MY_PROC(clnt) == id->my_proc &&
+		    NL_MY_PROG(clnt) == id->my_prog &&
+		    NL_MY_VERS(clnt) == id->my_vers) {
+			/* Hey!  We already know you guys! */
+			dprintf(N_DEBUG,
+				"Duplicate SM_MON request for %s "
+				"from procedure on %s",
+				mon_name, my_name);
 
-				/* But we'll let you pass anyway. */
-				result.res_stat = STAT_SUCC;
-				result.state = MY_STATE;
-				return (&result);
-			}
-			temp = NL_NEXT(temp);
+			/* But we'll let you pass anyway. */
+			result.res_stat = STAT_SUCC;
+			result.state = MY_STATE;
+			return (&result);
 		}
+		clnt = NL_NEXT(clnt);
 	}
 
 	/*
