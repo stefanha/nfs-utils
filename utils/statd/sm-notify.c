@@ -149,7 +149,7 @@ usage:		fprintf(stderr,
 	}
 
 	if (strcmp(_SM_BASE_PATH, BASEDIR) == 0) {
-		if (record_pid() == 0 && force == 0 && opt_update_state == 0)
+		if (record_pid() == 0 && force == 0 && opt_update_state == 1)
 			/* already run, don't try again */
 			exit(0);
 	}
@@ -713,7 +713,7 @@ static int record_pid()
 
 	snprintf(pid, 20, "%d\n", getpid());
 	fd = open("/var/run/sm-notify.pid", O_CREAT|O_EXCL|O_WRONLY, 0600);
-	if (!fd)
+	if (fd < 0)
 		return 0;
 	write(fd, pid, strlen(pid));
 	close(fd);
