@@ -800,6 +800,10 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				data->flags &= ~NFS_MOUNT_NOACL;
 				if (!val)
 					data->flags |= NFS_MOUNT_NOACL;
+			} else if (!strcmp(opt, "rdirplus")) {
+				data->flags &= ~NFS_MOUNT_NORDIRPLUS;
+				if (!val)
+					data->flags |= NFS_MOUNT_NORDIRPLUS;
 #endif
 			} else {
 			bad_option:
@@ -983,6 +987,7 @@ nfsmount(const char *spec, const char *node, int *flags,
 #endif
 #if NFS_MOUNT_VERSION >= 5
 	printf("sec = %u ", data.pseudoflavor);
+	printf("readdirplus = %d ", (data.flags & NFS_MOUNT_NORDIRPLUS) != 0);
 #endif
 	printf("\n");
 #endif

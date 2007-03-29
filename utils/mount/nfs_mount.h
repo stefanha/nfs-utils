@@ -63,6 +63,7 @@ struct nfs_mount_data {
 #define NFS_MOUNT_BROKEN_SUID	0x0400	/* 4 */
 #define NFS_MOUNT_NOACL     0x0800  /* 4 */
 #define NFS_MOUNT_SECFLAVOUR	0x2000	/* 5 */
+#define NFS_MOUNT_NORDIRPLUS	0x4000	/* 5 */
 
 /* security pseudoflavors */
 

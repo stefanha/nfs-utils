@@ -283,6 +283,11 @@ support UDP.
 .TP 1.5i
 .I udp
 Mount the NFS filesystem using the UDP protocol.
+.TP 1.5i
+.I nordirplus
+Disables NFSv3 READDIRPLUS RPCs. Use this option when
+mounting servers that don't support or have broken
+READDIRPLUS implementations.
 .P
 All of the non-value options have corresponding nooption forms.
 For example, nointr means don't allow file operations to be
