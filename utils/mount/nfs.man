@@ -195,11 +195,18 @@ many other operating systems.
 .TP 1.5i
 .I nolock
 Disable NFS locking. Do not start lockd.
-This has to be used with some old NFS servers
-that don't support locking.  Note that applications can
-still get locks on files, but the locks only provide exclusion
-locally.  Other clients mounting the same filesystem
-will not be able to detect the locks.
+This is appropriate for mounting the root filesystem or
+.B /usr
+or
+.BR /var .
+These filesystems are typically either read-only or not shared, and in
+those cases, remote locking is not needed.
+This also needs to be used with some old NFS servers
+that don't support locking.
+.br
+Note that applications can still get locks on files, but the locks
+only provide exclusion locally.  Other clients mounting the same
+filesystem will not be able to detect the locks.
 .TP 1.5i
 .I bg
 If the first NFS mount attempt times out, retry the mount
