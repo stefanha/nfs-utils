@@ -293,14 +293,14 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *saddr)
  * instead of reserve ports since reserve ports
  * are not needed for pmap requests.
  */
-static u_short
+u_short
 getport(
 	struct sockaddr_in *saddr, 
 	u_long prog, 
 	u_long vers, 
 	u_int prot)
 {
-	u_short port;
+	u_short port = 0;
 	int    socket;
 	CLIENT *clnt = NULL;
 	struct pmap parms;
