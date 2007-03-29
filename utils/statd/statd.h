@@ -54,6 +54,7 @@ extern int	process_reply(FD_SET_TYPE *);
 extern char *	xstrdup(const char *);
 extern void *	xmalloc(size_t);
 extern void	xunlink (char *, char *, short int);
+extern void	load_state(void);
 
 /*
  * Host status structure and macros.

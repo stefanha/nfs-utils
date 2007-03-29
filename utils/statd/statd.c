@@ -479,6 +479,12 @@ int main (int argc, char **argv)
 	/* Make sure we have a privilege port for calling into the kernel */
 	statd_get_socket();
 
+	/* If sm-notify didn't take all the state files, load
+	 * state information into our notify-list so we can
+	 * pass on any SM_NOTIFY that arrives
+	 */
+	load_state();
+
 	for (;;) {
 		pmap_unset (SM_PROG, SM_VERS);
 

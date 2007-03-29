@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <dirent.h>
 #include "misc.h"
 #include "statd.h"
 #include "notlist.h"
@@ -26,6 +27,7 @@
 
 notify_list *		rtnl = NULL;	/* Run-time notify list. */
 
+#define LINELEN (4*(8+1)+SM_PRIV_SIZE*2+1)
 
 /*
  * Services SM_MON requests.
@@ -181,13 +183,28 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 
 	path=xmalloc(strlen(SM_DIR)+strlen(mon_name)+2);
 	sprintf(path, "%s/%s", SM_DIR, mon_name);
-	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
+	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT|O_APPEND,
+		       S_IRUSR|S_IWUSR)) < 0) {
 		/* Didn't fly.  We won't monitor. */
 		note(N_ERROR, "creat(%s) failed: %s", path, strerror (errno));
 		nlist_free(NULL, clnt);
 		free(path);
 		goto failure;
 	}
+	{
+		char buf[LINELEN + 1 + SM_MAXSTRLEN + 2];
+		char *e;
+		int i;
+		e = buf + sprintf(buf, "%08x %08x %08x %08x ",
+				  my_addr.s_addr, id->my_prog,
+				  id->my_vers, id->my_proc);
+		for (i=0; i<SM_PRIV_SIZE; i++)
+			e += sprintf(e, "%02x", 0xff & (argp->priv[i]));
+		if (e+1-buf != LINELEN) abort();
+		e += sprintf(e, " %s\n", mon_name);
+		write(fd, buf, e-buf);
+	}
+
 	free(path);
 	/* PRC: do the HA callout: */
 	ha_callout("add-client", mon_name, my_name, -1);
@@ -203,6 +220,64 @@ failure:
 	note(N_WARNING, "STAT_FAIL to %s for SM_MON of %s", my_name, mon_name);
 	return (&result);
 }
+
+void load_state(void)
+{
+	DIR *d;
+	struct dirent *de;
+	char buf[LINELEN + 1 + SM_MAXSTRLEN + 2];
+
+	d = opendir(SM_DIR);
+	if (!d)
+		return;
+	while ((de = readdir(d))) {
+		char *path;
+		FILE *f;
+		int p;
+
+		if (de->d_name[0] == '.')
+			continue;
+		path = xmalloc(strlen(SM_DIR)+strlen(de->d_name)+2);
+		sprintf(path, "%s/%s", SM_DIR, de->d_name);
+		f = fopen(path, "r");
+		free(path);
+		if (f == NULL)
+			continue;
+		while (fgets(buf, sizeof(buf), f) != NULL) {
+			int addr, proc, prog, vers;
+			char priv[SM_PRIV_SIZE];
+			char *b;
+			int i;
+			notify_list	*clnt;
+
+			buf[sizeof(buf)-1] = 0;
+			b = strchr(buf, '\n');
+			if (b) *b = 0;
+			sscanf(buf, "%x %x %x %x ",
+			       &addr, &prog, &vers, &proc);
+			b = buf+36;
+			for (i=0; i<SM_PRIV_SIZE; i++) {
+				sscanf(b, "%2x", &p);
+				priv[i] = p;
+				b += 2;
+			}
+			b++;
+			clnt = nlist_new("127.0.0.1", b, 0);
+			if (!clnt)
+				break;
+			NL_ADDR(clnt).s_addr = addr;
+			NL_MY_PROG(clnt) = prog;
+			NL_MY_VERS(clnt) = vers;
+			NL_MY_PROC(clnt) = proc;
+			memcpy(NL_PRIV(clnt), priv, SM_PRIV_SIZE);
+			nlist_insert(&rtnl, clnt);
+		}
+		fclose(f);
+	}
+	closedir(d);
+}
+
+
 
 
 /*
