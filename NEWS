@@ -1,1 +1,43 @@
-This is a dummy news file to make automake happy.
+Significant changes for nfs-utils 1.1.0 - March/April 2007
+
+ - rpc.lockd is gone.  One 3 old kernel releases need it.
+ - /sbin/{u,}mount.nfs{,4} is now installed so 'mount' will
+   use these to mount nfs filesystems instead of internal code.
+  + mount.nfs will check for 'statd' to be running when mounting
+    a filesystem which requires it.  If it is not running it will
+    run "/usr/sbin/start-statd" to try to start it.
+    If statd is not running and cannot be started, mount.nfs will
+    refuse to mount the filesystem and will suggest the 'nolock'
+    option.
+ - Substantial changes to statd
+  + The 'notify' process that must happen at boot has been split
+    into a separate program "sm-notify".  It ensures that it
+    only runs once even if you restart statd.  This is correct
+    behaviour.
+  + statd stores state in the files in /var/lib/nfs/sm/ so that
+    if you kill and restart it, it will restore that state and
+    continue working correctly.
+  + statd makes more use of DNS lookup and should handle
+    multi-homed peers better.
+ - If you export a directory as 'crossmnt', all filesystems
+   mounted beneath are automatically exported with the same
+   options (unless explicitly exported with different options).
+ - subtree_check is no-longer the default.  The default is now
+   no_subtree_check.
+ - By default the system 'rpcgen' is used while building
+   nfs-utils rather than the internal one.
+
+
+Further notes on statd:
+
+ statd should be installed in /usr/sbin, not /sbin.
+ If you need to mount /usr via nfs, use 'nolock'
+
+ At boot time, run "/usr/sbin/sm-notify".
+ Run "statd" only when starting the NFS server.
+ "statd" should be run before starting the NFS server.
+ You do not need to start statd at boot time incase an
+ NFS filesystem is mounted.  mount.nfs will take care of that.
+
+ Make sure /usr/sbin/start-statd will run statd with required
+ arguments.
