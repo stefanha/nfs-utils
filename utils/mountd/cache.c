@@ -469,7 +469,8 @@ void nfsd_fh(FILE *f)
 	}
 
 	if (found)
-		cache_export_ent(dom, found, found_path);
+		if (cache_export_ent(dom, found, found_path) < 0)
+			found = 0;
 
 	qword_print(f, dom);
 	qword_printint(f, fsidtype);
@@ -619,8 +620,10 @@ void nfsd_export(FILE *f)
 	}
 
 	if (found) {
-		dump_to_cache(f, dom, path, &found->m_export);
-		mountlist_add(dom, path);
+		if (dump_to_cache(f, dom, path, &found->m_export) < 0)
+			dump_to_cache(f, dom, path, NULL);
+		else
+			mountlist_add(dom, path);
 	} else {
 		dump_to_cache(f, dom, path, NULL);
 	}
