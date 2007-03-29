@@ -12,6 +12,7 @@ GENFILES	= $(GENFILES_CLNT) $(GENFILES_SVC) $(GENFILES_XDR) $(GENFILES_H)
 RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PROGRAMS	= statd sm-notify
+dist_sbin_SCRIPTS	= start-statd
 statd_SOURCES = callback.c notlist.c log.c misc.c monitor.c \
 	        simu.c stat.c statd.c svc_run.c rmtcall.c \
 	        sm_inter_clnt.c sm_inter_svc.c sm_inter_xdr.c log.h \
