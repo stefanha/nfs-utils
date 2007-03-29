@@ -43,11 +43,11 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	int             fd;
 	notify_list	*clnt;
 	struct in_addr	my_addr;
+	char		*dnsname;
 #ifdef RESTRICTED_STATD
 	struct in_addr	caller;
-#else
-	struct hostent	*hostinfo = NULL;
 #endif
+	struct hostent	*hostinfo = NULL;
 
 	/* Assume that we'll fail. */
 	result.res_stat = STAT_FAIL;
@@ -104,6 +104,12 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		goto failure;
 	}
 #endif
+#else
+	if (!(hostinfo = gethostbyname(my_name))) {
+		note(N_WARNING, "gethostbyname error for %s", my_name);
+		goto failure;
+	} else
+		my_addr = *(struct in_addr *) hostinfo->h_addr;
 #endif
 	/*
 	 * Check hostnames.  If I can't look them up, I won't monitor.  This
@@ -116,21 +122,27 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		     "or starting '.': %s", mon_name);
 		note(N_CRIT, "POSSIBLE SPOOF/ATTACK ATTEMPT!");
 		goto failure;
-	} else if (gethostbyname(mon_name) == NULL) {
+	} else if ((hostinfo = gethostbyname(mon_name)) == NULL) {
 		note(N_WARNING, "gethostbyname error for %s", mon_name);
 		goto failure;
 	}
-#ifndef RESTRICTED_STATD
-	if (!(hostinfo = gethostbyname(my_name))) {
-		note(N_WARNING, "gethostbyname error for %s", my_name);
-		goto failure;
-	} else
-		my_addr = *(struct in_addr *) hostinfo->h_addr;
-#endif
 
 	/*
 	 * Hostnames checked OK.
-	 * Now check to see if this is a duplicate, and warn if so.
+	 * Now choose a hostname to use for matching.  We cannot
+	 * really trust much in the incoming NOTIFY, so to make
+	 * sure that multi-homed hosts work nicely, we get an
+	 * FQDN now, and use that for matching
+	 */
+	hostinfo = gethostbyaddr(hostinfo->h_addr,
+				 hostinfo->h_length,
+				 hostinfo->h_addrtype);
+	if (hostinfo)
+		dnsname = xstrdup(hostinfo->h_name);
+	else
+		dnsname = xstrdup(my_name);
+
+	/* Now check to see if this is a duplicate, and warn if so.
 	 * I will also return STAT_FAIL. (I *think* this is how I should
 	 * handle it.)
 	 *
@@ -175,13 +187,14 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	NL_MY_VERS(clnt) = id->my_vers;
 	NL_MY_PROC(clnt) = id->my_proc;
 	memcpy(NL_PRIV(clnt), argp->priv, SM_PRIV_SIZE);
+	clnt->dns_name = dnsname;
 
 	/*
 	 * Now, Create file on stable storage for host.
 	 */
 
-	path=xmalloc(strlen(SM_DIR)+strlen(mon_name)+2);
-	sprintf(path, "%s/%s", SM_DIR, mon_name);
+	path=xmalloc(strlen(SM_DIR)+strlen(dnsname)+2);
+	sprintf(path, "%s/%s", SM_DIR, dnsname);
 	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT|O_APPEND,
 		       S_IRUSR|S_IWUSR)) < 0) {
 		/* Didn't fly.  We won't monitor. */
@@ -268,6 +281,7 @@ void load_state(void)
 			NL_MY_PROG(clnt) = prog;
 			NL_MY_VERS(clnt) = vers;
 			NL_MY_PROC(clnt) = proc;
+			clnt->dns_name = xstrdup(de->d_name);
 			memcpy(NL_PRIV(clnt), priv, SM_PRIV_SIZE);
 			nlist_insert(&rtnl, clnt);
 		}

@@ -27,6 +27,8 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 {
 	notify_list    *lp, *call;
 	static char    *result = NULL;
+	char *ip_addr = xstrdup(inet_ntoa(svc_getcaller(rqstp->rq_xprt)
+					  ->sin_addr));
 
 	dprintf(N_DEBUG, "Received SM_NOTIFY from %s, state: %d",
 				argp->mon_name, argp->state);
@@ -45,14 +47,15 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 	 * it. Lockd will want to continue monitoring the remote host
 	 * until it issues an SM_UNMON call.
 	 */
-	while ((lp = nlist_gethost(lp, argp->mon_name, 0)) != NULL) {
-		if (NL_STATE(lp) != argp->state) {
+	for (lp = rtnl ; lp ; lp = lp->next)
+		if (NL_STATE(lp) != argp->state &&
+		    (matchhostname(argp->mon_name, lp->dns_name) ||
+		     matchhostname(ip_addr, lp->dns_name))) {
 			NL_STATE(lp) = argp->state;
 			call = nlist_clone(lp);
 			nlist_insert(&notify, call);
 		}
-		lp = NL_NEXT(lp);
-	}
+
 
 	return ((void *) &result);
 }
