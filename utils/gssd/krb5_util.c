@@ -364,11 +364,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 			    "principal '%s' from keytab '%s'\n",
 			 error_message(code),
 			 pname ? pname : "<unparsable>", kt_name);
-#ifdef HAVE_KRB5
-		if (pname) krb5_free_unparsed_name(context, pname);
-#else
-		if (pname) free(pname);
-#endif
+		if (pname) k5_free_unparsed_name(context, pname);
 		goto out;
 	}
 
@@ -497,11 +493,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 			if (ple == NULL) {
 				printerr(0, "ERROR: could not allocate storage "
 					    "for principal list entry\n");
-#ifdef HAVE_KRB5
-				krb5_free_unparsed_name(context, pname);
-#else
-				free(pname);
-#endif
+				k5_free_unparsed_name(context, pname);
 				krb5_kt_free_entry(context, &kte);
 				retval = ENOMEM;
 				goto out;
@@ -521,11 +513,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 				printerr(0, "ERROR: %s while copying realm to "
 					    "principal list entry\n",
 					 "not enough memory");
-#ifdef HAVE_KRB5
-				krb5_free_unparsed_name(context, pname);
-#else
-				free(pname);
-#endif
+				k5_free_unparsed_name(context, pname);
 				krb5_kt_free_entry(context, &kte);
 				retval = ENOMEM;
 				goto out;
@@ -535,11 +523,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 				printerr(0, "ERROR: %s while copying principal "
 					    "to principal list entry\n",
 					error_message(code));
-#ifdef HAVE_KRB5
-				krb5_free_unparsed_name(context, pname);
-#else
-				free(pname);
-#endif
+				k5_free_unparsed_name(context, pname);
 				krb5_kt_free_entry(context, &kte);
 				retval = code;
 				goto out;
@@ -555,11 +539,7 @@ gssd_process_krb5_keytab(krb5_context context, krb5_keytab kt, char *kt_name)
 			printerr(2, "We will NOT use this entry (%s)\n",
 				pname);
 		}
-#ifdef HAVE_KRB5
-		krb5_free_unparsed_name(context, pname);
-#else
-		free(pname);
-#endif
+		k5_free_unparsed_name(context, pname);
 		krb5_kt_free_entry(context, &kte);
 	}
 

@@ -27,4 +27,19 @@ void gssd_destroy_krb5_machine_creds(void);
 int limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid);
 #endif
 
+/*
+ * Hide away some of the MIT vs. Heimdal differences
+ * here with macros...
+ */
+
+#ifdef HAVE_KRB5
+#define k5_free_unparsed_name(ctx, name)	krb5_free_unparsed_name((ctx), (name))
+#define k5_free_default_realm(ctx, realm)	krb5_free_default_realm((ctx), (realm))
+#define k5_free_kt_entry(ctx, kte)		krb5_free_keytab_entry_contents((ctx),(kte))
+#else	/* Heimdal */
+#define k5_free_unparsed_name(ctx, name)	free(name)
+#define k5_free_default_realm(ctx, realm)	free(realm)
+#define k5_free_kt_entry(ctx, kte)		krb5_kt_free_entry((ctx),(kte))
+#endif
+
 #endif /* KRB5_UTIL_H */
