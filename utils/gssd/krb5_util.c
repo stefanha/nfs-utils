@@ -298,6 +298,7 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
 	if (maj_stat != GSS_S_COMPLETE) {
 		pgsserr("gss_set_allowable_enctypes",
 			maj_stat, min_stat, &krb5oid);
+		gss_release_cred(&min_stat, &credh);
 		return -1;
 	}
 	sec->cred = credh;
