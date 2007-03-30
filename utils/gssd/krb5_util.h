@@ -19,7 +19,6 @@ struct gssd_k5_kt_princ {
 
 void gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername);
 int  gssd_get_krb5_machine_cred_list(char ***list);
-int  gssd_refresh_krb5_machine_creds(void);
 void gssd_free_krb5_machine_cred_list(char **list);
 void gssd_setup_krb5_machine_gss_ccache(char *servername);
 void gssd_destroy_krb5_machine_creds(void);
