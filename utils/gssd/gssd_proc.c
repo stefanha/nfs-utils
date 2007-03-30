@@ -555,7 +555,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		ai_hints.ai_protocol = IPPROTO_UDP;
 	} else {
 		printerr(0, "WARNING: unrecognized protocol, '%s', requested "
-			 "for connection to server %s for user with uid %d",
+			 "for connection to server %s for user with uid %d\n",
 			 clp->protocol, clp->servername, uid);
 		goto out_fail;
 	}
@@ -563,12 +563,12 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	/* extract the service name from clp->servicename */
 	if ((at_sign = strchr(clp->servicename, '@')) == NULL) {
 		printerr(0, "WARNING: servicename (%s) not formatted as "
-			"expected with service@host", clp->servicename);
+			"expected with service@host\n", clp->servicename);
 		goto out_fail;
 	}
 	if ((at_sign - clp->servicename) >= sizeof(service)) {
 		printerr(0, "WARNING: service portion of servicename (%s) "
-			"is too long!", clp->servicename);
+			"is too long!\n", clp->servicename);
 		goto out_fail;
 	}
 	strncpy(service, clp->servicename, at_sign - clp->servicename);
@@ -577,13 +577,13 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	errcode = getaddrinfo(clp->servername, service, &ai_hints, &a);
 	if (errcode) {
 		printerr(0, "WARNING: Error from getaddrinfo for server "
-			 "'%s': %s", clp->servername, gai_strerror(errcode));
+			 "'%s': %s\n", clp->servername, gai_strerror(errcode));
 		goto out_fail;
 	}
 
 	if (a == NULL) {
 		printerr(0, "WARNING: No address information found for "
-			 "connection to server %s for user with uid %d",
+			 "connection to server %s for user with uid %d\n",
 			 clp->servername, uid);
 		goto out_fail;
 	}
@@ -617,7 +617,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	} else {
 		/* Shouldn't happen! */
 		printerr(0, "ERROR: requested protocol '%s', but "
-			 "got addrinfo with protocol %d",
+			 "got addrinfo with protocol %d\n",
 			 clp->protocol, a->ai_protocol);
 		goto out_fail;
 	}
