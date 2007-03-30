@@ -334,6 +334,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 	int code;
 	time_t now = time(0);
 	char *cache_type;
+	char *pname = NULL;
 
 	memset(&my_creds, 0, sizeof(my_creds));
 
@@ -350,6 +351,9 @@ gssd_get_single_krb5_cred(krb5_context context,
 		goto out;
 	}
 
+	if ((krb5_unparse_name(context, ple->princ, &pname)))
+		pname = NULL;
+
 	krb5_get_init_creds_opt_init(&options);
 	krb5_get_init_creds_opt_set_address_list(&options, NULL);
 
@@ -360,15 +364,10 @@ gssd_get_single_krb5_cred(krb5_context context,
 #endif
 	if ((code = krb5_get_init_creds_keytab(context, &my_creds, ple->princ,
 					       kt, 0, NULL, &options))) {
-		char *pname;
-		if ((krb5_unparse_name(context, ple->princ, &pname))) {
-			pname = NULL;
-		}
 		printerr(0, "WARNING: %s while getting initial ticket for "
-			    "principal '%s' from keytab '%s'\n",
+			 "principal '%s' using keytab '%s'\n",
 			 error_message(code),
 			 pname ? pname : "<unparsable>", kt_name);
-		if (pname) k5_free_unparsed_name(context, pname);
 		goto out;
 	}
 
@@ -385,10 +384,12 @@ gssd_get_single_krb5_cred(krb5_context context,
 		GSSD_DEFAULT_CRED_DIR, GSSD_DEFAULT_CRED_PREFIX,
 		GSSD_DEFAULT_MACHINE_CRED_SUFFIX, ple->realm);
 	ple->endtime = my_creds.times.endtime;
+	if (ple->ccname != NULL)
+		free(ple->ccname);
 	ple->ccname = strdup(cc_name);
 	if (ple->ccname == NULL) {
 		printerr(0, "ERROR: no storage to duplicate credentials "
-			    "cache name\n");
+			    "cache name '%s'\n", cc_name);
 		code = ENOMEM;
 		goto out;
 	}
@@ -409,8 +410,11 @@ gssd_get_single_krb5_cred(krb5_context context,
 	}
 
 	code = 0;
-	printerr(1, "Using (machine) credentials cache: '%s'\n", cc_name);
+	printerr(2, "Successfully obtained machine credentials for "
+		 "principal '%s' stored in ccache '%s'\n", pname, cc_name);
   out:
+	if (pname)
+		k5_free_unparsed_name(context, pname);
 	if (ccache)
 		krb5_cc_close(context, ccache);
 	krb5_free_cred_contents(context, &my_creds);
