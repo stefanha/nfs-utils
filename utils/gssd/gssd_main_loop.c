@@ -116,6 +116,7 @@ gssd_run()
 
 	init_client_list();
 
+	printerr(1, "beginning poll\n");
 	while (1) {
 		while (dir_changed) {
 			dir_changed = 0;
