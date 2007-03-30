@@ -700,14 +700,16 @@ handle_krb5_upcall(struct clnt_info *clp)
 		if (uid == 0 && root_uses_machine_creds == 1) {
 			int success = 0;
 
+			gssd_refresh_krb5_machine_credential(clp->servername,
+							     NULL);
 			/*
 			 * Get a list of credential cache names and try each
 			 * of them until one works or we've tried them all
 			 */
 			if (gssd_get_krb5_machine_cred_list(&credlist)) {
-				printerr(0, "WARNING: Failed to obtain machine "
-					 "credentials for connection to "
-					 "server %s\n", clp->servername);
+				printerr(0, "ERROR: No credentials found "
+					 "for connection to server %s\n",
+					 clp->servername);
 					goto out_return_error;
 			}
 			for (ccname = credlist; ccname && *ccname; ccname++) {

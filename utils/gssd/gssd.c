@@ -165,10 +165,6 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sig_die);
 	signal(SIGHUP, sig_hup);
 
-	/* Process keytab file and get machine credentials */
-	if (root_uses_machine_creds)
-		gssd_refresh_krb5_machine_creds();
-
 	gssd_run();
 	printerr(0, "gssd_run returned!\n");
 	abort();

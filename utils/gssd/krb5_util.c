@@ -358,8 +358,8 @@ gssd_get_single_krb5_cred(krb5_context context,
 	printerr(0, "WARNING: Using (debug) short machine cred lifetime!\n");
 	krb5_get_init_creds_opt_set_tkt_life(&options, 5*60);
 #endif
-        if ((code = krb5_get_init_creds_keytab(context, &my_creds, ple->princ,
-	                                  kt, 0, NULL, &options))) {
+	if ((code = krb5_get_init_creds_keytab(context, &my_creds, ple->princ,
+					       kt, 0, NULL, &options))) {
 		char *pname;
 		if ((krb5_unparse_name(context, ple->princ, &pname))) {
 			pname = NULL;
@@ -1146,18 +1146,19 @@ gssd_get_krb5_machine_cred_list(char ***list)
 	retval = -1;
 	*list = (char **) NULL;
 
-	/* Refresh machine credentials */
-	if ((retval = gssd_refresh_krb5_machine_creds())) {
-		goto out;
-	}
-
 	if ((l = (char **) malloc(listsize * sizeof(char *))) == NULL) {
 		retval = ENOMEM;
 		goto out;
 	}
 
+	/* Need to serialize list if we ever become multi-threaded! */
+
 	for (ple = gssd_k5_kt_princ_list; ple; ple = ple->next) {
 		if (ple->ccname) {
+			/* Make sure cred is up-to-date before returning it */
+			retval = gssd_refresh_krb5_machine_credential(NULL, ple);
+			if (retval)
+				continue;
 			if (i + 1 > listsize) {
 				listsize += listinc;
 				l = (char **)

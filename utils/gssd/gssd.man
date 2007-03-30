@@ -45,14 +45,25 @@ to use the keys found in
 .I keytab
 to obtain "machine credentials".
 The default value is "/etc/krb5.keytab".
+.IP
 Previous versions of
 .B rpc.gssd
 used only "nfs/*" keys found within the keytab.
-Now, the first keytab entry for each distinct Kerberos realm
-within the keytab is used.  This means that an NFS client
-no longer needs an "nfs/hostname" principal and keytab entry,
-but can instead use a "host/hostname" (or any other) keytab
-entry that is available.
+To be more consistent with other implementations, we now look for
+specific keytab entries.  The search order for keytabs to be used
+for "machine credentials" is now:
+.br
+  root/<hostname>@<REALM>
+.br
+  nfs/<hostname>@<REALM>
+.br
+  host/<hostname>@<REALM>
+.br
+  root/<anyname>@<REALM>
+.br
+  nfs/<anyname>@<REALM>
+.br
+  host/<anyname>@<REALM>
 .TP
 .B -p path
 Tells

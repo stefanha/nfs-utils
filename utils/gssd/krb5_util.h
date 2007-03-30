@@ -5,7 +5,8 @@
 
 /*
  * List of principals from our keytab that we
- * may try to get credentials for
+ * will try to use to obtain credentials
+ * (known as a principal list entry (ple))
  */
 struct gssd_k5_kt_princ {
 	struct gssd_k5_kt_princ *next;
