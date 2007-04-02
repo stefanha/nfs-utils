@@ -397,6 +397,9 @@ void nfsd_fh(FILE *f)
 				dev_missing ++;
 			if (stat(path, &stb) != 0)
 				continue;
+			if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
+				continue;
+			}
 			switch(fsidtype){
 			case FSID_DEV:
 			case FSID_MAJOR_MINOR:
@@ -620,9 +623,12 @@ void nfsd_export(FILE *f)
 	}
 
 	if (found) {
-		if (dump_to_cache(f, dom, path, &found->m_export) < 0)
+		if (dump_to_cache(f, dom, path, &found->m_export) < 0) {
+			xlog(L_WARNING,
+			     "Cannot export %s, possibly unsupported filesystem"
+			     " or fsid= required", path);
 			dump_to_cache(f, dom, path, NULL);
-		else
+		} else
 			mountlist_add(dom, path);
 	} else {
 		dump_to_cache(f, dom, path, NULL);
@@ -697,9 +703,14 @@ int cache_export_ent(char *domain, struct exportent *exp, char *path)
 		return -1;
 
 	err = dump_to_cache(f, domain, exp->e_path, exp);
+	if (err) {
+		xlog(L_WARNING,
+		     "Cannot export %s, possibly unsupported filesystem or"
+		     " fsid= required", exp->e_path);
+	}
 	mountlist_add(domain, exp->e_path);
 
-	while ((exp->e_flags & NFSEXP_CROSSMOUNT) && path) {
+	while (err == 0 && (exp->e_flags & NFSEXP_CROSSMOUNT) && path) {
 		/* really an 'if', but we can break out of
 		 * a 'while' more easily */
 		/* Look along 'path' for other filesystems
@@ -717,16 +728,17 @@ int cache_export_ent(char *domain, struct exportent *exp, char *path)
 		dev = stb.st_dev;
 		while(path[l] == '/') {
 			char c;
-			int err;
+			/* errors for submount should fail whole filesystem */
+			int err2;
 
 			l++;
 			while (path[l] != '/' && path[l])
 				l++;
 			c = path[l];
 			path[l] = 0;
-			err = lstat(path, &stb);
+			err2 = lstat(path, &stb);
 			path[l] = c;
-			if (err < 0)
+			if (err2 < 0)
 				break;
 			if (stb.st_dev == dev)
 				continue;
