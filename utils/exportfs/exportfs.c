@@ -12,6 +12,7 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -32,7 +33,7 @@ static void	exports_update(int verbose);
 static void	dump(int verbose);
 static void	error(nfs_export *exp, int err);
 static void	usage(void);
-
+static void	validate_export(nfs_export *exp);
 
 int
 main(int argc, char **argv)
@@ -219,6 +220,7 @@ export_all(int verbose)
 			exp->m_mayexport = 1;
 			exp->m_changed = 1;
 			exp->m_warned = 0;
+			validate_export(exp);
 		}
 	}
 }
@@ -276,6 +278,7 @@ exportfs(char *arg, char *options, int verbose)
 	exp->m_mayexport = 1;
 	exp->m_changed = 1;
 	exp->m_warned = 0;
+	validate_export(exp);
 	if (hp) free (hp);
 }
 
@@ -339,6 +342,87 @@ unexportfs(char *arg, int verbose)
 
 	if (hp) free (hp);
 }
+
+static int can_test(void)
+{
+	int fd;
+	int n;
+	char *setup = "nfsd 0.0.0.0 2147483647 -test-client-\n";
+	fd = open("/proc/net/rpc/auth.unix.ip/channel", O_WRONLY);
+	if ( fd < 0) return 0;
+	n = write(fd, setup, strlen(setup));
+	close(fd);
+	if (n < 0)
+		return 0;
+	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
+	if ( fd < 0) return 0;
+	close(fd);
+	return 1;
+}
+
+static int test_export(char *path, int with_fsid)
+{
+	char buf[1024];
+	int fd, n;
+
+	sprintf(buf, "-test-client- %s 3 %d -1 -1 0\n",
+		path,
+		with_fsid ? NFSEXP_FSID : 0);
+	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
+	if (fd < 0)
+		return 0;
+	n = write(fd, buf, strlen(buf));
+	close(fd);
+	if (n < 0)
+		return 0;
+	return 1;
+}
+
+static void
+validate_export(nfs_export *exp)
+{
+	/* Check that the given export point is potentially exportable.
+	 * We just give warnings here, don't cause anything to fail.
+	 * If a path doesn't exist, or is not a dir or file, give an warning
+	 * otherwise trial-export to '-test-client-' and check for failure.
+	 */
+	struct stat stb;
+	char *path = exp->m_export.e_path;
+
+	if (stat(path, &stb) < 0) {
+		fprintf(stderr, "exportfs: Warning: %s does not exist\n",
+			path);
+		return;
+	}
+	if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
+		fprintf(stderr, "exportfs: Warning: %s is neither "
+			"a directory nor a file.\n"
+			"     remote access will fail\n", path);
+		return;
+	}
+	if (!can_test())
+		return;
+
+	if ((exp->m_export.e_flags & NFSEXP_FSID) || exp->m_export.e_uuid) {
+		if ( !test_export(path, 1)) {
+			fprintf(stderr, "exportfs: Warning: %s does not "
+				"support NFS export.\n",
+				path);
+			return;
+		}
+	} else if ( ! test_export(path, 0)) {
+		if (test_export(path, 1))
+			fprintf(stderr, "exportfs: Warning: %s requires fsid= "
+				"for NFS export\n", path);
+		else
+			fprintf(stderr, "exportfs: Warning: %s does not "
+				"support NFS export.\n",
+				path);
+		return;
+
+	}
+}
+
 
 static char
 dumpopt(char c, char *fmt, ...)
