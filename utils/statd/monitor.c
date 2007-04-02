@@ -166,9 +166,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 				mon_name, my_name);
 
 			/* But we'll let you pass anyway. */
-			result.res_stat = STAT_SUCC;
-			result.state = MY_STATE;
-			return (&result);
+			goto success;
 		}
 		clnt = NL_NEXT(clnt);
 	}
@@ -222,10 +220,20 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	ha_callout("add-client", mon_name, my_name, -1);
 	nlist_insert(&rtnl, clnt);
 	close(fd);
-
-	result.res_stat = STAT_SUCC;
-	result.state = MY_STATE;
 	dprintf(N_DEBUG, "MONITORING %s for %s", mon_name, my_name);
+ success:
+	result.res_stat = STAT_SUCC;
+	/* SUN's sm_inter.x says this should be "state number of local site".
+	 * X/Open says '"state" will be contain the state of the remote NSM.'
+	 * href=http://www.opengroup.org/onlinepubs/9629799/SM_MON.htm
+	 * Linux lockd currently (2.6.21 and prior) ignores whatever is
+	 * returned, and given the above contraction, it probably always will..
+	 * So we just return what we always returned.  If possible, we
+	 * have already told lockd about our state number via a sysctl.
+	 * If lockd wants the remote state, it will need to
+	 * use SM_STAT (and prayer).
+	 */
+	result.state = MY_STATE;
 	return (&result);
 
 failure:

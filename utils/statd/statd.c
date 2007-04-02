@@ -76,6 +76,7 @@ static struct option longopts[] =
 
 extern void sm_prog_1 (struct svc_req *, register SVCXPRT *);
 extern int statd_get_socket(void);
+static void load_state_number(void);
 
 #ifdef SIMULATIONS
 extern void simulator (int, char **);
@@ -483,7 +484,7 @@ int main (int argc, char **argv)
 	 * pass on any SM_NOTIFY that arrives
 	 */
 	load_state();
-
+	load_state_number();
 	pmap_unset (SM_PROG, SM_VERS);
 
 	/* this registers both UDP and TCP services */
@@ -525,4 +526,24 @@ int main (int argc, char **argv)
 
 	}
 	return 0;
+}
+
+static void
+load_state_number(void)
+{
+	int fd;
+
+	if ((fd = open(SM_STAT_PATH, O_RDONLY)) == -1)
+		return;
+
+	read(fd, &MY_STATE, sizeof(MY_STATE));
+	close(fd);
+	fd = open("/proc/sys/fs/nfs/nsm_local_state",O_WRONLY);
+	if (fd >= 0) {
+		char buf[20];
+		snprintf(buf, sizeof(buf), "%d", MY_STATE);
+		write(fd, buf, strlen(buf));
+		close(fd);
+	}
+
 }

@@ -88,6 +88,7 @@ static struct addrinfo	*host_lookup(int, const char *);
 void			nsm_log(int fac, const char *fmt, ...);
 static int		record_pid();
 static void		drop_privs(void);
+static void set_kernel_nsm_state(int state);
 
 static struct nsm_host *	hosts = NULL;
 
@@ -166,6 +167,10 @@ usage:		fprintf(stderr,
 	backup_hosts(_SM_DIR_PATH, _SM_BAK_PATH);
 	get_hosts(_SM_BAK_PATH);
 
+	/* Get and update the NSM state. This will call sync() */
+	nsm_state = nsm_get_state(opt_update_state);
+	set_kernel_nsm_state(nsm_state);
+
 	if (!opt_debug) {
 		if (!opt_quiet)
 			printf("Backgrounding to notify hosts...\n");
@@ -183,9 +188,6 @@ usage:		fprintf(stderr,
 		close(1);
 		close(2);
 	}
-
-	/* Get and update the NSM state. This will call sync() */
-	nsm_state = nsm_get_state(opt_update_state);
 
 	notify();
 
@@ -756,5 +758,18 @@ static void drop_privs(void)
 	    || setuid(st.st_uid) == -1) {
 		nsm_log(LOG_ERR, "Fail to drop privileges");
 		exit(1);
+	}
+}
+
+static void set_kernel_nsm_state(int state)
+{
+	int fd;
+
+	fd = open("/proc/sys/fs/nfs/nsm_local_state",O_WRONLY);
+	if (fd >= 0) {
+		char buf[20];
+		snprintf(buf, sizeof(buf), "%d", state);
+		write(fd, buf, strlen(buf));
+		close(fd);
 	}
 }
