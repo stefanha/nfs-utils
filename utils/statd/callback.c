@@ -9,8 +9,10 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include "misc.h"
 #include "statd.h"
 #include "notlist.h"
+#include <arpa/inet.h>
 
 /* Callback notify list. */
 /* notify_list *cbnl = NULL; ... never used */
