@@ -48,7 +48,7 @@ Finally, build as usual as above.
 3. DAEMON STARTUP ORDER
 
 This nfs-utils packages does not provide any scripts for starting
-various daemons as mast distributions replace them with their own, so
+various daemons as most distributions replace them with their own, so
 any scripts we package would not get much testing.
 Instead, we explain the dependencies involved in startup so that
 scripts can be written to work correctly.
@@ -78,10 +78,12 @@ scripts can be written to work correctly.
        These supply services to nfsd and so should be started before
        rpc.nfsd.  Where they come between mounting the nfsd filesystem
        and starting the nfsd server is not important.
-       idmapd is only need for NFSv4 support.
+       idmapd is only needed for NFSv4 support.
+       svcgssd is only needed if exportfs NFS filesystem with crypto-
+       security (Kerberos or SPKM3).
 
    C/ exportfs -av ; rpc.mountd
-       If it important that exportfs be run before mountd so that
+       It is important that exportfs be run before mountd so that
        mountd is working from current information (in
        /var/lib/nfs/etab).
        It is also important that both of these are run before
@@ -126,7 +128,9 @@ scripts can be written to work correctly.
       This is appropriate for '/', '/usr', and '/var'.
 
    B/ gssd ; idmapd
-      (I need some guidance here).
+      idmapd should be started before mounting any NFSv4 filesystems.
+      gssd should be started before mounting any NFS filesystems
+      securely (with Kerberos of SPKM3).
 
    C/ statd should be run before any NFSv2 or NFSv3 filesystem is
       mounted with remote locking (i.e. without -o nolock).
@@ -146,7 +150,11 @@ scripts can be written to work correctly.
       Each should try to start when they need it.
 
    C/ idmapd
-      (I need some guidance here).
+
+      Both the server and client need idmapd to be running.  If idmapd
+      is started (for the client) before starting nfsd the 'nfsd'
+      filesystem is mounted, then idmapd should be sent a HUP signal
+      afterwards to signal that the server channels should be opened.
 
    
       
