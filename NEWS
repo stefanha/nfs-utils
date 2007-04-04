@@ -32,3 +32,23 @@ Significant changes for nfs-utils 1.1.0 - March/April 2007
    not support NFS export.
  - Comprehensive notes on startup dependencies have been added
    to the README file.
+
+ - A new option, -n, was added to rpc.gssd which specifies that
+   accesses by root should not use 'machine credentials' when
+   accessing NFS file systems mounted with Kerberos.  Using this
+   option allows the root user to access the NFS space using any
+   Kerberos principal, rather than always using the machine
+   credentials.  However, its use also requires that root manually
+   authenticate before attempting a mount with Kerberos.
+
+   When rpc.gssd uses machine credentials, the selection algorithm has
+   been changed.  Instead of simply using the first "nfs/*" key in the
+   keytab, the keytab is now searched for keys in the following
+   defined order:
+
+     root/<fqdn>@REALM
+     nfs/<fqdn>@REALM
+     host/<fqdn>@REALM
+     root/<any-name>@REALM
+     nfs/<any-name>@REALM
+     host/<any-name>@REALM
