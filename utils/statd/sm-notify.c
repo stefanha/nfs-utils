@@ -215,7 +215,9 @@ notify(void)
 	nsm_address local_addr;
 	time_t	failtime = 0;
 	int	sock = -1;
+	int retry_cnt = 0;
 
+ retry:
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
 		perror("socket");
@@ -248,7 +250,15 @@ notify(void)
 			exit(1);
 		}
 	} else {
+		struct servent *se;
 		(void) bindresvport(sock, (struct sockaddr_in *) &local_addr);
+		/* try to avoid known ports */
+		se = getservbyport(local_addr.sin_port, "udp");
+		if (se && retry_cnt < 100) {
+			retry_cnt++;
+			close(sock);
+			goto retry;
+		}
 	}
 
 	if (opt_max_retry)

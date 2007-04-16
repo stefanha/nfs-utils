@@ -62,25 +62,37 @@ int
 statd_get_socket(void)
 {
 	struct sockaddr_in	sin;
+	struct servent *se;
+	int loopcnt = 100;
 
 	if (sockfd >= 0)
 		return sockfd;
 
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		note(N_CRIT, "Can't create socket: %m");
-		return -1;
-	}
+	while (loopcnt-- > 0) {
 
+		if (sockfd >= 0) close(sockfd);
+
+		if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+			note(N_CRIT, "Can't create socket: %m");
+			return -1;
+		}
+
+
+		memset(&sin, 0, sizeof(sin));
+		sin.sin_family = AF_INET;
+		sin.sin_addr.s_addr = INADDR_ANY;
+
+		if (bindresvport(sockfd, &sin) < 0) {
+			dprintf(N_WARNING,
+				"process_hosts: can't bind to reserved port\n");
+			break;
+		}
+		se = getservbyport(sin.sin_port, "udp");
+		if (se == NULL)
+			break;
+		/* rather not use that port, try again */
+	}
 	FD_SET(sockfd, &SVC_FDSET);
-
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = INADDR_ANY;
-
-	if (bindresvport(sockfd, &sin) < 0) {
-		dprintf(N_WARNING,
-			"process_hosts: can't bind to reserved port\n");
-	}
 	return sockfd;
 }
 

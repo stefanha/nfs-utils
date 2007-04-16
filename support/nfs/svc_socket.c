@@ -101,8 +101,6 @@ svc_socket (u_long number, int type, int protocol, int reuse)
     }
   else
     {
-      if (bindresvport (sock, &addr))
-	{
 	  addr.sin_port = 0;
 	  if (bind (sock, (struct sockaddr *) &addr, len) < 0)
 	    {
@@ -110,7 +108,6 @@ svc_socket (u_long number, int type, int protocol, int reuse)
 	      (void) __close (sock);
 	      sock = -1;
 	    }
-	}
     }
 
   if (sock >= 0)
