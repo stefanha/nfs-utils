@@ -251,9 +251,10 @@ notify(void)
 		}
 	} else {
 		struct servent *se;
-		(void) bindresvport(sock, (struct sockaddr_in *) &local_addr);
+		struct sockaddr_in *sin = (struct sockaddr_in *)&local_addr;
+		(void) bindresvport(sock, sin);
 		/* try to avoid known ports */
-		se = getservbyport(local_addr.sin_port, "udp");
+		se = getservbyport(sin->sin_port, "udp");
 		if (se && retry_cnt < 100) {
 			retry_cnt++;
 			close(sock);
