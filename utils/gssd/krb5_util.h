@@ -42,6 +42,8 @@ int limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid);
 #define k5_free_unparsed_name(ctx, name)	free(name)
 #define k5_free_default_realm(ctx, realm)	free(realm)
 #define k5_free_kt_entry(ctx, kte)		krb5_kt_free_entry((ctx),(kte))
+#undef USE_GSS_KRB5_CCACHE_NAME
+#define USE_GSS_KRB5_CCACHE_NAME 1
 #endif
 
 #endif /* KRB5_UTIL_H */
