@@ -197,7 +197,7 @@ if test "$enable_nfsv4" = yes; then
       [AC_MSG_ERROR([Unable to locate information required to use librpcsecgss.  If you have pkgconfig installed, you might try setting environment variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig])
       ]
      )
-    PKG_CHECK_MODULES(GSSAPI, libgssapi >= 0.9)
+    PKG_CHECK_MODULES(GSSAPI, libgssapi >= 0.11)
     fi
 
 fi
