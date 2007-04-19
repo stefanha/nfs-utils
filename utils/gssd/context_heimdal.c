@@ -72,14 +72,14 @@ int write_heimdal_enc_key(char **p, char *end, gss_ctx_id_t ctx)
 
 	if ((ret = krb5_init_context(&context))) {
 		printerr(0, "ERROR: initializing krb5_context: %s\n",
-			error_message(ret));
+			gssd_k5_err_msg(NULL, ret));
 		goto out_err;
 	}
 
 	if ((ret = krb5_auth_con_getlocalsubkey(context,
 						ctx->auth_context, &key))){
 		printerr(0, "ERROR: getting auth_context key: %s\n",
-			error_message(ret));
+			gssd_k5_err_msg(context, ret));
 		goto out_err_free_context;
 	}
 
@@ -97,7 +97,7 @@ int write_heimdal_enc_key(char **p, char *end, gss_ctx_id_t ctx)
 				calloc(1, enc_key.keyvalue.length)) == NULL) {
 
 		printerr(0, "ERROR: allocating memory for enc key: %s\n",
-			error_message(ENOMEM));
+			gssd_k5_err_msg(context, ENOMEM));
 		goto out_err_free_key;
 	}
 	skd = (char *) key->keyvalue.data;
@@ -130,14 +130,14 @@ int write_heimdal_seq_key(char **p, char *end, gss_ctx_id_t ctx)
 
 	if ((ret = krb5_init_context(&context))) {
 		printerr(0, "ERROR: initializing krb5_context: %s\n",
-			error_message(ret));
+			gssd_k5_err_msg(NULL, ret));
 		goto out_err;
 	}
 
 	if ((ret = krb5_auth_con_getlocalsubkey(context,
 						ctx->auth_context, &key))){
 		printerr(0, "ERROR: getting auth_context key: %s\n",
-			error_message(ret));
+			gssd_k5_err_msg(context, ret));
 		goto out_err_free_context;
 	}
 
