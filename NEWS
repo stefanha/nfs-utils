@@ -32,6 +32,12 @@ Significant changes for nfs-utils 1.1.0 - March/April 2007
    not support NFS export.
  - Comprehensive notes on startup dependencies have been added
    to the README file.
+ - Mount and statd now listen on a non-privileged port by default.
+   For maximum safety an upgrade to portmap is recommended.
+        git://neil.brown.name/portmap
+
+ - This release should work with MIT Kerberos and Heimdal 0.8.1 and later.
+
 
  - A new option, -n, was added to rpc.gssd which specifies that
    accesses by root should not use 'machine credentials' when
