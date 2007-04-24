@@ -97,6 +97,10 @@ AC_DEFUN([AC_KERBEROS_V5],[
   AC_CHECK_LIB($gssapi_lib, krb5_get_error_message,
     AC_DEFINE(HAVE_KRB5_GET_ERROR_MESSAGE, 1, [Define this if the function krb5_get_error_message is available]), ,$KRBLIBS)
 
+  dnl Check for function to specify addressless tickets
+  AC_CHECK_LIB($gssapi_lib, krb5_get_init_creds_opt_set_addressless,
+    AC_DEFINE(HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS, 1, [Define this if the function krb5_get_init_creds_opt_set_addressless is available]), ,$KRBLIBS)
+
   dnl If they specified a directory and it didn't work, give them a warning
   if test "x$krb5_with" != "x" -a "$krb5_with" != "$KRBDIR"; then
     AC_MSG_WARN(Using $KRBDIR instead of requested value of $krb5_with for Kerberos!)

@@ -323,7 +323,12 @@ gssd_get_single_krb5_cred(krb5_context context,
 			  krb5_keytab kt,
 			  struct gssd_k5_kt_princ *ple)
 {
+#if HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS
+	krb5_get_init_creds_opt *init_opts = NULL;
+#else
 	krb5_get_init_creds_opt options;
+#endif
+	krb5_get_init_creds_opt *opts;
 	krb5_creds my_creds;
 	krb5_ccache ccache = NULL;
 	char kt_name[BUFSIZ];
@@ -351,16 +356,37 @@ gssd_get_single_krb5_cred(krb5_context context,
 	if ((krb5_unparse_name(context, ple->princ, &pname)))
 		pname = NULL;
 
+#if HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS
+	code = krb5_get_init_creds_opt_alloc(context, &init_opts);
+	if (code) {
+		printerr(0, "ERROR: %s allocating gic options\n",
+			 gssd_k5_err_msg(context, code));
+		goto out;
+	}
+	if (krb5_get_init_creds_opt_set_addressless(context, init_opts, 1))
+		printerr(0, "WARNING: Unable to set option for addressless "
+			 "tickets.  May have problems behind a NAT.\n");
+#ifdef TEST_SHORT_LIFETIME
+	/* set a short lifetime (for debugging only!) */
+	printerr(0, "WARNING: Using (debug) short machine cred lifetime!\n");
+	krb5_get_init_creds_opt_set_tkt_life(init_opts, 5*60);
+#endif
+	opts = init_opts;
+
+#else	/* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS */
+
 	krb5_get_init_creds_opt_init(&options);
 	krb5_get_init_creds_opt_set_address_list(&options, NULL);
-
 #ifdef TEST_SHORT_LIFETIME
 	/* set a short lifetime (for debugging only!) */
 	printerr(0, "WARNING: Using (debug) short machine cred lifetime!\n");
 	krb5_get_init_creds_opt_set_tkt_life(&options, 5*60);
 #endif
+	opts = &options;
+#endif
+
 	if ((code = krb5_get_init_creds_keytab(context, &my_creds, ple->princ,
-					       kt, 0, NULL, &options))) {
+					       kt, 0, NULL, opts))) {
 		printerr(0, "WARNING: %s while getting initial ticket for "
 			 "principal '%s' using keytab '%s'\n",
 			 gssd_k5_err_msg(context, code),
@@ -411,6 +437,10 @@ gssd_get_single_krb5_cred(krb5_context context,
 	printerr(2, "Successfully obtained machine credentials for "
 		 "principal '%s' stored in ccache '%s'\n", pname, cc_name);
   out:
+#if HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS
+	if (init_opts)
+		krb5_get_init_creds_opt_free(context, init_opts);
+#endif
 	if (pname)
 		k5_free_unparsed_name(context, pname);
 	if (ccache)
