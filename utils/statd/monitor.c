@@ -380,8 +380,8 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
 
+			xunlink(SM_DIR, clnt->dns_name, 1);
 			nlist_free(&rtnl, clnt);
-			xunlink(SM_DIR, mon_name, 1);
 
 			return (&result);
 		} else
@@ -445,8 +445,8 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 			temp = NL_NEXT(clnt);
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
+			xunlink(SM_DIR, clnt->dns_name, 1);
 			nlist_free(&rtnl, clnt);
-			xunlink(SM_DIR, mon_name, 1);
 			++count;
 			clnt = temp;
 		} else

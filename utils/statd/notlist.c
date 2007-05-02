@@ -211,6 +211,7 @@ nlist_free(notify_list **head, notify_list *entry)
 		free(NL_MY_NAME(entry));
 	if (NL_MON_NAME(entry))
 		free(NL_MON_NAME(entry));
+	free(entry->dns_name);
 	free(entry);
 }
 
