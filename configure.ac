@@ -130,9 +130,8 @@ AC_ARG_WITH(rpcgen,
 	AM_CONDITIONAL(CONFIG_RPCGEN, [test "$RPCGEN_PATH" == ""])
 AC_ARG_ENABLE(uuid,
 	[AC_HELP_STRING([--without-uuid], [Exclude uuid support and so avoid possibly buggy libblkid])],
-	if test "$enableval" = "yes" ; then use_blkid=1; else use_blkid=0; fi,
-	use_blkid=1)
-	AC_DEFINE_UNQUOTED(USE_BLKID, $use_blkid, [Define if you want to use blkid to find uuid of filesystems])
+	if test "$enableval" = "yes" ; then choose_blkid=yes; else choose_blkid=no; fi,
+	choose_blkid=default)
 AC_ARG_ENABLE(mount,
 	[AC_HELP_STRING([--enable-mount],
 			[Create mount.nfs and don't use the util-linux mount(8) functionality. @<:@default=no@:>@])],
@@ -204,9 +203,22 @@ fi
 if test "$knfsd_cv_glibc2" = no; then
     AC_CHECK_LIB(bsd, daemon, [LIBBSD="-lbsd"])
 fi
-if test "$use_blkid" = 1; then
-   AC_CHECK_LIB(blkid, blkid_get_cache, [LIBBLKID="-lblkid"], AC_MSG_ERROR([libblkid needed]))
-   AC_CHECK_HEADER(blkid/blkid.h, , AC_MSG_ERROR([Cannot file libblkid header file blkid/blkid.h]))
+
+if test "$choose_blkid" != no; then 
+   AC_CHECK_LIB(blkid, blkid_get_library_version, [LIBBLKID="-lblkid"], AC_MSG_ERROR([libblkid needed]))
+   AC_CHECK_HEADER(blkid/blkid.h, , AC_MSG_ERROR([Cannot find libblkid header file blkid/blkid.h]))
+   AC_BLKID_VERS
+   if test $choose_blkid = yes; then
+      use_blkid=1
+      test $libblkid_is_recent = no && AC_MSG_WARN([libblkid is old and may cause mountd to leak memory])
+   else
+      if test $libblkid_is_recent = yes
+      then use_blkid=1
+      else use_blkid=0
+	   AC_MSG_WARN([uuid support disabled as libblkid is too old])
+      fi
+    fi
+    AC_DEFINE_UNQUOTED(USE_BLKID, $use_blkid, [Define if you want to use blkid to find uuid of filesystems])
 fi
 AC_SUBST(LIBSOCKET)
 AC_SUBST(LIBCRYPT)
