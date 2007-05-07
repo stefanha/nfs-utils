@@ -125,6 +125,13 @@ If this option is not specified the default of
 .BR /var/lib/nfs
 is used.
 .TP
+.BI "\-r," "" " \-\-reverse\-lookup"
+mountd tracks IP addresses in the rmtab, and when a DUMP request is made (by
+someone running showmount -a, for instance), it returns IP addresses instead
+of hostnames by default. This option causes mountd to do a reverse
+lookup on each IP address and return that hostname instead. Enabling this can
+have a substantial negative effect on performance in some situations.
+.TP
 .BR "\-t N" " or " "\-\-num\-threads=N"
 This option specifies the number of worker threads that rpc.mountd
 spawns.  The default is 1 thread, which is probably enough.  More
