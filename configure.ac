@@ -104,17 +104,6 @@ AC_ARG_ENABLE(secure-statd,
 		AC_DEFINE(RESTRICTED_STATD, 1, [Define this if you want to enable various security checks in statd. These checks basically keep anyone but lockd from using this service.])
 	fi
 	AC_SUBST(secure_statd)
-AC_ARG_ENABLE(rquotad,
-	[AC_HELP_STRING([--enable-rquotad],
-                        [enable rquotad @<:@default=yes@:>@])],
-	enable_rquotad=$enableval,
-	enable_rquotad=yes)
-	if test "$enable_rquotad" = yes; then
-		RQUOTAD=rquotad
-	else
-		RQUOTAD=
-	fi
-	AM_CONDITIONAL(CONFIG_RQUOTAD, [test "$enable_rquotad" = "yes"])
 AC_ARG_WITH(rpcgen,
 	[AC_HELP_STRING([--with-rpcgen=internal], [use internal rpcgen instead of system one])],
 	rpcgen_path=$withval,
@@ -377,7 +366,6 @@ AC_CONFIG_FILES([
 	utils/mountd/Makefile
 	utils/nfsd/Makefile
 	utils/nfsstat/Makefile
-	utils/rquotad/Makefile
 	utils/showmount/Makefile
 	utils/statd/Makefile])
 AC_OUTPUT

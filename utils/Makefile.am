@@ -2,10 +2,6 @@
 
 OPTDIRS =
 
-if CONFIG_RQUOTAD
-OPTDIRS += rquotad
-endif
-
 if CONFIG_NFSV4
 OPTDIRS += idmapd
 endif
