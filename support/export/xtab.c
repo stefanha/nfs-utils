@@ -80,6 +80,12 @@ xtab_export_read(void)
 	return xtab_read(_PATH_ETAB, 1);
 }
 
+/*
+ * mountd now keeps an open fd for the etab at all times to make sure that the
+ * inode number changes when the xtab_export_write is done. If you change the
+ * routine below such that the files are edited in place, then you'll need to
+ * fix the auth_reload logic as well...
+ */
 static int
 xtab_write(char *xtab, char *xtabtmp, int is_export)
 {

@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <unistd.h>
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
@@ -46,24 +47,34 @@ auth_init(char *exports)
 	xtab_mount_write();
 }
 
-time_t
+unsigned int
 auth_reload()
 {
 	struct stat		stb;
-	static time_t		last_modified = 0;
+	static ino_t		last_inode;
+	static int		last_fd;
+	static unsigned int	counter;
+	int			fd;
 
-	if (stat(_PATH_ETAB, &stb) < 0)
+	if ((fd = open(_PATH_ETAB, O_RDONLY)) < 0) {
+		xlog(L_FATAL, "couldn't open %s", _PATH_ETAB);
+	} else if (fstat(fd, &stb) < 0) {
 		xlog(L_FATAL, "couldn't stat %s", _PATH_ETAB);
-	if (stb.st_mtime == last_modified)
-		return last_modified;
-	last_modified = stb.st_mtime;
+	} else if (stb.st_ino == last_inode) {
+		close(fd);
+		return counter;
+	} else {
+		close(last_fd);
+		last_fd = fd;
+		last_inode = stb.st_ino;
+	}
 
 	export_freeall();
 	memset(&my_client, 0, sizeof(my_client));
-	// export_read(export_file);
 	xtab_export_read();
+	++counter;
 
-	return last_modified;
+	return counter;
 }
 
 static nfs_export *

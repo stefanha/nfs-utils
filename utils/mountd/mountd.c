@@ -465,18 +465,18 @@ static exports
 get_exportlist(void)
 {
 	static exports		elist = NULL;
-	static time_t		etime = 0;
-	time_t			atime;
 	struct exportnode	*e, *ne;
 	struct groupnode	*g, *ng, *c, **cp;
 	nfs_export		*exp;
 	int			i;
+	static unsigned int	ecounter;
+	unsigned int		acounter;
 
-	atime = auth_reload();
-	if (elist && atime == etime)
+	acounter = auth_reload();
+	if (elist && acounter == ecounter)
 		return elist;
 
-	etime = atime;
+	ecounter = acounter;
 
 	for (e = elist; e != NULL; e = ne) {
 		ne = e->ex_next;
