@@ -118,7 +118,8 @@ main(int argc, char **argv)
 		fprintf(stderr, "no version specified\n");
 		exit(1);
 	}			
-	if (NFSCTL_VERISSET(versbits, 4) && !NFSCTL_TCPISSET(versbits)) {
+
+	if (NFSCTL_VERISSET(versbits, 4) && !NFSCTL_TCPISSET(protobits)) {
 		fprintf(stderr, "version 4 requires the TCP protocol\n");
 		exit(1);
 	}
