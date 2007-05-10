@@ -185,6 +185,7 @@ int add_mtab(char *fsname, char *mount_point, char *fstype, int flags, char *opt
 	lock_mtab();
 
         if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
+		unlock_mtab();
 		fprintf(stderr, "Can't open " MOUNTED);
 		return 1;
 	}
