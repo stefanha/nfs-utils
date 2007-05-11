@@ -1,6 +1,8 @@
 Significant changes for nfs-utils 1.1.0 - March/April 2007
 
  - rpc.lockd is gone.  One 3 old kernel releases need it.
+ - rpc.rquotad is gone.  Use the one from the 'quota' package.
+   Everone else does.
  - /sbin/{u,}mount.nfs{,4} are now installed so 'mount' will
    use these to mount nfs filesystems instead of internal code.
   + mount.nfs will check for 'statd' to be running when mounting
@@ -33,11 +35,11 @@ Significant changes for nfs-utils 1.1.0 - March/April 2007
  - Comprehensive notes on startup dependencies have been added
    to the README file.
  - Mount and statd now listen on a non-privileged port by default.
-   For maximum safety an upgrade to portmap is recommended.
+   For maximum safety an upgrade to portmap-6.0 is recommended.
+        http://neil.brown.name/portmap/
         git://neil.brown.name/portmap
 
  - This release should work with MIT Kerberos and Heimdal 0.8.1 and later.
-
 
  - A new option, -n, was added to rpc.gssd which specifies that
    accesses by root should not use 'machine credentials' when
@@ -58,3 +60,4 @@ Significant changes for nfs-utils 1.1.0 - March/April 2007
      root/<any-name>@REALM
      nfs/<any-name>@REALM
      host/<any-name>@REALM
+
