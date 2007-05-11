@@ -262,6 +262,7 @@ client_compose(struct in_addr addr)
 			name = add_name(name, clp->m_hostname);
 		}
 	}
+	free(he);
 	return name;
 }
 
