@@ -352,6 +352,10 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 	/*
 	 * Give a warning if the rpc.idmapd daemon is not running
 	 */
+#if 0
+	/* We shouldn't have these checks as nothing in this package
+	 * creates the files that are checked
+	 */
 	idmapd_check();
 
 	if (num_flavour == 0)
@@ -362,6 +366,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 		 */
 		gssd_check();
 	}
+#endif
 	data.auth_flavourlen = num_flavour;
 	data.auth_flavours = pseudoflavour;
 
