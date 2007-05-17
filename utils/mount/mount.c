@@ -285,21 +285,48 @@ static void parse_opts (const char *options, int *flags, char **extra_opts)
 	}
 }
 
-static void mount_error(char *node)
+static void mount_error(char *mntpnt, char *node)
 {
 	switch(errno) {
 		case ENOTDIR:
-			fprintf(stderr, "%s: mount point %s is not a directory\n", progname, node);
+			fprintf(stderr, "%s: mount point %s is not a directory\n", 
+				progname, mntpnt);
 			break;
 		case EBUSY:
-			fprintf(stderr, "%s: %s is already mounted or busy\n", progname, node);
+			fprintf(stderr, "%s: %s is already mounted or busy\n", 
+				progname, mntpnt);
 			break;
 		case ENOENT:
-			fprintf(stderr, "%s: mount point %s does not exist\n", progname, node);
+			if (node) {
+				fprintf(stderr, "%s: %s failed, reason given by server: %s\n",
+					progname, node, strerror(errno));
+			} else
+				fprintf(stderr, "%s: mount point %s does not exist\n", 
+					progname, mntpnt);
 			break;
 		default:
 			fprintf(stderr, "%s: %s\n", progname, strerror(errno));
 	}
+}
+static int chk_mountpoint(mount_point)
+{
+	struct stat sb;
+
+	if (stat(mount_point, &sb) < 0){
+		mount_error(mount_point, NULL);
+		return 1;
+	}
+	if (S_ISDIR(sb.st_mode) == 0){
+		errno = ENOTDIR;
+		mount_error(mount_point, NULL);
+		return 1;
+	}
+	if (access(mount_point, X_OK) < 0) {
+		mount_error(mount_point, NULL);
+		return 1;
+	}
+
+	return 0;
 }
 
 extern u_short getport(
@@ -508,6 +535,9 @@ int main(int argc, char *argv[])
 	    }
 	}
 
+	if (chk_mountpoint(mount_point))
+		exit(EX_FAIL);
+
 	if (nfs_mount_vers == 4)
 		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, &mount_opts, 0);
 	else {
@@ -538,7 +568,7 @@ int main(int argc, char *argv[])
 					   mount_opts);
 
 		if (mnt_err) {
-			mount_error(mount_point);
+			mount_error(mount_point, spec);
 			exit(EX_FAIL);
 		}
 	}
