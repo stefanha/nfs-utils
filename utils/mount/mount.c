@@ -308,7 +308,7 @@ static void mount_error(char *mntpnt, char *node)
 			fprintf(stderr, "%s: %s\n", progname, strerror(errno));
 	}
 }
-static int chk_mountpoint(mount_point)
+static int chk_mountpoint(char *mount_point)
 {
 	struct stat sb;
 
