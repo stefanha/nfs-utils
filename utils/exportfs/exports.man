@@ -84,9 +84,24 @@ may work by accident when reverse DNS lookups fail.
 '''option. Multiple specifications of a public root will be ignored.
 .PP
 .SS RPCSEC_GSS security
-To restrict access to an export using rpcsec_gss security, use the special
-string "gss/krb5" as the client.  It is not possible to simultaneously require
-rpcsec_gss and to make requirements on the IP address of the client.
+You may use the special strings "gss/krb5", "gss/krb5i", or "gss/krb5p"
+to restrict access to clients using rpcsec_gss security.  However, this
+syntax is deprecated; on linux kernels since 2.6.23, you should instead
+use the "sec=" export option:
+.TP
+.IR sec=
+The sec= option, followed by a colon-delimited list of security flavors,
+restricts the export to clients using those flavors.  Available security
+flavors include sys (the default--no cryptographic security), krb5
+(authentication only), krb5i (integrity protection), and krb5p (privacy
+protection).  For the purposes of security flavor negotiation, order
+counts: preferred flavors should be listed first.  The order of the sec=
+option with respect to the other options does not matter, unless you
+want some options to be enforced differently depending on flavor.
+In that case you may include multiple sec= options, and following options
+will be enforced only for access using flavors listed in the immediately
+preceding sec= option.  The only options that are permitted to vary in
+this way are ro, rw, no_root_squash, root_squash, and all_squash.
 .PP
 .SS General Options
 .IR exportfs
