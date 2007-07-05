@@ -30,9 +30,28 @@
 #include "xmalloc.h"
 #include "xlog.h"
 #include "xio.h"
+#include "pseudoflavors.h"
 
 #define EXPORT_DEFAULT_FLAGS	\
   (NFSEXP_READONLY|NFSEXP_ROOTSQUASH|NFSEXP_GATHERED_WRITES|NFSEXP_NOSUBTREECHECK)
+
+struct flav_info flav_map[] = {
+	{ "krb5",	RPC_AUTH_GSS_KRB5	},
+	{ "krb5i",	RPC_AUTH_GSS_KRB5I	},
+	{ "krb5p",	RPC_AUTH_GSS_KRB5P	},
+	{ "lipkey",	RPC_AUTH_GSS_LKEY	},
+	{ "lipkey-i",	RPC_AUTH_GSS_LKEYI	},
+	{ "lipkey-p",	RPC_AUTH_GSS_LKEYP	},
+	{ "spkm3",	RPC_AUTH_GSS_SPKM	},
+	{ "spkm3i",	RPC_AUTH_GSS_SPKMI	},
+	{ "spkm3p",	RPC_AUTH_GSS_SPKMP	},
+	{ "unix",	AUTH_UNIX		},
+	{ "sys",	AUTH_SYS		},
+	{ "null",	AUTH_NULL		},
+	{ "none",	AUTH_NONE		},
+};
+
+const int flav_map_size = sizeof(flav_map)/sizeof(flav_map[0]);
 
 int export_errno;
 

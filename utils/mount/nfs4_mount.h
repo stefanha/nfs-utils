@@ -68,18 +68,6 @@ struct nfs4_mount_data {
 #define NFS4_MOUNT_UNSHARED	0x8000	/* 5 */
 #define NFS4_MOUNT_FLAGMASK	0xFFFF
 
-/* pseudoflavors: */
-
-#define RPC_AUTH_GSS_KRB5       390003
-#define RPC_AUTH_GSS_KRB5I      390004
-#define RPC_AUTH_GSS_KRB5P      390005
-#define RPC_AUTH_GSS_LKEY       390006
-#define RPC_AUTH_GSS_LKEYI      390007
-#define RPC_AUTH_GSS_LKEYP      390008
-#define RPC_AUTH_GSS_SPKM       390009
-#define RPC_AUTH_GSS_SPKMI      390010
-#define RPC_AUTH_GSS_SPKMP      390011
-
 int nfs4mount(const char *, const char *, int *, char **,
 	char **, int);
 

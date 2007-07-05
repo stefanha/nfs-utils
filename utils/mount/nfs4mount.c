@@ -36,6 +36,7 @@
 #define nfsstat nfs_stat
 #endif
 
+#include "pseudoflavors.h"
 #include "nls.h"
 #include "conn.h"
 #include "xcommon.h"
@@ -71,26 +72,6 @@ char *GSSDLCK = DEFAULT_DIR "/rpcgssd";
 #define NFS_PORT 2049
 #endif
 
-struct {
-	char    *flavour;
-	int     fnum;
-} flav_map[] = {
-	{ "krb5",	RPC_AUTH_GSS_KRB5	},
-	{ "krb5i",	RPC_AUTH_GSS_KRB5I	},
-	{ "krb5p",	RPC_AUTH_GSS_KRB5P	},
-	{ "lipkey",	RPC_AUTH_GSS_LKEY	},
-	{ "lipkey-i",	RPC_AUTH_GSS_LKEYI	},
-	{ "lipkey-p",	RPC_AUTH_GSS_LKEYP	},
-	{ "spkm3",	RPC_AUTH_GSS_SPKM	},
-	{ "spkm3i",	RPC_AUTH_GSS_SPKMI	},
-	{ "spkm3p",	RPC_AUTH_GSS_SPKMP	},
-	{ "unix",	AUTH_UNIX		},
-	{ "sys",	AUTH_SYS		},
-	{ "null",	AUTH_NULL		},
-	{ "none",	AUTH_NONE		},
-};
-
-#define FMAPSIZE		(sizeof(flav_map)/sizeof(flav_map[0]))
 #define MAX_USER_FLAVOUR	16
 
 static int parse_sec(char *sec, int *pseudoflavour)
@@ -104,13 +85,13 @@ static int parse_sec(char *sec, int *pseudoflavour)
 				  "exceeded\n"));
 			return 0;
 		}
-		for (i = 0; i < FMAPSIZE; i++) {
+		for (i = 0; i < flav_map_size; i++) {
 			if (strcmp(sec, flav_map[i].flavour) == 0) {
 				pseudoflavour[num_flavour++] = flav_map[i].fnum;
 				break;
 			}
 		}
-		if (i == FMAPSIZE) {
+		if (i == flav_map_size) {
 			fprintf(stderr,
 				_("mount: unknown security type %s\n"), sec);
 			return 0;
@@ -405,7 +386,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 
 		printf("sec = ");
 		for (pf_cnt = 0; pf_cnt < num_flavour; pf_cnt++) {
-			for (i = 0; i < FMAPSIZE; i++) {
+			for (i = 0; i < flav_map_size; i++) {
 				if (flav_map[i].fnum == pseudoflavour[pf_cnt]) {
 					printf("%s", flav_map[i].flavour);
 					break;
