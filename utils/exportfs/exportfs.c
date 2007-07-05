@@ -515,6 +515,7 @@ dump(int verbose)
 				break;
 #endif
 			}
+			secinfo_show(stdout, ep);
 			printf("%c\n", (c != '(')? ')' : ' ');
 		}
 	}

@@ -119,6 +119,7 @@ getexportent(int fromkernel, int fromexports)
 		def_ee.e_mountpoint = NULL;
 		def_ee.e_fslocmethod = FSLOC_NONE;
 		def_ee.e_fslocdata = NULL;
+		def_ee.e_secinfo[0].flav = NULL;
 		def_ee.e_nsquids = 0;
 		def_ee.e_nsqgids = 0;
 
@@ -196,6 +197,27 @@ getexportent(int fromkernel, int fromexports)
 	}
 
 	return &ee;
+}
+
+void secinfo_show(FILE *fp, struct exportent *ep)
+{
+	struct sec_entry *p1, *p2;
+	int flags;
+
+	for (p1=ep->e_secinfo; p1->flav; p1=p2) {
+
+		fprintf(fp, ",sec=%s", p1->flav->flavour);
+		for (p2=p1+1; (p2->flav != NULL) && (p1->flags == p2->flags);
+								p2++) {
+			fprintf(fp, ":%s", p2->flav->flavour);
+		}
+		flags = p1->flags;
+		fprintf(fp, ",%s", (flags & NFSEXP_READONLY) ? "ro" : "rw");
+		fprintf(fp, ",%sroot_squash", (flags & NFSEXP_ROOTSQUASH)?
+				"" : "no_");
+		fprintf(fp, ",%sall_squash", (flags & NFSEXP_ALLSQUASH)?
+				"" : "no_");
+	}
 }
 
 void
@@ -278,7 +300,9 @@ putexportent(struct exportent *ep)
 			else
 				fprintf(fp, "%d,", id[i]);
 	}
-	fprintf(fp, "anonuid=%d,anongid=%d)\n", ep->e_anonuid, ep->e_anongid);
+	fprintf(fp, "anonuid=%d,anongid=%d", ep->e_anonuid, ep->e_anongid);
+	secinfo_show(fp, ep);
+	fprintf(fp, ")\n");
 }
 
 void
@@ -326,6 +350,7 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_mountpoint = NULL;
 	ee.e_fslocmethod = FSLOC_NONE;
 	ee.e_fslocdata = NULL;
+	ee.e_secinfo[0].flav = NULL;
 	ee.e_nsquids = 0;
 	ee.e_nsqgids = 0;
 	ee.e_uuid = NULL;
@@ -369,18 +394,110 @@ static int valid_uuid(char *uuid)
 }
 
 /*
+ * Append the given flavor to the exportent's e_secinfo array, or
+ * do nothing if it's already there.  Returns the index of flavor
+ * in the resulting array in any case.
+ */
+static int secinfo_addflavor(struct flav_info *flav, struct exportent *ep)
+{
+	struct sec_entry *p;
+
+	for (p=ep->e_secinfo; p->flav; p++) {
+		if (p->flav == flav)
+			return p - ep->e_secinfo;
+	}
+	if (p - ep->e_secinfo >= SECFLAVOR_COUNT) {
+		xlog(L_ERROR, "more than %d security flavors on an export\n",
+			SECFLAVOR_COUNT);
+		return -1;
+	}
+	p->flav = flav;
+	p->flags = ep->e_flags;
+	(p+1)->flav = NULL;
+	return p - ep->e_secinfo;
+}
+
+static struct flav_info *find_flavor(char *name)
+{
+	struct flav_info *flav;
+	for (flav = flav_map; flav < flav_map + flav_map_size; flav++)
+		if (strcmp(flav->flavour, name) == 0)
+			return flav;
+	return NULL;
+}
+
+/* @str is a colon seperated list of security flavors.  Their order
+ * is recorded in @ep, and a bitmap corresponding to the list is returned.
+ * A zero return indicates an error.
+ */
+static unsigned int parse_flavors(char *str, struct exportent *ep)
+{
+	unsigned int out=0;
+	char *flavor;
+	int bit;
+
+	while ( (flavor=strsep(&str, ":")) ) {
+		struct flav_info *flav = find_flavor(flavor);
+		if (flav == NULL) {
+			xlog(L_ERROR, "unknown flavor %s\n", flavor);
+			return 0;
+		}
+		bit = secinfo_addflavor(flav, ep);
+		if (bit < 0)
+			return 0;
+		out |= 1<<bit;
+	}
+	return out;
+}
+
+/* Sets the bits in @mask for the appropriate security flavor flags. */
+static void setflags(int mask, unsigned int active, struct exportent *ep)
+{
+	int bit=0;
+
+	ep->e_flags |= mask;
+
+	while (active) {
+		if (active & 1)
+			ep->e_secinfo[bit].flags |= mask;
+		bit++;
+		active >>= 1;
+	}
+}
+
+/* Clears the bits in @mask for the appropriate security flavor flags. */
+static void clearflags(int mask, unsigned int active, struct exportent *ep)
+{
+	int bit=0;
+
+	ep->e_flags &= ~mask;
+
+	while (active) {
+		if (active & 1)
+			ep->e_secinfo[bit].flags &= ~mask;
+		bit++;
+		active >>= 1;
+	}
+}
+
+/* options that can vary per flavor: */
+#define NFSEXP_SECINFO_FLAGS (NFSEXP_READONLY | NFSEXP_ROOTSQUASH \
+					| NFSEXP_ALLSQUASH)
+
+/*
  * Parse option string pointed to by cp and set mount options accordingly.
  */
 static int
 parseopts(char *cp, struct exportent *ep, int warn, int *had_subtree_opt_ptr)
 {
+	struct sec_entry *p;
 	int	had_subtree_opt = 0;
 	char 	*flname = efname?efname:"command line";
 	int	flline = efp?efp->x_line:0;
+	unsigned int active = 0;
 
 	squids = ep->e_squids; nsquids = ep->e_nsquids;
 	sqgids = ep->e_sqgids; nsqgids = ep->e_nsqgids;
-
 	if (!cp)
 		goto out;
 
@@ -399,9 +516,9 @@ parseopts(char *cp, struct exportent *ep, int warn, int *had_subtree_opt_ptr)
 
 		/* process keyword */
 		if (strcmp(opt, "ro") == 0)
-			ep->e_flags |= NFSEXP_READONLY;
+			setflags(NFSEXP_READONLY, active, ep);
 		else if (strcmp(opt, "rw") == 0)
-			ep->e_flags &= ~NFSEXP_READONLY;
+			clearflags(NFSEXP_READONLY, active, ep);
 		else if (!strcmp(opt, "secure"))
 			ep->e_flags &= ~NFSEXP_INSECURE_PORT;
 		else if (!strcmp(opt, "insecure"))
@@ -423,13 +540,13 @@ parseopts(char *cp, struct exportent *ep, int warn, int *had_subtree_opt_ptr)
 		else if (!strcmp(opt, "no_wdelay"))
 			ep->e_flags &= ~NFSEXP_GATHERED_WRITES;
 		else if (strcmp(opt, "root_squash") == 0)
-			ep->e_flags |= NFSEXP_ROOTSQUASH;
+			setflags(NFSEXP_ROOTSQUASH, active, ep);
 		else if (!strcmp(opt, "no_root_squash"))
-			ep->e_flags &= ~NFSEXP_ROOTSQUASH;
+			clearflags(NFSEXP_ROOTSQUASH, active, ep);
 		else if (strcmp(opt, "all_squash") == 0)
-			ep->e_flags |= NFSEXP_ALLSQUASH;
+			setflags(NFSEXP_ALLSQUASH, active, ep);
 		else if (strcmp(opt, "no_all_squash") == 0)
-			ep->e_flags &= ~NFSEXP_ALLSQUASH;
+			clearflags(NFSEXP_ALLSQUASH, active, ep);
 		else if (strcmp(opt, "subtree_check") == 0) {
 			had_subtree_opt = 1;
 			ep->e_flags &= ~NFSEXP_NOSUBTREECHECK;
@@ -517,6 +634,10 @@ bad_option:
 		} else if (strncmp(opt, "replicas=", 9) == 0) {
 			ep->e_fslocmethod = FSLOC_REPLICA;
 			ep->e_fslocdata = strdup(opt+9);
+		} else if (strncmp(opt, "sec=", 4) == 0) {
+			active = parse_flavors(opt+4, ep);
+			if (!active)
+				goto bad_option;
 		} else {
 			xlog(L_ERROR, "%s:%d: unknown keyword \"%s\"\n",
 					flname, flline, opt);
@@ -528,6 +649,8 @@ bad_option:
 			cp++;
 	}
 
+	for (p = ep->e_secinfo; p->flav; p++)
+		p->flags |= ep->e_flags & ~NFSEXP_SECINFO_FLAGS;
 	ep->e_squids = squids;
 	ep->e_sqgids = sqgids;
 	ep->e_nsquids = nsquids;

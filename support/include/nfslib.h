@@ -51,6 +51,14 @@
 #define	_PATH_PROC_EXPORTS_ALT	"/proc/fs/nfsd/exports"
 #endif
 
+/* Maximum number of security flavors on an export: */
+#define SECFLAVOR_COUNT 8
+
+struct sec_entry {
+	struct flav_info *flav;
+	int flags;
+};
+
 /*
  * Data related to a single exports entry as returned by getexportent.
  * FIXME: export options should probably be parsed at a later time to
@@ -76,6 +84,7 @@ struct exportent {
 	int             e_fslocmethod;
 	char *          e_fslocdata;
 	char *		e_uuid;
+	struct sec_entry e_secinfo[SECFLAVOR_COUNT+1];
 };
 
 struct rmtabent {
@@ -89,6 +98,7 @@ struct rmtabent {
  */
 void			setexportent(char *fname, char *type);
 struct exportent *	getexportent(int,int);
+void 			secinfo_show(FILE *fp, struct exportent *ep);
 void			putexportent(struct exportent *xep);
 void			endexportent(void);
 struct exportent *	mkexportent(char *hname, char *path, char *opts);

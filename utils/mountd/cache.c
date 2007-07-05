@@ -30,6 +30,7 @@
 #include "mountd.h"
 #include "xmalloc.h"
 #include "fsloc.h"
+#include "pseudoflavors.h"
 
 #ifdef USE_BLKID
 #include "blkid/blkid.h"
@@ -518,6 +519,25 @@ static void write_fsloc(FILE *f, struct exportent *ep, char *path)
 	release_replicas(servers);
 }
 
+static void write_secinfo(FILE *f, struct exportent *ep)
+{
+	struct sec_entry *p;
+
+	for (p = ep->e_secinfo; p->flav; p++)
+		; /* Do nothing */
+	if (p == ep->e_secinfo) {
+		/* There was no sec= option */
+		return;
+	}
+	qword_print(f, "secinfo");
+	qword_printint(f, p - ep->e_secinfo);
+	for (p = ep->e_secinfo; p->flav; p++) {
+		qword_printint(f, p->flav->fnum);
+		qword_printint(f, p->flags);
+	}
+
+}
+
 static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *exp)
 {
 	qword_print(f, domain);
@@ -529,6 +549,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		qword_printint(f, exp->e_anongid);
 		qword_printint(f, exp->e_fsid);
 		write_fsloc(f, exp, path);
+		write_secinfo(f, exp);
 #if USE_BLKID
  		if (exp->e_uuid == NULL) {
  			char u[16];
