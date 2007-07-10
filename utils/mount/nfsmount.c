@@ -804,6 +804,10 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				data->flags &= ~NFS_MOUNT_NORDIRPLUS;
 				if (!val)
 					data->flags |= NFS_MOUNT_NORDIRPLUS;
+			} else if (!strcmp(opt, "sharecache")) {
+				data->flags &= ~NFS_MOUNT_UNSHARED;
+				if (!val)
+					data->flags |= NFS_MOUNT_UNSHARED;
 #endif
 			} else {
 			bad_option:

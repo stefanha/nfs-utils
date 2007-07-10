@@ -201,7 +201,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 	char *s;
 	int val;
 	int bg, soft, intr;
-	int nocto, noac;
+	int nocto, noac, unshared;
 	int retry;
 	int retval;
 	time_t timeout, t;
@@ -252,6 +252,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 	intr = NFS4_MOUNT_INTR;
 	nocto = 0;
 	noac = 0;
+	unshared = 0;
 	retry = 10000;		/* 10000 minutes ~ 1 week */
 
 	/*
@@ -336,6 +337,8 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 				nocto = !val;
 			else if (!strcmp(opt, "ac"))
 				noac = !val;
+			else if (!strcmp(opt, "sharecache"))
+				unshared = !val;
 			else if (!sloppy) {
 				printf(_("unknown nfs mount option: "
 					 "%s%s\n"), val ? "" : "no", opt);
@@ -347,7 +350,8 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 	data.flags = (soft ? NFS4_MOUNT_SOFT : 0)
 		| (intr ? NFS4_MOUNT_INTR : 0)
 		| (nocto ? NFS4_MOUNT_NOCTO : 0)
-		| (noac ? NFS4_MOUNT_NOAC : 0);
+		| (noac ? NFS4_MOUNT_NOAC : 0)
+		| (unshared ? NFS4_MOUNT_UNSHARED : 0);
 
 	/*
 	 * Give a warning if the rpc.idmapd daemon is not running
@@ -388,11 +392,13 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 	       data.acregmin, data.acregmax, data.acdirmin, data.acdirmax);
 	printf("port = %d, bg = %d, retry = %d, flags = %.8x\n",
 	       ntohs(server_addr.sin_port), bg, retry, data.flags);
-	printf("soft = %d, intr = %d, nocto = %d, noac = %d\n",
+	printf("soft = %d, intr = %d, nocto = %d, noac = %d, "
+	       "nosharecache = %d\n",
 	       (data.flags & NFS4_MOUNT_SOFT) != 0,
 	       (data.flags & NFS4_MOUNT_INTR) != 0,
 	       (data.flags & NFS4_MOUNT_NOCTO) != 0,
-	       (data.flags & NFS4_MOUNT_NOAC) != 0);
+	       (data.flags & NFS4_MOUNT_NOAC) != 0,
+	       (data.flags & NFS4_MOUNT_UNSHARED) != 0);
 
 	if (num_flavour > 0) {
 		int pf_cnt, i;

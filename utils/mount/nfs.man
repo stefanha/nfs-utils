@@ -288,6 +288,23 @@ Mount the NFS filesystem using the UDP protocol.
 Disables NFSv3 READDIRPLUS RPCs. Use this option when
 mounting servers that don't support or have broken
 READDIRPLUS implementations.
+.TP 1.5i
+.I nosharecache
+As of kernel 2.6.18, it is no longer possible to mount the same
+same filesystem with different mount options to a new mountpoint.
+It was deemed unsafe to do so, since cached data cannot be shared
+between the two mountpoints. In consequence, files or directories
+that were common to both mountpoint subtrees could often be seen to
+be out of sync following an update.
+.br
+This option allows administrators to select the pre-2.6.18 behaviour,
+permitting the same filesystem to be mounted with different mount
+options.
+.br
+.B Beware:
+Use of this option is not recommended unless you are certain that there
+are no hard links or subtrees of this mountpoint that are mounted
+elsewhere.
 .P
 All of the non-value options have corresponding nooption forms.
 For example, nointr means don't allow file operations to be
@@ -444,6 +461,23 @@ This extracts a
 server performance penalty but it allows two different NFS clients
 to get reasonable good results when both clients are actively
 writing to common filesystem on the server.
+.TP 1.5i
+.I nosharecache
+As of kernel 2.6.18, it is no longer possible to mount the same
+same filesystem with different mount options to a new mountpoint.
+It was deemed unsafe to do so, since cached data cannot be shared
+between the two mountpoints. In consequence, files or directories
+that were common to both mountpoint subtrees could often be seen to
+be out of sync following an update.
+.br
+This option allows administrators to select the pre-2.6.18 behaviour,
+permitting the same filesystem to be mounted with different mount
+options.
+.br
+.B Beware:
+Use of this option is not recommended unless you are certain that there
+are no hard links or subtrees of this mountpoint that are mounted
+elsewhere.
 .P
 All of the non-value options have corresponding nooption forms.
 For example, nointr means don't allow file operations to be
