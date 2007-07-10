@@ -123,7 +123,7 @@ AC_ARG_ENABLE(uuid,
 	choose_blkid=default)
 AC_ARG_ENABLE(mount,
 	[AC_HELP_STRING([--enable-mount],
-			[Create mount.nfs and don't use the util-linux mount(8) functionality. @<:@default=no@:>@])],
+			[Create mount.nfs and don't use the util-linux mount(8) functionality. @<:@default=yes@:>@])],
 	enable_mount=$enableval,
 	enable_mount=yes)
 	AM_CONDITIONAL(CONFIG_MOUNT, [test "$enable_mount" = "yes"])
