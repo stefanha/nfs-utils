@@ -200,6 +200,14 @@ CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
 	/* contact the mount daemon via TCP */
 	mnt_saddr->sin_port = htons((u_short)mnt_pmap->pm_port);
 	*msock = get_socket(mnt_saddr, mnt_pmap->pm_prot, TRUE, FALSE);
+	if (*msock == RPC_ANYSOCK) {
+		if (rpc_createerr.cf_error.re_errno == EADDRINUSE)
+			/* Probably in-use by a TIME_WAIT connection,
+			 * It is worth waiting a while and trying again.
+			 */
+			rpc_createerr.cf_stat = RPC_TIMEDOUT;
+		return NULL;
+	}
 
 	switch (mnt_pmap->pm_prot) {
 	case IPPROTO_UDP:
