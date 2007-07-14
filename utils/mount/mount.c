@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
 			umount_usage();
 			exit(1);
 		}
-		exit(nfsumount(argc, argv) ? 0 : 1);
+		exit(nfsumount(argc, argv));
 	}
 
 	if(argv[1] && argv[1][0] == '-') {
