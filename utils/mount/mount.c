@@ -43,7 +43,6 @@
 char *progname;
 int nomtab;
 int verbose;
-int mounttype;
 int sloppy;
 
 static struct option longopts[] = {
@@ -57,13 +56,6 @@ static struct option longopts[] = {
   { "read-write", 0, 0, 'w' },
   { "rw", 0, 0, 'w' },
   { "options", 1, 0, 'o' },
-  { "bind", 0, 0, 128 },
-  { "replace", 0, 0, 129 },
-  { "after", 0, 0, 130 },
-  { "before", 0, 0, 131 },
-  { "over", 0, 0, 132 },
-  { "move", 0, 0, 133 },
-  { "rbind", 0, 0, 135 },
   { NULL, 0, 0, 0 }
 };
 
@@ -444,27 +436,6 @@ int main(int argc, char *argv[])
 		case 's':
 			++sloppy;
 			break;
-		case 128: /* bind */
-			mounttype = MS_BIND;
-			break;
-		case 129: /* replace */
-			mounttype = MS_REPLACE;
-			break;
-		case 130: /* after */
-			mounttype = MS_AFTER;
-			break;
-		case 131: /* before */
-			mounttype = MS_BEFORE;
-			break;
-		case 132: /* over */
-			mounttype = MS_OVER;
-			break;
-		case 133: /* move */
-			mounttype = MS_MOVE;
-			break;
-		case 135: /* rbind */
-			mounttype = MS_BIND | MS_REC;
-			break;
 		case 'h':
 		default:
 			mount_usage();
@@ -503,7 +474,6 @@ int main(int argc, char *argv[])
 		 * gave us, so just take whatever is in /etc/fstab.
 		 */
 		mount_opts = strdup(mc->m.mnt_opts);
-		mounttype = 0;
 	}
 
 	mount_point = canonicalize(mount_point);
