@@ -24,8 +24,9 @@
 #include "conn.h"
 
 int nfs_gethostbyname(const char *, struct sockaddr_in *);
-unsigned short getport(struct sockaddr_in *, unsigned long,
-			unsigned long, unsigned int);
+
 int probe_mntport(clnt_addr_t *);
 int probe_nfsport(clnt_addr_t *);
 int probe_bothports(clnt_addr_t *, clnt_addr_t *);
+
+int start_statd(void);

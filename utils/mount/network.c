@@ -316,3 +316,48 @@ version_fixed:
 		goto out_bad;
 	return probe_mntport(mnt_server);
 }
+
+static int probe_statd(void)
+{
+	struct sockaddr_in addr;
+	unsigned short port;
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	port = getport(&addr, 100024, 1, IPPROTO_UDP);
+
+	if (port == 0)
+		return 0;
+	addr.sin_port = htons(port);
+
+	if (clnt_ping(&addr, 100024, 1, IPPROTO_UDP, NULL) <= 0)
+		return 0;
+
+	return 1;
+}
+
+/*
+ * Attempt to start rpc.statd
+ */
+int start_statd(void)
+{
+#ifdef START_STATD
+	struct stat stb;
+#endif
+
+	if (probe_statd())
+		return 1;
+
+#ifdef START_STATD
+	if (stat(START_STATD, &stb) == 0) {
+		if (S_ISREG(stb.st_mode) && (stb.st_mode & S_IXUSR)) {
+			system(START_STATD);
+			if (probe_statd())
+				return 1;
+		}
+	}
+#endif
+
+	return 0;
+}

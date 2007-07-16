@@ -81,6 +81,6 @@ struct nfs_mount_data {
 #endif
 
 int nfsmount(const char *, const char *, int *, char **, char **,
-	     int, int *);
+	     int, int);
 
 #endif /* _NFS_MOUNT_H */

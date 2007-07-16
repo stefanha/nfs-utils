@@ -89,6 +89,7 @@ typedef union {
 } mntres_t;
 
 extern int nfs_mount_data_version;
+extern char *progname;
 extern int verbose;
 extern int sloppy;
 
@@ -487,7 +488,7 @@ out_bad:
 int
 nfsmount(const char *spec, const char *node, int *flags,
 	 char **extra_opts, char **mount_opts,
-	 int running_bg, int *need_statd)
+	 int running_bg, int fake)
 {
 	static char *prev_bg_host;
 	char hostdir[1024];
@@ -849,7 +850,18 @@ noauth_flavors:
 	strcat(new_opts, cbuf);
 
 	*extra_opts = xstrdup(new_opts);
-	*need_statd = ! (data.flags & NFS_MOUNT_NONLM);
+
+	if (!fake && !(data.flags & NFS_MOUNT_NONLM)) {
+		if (!start_statd()) {
+			nfs_error(_("%s: rpc.statd is not running but is "
+				"required for remote locking.\n"
+				"   Either use '-o nolocks' to keep "
+				"locks local, or start statd."),
+					progname);
+			goto fail;
+		}
+	}
+
 	return 0;
 
 	/* abort */

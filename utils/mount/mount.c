@@ -351,50 +351,6 @@ static int chk_mountpoint(char *mount_point)
 	return 0;
 }
 
-static int probe_statd()
-{
-	struct sockaddr_in addr;
-	u_short port;
-
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	port = getport(&addr, 100024, 1, IPPROTO_UDP);
-
-	if (port == 0)
-		return 0;
-	addr.sin_port = htons(port);
-
-	if (clnt_ping(&addr, 100024, 1, IPPROTO_UDP, NULL) <= 0)
-		return 0;
-
-	return 1;
-}
-
-static int start_statd()
-{
-	/* If /var/run/rpc.statd.pid exists and is non-empty,
-	 * assume statd already running.
-	 * If START_STATD not defined, or defined to a non-existent file,
-	 * don't bother,
-	 * else run that file (typically a shell script)
-	 */
-	struct stat stb;
-
-	if (probe_statd())
-		return 1;
-#ifdef START_STATD
-	if (stat(START_STATD, &stb) ==0 &&
-	    S_ISREG(stb.st_mode) &&
-	    (stb.st_mode & S_IXUSR)) {
-		system(START_STATD);
-		if (probe_statd())
-			return 1;
-	}
-#endif
-	return 0;
-}
-
 int main(int argc, char *argv[])
 {
 	int c, flags = 0, mnt_err = 1, fake = 0;
@@ -523,23 +479,10 @@ int main(int argc, char *argv[])
 
 	if (strcmp(fs_type, "nfs4") == 0)
 		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, &mount_opts, 0);
-	else {
-		int need_statd = 0;
+	else
 		mnt_err = nfsmount(spec, mount_point, &flags,
 				   &extra_opts, &mount_opts,
-				   0, &need_statd);
-		if (!mnt_err && !fake && need_statd) {
-			if (!start_statd()) {
-				fprintf(stderr,
-					"%s: rpc.statd is not running but is "
-					"required for remote locking\n"
-					"   Either use \"-o nolocks\" to keep "
-					"locks local, or start statd.\n",
-					progname);
-				exit(1);
-			}
-		}
-	}
+				   0, fake);
 
 	if (mnt_err)
 		exit(EX_FAIL);
