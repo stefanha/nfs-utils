@@ -167,7 +167,7 @@ static int get_my_ipv4addr(char *ip_addr, int len)
 	return 0;
 }
 
-int nfs4mount(const char *spec, const char *node, int *flags,
+int nfs4mount(const char *spec, const char *node, int flags,
 	      char **extra_opts, int running_bg, int fake)
 {
 	static struct nfs4_mount_data data;
@@ -444,7 +444,7 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 
 	if (!fake) {
 		if (mount(spec, node, "nfs4",
-				*flags & ~(MS_USER|MS_USERS), &data)) {
+				flags & ~(MS_USER|MS_USERS), &data)) {
 			mount_error(spec, node, errno);
 			goto fail;
 		}

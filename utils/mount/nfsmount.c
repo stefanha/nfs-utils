@@ -486,7 +486,7 @@ out_bad:
 }
 
 int
-nfsmount(const char *spec, const char *node, int *flags,
+nfsmount(const char *spec, const char *node, int flags,
 	 char **extra_opts, int running_bg, int fake)
 {
 	static char *prev_bg_host;
@@ -618,7 +618,7 @@ nfsmount(const char *spec, const char *node, int *flags,
 
 	data.version = nfs_mount_data_version;
 
-	if (*flags & MS_REMOUNT)
+	if (flags & MS_REMOUNT)
 		goto out_ok;
 
 	/*
@@ -862,7 +862,7 @@ noauth_flavors:
 
 	if (!fake) {
 		if (mount(spec, node, "nfs",
-				*flags & ~(MS_USER|MS_USERS), &data)) {
+				flags & ~(MS_USER|MS_USERS), &data)) {
 			mount_error(spec, node, errno);
 			goto fail;
 		}
