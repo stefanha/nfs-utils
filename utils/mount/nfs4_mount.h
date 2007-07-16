@@ -68,6 +68,6 @@ struct nfs4_mount_data {
 #define NFS4_MOUNT_UNSHARED	0x8000	/* 5 */
 #define NFS4_MOUNT_FLAGMASK	0xFFFF
 
-int nfs4mount(const char *, const char *, int, char **, int, int);
+int nfs4mount(const char *, const char *, int, char **, int);
 
 #endif
