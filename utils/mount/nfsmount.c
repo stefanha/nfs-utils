@@ -487,8 +487,7 @@ out_bad:
 
 int
 nfsmount(const char *spec, const char *node, int *flags,
-	 char **extra_opts, char **mount_opts,
-	 int running_bg, int fake)
+	 char **extra_opts, int running_bg, int fake)
 {
 	static char *prev_bg_host;
 	char hostdir[1024];
@@ -618,7 +617,6 @@ nfsmount(const char *spec, const char *node, int *flags,
 #endif
 
 	data.version = nfs_mount_data_version;
-	*mount_opts = (char *) &data;
 
 	if (*flags & MS_REMOUNT)
 		goto out_ok;
@@ -858,6 +856,14 @@ noauth_flavors:
 				"   Either use '-o nolocks' to keep "
 				"locks local, or start statd."),
 					progname);
+			goto fail;
+		}
+	}
+
+	if (!fake) {
+		if (mount(spec, node, "nfs",
+				*flags & ~(MS_USER|MS_USERS), &data)) {
+			mount_error(spec, node, errno);
 			goto fail;
 		}
 	}

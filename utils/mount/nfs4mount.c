@@ -25,6 +25,7 @@
 #include <netdb.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <rpc/auth.h>
@@ -41,6 +42,7 @@
 #include "conn.h"
 #include "xcommon.h"
 
+#include "mount_constants.h"
 #include "nfs4_mount.h"
 #include "nfs_mount.h"
 #include "error.h"
@@ -166,8 +168,7 @@ static int get_my_ipv4addr(char *ip_addr, int len)
 }
 
 int nfs4mount(const char *spec, const char *node, int *flags,
-	      char **extra_opts, char **mount_opts,
-	      int running_bg)
+	      char **extra_opts, int running_bg, int fake)
 {
 	static struct nfs4_mount_data data;
 	static char hostdir[1024];
@@ -441,8 +442,14 @@ int nfs4mount(const char *spec, const char *node, int *flags,
 		continue;
 	}
 
-	*mount_opts = (char *) &data;
-	/* clean up */
+	if (!fake) {
+		if (mount(spec, node, "nfs4",
+				*flags & ~(MS_USER|MS_USERS), &data)) {
+			mount_error(spec, node, errno);
+			goto fail;
+		}
+	}
+
 	return 0;
 
 fail:

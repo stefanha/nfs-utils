@@ -250,11 +250,6 @@ fail_unlock:
 	return result;
 }
 
-int do_mount_syscall(char *spec, char *node, char *type, int flags, void *data)
-{
-	return mount(spec, node, type, flags, data);
-}
-
 void mount_usage()
 {
 	printf("usage: %s remotetarget dir [-rvVwfnh] [-o nfsoptions]\n",
@@ -473,25 +468,12 @@ int main(int argc, char *argv[])
 		exit(EX_FAIL);
 
 	if (strcmp(fs_type, "nfs4") == 0)
-		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, &mount_opts, 0);
+		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, 0, fake);
 	else
-		mnt_err = nfsmount(spec, mount_point, &flags,
-				   &extra_opts, &mount_opts,
-				   0, fake);
+		mnt_err = nfsmount(spec, mount_point, &flags, &extra_opts, 0, fake);
 
 	if (mnt_err)
 		exit(EX_FAIL);
-
-	if (!fake) {
-		mnt_err = do_mount_syscall(spec, mount_point, fs_type,
-					   flags & ~(MS_USER|MS_USERS) ,
-					   mount_opts);
-
-		if (mnt_err) {
-			mount_error(spec, mount_point, errno);
-			exit(EX_FAIL);
-		}
-	}
 
 	if (!nomtab)
 		mnt_err = add_mtab(spec, mount_point, fs_type, flags, extra_opts,
