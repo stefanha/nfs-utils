@@ -171,6 +171,18 @@ static void discover_nfs_mount_data_version(void)
 		nfs_mount_data_version = NFS_MOUNT_VERSION;
 }
 
+static void print_one(char *spec, char *node, char *type, char *opts)
+{
+	if (verbose) {
+		printf("%s on %s type %s", spec, node, type);
+
+		if (opts != NULL)
+			printf(" (%s)", opts);
+
+		printf("\n");
+	}
+}
+
 /* Try to build a canonical options string.  */
 static char * fix_opts_string (int flags, const char *extra_opts) {
 	const struct opt_map *om;
@@ -474,6 +486,9 @@ int main(int argc, char *argv[])
 
 	if (mnt_err)
 		exit(EX_FAIL);
+
+	if (!fake)
+		print_one(spec, mount_point, fs_type, mount_opts);
 
 	if (!nomtab)
 		mnt_err = add_mtab(spec, mount_point, fs_type, flags, extra_opts,
