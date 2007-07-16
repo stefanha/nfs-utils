@@ -23,7 +23,7 @@
  *
  * 1999-02-22 Arkadiusz Mi¶kiewicz <misiek@pld.ORG.PL>
  * - added Native Language Support
- * 
+ *
  * Modified by Olaf Kirch and Trond Myklebust for new NFS code,
  * plus NFSv3 stuff.
  *
@@ -339,9 +339,9 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				val = 0;
 				opt += 2;
 			}
-			if (!strcmp(opt, "bg")) 
+			if (!strcmp(opt, "bg"))
 				*bg = val;
-			else if (!strcmp(opt, "fg")) 
+			else if (!strcmp(opt, "fg"))
 				*bg = !val;
 			else if (!strcmp(opt, "soft")) {
 				data->flags &= ~NFS_MOUNT_SOFT;
@@ -500,7 +500,7 @@ nfsmount(const char *spec, const char *node, int flags,
 	clnt_addr_t mnt_server = { &mounthost, };
 	clnt_addr_t nfs_server = { &hostname, };
 	struct sockaddr_in *nfs_saddr = &nfs_server.saddr;
-	struct pmap  *mnt_pmap = &mnt_server.pmap, 
+	struct pmap  *mnt_pmap = &mnt_server.pmap,
 		     *nfs_pmap = &nfs_server.pmap;
 	struct pmap  save_mnt, save_nfs;
 
@@ -744,7 +744,7 @@ nfsmount(const char *spec, const char *node, int flags,
 #if NFS_MOUNT_VERSION >= 5
 		mountres = &mntres.nfsv3.mountres3_u.mountinfo;
 		i = mountres->auth_flavors.auth_flavors_len;
-		if (i <= 0) 
+		if (i <= 0)
 			goto noauth_flavors;
 
 		flavor = mountres->auth_flavors.auth_flavors_val;

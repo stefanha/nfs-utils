@@ -64,12 +64,14 @@ static struct option longopts[] = {
   { NULL, 0, 0, 0 }
 };
 
-/* Map from -o and fstab option strings to the flag argument to mount(2).  */
+/*
+ * Map from -o and fstab option strings to the flag argument to mount(2).
+ */
 struct opt_map {
-  const char *opt;              /* option name */
-  int  skip;                    /* skip in mtab option string */
-  int  inv;                     /* true if flag value should be inverted */
-  int  mask;                    /* flag mask value */
+	const char *opt;	/* option name */
+	int skip;		/* skip in mtab option string */
+	int inv;		/* true if flag value should be inverted */
+	int mask;		/* flag mask value */
 };
 
 static const struct opt_map opt_map[] = {
@@ -183,8 +185,11 @@ static void print_one(char *spec, char *node, char *type, char *opts)
 	}
 }
 
-/* Try to build a canonical options string.  */
-static char * fix_opts_string (int flags, const char *extra_opts) {
+/*
+ * Build a canonical mount option string for /etc/mtab.
+ */
+static char *fix_opts_string(int flags, const char *extra_opts)
+{
 	const struct opt_map *om;
 	char *new_opts;
 
@@ -278,8 +283,8 @@ void mount_usage()
 	printf("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n");
 }
 
-static inline void
-parse_opt(const char *opt, int *mask, char *extra_opts, int len) {
+static void parse_opt(const char *opt, int *mask, char *extra_opts, int len)
+{
 	const struct opt_map *om;
 
 	for (om = opt_map; om->opt != NULL; om++) {
@@ -301,30 +306,35 @@ parse_opt(const char *opt, int *mask, char *extra_opts, int len) {
 		strcat(extra_opts, opt);
 }
 
-/* Take -o options list and compute 4th and 5th args to mount(2).  flags
-   gets the standard options (indicated by bits) and extra_opts all the rest */
-static void parse_opts (const char *options, int *flags, char **extra_opts)
+/*
+ * Convert the provided mount command-line options into the 4th &
+ * 5th arguments to mount(2).  Output parameter "@flags" gets the
+ * standard options (indicated by MS_ bits), and output parameter
+ * "@extra_opts" gets all the filesystem-specific options.
+ */
+static void parse_opts(const char *options, int *flags, char **extra_opts)
 {
 	if (options != NULL) {
 		char *opts = xstrdup(options);
 		char *opt, *p;
-		int len = strlen(opts) + 1;		/* include room for a null */
+		int len = strlen(opts) + 1;	/* include room for a null */
 		int open_quote = 0;
 
 		*extra_opts = xmalloc(len);
 		**extra_opts = '\0';
 
-		for (p=opts, opt=NULL; p && *p; p++) {
+		for (p = opts, opt = NULL; p && *p; p++) {
 			if (!opt)
-				opt = p;		/* begin of the option item */
+				opt = p;	/* begin of the option item */
 			if (*p == '"')
-				open_quote ^= 1;	/* reverse the status */
+				open_quote ^= 1; /* reverse the status */
 			if (open_quote)
-				continue;		/* still in a quoted block */
+				continue;	/* still in a quoted block */
 			if (*p == ',')
-				*p = '\0';		/* terminate the option item */
+				*p = '\0';	/* terminate the option item */
+
 			/* end of option item or last item */
-			if (*p == '\0' || *(p+1) == '\0') {
+			if (*p == '\0' || *(p + 1) == '\0') {
 				parse_opt(opt, flags, *extra_opts, len);
 				opt = NULL;
 			}
@@ -425,8 +435,11 @@ int main(int argc, char *argv[])
 			exit(EX_USAGE);
 		}
 	}
-	if (optind != argc-2) {
-		/* Extra non-option words at the end... */
+
+	/*
+	 * Extra non-option words at the end are bogus...
+	 */
+	if (optind != argc - 2) {
 		mount_usage();
 		exit(EX_USAGE);
 	}
@@ -505,4 +518,3 @@ out:
 	free(mount_point);
 	exit(mnt_err);
 }
-

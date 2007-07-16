@@ -62,4 +62,3 @@ if we have a stack or plain mount - mount atop of it, forming a stack. */
 #endif
 
 #endif /* _NFS_MOUNT_CONSTANTS_H */
-

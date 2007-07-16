@@ -70,7 +70,7 @@ char *GSSDLCK = DEFAULT_DIR "/rpcgssd";
 		if (access(GSSDLCK, F_OK)) { \
 			printf(_("Warning: rpc.gssd appears not to be running.\n")); \
 		} \
-} while(0); 
+} while(0);
 
 #ifndef NFS_PORT
 #define NFS_PORT 2049
@@ -304,9 +304,9 @@ int nfs4mount(const char *spec, const char *node, int flags,
 				val = 0;
 				opt += 2;
 			}
-			if (!strcmp(opt, "bg")) 
+			if (!strcmp(opt, "bg"))
 				bg = val;
-			else if (!strcmp(opt, "fg")) 
+			else if (!strcmp(opt, "fg"))
 				bg = !val;
 			else if (!strcmp(opt, "soft"))
 				soft = val;
