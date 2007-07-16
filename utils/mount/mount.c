@@ -32,6 +32,7 @@
 
 #include "fstab.h"
 #include "xcommon.h"
+#include "nls.h"
 #include "mount_constants.h"
 #include "nfs_paths.h"
 
@@ -155,51 +156,54 @@ static char * fix_opts_string (int flags, const char *extra_opts) {
 	return new_opts;
 }
 
-
-int add_mtab(char *fsname, char *mount_point, char *fstype, int flags, char *opts, int freq, int passno)
+static int add_mtab(char *spec, char *mount_point, char *fstype,
+			int flags, char *opts, int freq, int pass)
 {
 	struct mntent ment;
 	FILE *mtab;
+	int result = EX_FILEIO;
 
-	ment.mnt_fsname = fsname;
+	ment.mnt_fsname = spec;
 	ment.mnt_dir = mount_point;
 	ment.mnt_type = fstype;
 	ment.mnt_opts = fix_opts_string(flags, opts);
-	ment.mnt_freq = 0;
-	ment.mnt_passno= 0;
+	ment.mnt_freq = freq;
+	ment.mnt_passno = pass;
 
-	if(flags & MS_REMOUNT) {
+	if (flags & MS_REMOUNT) {
 		update_mtab(ment.mnt_dir, &ment);
 		return 0;
 	}
 
 	lock_mtab();
 
-        if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
+	if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
 		unlock_mtab();
-		fprintf(stderr, "Can't open " MOUNTED);
-		return 1;
+		nfs_error(_("Can't open mtab: %s"),
+				strerror(errno));
+		goto fail_unlock;
 	}
 
-        if (addmntent(mtab, &ment) == 1) {
-		endmntent(mtab);
-		unlock_mtab();
-		fprintf(stderr, "Can't write mount entry");
-		return 1;
+	if (addmntent(mtab, &ment) == 1) {
+		nfs_error(_("Can't write mount entry to mtab: %s"),
+				strerror(errno));
+		goto fail_close;
 	}
 
-        if (fchmod(fileno(mtab), 0644) == -1) {
-		endmntent(mtab);
-		unlock_mtab();
-		fprintf(stderr, "Can't set perms on " MOUNTED);
-		return 1;
+	if (fchmod(fileno(mtab), 0644) == -1) {
+		nfs_error(_("Can't set permissions on mtab: %s"),
+				strerror(errno));
+		goto fail_close;
 	}
 
+	result = 0;
+
+fail_close:
 	endmntent(mtab);
-
+fail_unlock:
 	unlock_mtab();
 
-	return 0;
+	return result;
 }
 
 int do_mount_syscall(char *spec, char *node, char *type, int flags, void *data)
@@ -531,9 +535,9 @@ int main(int argc, char *argv[])
 	}
 
 	if (!nomtab)
-		add_mtab(spec, mount_point, fs_type,
-			 flags, extra_opts, 0, 0);
+		mnt_err = add_mtab(spec, mount_point, fs_type, flags, extra_opts,
+				0, 0 /* these are always zero for NFS */ );
 
-	return 0;
+	exit(mnt_err);
 }
 
