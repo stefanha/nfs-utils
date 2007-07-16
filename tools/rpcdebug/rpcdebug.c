@@ -146,7 +146,7 @@ static struct flagmap {
 	FLAG(RPC,	DEBUG),
 	FLAG(RPC,	NFS),
 	FLAG(RPC,	AUTH),
-	FLAG(RPC,	PMAP),
+	FLAG(RPC,	BIND),
 	FLAG(RPC,	SCHED),
 	FLAG(RPC,	TRANS),
 	FLAG(RPC,	SVCSOCK),
@@ -165,6 +165,8 @@ static struct flagmap {
 	FLAG(NFS,       FILE),
 	FLAG(NFS,       ROOT),
 	FLAG(NFS,       CALLBACK),
+	FLAG(NFS,       CLIENT),
+	FLAG(NFS,       MOUNT),
 	FLAG(NFS,	ALL),
 
 	/* nfsd */
