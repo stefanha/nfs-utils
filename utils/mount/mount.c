@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mount.h>
+#include <sys/utsname.h>
 #include <getopt.h>
 #include <mntent.h>
 #include <pwd.h>
@@ -43,6 +44,7 @@
 #include "error.h"
 
 char *progname;
+int nfs_mount_data_version;
 int nomtab;
 int verbose;
 int sloppy;
@@ -127,6 +129,51 @@ static const struct opt_map opt_map[] = {
 #endif
   { NULL,	0, 0, 0		}
 };
+
+#define MAKE_VERSION(p,q,r)	(65536 * (p) + 256 * (q) + (r))
+
+int linux_version_code(void)
+{
+	struct utsname my_utsname;
+	int p, q, r;
+
+	if (uname(&my_utsname) == 0) {
+		p = atoi(strtok(my_utsname.release, "."));
+		q = atoi(strtok(NULL, "."));
+		r = atoi(strtok(NULL, "."));
+		return MAKE_VERSION(p,q,r);
+	}
+	return 0;
+}
+
+/*
+ * Choose the version of the nfs_mount_data structure that is appropriate
+ * for the kernel that is doing the mount.
+ *
+ * NFS_MOUNT_VERSION:		maximum version supported by these sources
+ * nfs_mount_data_version:	maximum version supported by the running kernel
+ */
+static void discover_nfs_mount_data_version(void)
+{
+	int kernel_version = linux_version_code();
+
+	if (kernel_version) {
+		if (kernel_version < MAKE_VERSION(2, 1, 32))
+			nfs_mount_data_version = 1;
+		else if (kernel_version < MAKE_VERSION(2, 2, 18))
+			nfs_mount_data_version = 3;
+		else if (kernel_version < MAKE_VERSION(2, 3, 0))
+			nfs_mount_data_version = 4;
+		else if (kernel_version < MAKE_VERSION(2, 3, 99))
+			nfs_mount_data_version = 3;
+		else if (kernel_version < MAKE_VERSION(2, 6, 3))
+			nfs_mount_data_version = 4;
+		else
+			nfs_mount_data_version = 6;
+	}
+	if (nfs_mount_data_version > NFS_MOUNT_VERSION)
+		nfs_mount_data_version = NFS_MOUNT_VERSION;
+}
 
 /* Try to build a canonical options string.  */
 static char * fix_opts_string (int flags, const char *extra_opts) {
@@ -361,6 +408,8 @@ int main(int argc, char *argv[])
 	uid_t uid = getuid();
 
 	progname = basename(argv[0]);
+
+	discover_nfs_mount_data_version();
 
 	if(!strncmp(progname, "umount", strlen("umount"))) {
 		if(argc < 2) {

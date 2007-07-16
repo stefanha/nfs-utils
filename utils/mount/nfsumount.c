@@ -46,14 +46,12 @@
 #endif
 
 extern char *progname;
-extern int nfs_mount_version;
 extern int nomtab;
 extern int verbose;
 int force;
 int lazy;
 int remount;
 
-extern int find_kernel_nfs_mount_version(void);
 extern int probe_mntport(clnt_addr_t *);
 extern int nfs_gethostbyname(const char *, struct sockaddr_in *);
 
@@ -176,7 +174,6 @@ int _nfsumount(const char *spec, char *opts)
 	struct pmap *pmap = &mnt_server.pmap;
 	char *p;
 
-	nfs_mount_version = find_kernel_nfs_mount_version();
 	if (spec == NULL || (p = strchr(spec,':')) == NULL)
 		goto out_bad;
 	hostname = xstrndup(spec, p-spec);

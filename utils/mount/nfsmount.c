@@ -48,7 +48,6 @@
 #include <rpc/pmap_clnt.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <sys/utsname.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -73,10 +72,9 @@
 #define NFS_FHSIZE 32
 #endif
 
-#define MAKE_VERSION(p,q,r)	(65536*(p) + 256*(q) + (r))
-#define MAX_NFSPROT ((nfs_mount_version >= 4) ? 3 : 2)
-#define MAX_MNTPROT ((nfs_mount_version >= 4) ? 3 : 2)
-#define HAVE_RELIABLE_TCP (nfs_mount_version >= 4)
+#define MAX_NFSPROT ((nfs_mount_data_version >= 4) ? 3 : 2)
+#define MAX_MNTPROT ((nfs_mount_data_version >= 4) ? 3 : 2)
+#define HAVE_RELIABLE_TCP (nfs_mount_data_version >= 4)
 
 #ifndef HAVE_INET_ATON
 #define inet_aton(a,b) (0)
@@ -93,8 +91,11 @@ typedef union {
 	mnt3res_t nfsv3;
 } mntres_t;
 
+extern int nfs_mount_data_version;
 extern int verbose;
 extern int sloppy;
+
+extern int linux_version_code();
 
 /* Define the order in which to probe for UDP/TCP services */
 enum plist {
@@ -142,59 +143,6 @@ mnt_probelist(const int vers)
 	default:
 		return mnt1_probe;
 	}
-}
-
-static int
-linux_version_code(void) {
-	struct utsname my_utsname;
-	int p, q, r;
-
-	if (uname(&my_utsname) == 0) {
-		p = atoi(strtok(my_utsname.release, "."));
-		q = atoi(strtok(NULL, "."));
-		r = atoi(strtok(NULL, "."));
-		return MAKE_VERSION(p,q,r);
-	}
-	return 0;
-}
-
-/*
- * Unfortunately, the kernel prints annoying console messages
- * in case of an unexpected nfs mount version (instead of
- * just returning some error).  Therefore we'll have to try
- * and figure out what version the kernel expects.
- *
- * Variables:
- *	NFS_MOUNT_VERSION: these nfsmount sources at compile time
- *	nfs_mount_version: version this source and running kernel can handle
- */
-int nfs_mount_version = NFS_MOUNT_VERSION;
-
-int
-find_kernel_nfs_mount_version(void) {
-	static int kernel_version = -1;
-	int mnt_version = NFS_MOUNT_VERSION;
-
-	if (kernel_version == -1)
-		kernel_version = linux_version_code();
-
-	if (kernel_version) {
-	     if (kernel_version < MAKE_VERSION(2,1,32))
-		  mnt_version = 1;
-	     else if (kernel_version < MAKE_VERSION(2,2,18))
-		  mnt_version = 3;
-	     else if (kernel_version < MAKE_VERSION(2,3,0))
-		  mnt_version = 4; /* since 2.2.18pre9 */
-	     else if (kernel_version < MAKE_VERSION(2,3,99))
-		  mnt_version = 3;
-	     else if (kernel_version < MAKE_VERSION(2,6,3))
-		  mnt_version = 4;
-	     else
-		  mnt_version = 6;
-	}
-	if (mnt_version > NFS_MOUNT_VERSION)
-	     mnt_version = NFS_MOUNT_VERSION;
-	return mnt_version;
 }
 
 int nfs_gethostbyname(const char *, struct sockaddr_in *);
@@ -554,7 +502,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				opt = "nfsvers";
 #if NFS_MOUNT_VERSION >= 2
 			} else if (!strcmp(opt, "namlen")) {
-				if (nfs_mount_version >= 2)
+				if (nfs_mount_data_version >= 2)
 					data->namlen = val;
 				else if (sloppy)
 					continue;
@@ -578,7 +526,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 #if NFS_MOUNT_VERSION >= 2
 					data->flags &= ~NFS_MOUNT_TCP;
 				} else if (!strcmp(opteq+1, "tcp") &&
-					   nfs_mount_version > 2) {
+					   nfs_mount_data_version > 2) {
 					nfs_pmap->pm_prot = IPPROTO_TCP;
 					mnt_pmap->pm_prot = IPPROTO_TCP;
 					data->flags |= NFS_MOUNT_TCP;
@@ -591,7 +539,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			} else if (!strcmp(opt, "sec")) {
 				char *secflavor = opteq+1;
 				/* see RFC 2623 */
-				if (nfs_mount_version < 5) {
+				if (nfs_mount_data_version < 5) {
 					printf(_("Warning: ignoring sec=%s option\n"), secflavor);
 					continue;
 				} else if (!strcmp(secflavor, "none"))
@@ -690,7 +638,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			} else if (!strcmp(opt, "tcp")) {
 				data->flags &= ~NFS_MOUNT_TCP;
 				if (val) {
-					if (nfs_mount_version < 2)
+					if (nfs_mount_data_version < 2)
 						goto bad_option;
 					nfs_pmap->pm_prot = IPPROTO_TCP;
 					mnt_pmap->pm_prot = IPPROTO_TCP;
@@ -702,7 +650,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			} else if (!strcmp(opt, "udp")) {
 				data->flags &= ~NFS_MOUNT_TCP;
 				if (!val) {
-					if (nfs_mount_version < 2)
+					if (nfs_mount_data_version < 2)
 						goto bad_option;
 					nfs_pmap->pm_prot = IPPROTO_TCP;
 					mnt_pmap->pm_prot = IPPROTO_TCP;
@@ -716,7 +664,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			} else if (!strcmp(opt, "lock")) {
 				data->flags &= ~NFS_MOUNT_NONLM;
 				if (!val) {
-					if (nfs_mount_version < 3)
+					if (nfs_mount_data_version < 3)
 						goto bad_option;
 					data->flags |= NFS_MOUNT_NONLM;
 				}
@@ -725,7 +673,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			} else if (!strcmp(opt, "broken_suid")) {
 				data->flags &= ~NFS_MOUNT_BROKEN_SUID;
 				if (val) {
-					if (nfs_mount_version < 4)
+					if (nfs_mount_data_version < 4)
 						goto bad_option;
 					data->flags |= NFS_MOUNT_BROKEN_SUID;
 				}
@@ -827,8 +775,6 @@ nfsmount(const char *spec, const char *node, int *flags,
 	time_t prevt;
 	time_t timeout;
 
-	nfs_mount_version = find_kernel_nfs_mount_version();
-
 	if (strlen(spec) >= sizeof(hostdir)) {
 		fprintf(stderr, _("mount: "
 				  "excessively long host:dir argument\n"));
@@ -929,7 +875,7 @@ nfsmount(const char *spec, const char *node, int *flags,
 	printf("\n");
 #endif
 
-	data.version = nfs_mount_version;
+	data.version = nfs_mount_data_version;
 	*mount_opts = (char *) &data;
 
 	if (*flags & MS_REMOUNT)
@@ -1105,7 +1051,7 @@ noauth_flavors:
 #endif
 	}
 
-	if (nfs_mount_version == 1) {
+	if (nfs_mount_data_version == 1) {
 		/* create nfs socket for kernel */
 		if (nfs_pmap->pm_prot == IPPROTO_TCP)
 			fsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
