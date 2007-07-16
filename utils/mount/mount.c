@@ -42,6 +42,7 @@
 #include "nfsumount.h"
 #include "mount.h"
 #include "error.h"
+#include "network.h"
 
 char *progname;
 int nfs_mount_data_version;
@@ -349,12 +350,6 @@ static int chk_mountpoint(char *mount_point)
 
 	return 0;
 }
-
-extern u_short getport(
-	struct sockaddr_in *saddr,
-	u_long prog,
-	u_long vers,
-	u_int prot);
 
 static int probe_statd()
 {

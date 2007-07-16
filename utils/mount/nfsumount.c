@@ -35,6 +35,7 @@
 #include "mount.h"
 #include "nfsumount.h"
 #include "error.h"
+#include "network.h"
 
 #if !defined(MNT_FORCE)
 /* dare not try to include <linux/mount.h> -- lots of errors */
@@ -51,9 +52,6 @@ extern int verbose;
 int force;
 int lazy;
 int remount;
-
-extern int probe_mntport(clnt_addr_t *);
-extern int nfs_gethostbyname(const char *, struct sockaddr_in *);
 
 static inline enum clnt_stat
 nfs_umount(dirpath *argp, CLIENT *clnt)
