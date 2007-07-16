@@ -460,22 +460,22 @@ static int nfsmnt_check_compat(const struct pmap *nfs_pmap,
 	unsigned int max_mnt_vers = (nfs_mount_data_version >= 4) ? 3 : 2;
 
 	if (nfs_pmap->pm_vers == 4) {
-		fprintf(stderr, _("Please use '-t nfs4' "
-					"instead of '-o vers=4'.\n"));
+		nfs_error(_("%s: Please use '-t nfs4' "
+				"instead of '-o vers=4'"), progname);
 		goto out_bad;
 	}
 
 	if (nfs_pmap->pm_vers) {
 		if (nfs_pmap->pm_vers > max_nfs_vers || nfs_pmap->pm_vers < 2) {
-			fprintf(stderr, _("NFS version %ld is not supported.\n"), 
-					nfs_pmap->pm_vers);
+			nfs_error(_("%s: NFS version %ld is not supported"),
+					progname, nfs_pmap->pm_vers);
 			goto out_bad;
 		}
 	}
 
 	if (mnt_pmap->pm_vers > max_mnt_vers) {
-		fprintf(stderr, _("NFS mount version %ld s not supported.\n"), 
-			mnt_pmap->pm_vers);
+		nfs_error(_("%s: NFS mount version %ld s not supported"),
+				progname, mnt_pmap->pm_vers);
 		goto out_bad;
 	}
 
@@ -517,8 +517,8 @@ nfsmount(const char *spec, const char *node, int flags,
 	time_t timeout;
 
 	if (strlen(spec) >= sizeof(hostdir)) {
-		fprintf(stderr, _("mount: "
-				  "excessively long host:dir argument\n"));
+		nfs_error(_("%s: excessively long host:dir argument"),
+				progname);
 		goto fail;
 	}
 	strcpy(hostdir, spec);
@@ -530,14 +530,13 @@ nfsmount(const char *spec, const char *node, int flags,
 		   until they can be fully supported. (mack@sgi.com) */
 		if ((s = strchr(hostdir, ','))) {
 			*s = '\0';
-			fprintf(stderr,
-				_("mount: warning: "
-				  "multiple hostnames not supported\n"));
+			nfs_error(_("%s: warning: "
+				  "multiple hostnames not supported"),
+					progname);
 		}
 	} else {
-		fprintf(stderr,
-			_("mount: "
-			  "directory to mount not in host:dir format\n"));
+		nfs_error(_("%s: directory to mount not in host:dir format"),
+				progname);
 		goto fail;
 	}
 
@@ -717,10 +716,9 @@ nfsmount(const char *spec, const char *node, int flags,
 
 	if (nfs_pmap->pm_vers == 2) {
 		if (mntres.nfsv2.fhs_status != 0) {
-			fprintf(stderr,
-				_("mount: %s:%s failed, reason given by server: %s\n"),
-				hostname, dirname,
-				nfs_strerror(mntres.nfsv2.fhs_status));
+			nfs_error(_("%s: %s:%s failed, reason given by server: %s"),
+					progname, hostname, dirname,
+					nfs_strerror(mntres.nfsv2.fhs_status));
 			goto fail;
 		}
 		memcpy(data.root.data,
@@ -738,10 +736,9 @@ nfsmount(const char *spec, const char *node, int flags,
 		fhandle3 *fhandle;
 		int i, *flavor, yum = 0;
 		if (mntres.nfsv3.fhs_status != 0) {
-			fprintf(stderr,
-				_("mount: %s:%s failed, reason given by server: %s\n"),
-				hostname, dirname,
-				nfs_strerror(mntres.nfsv3.fhs_status));
+			nfs_error(_("%s: %s:%s failed, reason given by server: %s"),
+					progname, hostname, dirname,
+					nfs_strerror(mntres.nfsv3.fhs_status));
 			goto fail;
 		}
 #if NFS_MOUNT_VERSION >= 5
@@ -769,10 +766,9 @@ nfsmount(const char *spec, const char *node, int flags,
 #endif
 		}
 		if (!yum) {
-			fprintf(stderr,
-				"mount: %s:%s failed, "
-				"security flavor not supported\n",
-				hostname, dirname);
+			nfs_error(_("%s: %s:%s failed, security flavor "
+					"not supported"),
+					progname, hostname, dirname);
 			/* server has registered us in rmtab, send umount */
 			nfs_call_umount(&mnt_server, &dirname);
 			goto fail;
@@ -839,8 +835,8 @@ noauth_flavors:
  out_ok:
 	/* Ensure we have enough padding for the following strcat()s */
 	if (strlen(new_opts) + strlen(s) + 30 >= sizeof(new_opts)) {
-		fprintf(stderr, _("mount: "
-				  "excessively long option argument\n"));
+		nfs_error(_("%s: excessively long option argument"),
+				progname);
 		goto fail;
 	}
 

@@ -123,9 +123,8 @@ int del_mtab(const char *spec, const char *node)
                             MS_MGC_VAL | MS_REMOUNT | MS_RDONLY, NULL);
                 if (res == 0) {
                         struct mntent remnt;
-                        fprintf(stderr,
-                                _("umount: %s busy - remounted read-only\n"),
-                                spec);
+                        nfs_error(_("%s: %s busy - remounted read-only"),
+                                	progname, spec);
                         remnt.mnt_type = remnt.mnt_fsname = NULL;
                         remnt.mnt_dir = xstrdup(node);
                         remnt.mnt_opts = xstrdup("ro");
@@ -134,9 +133,8 @@ int del_mtab(const char *spec, const char *node)
                         return 0;
                 } else if (errno != EBUSY) {    /* hmm ... */
                         perror("remount");
-                        fprintf(stderr,
-                                _("umount: could not remount %s read-only\n"),
-                                spec);
+                        nfs_error(_("%s: could not remount %s read-only"),
+                                	progname, spec);
                 }
         }
 
@@ -224,7 +222,7 @@ int _nfsumount(const char *spec, char *opts)
 		goto out_bad;
 	return nfs_call_umount(&mnt_server, &dirname);
  out_bad:
-	fprintf(stderr, "%s: %s: not found or not mounted\n", progname, spec);
+	nfs_error(_("%s: %s: not found or not mounted"), progname, spec);
 	return 0;
 }
 
@@ -305,8 +303,8 @@ int nfsumount(int argc, char *argv[])
 
 	if (mc && strcmp(mc->m.mnt_type, "nfs") != 0 &&
 	    strcmp(mc->m.mnt_type, "nfs4") != 0) {
-		fprintf(stderr, "umount.nfs: %s on %s it not an nfs filesystem\n",
-			mc->m.mnt_fsname, mc->m.mnt_dir);
+		nfs_error(_("%s: %s on %s it not an nfs filesystem"),
+				progname, mc->m.mnt_fsname, mc->m.mnt_dir);
 		return EX_USAGE;
 	}
 
@@ -319,8 +317,8 @@ int nfsumount(int argc, char *argv[])
 			return 0;
 
 		only_root:
-			fprintf(stderr,"%s: You are not permitted to unmount %s\n",
-				progname, spec);
+			nfs_error(_("%s: You are not permitted to unmount %s"),
+					progname, spec);
 			return 0;
 		}
 		if (hasmntopt(&mc->m, "users") == NULL) {

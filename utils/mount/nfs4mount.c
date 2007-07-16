@@ -53,6 +53,7 @@
 #define DEFAULT_DIR "/var/lock/subsys"
 #endif
 
+extern char *progname;
 extern int verbose;
 extern int sloppy;
 
@@ -83,9 +84,8 @@ static int parse_sec(char *sec, int *pseudoflavour)
 
 	for (sec = strtok(sec, ":"); sec; sec = strtok(NULL, ":")) {
 		if (num_flavour >= MAX_USER_FLAVOUR) {
-			fprintf(stderr,
-				_("mount: maximum number of security flavors "
-				  "exceeded\n"));
+			nfs_error(_("%s: maximum number of security flavors "
+				  "exceeded"), progname);
 			return 0;
 		}
 		for (i = 0; i < flav_map_size; i++) {
@@ -95,14 +95,14 @@ static int parse_sec(char *sec, int *pseudoflavour)
 			}
 		}
 		if (i == flav_map_size) {
-			fprintf(stderr,
-				_("mount: unknown security type %s\n"), sec);
+			nfs_error(_("%s: unknown security type %s\n"),
+					progname, sec);
 			return 0;
 		}
 	}
 	if (!num_flavour)
-		fprintf(stderr,
-			_("mount: no security flavors passed to sec= option\n"));
+		nfs_error(_("%s: no security flavors passed to sec= option"),
+				progname);
 	return num_flavour;
 }
 
@@ -111,9 +111,8 @@ static int parse_devname(char *hostdir, char **hostname, char **dirname)
 	char *s;
 
 	if (!(s = strchr(hostdir, ':'))) {
-		fprintf(stderr,
-			_("mount: "
-			  "directory to mount not in host:dir format\n"));
+		nfs_error(_("%s: directory to mount not in host:dir format"),
+				progname);
 		return -1;
 	}
 	*hostname = hostdir;
@@ -123,9 +122,8 @@ static int parse_devname(char *hostdir, char **hostname, char **dirname)
 	   until they can be fully supported. (mack@sgi.com) */
 	if ((s = strchr(hostdir, ','))) {
 		*s = '\0';
-		fprintf(stderr,
-			_("mount: warning: "
-			  "multiple hostnames not supported\n"));
+		nfs_error(_("%s: warning: multiple hostnames not supported"),
+				progname);
 	}
 	return 0;
 }
@@ -138,13 +136,12 @@ static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
 	if (inet_aton(hostname, &addr->sin_addr))
 		return 0;
 	if ((hp = gethostbyname(hostname)) == NULL) {
-		fprintf(stderr, _("mount: can't get address for %s\n"),
-			hostname);
+		nfs_error(_("%s: can't get address for %s\n"),
+				progname, hostname);
 		return -1;
 	}
 	if (hp->h_length > sizeof(struct in_addr)) {
-		fprintf(stderr,
-			_("mount: got bad hp->h_length\n"));
+		nfs_error(_("%s: got bad hp->h_length"), progname);
 		hp->h_length = sizeof(struct in_addr);
 	}
 	memcpy(&addr->sin_addr, hp->h_addr, hp->h_length);
@@ -157,7 +154,8 @@ static int get_my_ipv4addr(char *ip_addr, int len)
 	struct sockaddr_in myaddr;
 
 	if (gethostname(myname, sizeof(myname))) {
-		fprintf(stderr, _("mount: can't determine client address\n"));
+		nfs_error(_("%s: can't determine client address\n"),
+				progname);
 		return -1;
 	}
 	if (fill_ipv4_sockaddr(myname, &myaddr))
@@ -191,8 +189,8 @@ int nfs4mount(const char *spec, const char *node, int flags,
 
 	retval = EX_FAIL;
 	if (strlen(spec) >= sizeof(hostdir)) {
-		fprintf(stderr, _("mount: "
-				  "excessively long host:dir argument\n"));
+		nfs_error(_("%s: excessively long host:dir argument\n"),
+				progname);
 		goto fail;
 	}
 	strcpy(hostdir, spec);
@@ -210,8 +208,8 @@ int nfs4mount(const char *spec, const char *node, int flags,
 	if (!old_opts)
 		old_opts = "";
 	if (strlen(old_opts) + strlen(s) + 10 >= sizeof(new_opts)) {
-		fprintf(stderr, _("mount: "
-				  "excessively long option argument\n"));
+		nfs_error(_("%s: excessively long option argument\n"),
+				progname);
 		goto fail;
 	}
 	snprintf(new_opts, sizeof(new_opts), "%s%saddr=%s",
@@ -404,9 +402,9 @@ int nfs4mount(const char *spec, const char *node, int flags,
 	data.version = NFS4_MOUNT_VERSION;
 	for (;;) {
 		if (verbose) {
-			fprintf(stderr, 
-				"mount: pinging: prog %d vers %d prot %s port %d\n", 
-				NFS_PROGRAM, 4, data.proto == IPPROTO_UDP ? "udp" : "tcp", 
+			printf(_("%s: pinging: prog %d vers %d prot %s port %d\n"),
+				progname, NFS_PROGRAM, 4,
+				data.proto == IPPROTO_UDP ? "udp" : "tcp",
 				ntohs(server_addr.sin_port));
 		}
 		client_addr.sin_family = 0;
