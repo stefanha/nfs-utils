@@ -34,6 +34,7 @@
 #include "mount_constants.h"
 #include "mount.h"
 #include "nfsumount.h"
+#include "error.h"
 
 #if !defined(MNT_FORCE)
 /* dare not try to include <linux/mount.h> -- lots of errors */
@@ -91,30 +92,6 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 	}
  out_bad:
 	return res;
-}
-
-/* complain about a failed umount */
-static void complain(int err, const char *dev) {
-  switch (err) {
-    case ENXIO:
-      nfs_error (_("umount: %s: invalid block device"), dev); break;
-    case EINVAL:
-      nfs_error (_("umount: %s: not mounted"), dev); break;
-    case EIO:
-      nfs_error (_("umount: %s: can't write superblock"), dev); break;
-    case EBUSY:
-     /* Let us hope fstab has a line "proc /proc ..."
-        and not "none /proc ..."*/
-      nfs_error (_("umount: %s: device is busy"), dev); break;
-    case ENOENT:
-      nfs_error (_("umount: %s: not found"), dev); break;
-    case EPERM:
-      nfs_error (_("umount: %s: must be superuser to umount"), dev); break;
-    case EACCES:
-      nfs_error (_("umount: %s: block devices not permitted on fs"), dev); break;
-    default:
-      nfs_error (_("umount: %s: %s"), dev, strerror (err)); break;
-  }
 }
 
 int del_mtab(const char *spec, const char *node)
@@ -183,7 +160,7 @@ int del_mtab(const char *spec, const char *node)
                 return 0;
 
         if (umnt_err)
-                complain(umnt_err, node);
+                umount_error(umnt_err, node);
         return 1;
 }
 

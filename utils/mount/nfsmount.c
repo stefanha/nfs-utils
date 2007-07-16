@@ -64,13 +64,7 @@
 #include "nfs_mount.h"
 #include "mount_constants.h"
 #include "nls.h"
-
-#ifdef HAVE_RPCSVC_NFS_PROT_H
-#include <rpcsvc/nfs_prot.h>
-#else
-#include <linux/nfs.h>
-#define nfsstat nfs_stat
-#endif
+#include "error.h"
 
 #ifndef NFS_PORT
 #define NFS_PORT 2049
@@ -78,8 +72,6 @@
 #ifndef NFS_FHSIZE
 #define NFS_FHSIZE 32
 #endif
-
-static char *nfs_strerror(int stat);
 
 #define MAKE_VERSION(p,q,r)	(65536*(p) + 256*(q) + (r))
 #define MAX_NFSPROT ((nfs_mount_version >= 4) ? 3 : 2)
@@ -101,67 +93,8 @@ typedef union {
 	mnt3res_t nfsv3;
 } mntres_t;
 
-static char errbuf[BUFSIZ];
-static char *erreob = &errbuf[BUFSIZ];
 extern int verbose;
 extern int sloppy;
-
-/* Convert RPC errors into strings */
-int rpc_strerror(int);
-int rpc_strerror(int spos)
-{
-	int cf_stat = rpc_createerr.cf_stat; 
-	int pos=0, cf_errno = rpc_createerr.cf_error.re_errno;
-	char *ptr, *estr = clnt_sperrno(cf_stat);
-	char *tmp;
-
-	if (estr) {
-		if ((ptr = index(estr, ':')))
-			estr = ++ptr;
-
-		tmp = &errbuf[spos];
-		if (cf_stat == RPC_SYSTEMERROR)
-			pos = snprintf(tmp, (erreob - tmp), 
-				"System Error: %s", strerror(cf_errno));
-		else
-			pos = snprintf(tmp, (erreob - tmp), "RPC Error:%s", estr);
-	}
-	return (pos);
-}
-void mount_errors(char *, int, int);
-void mount_errors(char *server, int will_retry, int bg)
-{
-	int pos = 0;
-	char *tmp;
-	static int onlyonce = 0;
-
-	tmp = &errbuf[pos];
-	if (bg) 
-		pos = snprintf(tmp, (erreob - tmp), 
-			"mount to NFS server '%s' failed: ", server);
-	else
-		pos = snprintf(tmp, (erreob - tmp), 
-			"mount: mount to NFS server '%s' failed: ", server);
-
-	tmp = &errbuf[pos];
-	if (rpc_createerr.cf_stat == RPC_TIMEDOUT) {
-		pos = snprintf(tmp, (erreob - tmp), "timed out %s", 
-			will_retry ? "(retrying)" : "(giving up)");
-	} else {
-		pos += rpc_strerror(pos);
-		tmp = &errbuf[pos];
-		if (bg) {
-			pos = snprintf(tmp, (erreob - tmp), " %s",
-				will_retry ? "(retrying)" : "(giving up)");
-		}
-	}
-	if (bg) {
-		if (onlyonce++ < 1)
-			openlog("mount", LOG_CONS|LOG_PID, LOG_AUTH);
-		syslog(LOG_ERR, "%s.", errbuf);
-	} else
-		fprintf(stderr, "%s.\n", errbuf);
-}
 
 /* Define the order in which to probe for UDP/TCP services */
 enum plist {
@@ -1237,63 +1170,4 @@ noauth_flavors:
 	if (fsock != -1)
 		close(fsock);
 	return retval;
-}
-
-/*
- * We need to translate between nfs status return values and
- * the local errno values which may not be the same.
- *
- * Andreas Schwab <schwab@LS5.informatik.uni-dortmund.de>: change errno:
- * "after #include <errno.h> the symbol errno is reserved for any use,
- *  it cannot even be used as a struct tag or field name".
- */
-
-#ifndef EDQUOT
-#define EDQUOT	ENOSPC
-#endif
-
-static struct {
-	enum nfsstat stat;
-	int errnum;
-} nfs_errtbl[] = {
-	{ NFS_OK,		0		},
-	{ NFSERR_PERM,		EPERM		},
-	{ NFSERR_NOENT,		ENOENT		},
-	{ NFSERR_IO,		EIO		},
-	{ NFSERR_NXIO,		ENXIO		},
-	{ NFSERR_ACCES,		EACCES		},
-	{ NFSERR_EXIST,		EEXIST		},
-	{ NFSERR_NODEV,		ENODEV		},
-	{ NFSERR_NOTDIR,	ENOTDIR		},
-	{ NFSERR_ISDIR,		EISDIR		},
-#ifdef NFSERR_INVAL
-	{ NFSERR_INVAL,		EINVAL		},	/* that Sun forgot */
-#endif
-	{ NFSERR_FBIG,		EFBIG		},
-	{ NFSERR_NOSPC,		ENOSPC		},
-	{ NFSERR_ROFS,		EROFS		},
-	{ NFSERR_NAMETOOLONG,	ENAMETOOLONG	},
-	{ NFSERR_NOTEMPTY,	ENOTEMPTY	},
-	{ NFSERR_DQUOT,		EDQUOT		},
-	{ NFSERR_STALE,		ESTALE		},
-#ifdef EWFLUSH
-	{ NFSERR_WFLUSH,	EWFLUSH		},
-#endif
-	/* Throw in some NFSv3 values for even more fun (HP returns these) */
-	{ 71,			EREMOTE		},
-
-	{ -1,			EIO		}
-};
-
-static char *nfs_strerror(int stat)
-{
-	int i;
-	static char buf[256];
-
-	for (i = 0; nfs_errtbl[i].stat != -1; i++) {
-		if (nfs_errtbl[i].stat == stat)
-			return strerror(nfs_errtbl[i].errnum);
-	}
-	sprintf(buf, _("unknown nfs status return value: %d"), stat);
-	return buf;
 }

@@ -82,6 +82,5 @@ struct nfs_mount_data {
 
 int nfsmount(const char *, const char *, int *, char **, char **,
 	     int, int *);
-void mount_errors(char *, int, int);
 
 #endif /* _NFS_MOUNT_H */

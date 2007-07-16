@@ -40,6 +40,7 @@
 #include "nfs4_mount.h"
 #include "nfsumount.h"
 #include "mount.h"
+#include "error.h"
 
 char *progname;
 int nomtab;
@@ -282,44 +283,20 @@ static void parse_opts (const char *options, int *flags, char **extra_opts)
 	}
 }
 
-static void mount_error(char *mntpnt, char *node)
-{
-	switch(errno) {
-		case ENOTDIR:
-			fprintf(stderr, "%s: mount point %s is not a directory\n", 
-				progname, mntpnt);
-			break;
-		case EBUSY:
-			fprintf(stderr, "%s: %s is already mounted or busy\n", 
-				progname, mntpnt);
-			break;
-		case ENOENT:
-			if (node) {
-				fprintf(stderr, "%s: %s failed, reason given by server: %s\n",
-					progname, node, strerror(errno));
-			} else
-				fprintf(stderr, "%s: mount point %s does not exist\n", 
-					progname, mntpnt);
-			break;
-		default:
-			fprintf(stderr, "%s: %s\n", progname, strerror(errno));
-	}
-}
 static int chk_mountpoint(char *mount_point)
 {
 	struct stat sb;
 
 	if (stat(mount_point, &sb) < 0){
-		mount_error(mount_point, NULL);
+		mount_error(NULL, mount_point, errno);
 		return 1;
 	}
 	if (S_ISDIR(sb.st_mode) == 0){
-		errno = ENOTDIR;
-		mount_error(mount_point, NULL);
+		mount_error(NULL, mount_point, ENOTDIR);
 		return 1;
 	}
 	if (access(mount_point, X_OK) < 0) {
-		mount_error(mount_point, NULL);
+		mount_error(NULL, mount_point, errno);
 		return 1;
 	}
 
@@ -529,7 +506,7 @@ int main(int argc, char *argv[])
 					   mount_opts);
 
 		if (mnt_err) {
-			mount_error(mount_point, spec);
+			mount_error(spec, mount_point, errno);
 			exit(EX_FAIL);
 		}
 	}
