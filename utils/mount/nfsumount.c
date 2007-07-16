@@ -157,7 +157,7 @@ int del_mtab(const char *spec, const char *node)
 
         if (umnt_err)
                 umount_error(umnt_err, node);
-        return 1;
+        return EX_FILEIO;
 }
 
 /*
@@ -307,7 +307,7 @@ int nfsumount(int argc, char *argv[])
 	    strcmp(mc->m.mnt_type, "nfs4") != 0) {
 		fprintf(stderr, "umount.nfs: %s on %s it not an nfs filesystem\n",
 			mc->m.mnt_fsname, mc->m.mnt_dir);
-		exit(1);
+		return EX_USAGE;
 	}
 
 	if (getuid() != 0) {
@@ -355,6 +355,6 @@ int nfsumount(int argc, char *argv[])
 	} else
 		ret = del_mtab(NULL, spec);
 
-	return(ret);
+	return ret;
 }
 

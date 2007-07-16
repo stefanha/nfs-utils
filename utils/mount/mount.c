@@ -367,22 +367,22 @@ int main(int argc, char *argv[])
 	if(!strncmp(progname, "umount", strlen("umount"))) {
 		if(argc < 2) {
 			umount_usage();
-			exit(1);
+			exit(EX_USAGE);
 		}
 		exit(nfsumount(argc, argv));
 	}
 
-	if(argv[1] && argv[1][0] == '-') {
+	if (argv[1] && argv[1][0] == '-') {
 		if(argv[1][1] == 'V')
 			printf("%s ("PACKAGE_STRING")\n", progname);
 		else
 			mount_usage();
-		return 0;
+		exit(0);
 	}
 
 	if ((argc < 3)) {
 		mount_usage();
-		exit(1);
+		exit(EX_USAGE);
 	}
 
 	spec = argv[1];
@@ -422,13 +422,13 @@ int main(int argc, char *argv[])
 		case 'h':
 		default:
 			mount_usage();
-			exit(1);
+			exit(EX_USAGE);
 		}
 	}
 	if (optind != argc-2) {
 		/* Extra non-option words at the end... */
 		mount_usage();
-		exit(1);
+		exit(EX_USAGE);
 	}
 
 	if (strcmp(progname, "mount.nfs4") == 0)
@@ -445,9 +445,9 @@ int main(int argc, char *argv[])
 		if ((mc = getfsfile(mount_point)) == NULL ||
 		    strcmp(mc->m.mnt_fsname, spec) != 0 ||
 		    strcmp(mc->m.mnt_type, fs_type) != 0) {
-			fprintf(stderr, "%s: permission denied: no match for %s "
-				"found in /etc/fstab\n", progname, mount_point);
-			exit(1);
+			nfs_error(_("%s: permission denied: no match for %s "
+				"found in /etc/fstab"), progname, mount_point);
+			exit(EX_USAGE);
 		}
 
 		/*
@@ -460,24 +460,31 @@ int main(int argc, char *argv[])
 	}
 
 	mount_point = canonicalize(mount_point);
-	if (mount_point == NULL ||
-	    mount_point[0] != '/') {
-		fprintf(stderr, "%s: unknown mount point %s\n",
-			progname, mount_point ? : "");
-		exit(1);
+	if (!mount_point) {
+		nfs_error(_("%s: no mount point provided"), progname);
+		exit(EX_USAGE);
 	}
-	
+	if (mount_point[0] != '/') {
+		nfs_error(_("%s: unrecognized mount point %s"),
+			progname, mount_point);
+		mnt_err = EX_USAGE;
+		goto out;
+	}
+
 	parse_opts(mount_opts, &flags, &extra_opts);
 
 	if (uid != 0) {
-	    if (! (flags & (MS_USERS | MS_USER))) {
-		    fprintf(stderr, "%s: permission denied\n", progname);
-		    exit(1);
-	    }
+		if (!(flags & (MS_USERS|MS_USER))) {
+			nfs_error(_("%s: permission denied"), progname);
+			mnt_err = EX_USAGE;
+			goto out;
+		}
 	}
 
-	if (chk_mountpoint(mount_point))
-		exit(EX_FAIL);
+	if (chk_mountpoint(mount_point)) {
+		mnt_err = EX_USAGE;
+		goto out;
+	}
 
 	if (strcmp(fs_type, "nfs4") == 0)
 		mnt_err = nfs4mount(spec, mount_point, flags, &extra_opts, fake);
@@ -494,6 +501,8 @@ int main(int argc, char *argv[])
 		mnt_err = add_mtab(spec, mount_point, fs_type, flags, extra_opts,
 				0, 0 /* these are always zero for NFS */ );
 
+out:
+	free(mount_point);
 	exit(mnt_err);
 }
 
