@@ -384,15 +384,10 @@ int main(int argc, char *argv[])
 {
 	int c, flags = 0, nfs_mount_vers = 0, mnt_err = 1, fake = 0;
 	char *spec, *mount_point, *extra_opts = NULL;
-	char *mount_opts = NULL, *p;
+	char *mount_opts = NULL;
 	uid_t uid = getuid();
 
-	progname = argv[0];
-	if (!progname)
-		exit(2);
-
-	if ((p = strrchr(progname, '/')) != NULL)
-		progname = p+1;
+	progname = basename(argv[0]);
 
 	if(!strncmp(progname, "umount", strlen("umount"))) {
 		if(argc < 2) {
