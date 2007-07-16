@@ -72,11 +72,6 @@ struct opt_map {
   int  mask;                    /* flag mask value */
 };
 
-/* Custom mount options for our own purposes.  */
-#define MS_DUMMY	0x00000000
-#define MS_USERS	0x40000000
-#define MS_USER		0x80000000
-
 static const struct opt_map opt_map[] = {
   { "defaults", 0, 0, 0         },      /* default options */
   { "ro",       1, 0, MS_RDONLY },      /* read-only */

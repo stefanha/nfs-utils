@@ -39,6 +39,18 @@ if we have a stack or plain mount - mount atop of it, forming a stack. */
 #ifndef MS_VERBOSE
 #define MS_VERBOSE	0x8000	/* 32768 */
 #endif
+
+/*
+ * NFS fs-specific mount option flags
+ *
+ * MS_DUMMY is assigned to mount options that are not to be
+ * passed to the kernel via the "flags" argument.  These are
+ * generally ignored or handled entirely in user space.
+ */
+#define MS_DUMMY	0x00000000
+#define MS_USERS	0x40000000
+#define MS_USER		0x80000000
+
 /*
  * Magic mount flag number. Had to be or-ed to the flag values.
  */
