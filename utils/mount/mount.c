@@ -57,7 +57,6 @@ static struct option longopts[] = {
   { "read-write", 0, 0, 'w' },
   { "rw", 0, 0, 'w' },
   { "options", 1, 0, 'o' },
-  { "nfsvers", 1, 0, 't' },
   { "bind", 0, 0, 128 },
   { "replace", 0, 0, 129 },
   { "after", 0, 0, 130 },
@@ -218,17 +217,18 @@ int do_mount_syscall(char *spec, char *node, char *type, int flags, void *data)
 
 void mount_usage()
 {
-	printf("usage: %s remotetarget dir [-rvVwfnh] [-t version] [-o nfsoptions]\n", progname);
-	printf("options:\n\t-r\t\tMount file system readonly\n");
+	printf("usage: %s remotetarget dir [-rvVwfnh] [-o nfsoptions]\n",
+		progname);
+	printf("options:\n");
+	printf("\t-r\t\tMount file system readonly\n");
 	printf("\t-v\t\tVerbose\n");
 	printf("\t-V\t\tPrint version\n");
 	printf("\t-w\t\tMount file system read-write\n");
-	printf("\t-f\t\tFake mount, don't actually mount\n");
+	printf("\t-f\t\tFake mount, do not actually mount\n");
 	printf("\t-n\t\tDo not update /etc/mtab\n");
 	printf("\t-s\t\tTolerate sloppy mount options rather than failing.\n");
 	printf("\t-h\t\tPrint this help\n");
-	printf("\tversion\t\tnfs4 - NFS version 4, nfs - older NFS version supported\n");
-	printf("\tnfsoptions\tRefer mount.nfs(8) or nfs(5)\n\n");
+	printf("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n");
 }
 
 static inline void
@@ -382,9 +382,9 @@ static int start_statd()
 
 int main(int argc, char *argv[])
 {
-	int c, flags = 0, nfs_mount_vers = 0, mnt_err = 1, fake = 0;
-	char *spec, *mount_point, *extra_opts = NULL;
-	char *mount_opts = NULL;
+	int c, flags = 0, mnt_err = 1, fake = 0;
+	char *spec, *mount_point, *fs_type = "nfs";
+	char *extra_opts = NULL, *mount_opts = NULL;
 	uid_t uid = getuid();
 
 	progname = basename(argv[0]);
@@ -414,22 +414,11 @@ int main(int argc, char *argv[])
 	mount_point = argv[2];
 
 	argv[2] = argv[0]; /* so that getopt error messages are correct */
-	while ((c = getopt_long (argc - 2, argv + 2, "rt:vVwfno:hs",
+	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hs",
 				longopts, NULL)) != -1) {
 		switch (c) {
 		case 'r':
 			flags |= MS_RDONLY;
-			break;
-		case 't':
-			if (strcmp(optarg, "nfs4") == 0)
-				nfs_mount_vers = 4;
-			else if (strcmp(optarg, "nfs") == 0)
-				nfs_mount_vers = 0;
-			else {
-				fprintf(stderr, "%s: unknown filesystem type: %s\n",
-					progname, optarg);
-				exit(1);
-			}
 			break;
 		case 'v':
 			++verbose;
@@ -489,26 +478,29 @@ int main(int argc, char *argv[])
 	}
 
 	if (strcmp(progname, "mount.nfs4") == 0)
-		nfs_mount_vers = 4;
+		fs_type = "nfs4";
 
+	/*
+	 * If a non-root user is attempting to mount, make sure the
+	 * user's requested options match the options specified in
+	 * /etc/fstab; otherwise, don't allow the mount.
+	 */
 	if (uid != 0) {
-		/* don't even think about it unless options exactly
-		 * match fstab
-		 */
 		struct mntentchn *mc;
 
 		if ((mc = getfsfile(mount_point)) == NULL ||
 		    strcmp(mc->m.mnt_fsname, spec) != 0 ||
-		    strcmp(mc->m.mnt_type, (nfs_mount_vers == 4 ? "nfs4":"nfs")) != 0
-		    ) {
-			fprintf(stderr, "%s: permission died - no match for fstab\n",
-				progname);
+		    strcmp(mc->m.mnt_type, fs_type) != 0) {
+			fprintf(stderr, "%s: permission denied: no match for %s "
+				"found in /etc/fstab\n", progname, mount_point);
 			exit(1);
 		}
-		/* 'mount' munges the options from fstab before passing them
+
+		/*
+		 * 'mount' munges the options from fstab before passing them
 		 * to us, so it is non-trivial to test that we have the correct
 		 * set of options and we don't want to trust what the user
-		 * gave us, so just take whatever is in fstab
+		 * gave us, so just take whatever is in /etc/fstab.
 		 */
 		mount_opts = strdup(mc->m.mnt_opts);
 		mounttype = 0;
@@ -534,7 +526,7 @@ int main(int argc, char *argv[])
 	if (chk_mountpoint(mount_point))
 		exit(EX_FAIL);
 
-	if (nfs_mount_vers == 4)
+	if (strcmp(fs_type, "nfs4") == 0)
 		mnt_err = nfs4mount(spec, mount_point, &flags, &extra_opts, &mount_opts, 0);
 	else {
 		int need_statd = 0;
@@ -558,8 +550,7 @@ int main(int argc, char *argv[])
 		exit(EX_FAIL);
 
 	if (!fake) {
-		mnt_err = do_mount_syscall(spec, mount_point,
-					   nfs_mount_vers == 4 ? "nfs4" : "nfs",
+		mnt_err = do_mount_syscall(spec, mount_point, fs_type,
 					   flags & ~(MS_USER|MS_USERS) ,
 					   mount_opts);
 
@@ -570,8 +561,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (!nomtab)
-		add_mtab(spec, mount_point,
-			 nfs_mount_vers == 4 ? "nfs4" : "nfs",
+		add_mtab(spec, mount_point, fs_type,
 			 flags, extra_opts, 0, 0);
 
 	return 0;
