@@ -17,6 +17,7 @@
 
 #include <nfslib.h>
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -111,7 +112,18 @@ void qword_printint(FILE *f, int num)
 
 int qword_eol(FILE *f)
 {
+	int err;
+
 	fprintf(f,"\n");
+	err = fflush(f);
+	/*
+	 * We must send one line (and one line only) in a single write
+	 * call.  In case of a write error, libc may accumulate the
+	 * unwritten data and try to write it again later, resulting in a
+	 * multi-line write.  So we must explicitly ask it to throw away
+	 * any such cached data:
+	 */
+	__fpurge(f);
 	return fflush(f);
 }
 
