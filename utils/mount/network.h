@@ -24,8 +24,14 @@
 #include "conn.h"
 #include "mount.h"
 
+#define MNT_SENDBUFSIZE (2048U)
+#define MNT_RECVBUFSIZE (1024U)
+
 int probe_bothports(clnt_addr_t *, clnt_addr_t *);
 int nfs_gethostbyname(const char *, struct sockaddr_in *);
 int nfs_call_umount(clnt_addr_t *, dirpath *);
 
 int start_statd(void);
+
+CLIENT *mnt_openclnt(clnt_addr_t *, int *);
+void mnt_closeclnt(CLIENT *, int);

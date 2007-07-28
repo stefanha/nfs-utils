@@ -429,3 +429,50 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 		return 1;
 	return 0;
 }
+
+CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
+{
+	struct sockaddr_in *mnt_saddr = &mnt_server->saddr;
+	struct pmap *mnt_pmap = &mnt_server->pmap;
+	CLIENT *clnt = NULL;
+
+	mnt_saddr->sin_port = htons((u_short)mnt_pmap->pm_port);
+	*msock = get_socket(mnt_saddr, mnt_pmap->pm_prot, TRUE, FALSE);
+	if (*msock == RPC_ANYSOCK) {
+		if (rpc_createerr.cf_error.re_errno == EADDRINUSE)
+			/*
+			 * Probably in-use by a TIME_WAIT connection,
+			 * It is worth waiting a while and trying again.
+			 */
+			rpc_createerr.cf_stat = RPC_TIMEDOUT;
+		return NULL;
+	}
+
+	switch (mnt_pmap->pm_prot) {
+	case IPPROTO_UDP:
+		clnt = clntudp_bufcreate(mnt_saddr,
+					 mnt_pmap->pm_prog, mnt_pmap->pm_vers,
+					 RETRY_TIMEOUT, msock,
+					 MNT_SENDBUFSIZE, MNT_RECVBUFSIZE);
+		break;
+	case IPPROTO_TCP:
+		clnt = clnttcp_create(mnt_saddr,
+				      mnt_pmap->pm_prog, mnt_pmap->pm_vers,
+				      msock,
+				      MNT_SENDBUFSIZE, MNT_RECVBUFSIZE);
+		break;
+	}
+	if (clnt) {
+		/* try to mount hostname:dirname */
+		clnt->cl_auth = authunix_create_default();
+		return clnt;
+	}
+	return NULL;
+}
+
+void mnt_closeclnt(CLIENT *clnt, int msock)
+{
+	auth_destroy(clnt->cl_auth);
+	clnt_destroy(clnt);
+	close(msock);
+}
