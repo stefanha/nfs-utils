@@ -326,11 +326,12 @@ int nfsumount(int argc, char *argv[])
 	ret = 0;
 	if (mc) {
 		if (!lazy)
-			do_nfs_umount(mc->m.mnt_fsname, mc->m.mnt_opts);
-		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
+			ret = do_nfs_umount(mc->m.mnt_fsname, mc->m.mnt_opts);
+		if (!ret || force)
+			ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
 	} else if (*spec != '/') {
 		if (!lazy)
-			do_nfs_umount(spec, "tcp,v3");
+			ret = do_nfs_umount(spec, "tcp,v3");
 	} else
 		ret = del_mtab(NULL, spec);
 
