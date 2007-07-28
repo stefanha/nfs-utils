@@ -363,6 +363,17 @@ int start_statd(void)
 	return 0;
 }
 
+/*
+ * nfs_call_umount - ask the server to remove a share from it's rmtab
+ * @mnt_server: address of RPC MNT program server
+ * @argp: directory path of share to "unmount"
+ *
+ * Returns one if the unmount call succeeded; zero if the unmount
+ * failed for any reason.
+ *
+ * Note that a side effect of calling this function is that rpccreateerr
+ * is set.
+ */
 int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 {
 	CLIENT *clnt;
@@ -374,22 +385,24 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 	case 2:
 	case 1:
 		if (!probe_mntport(mnt_server))
-			goto out_bad;
+			return 0;
 		clnt = mnt_openclnt(mnt_server, &msock);
 		if (!clnt)
-			goto out_bad;
+			return 0;
 		res = clnt_call(clnt, MOUNTPROC_UMNT,
-				(xdrproc_t) xdr_dirpath, (caddr_t)argp,
-				(xdrproc_t) xdr_void, NULL,
+				(xdrproc_t)xdr_dirpath, (caddr_t)argp,
+				(xdrproc_t)xdr_void, NULL,
 				TIMEOUT);
 		mnt_closeclnt(clnt, msock);
 		if (res == RPC_SUCCESS)
 			return 1;
 		break;
 	default:
-		res = 1;
+		res = RPC_SUCCESS;
 		break;
 	}
- out_bad:
-	return res;
+
+	if (res == RPC_SUCCESS)
+		return 1;
+	return 0;
 }
