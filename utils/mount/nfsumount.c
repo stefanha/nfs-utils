@@ -53,7 +53,7 @@ int force;
 int lazy;
 int remount;
 
-int del_mtab(const char *spec, const char *node)
+static int del_mtab(const char *spec, const char *node)
 {
 	int umnt_err, res;
 
