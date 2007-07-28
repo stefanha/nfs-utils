@@ -135,8 +135,23 @@ unsigned short getport(struct sockaddr_in *saddr, unsigned long prog,
 	struct pmap parms;
 	enum clnt_stat stat;
 
-	saddr->sin_port = htons (PMAPPORT);
-	socket = get_socket(saddr, prot, FALSE, FALSE);
+	saddr->sin_port = htons(PMAPPORT);
+
+	/*
+	 * Try to get a socket with a non-privileged port.
+	 * clnt*create() will create one anyway if this
+	 * fails.
+	 */
+	socket = get_socket(saddr, proto, FALSE, FALSE);
+	if (socket == RPC_ANYSOCK) {
+		if (proto == IPPROTO_TCP && errno == ETIMEDOUT) {
+			/*
+			 * TCP SYN timed out, so exit now.
+			 */
+			rpc_createerr.cf_stat = RPC_TIMEDOUT;
+		}
+		return 0;
+	}
 
 	switch (prot) {
 	case IPPROTO_UDP:
