@@ -200,7 +200,6 @@ int _nfsumount(const char *spec, char *opts)
 
 	pmap->pm_prog = MOUNTPROG;
 	pmap->pm_vers = MOUNTVERS_NFSV3;
-	pmap->pm_prot = IPPROTO_TCP;
 	if (opts && (p = strstr(opts, "mountprog=")) && isdigit(*(p+10)))
 		pmap->pm_prog = atoi(p+10);
 	if (opts && (p = strstr(opts, "mountport=")) && isdigit(*(p+10)))
