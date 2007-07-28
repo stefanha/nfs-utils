@@ -30,6 +30,9 @@
 int probe_bothports(clnt_addr_t *, clnt_addr_t *);
 int nfs_gethostbyname(const char *, struct sockaddr_in *);
 int nfs_call_umount(clnt_addr_t *, dirpath *);
+int clnt_ping(struct sockaddr_in *, const unsigned long,
+		const unsigned long, const unsigned int,
+		struct sockaddr_in *);
 
 int start_statd(void);
 

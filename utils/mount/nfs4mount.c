@@ -46,6 +46,7 @@
 #include "nfs4_mount.h"
 #include "nfs_mount.h"
 #include "error.h"
+#include "network.h"
 
 #if defined(VAR_LOCK_DIR)
 #define DEFAULT_DIR VAR_LOCK_DIR
