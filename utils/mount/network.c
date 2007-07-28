@@ -106,12 +106,13 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *saddr)
 	saddr->sin_family = AF_INET;
 	if (!inet_aton(hostname, &saddr->sin_addr)) {
 		if ((hp = gethostbyname(hostname)) == NULL) {
-			nfs_error(_("mount: can't get address for %s\n"),
-				hostname);
+			nfs_error(_("%s: can't get address for %s\n"),
+					progname, hostname);
 			return 0;
 		} else {
 			if (hp->h_length > sizeof(*saddr)) {
-				nfs_error(_("mount: got bad hp->h_length\n"));
+				nfs_error(_("%s: got bad hp->h_length\n"),
+						progname);
 				hp->h_length = sizeof(*saddr);
 			}
 			memcpy(&saddr->sin_addr, hp->h_addr, hp->h_length);

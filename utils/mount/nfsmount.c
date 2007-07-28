@@ -273,7 +273,8 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				char *secflavor = opteq+1;
 				/* see RFC 2623 */
 				if (nfs_mount_data_version < 5) {
-					printf(_("Warning: ignoring sec=%s option\n"), secflavor);
+					printf(_("Warning: ignoring sec=%s option\n"),
+							secflavor);
 					continue;
 				} else if (!strcmp(secflavor, "none"))
 					data->pseudoflavor = AUTH_NONE;
@@ -314,8 +315,9 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 				int ctxlen = strlen(context);
 
 				if (ctxlen > NFS_MAX_CONTEXT_LEN) {
-					printf(_("context parameter exceeds limit of %d\n"),
-						 NFS_MAX_CONTEXT_LEN);
+					nfs_error(_("context parameter exceeds"
+							" limit of %d"),
+							NFS_MAX_CONTEXT_LEN);
 					goto bad_parameter;
 				}
 				/* The context string is in the format of
@@ -427,15 +429,17 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			bad_option:
 				if (sloppy)
 					continue;
-				printf(_("Unsupported nfs mount option: "
-					 "%s%s\n"), val ? "" : "no", opt);
+				nfs_error(_("%s: Unsupported nfs mount option:"
+						" %s%s"), progname,
+						val ? "" : "no", opt);
 				goto out_bad;
 			}
 			sprintf(cbuf, val ? "%s,":"no%s,", opt);
 		}
 		len += strlen(cbuf);
 		if (len >= opt_size) {
-			printf(_("mount: excessively long option argument\n"));
+			nfs_error(_("%s: excessively long option argument"),
+					progname);
 			goto out_bad;
 		}
 		strcat(new_opts, cbuf);
@@ -448,7 +452,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 	}
 	return 1;
  bad_parameter:
-	printf(_("Bad nfs mount parameter: %s\n"), opt);
+	nfs_error(_("%s: Bad nfs mount parameter: %s\n"), progname, opt);
  out_bad:
 	return 0;
 }
