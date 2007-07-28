@@ -281,17 +281,17 @@ int nfsumount(int argc, char *argv[])
 		case 'h':
 		default:
 			umount_usage();
-			return 0;
+			return EX_USAGE;
 		}
 	}
 	if (optind != argc) {
 		umount_usage();
-		return 0;
+		return EX_USAGE;
 	}
 	
 	if (spec == NULL || (*spec != '/' && strchr(spec,':') == NULL)) {
-		printf(_("umount: %s: not found\n"), spec);
-		return 0;
+		nfs_error(_("%s: %s: not found\n"), progname, spec);
+		return EX_USAGE;
 	}
 
 	if (*spec == '/')
@@ -319,7 +319,7 @@ int nfsumount(int argc, char *argv[])
 		only_root:
 			nfs_error(_("%s: You are not permitted to unmount %s"),
 					progname, spec);
-			return 0;
+			return EX_USAGE;
 		}
 		if (hasmntopt(&mc->m, "users") == NULL) {
 			char *opt = hasmntopt(&mc->m, "user");
