@@ -171,64 +171,70 @@ static int get_socket(struct sockaddr_in *saddr, unsigned int p_prot,
 	socklen_t namelen = sizeof(laddr);
 
 	type = (p_prot == IPPROTO_UDP ? SOCK_DGRAM : SOCK_STREAM);
-	if ((so = socket (AF_INET, type, p_prot)) < 0) {
-		rpc_createerr.cf_stat = RPC_SYSTEMERROR;
-		rpc_createerr.cf_error.re_errno = errno;
-		if (verbose) {
-			fprintf(stderr, 
-				"mount: Unable to create %s socket: errno %d (%s)\n",
-				p_prot == IPPROTO_UDP ? "UDP" : "TCP", 
-				errno, strerror(errno));
-		}
-		return RPC_ANYSOCK;
-	}
+	if ((so = socket (AF_INET, type, p_prot)) < 0)
+		goto err_socket;
+
 	laddr.sin_family = AF_INET;
 	laddr.sin_port = 0;
 	laddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (resvp) {
-		if (bindresvport(so, &laddr) < 0) {
-			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
-			rpc_createerr.cf_error.re_errno = errno;
-			if (verbose) {
-				fprintf(stderr, 
-					"mount: Unable to bindresvport %s socket: errno %d (%s)\n",
-					p_prot == IPPROTO_UDP ? "UDP" : "TCP", 
-					errno, strerror(errno));
-			}
-			close(so);
-			return RPC_ANYSOCK;
-		}
+		if (bindresvport(so, &laddr) < 0)
+			goto err_bindresvport;
 	} else {
 		cc = bind(so, (struct sockaddr *)&laddr, namelen);
-		if (cc < 0) {
-			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
-			rpc_createerr.cf_error.re_errno = errno;
-			if (verbose) {
-				fprintf(stderr, 
-					"mount: Unable to bind to %s socket: errno %d (%s)\n",
-					p_prot == IPPROTO_UDP ? "UDP" : "TCP", 
-					errno, strerror(errno));
-			}
-			close(so);
-			return RPC_ANYSOCK;
-		}
+		if (cc < 0)
+			goto err_bind;
 	}
 	if (type == SOCK_STREAM || (conn && type == SOCK_DGRAM)) {
 		cc = connect(so, (struct sockaddr *)saddr, namelen);
-		if (cc < 0) {
-			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
-			rpc_createerr.cf_error.re_errno = errno;
-			if (verbose) {
-				fprintf(stderr, 
-					"mount: Unable to connect to %s:%d, errno %d (%s)\n",
-					inet_ntoa(saddr->sin_addr), ntohs(saddr->sin_port),
-					errno, strerror(errno));
-			}
-			close(so);
-			return RPC_ANYSOCK;
-		}
+		if (cc < 0)
+			goto err_connect;
 	}
 	return so;
+
+err_socket:
+	rpc_createerr.cf_stat = RPC_SYSTEMERROR;
+	rpc_createerr.cf_error.re_errno = errno;
+	if (verbose) {
+		nfs_error(_("%s: Unable to create %s socket: errno %d (%s)\n"),
+			progname, p_prot == IPPROTO_UDP ? _("UDP") : _("TCP"),
+			errno, strerror(errno));
+	}
+	return RPC_ANYSOCK;
+
+err_bindresvport:
+	rpc_createerr.cf_stat = RPC_SYSTEMERROR;
+	rpc_createerr.cf_error.re_errno = errno;
+	if (verbose) {
+		nfs_error(_("%s: Unable to bindresvport %s socket: errno %d"
+				" (%s)\n"),
+			progname, p_prot == IPPROTO_UDP ? _("UDP") : _("TCP"),
+			errno, strerror(errno));
+	}
+	close(so);
+	return RPC_ANYSOCK;
+
+err_bind:
+	rpc_createerr.cf_stat = RPC_SYSTEMERROR;
+	rpc_createerr.cf_error.re_errno = errno;
+	if (verbose) {
+		nfs_error(_("%s: Unable to bind to %s socket: errno %d (%s)\n"),
+			progname, p_prot == IPPROTO_UDP ? _("UDP") : _("TCP"),
+			errno, strerror(errno));
+	}
+	close(so);
+	return RPC_ANYSOCK;
+
+err_connect:
+	rpc_createerr.cf_stat = RPC_SYSTEMERROR;
+	rpc_createerr.cf_error.re_errno = errno;
+	if (verbose) {
+		nfs_error(_("%s: Unable to connect to %s:%d, errno %d (%s)\n"),
+			progname, inet_ntoa(saddr->sin_addr),
+			ntohs(saddr->sin_port), errno, strerror(errno));
+	}
+	close(so);
+	return RPC_ANYSOCK;
 }
 
 /*
