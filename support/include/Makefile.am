@@ -3,7 +3,6 @@
 SUBDIRS = nfs rpcsvc sys
 
 noinst_HEADERS = \
-	conn.h \
 	exportfs.h \
 	fstab.h \
 	ha-callout.h \

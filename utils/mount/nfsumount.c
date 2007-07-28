@@ -29,7 +29,6 @@
 #include "xcommon.h"
 #include "fstab.h"
 #include "nls.h"
-#include "conn.h"
 
 #include "mount_constants.h"
 #include "mount.h"

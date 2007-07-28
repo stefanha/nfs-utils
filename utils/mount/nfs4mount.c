@@ -39,7 +39,6 @@
 
 #include "pseudoflavors.h"
 #include "nls.h"
-#include "conn.h"
 #include "xcommon.h"
 
 #include "mount_constants.h"

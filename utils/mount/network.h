@@ -21,11 +21,30 @@
  *
  */
 
-#include "conn.h"
+#include <rpc/pmap_prot.h>
+#include <rpc/clnt.h>
+
 #include "mount.h"
+
+#ifdef HAVE_RPCSVC_NFS_PROT_H
+#include <rpcsvc/nfs_prot.h>
+#else
+#include <linux/nfs.h>
+#define nfsstat nfs_stat
+#endif
 
 #define MNT_SENDBUFSIZE (2048U)
 #define MNT_RECVBUFSIZE (1024U)
+
+typedef struct {
+	char **hostname;
+	struct sockaddr_in saddr;
+	struct pmap pmap;
+} clnt_addr_t;
+
+/* RPC call timeout values */
+static const struct timeval TIMEOUT = { 20, 0 };
+static const struct timeval RETRY_TIMEOUT = { 3, 0 };
 
 int probe_bothports(clnt_addr_t *, clnt_addr_t *);
 int nfs_gethostbyname(const char *, struct sockaddr_in *);

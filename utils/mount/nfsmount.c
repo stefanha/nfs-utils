@@ -56,7 +56,6 @@
 #include <paths.h>
 #include <syslog.h>
 
-#include "conn.h"
 #include "xcommon.h"
 #include "mount.h"
 #include "nfs_mount.h"

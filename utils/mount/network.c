@@ -34,7 +34,6 @@
 #include <rpc/pmap_clnt.h>
 #include <sys/socket.h>
 
-#include "conn.h"
 #include "xcommon.h"
 #include "mount.h"
 #include "nls.h"
