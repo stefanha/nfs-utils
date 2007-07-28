@@ -25,24 +25,6 @@
 
 extern int verbose;
 
-/* Map an NFS version into the corresponding Mountd version */
-u_long nfsvers_to_mnt(const u_long vers)
-{
-	static const u_long nfs_to_mnt[] = { 0, 0, 1, 3 };
-	if (vers <= 3)
-		return nfs_to_mnt[vers];
-	return 0;
-}
-
-/* Map a Mountd version into the corresponding NFS version */
-u_long mntvers_to_nfs(const u_long vers)
-{
-	static const u_long mnt_to_nfs[] = { 0, 2, 2, 3 };
-	if (vers <= 3)
-		return mnt_to_nfs[vers];
-	return 0;
-}
-
 /*
  * Create a socket that is locally bound to a 
  * reserve or non-reserve port. For any failures,

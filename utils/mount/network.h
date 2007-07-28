@@ -33,5 +33,7 @@ int nfs_call_umount(clnt_addr_t *, dirpath *);
 
 int start_statd(void);
 
+unsigned long nfsvers_to_mnt(const unsigned long);
+
 CLIENT *mnt_openclnt(clnt_addr_t *, int *);
 void mnt_closeclnt(CLIENT *, int);

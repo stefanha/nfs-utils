@@ -57,6 +57,40 @@ extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
 
+static const unsigned long nfs_to_mnt[] = {
+	0,
+	0,
+	1,
+	3,
+};
+
+static const unsigned long mnt_to_nfs[] = {
+	0,
+	2,
+	2,
+	3,
+};
+
+/*
+ * Map an NFS version into the corresponding Mountd version
+ */
+unsigned long nfsvers_to_mnt(const unsigned long vers)
+{
+	if (vers <= 3)
+		return nfs_to_mnt[vers];
+	return 0;
+}
+
+/*
+ * Map a Mountd version into the corresponding NFS version
+ */
+static unsigned long mntvers_to_nfs(const unsigned long vers)
+{
+	if (vers <= 3)
+		return mnt_to_nfs[vers];
+	return 0;
+}
+
 static const unsigned int probe_udp_only[] = {
 	IPPROTO_UDP,
 	0,
