@@ -25,6 +25,7 @@
 #define streq(s, t)	(strcmp ((s), (t)) == 0)
 #define PROC_MOUNTS		"/proc/mounts"
 
+extern char *progname;
 extern int verbose;
 
 /* Information about mtab. ------------------------------------*/
@@ -174,9 +175,8 @@ read_mounttable() {
                         return;
                 }
                 if (verbose)
-                        printf (_("mount: could not open %s - "
-                                  "using %s instead\n"),
-                                MOUNTED, PROC_MOUNTS);
+                        printf(_("%s: could not open %s; using %s instead\n"),
+				progname, MOUNTED, PROC_MOUNTS);
         }
         read_mntentchn(mfp, fnam, mc);
 }
@@ -400,8 +400,10 @@ lock_mtab (void) {
 			if (fcntl (lockfile_fd, F_SETLK, &flock) == -1) {
 				if (verbose) {
 				    int errsv = errno;
-				    printf(_("Can't lock lock file %s: %s\n"),
-					   MOUNTED_LOCK, strerror (errsv));
+				    nfs_error(_("%s: Can't lock lock file "
+						"%s: %s"), progname,
+					   	MOUNTED_LOCK,
+						strerror (errsv));
 				}
 				/* proceed anyway */
 			}
@@ -528,8 +530,8 @@ update_mtab (const char *dir, struct mntent *instead)
 	if (fchmod (fileno (mftmp->mntent_fp),
 		    S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH) < 0) {
 		int errsv = errno;
-		fprintf(stderr, _("error changing mode of %s: %s\n"),
-			MOUNTED_TEMP, strerror (errsv));
+		nfs_error(_("%s: error changing mode of %s: %s"),
+				progname, MOUNTED_TEMP, strerror (errsv));
 	}
 	nfs_endmntent (mftmp);
 
@@ -546,8 +548,9 @@ update_mtab (const char *dir, struct mntent *instead)
 	/* rename mtemp to mtab */
 	if (rename (MOUNTED_TEMP, MOUNTED) < 0) {
 		int errsv = errno;
-		fprintf(stderr, _("can't rename %s to %s: %s\n"),
-			MOUNTED_TEMP, MOUNTED, strerror(errsv));
+		nfs_error(_("%s: can't rename %s to %s: %s\n"),
+				progname, MOUNTED_TEMP, MOUNTED,
+				strerror(errsv));
 	}
 
  leave:
