@@ -80,6 +80,7 @@ struct nfs_mount_data {
 #define AUTH_GSS_SPKMP		390011
 #endif
 
-int nfsmount(const char *, const char *, int , char **, int);
+int	nfsmount(const char *, const char *, int , char **, int);
+int	nfsumount(int, char **);
 
 #endif /* _NFS_MOUNT_H */

@@ -59,7 +59,6 @@
 #include "conn.h"
 #include "xcommon.h"
 #include "mount.h"
-#include "nfsumount.h"
 #include "nfs_mount.h"
 #include "mount_constants.h"
 #include "nls.h"

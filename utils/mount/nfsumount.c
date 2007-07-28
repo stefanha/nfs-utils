@@ -33,7 +33,6 @@
 
 #include "mount_constants.h"
 #include "mount.h"
-#include "nfsumount.h"
 #include "error.h"
 #include "network.h"
 

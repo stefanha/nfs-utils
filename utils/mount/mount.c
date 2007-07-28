@@ -39,7 +39,6 @@
 
 #include "nfs_mount.h"
 #include "nfs4_mount.h"
-#include "nfsumount.h"
 #include "mount.h"
 #include "error.h"
 #include "network.h"
