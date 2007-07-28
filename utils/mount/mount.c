@@ -374,13 +374,8 @@ int main(int argc, char *argv[])
 
 	discover_nfs_mount_data_version();
 
-	if(!strncmp(progname, "umount", strlen("umount"))) {
-		if(argc < 2) {
-			umount_usage();
-			exit(EX_USAGE);
-		}
+	if(!strncmp(progname, "umount", strlen("umount")))
 		exit(nfsumount(argc, argv));
-	}
 
 	if (argv[1] && argv[1][0] == '-') {
 		if(argv[1][1] == 'V')

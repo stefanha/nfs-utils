@@ -235,7 +235,7 @@ static struct option umount_longopts[] =
   { NULL, 0, 0, 0 }
 };
 
-void umount_usage(void)
+static void umount_usage(void)
 {
 	printf("usage: %s dir [-fvnrlh]\n", progname);
 	printf("options:\n\t-f\t\tforce unmount\n");
@@ -251,6 +251,11 @@ int nfsumount(int argc, char *argv[])
 	int c, ret;
 	char *spec;
 	struct mntentchn *mc;
+
+	if (argc < 2) {
+		umount_usage();
+		return EX_USAGE;
+	}
 
 	spec = argv[1];
 
