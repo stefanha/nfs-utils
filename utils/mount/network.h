@@ -22,11 +22,10 @@
  */
 
 #include "conn.h"
+#include "mount.h"
 
-int nfs_gethostbyname(const char *, struct sockaddr_in *);
-
-int probe_mntport(clnt_addr_t *);
-int probe_nfsport(clnt_addr_t *);
 int probe_bothports(clnt_addr_t *, clnt_addr_t *);
+int nfs_gethostbyname(const char *, struct sockaddr_in *);
+int nfs_call_umount(clnt_addr_t *, dirpath *);
 
 int start_statd(void);

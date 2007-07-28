@@ -53,43 +53,6 @@ int force;
 int lazy;
 int remount;
 
-static inline enum clnt_stat
-nfs_umount(dirpath *argp, CLIENT *clnt)
-{
-	return clnt_call(clnt, MOUNTPROC_UMNT,
-			 (xdrproc_t) xdr_dirpath, (caddr_t)argp,
-			 (xdrproc_t) xdr_void, NULL,
-			 TIMEOUT);
-}
-
-int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
-{
-	CLIENT *clnt;
-	enum clnt_stat res = 0;
-	int msock;
-
-	switch (mnt_server->pmap.pm_vers) {
-	case 3:
-	case 2:
-	case 1:
-		if (!probe_mntport(mnt_server))
-			goto out_bad;
-		clnt = mnt_openclnt(mnt_server, &msock);
-		if (!clnt)
-			goto out_bad;
-		res = nfs_umount(argp, clnt);
-		mnt_closeclnt(clnt, msock);
-		if (res == RPC_SUCCESS)
-			return 1;
-		break;
-	default:
-		res = 1;
-		break;
-	}
- out_bad:
-	return res;
-}
-
 int del_mtab(const char *spec, const char *node)
 {
 	int umnt_err, res;

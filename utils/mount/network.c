@@ -245,7 +245,7 @@ out_ok:
 	return 1;
 }
 
-int probe_nfsport(clnt_addr_t *nfs_server)
+static int probe_nfsport(clnt_addr_t *nfs_server)
 {
 	struct pmap *pmap = &nfs_server->pmap;
 
@@ -258,7 +258,7 @@ int probe_nfsport(clnt_addr_t *nfs_server)
 		return probe_port(nfs_server, probe_nfs2_only, probe_udp_only);
 }
 
-int probe_mntport(clnt_addr_t *mnt_server)
+static int probe_mntport(clnt_addr_t *mnt_server)
 {
 	struct pmap *pmap = &mnt_server->pmap;
 
@@ -361,4 +361,35 @@ int start_statd(void)
 #endif
 
 	return 0;
+}
+
+int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
+{
+	CLIENT *clnt;
+	enum clnt_stat res = 0;
+	int msock;
+
+	switch (mnt_server->pmap.pm_vers) {
+	case 3:
+	case 2:
+	case 1:
+		if (!probe_mntport(mnt_server))
+			goto out_bad;
+		clnt = mnt_openclnt(mnt_server, &msock);
+		if (!clnt)
+			goto out_bad;
+		res = clnt_call(clnt, MOUNTPROC_UMNT,
+				(xdrproc_t) xdr_dirpath, (caddr_t)argp,
+				(xdrproc_t) xdr_void, NULL,
+				TIMEOUT);
+		mnt_closeclnt(clnt, msock);
+		if (res == RPC_SUCCESS)
+			return 1;
+		break;
+	default:
+		res = 1;
+		break;
+	}
+ out_bad:
+	return res;
 }
