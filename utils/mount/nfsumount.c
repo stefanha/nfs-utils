@@ -121,9 +121,6 @@ static int del_mtab(const char *spec, const char *node)
         return EX_FILEIO;
 }
 
-/*
- * Returns 1 if everything went well, else 0.
- */
 static int do_nfs_umount(const char *spec, char *opts)
 {
 	char *hostname;
@@ -133,10 +130,20 @@ static int do_nfs_umount(const char *spec, char *opts)
 	struct pmap *pmap = &mnt_server.pmap;
 	char *p;
 
-	if (spec == NULL || (p = strchr(spec,':')) == NULL)
-		goto out_bad;
-	hostname = xstrndup(spec, p-spec);
-	dirname = xstrdup(p+1);
+	if (spec == NULL) {
+		nfs_error(_("%s: No NFS export name was provided"),
+				progname);
+		return EX_USAGE;
+	}
+	
+	p = strchr(spec, ':');
+	if (p == NULL) {
+		nfs_error(_("%s: '%s' is not a legal NFS export name"),
+				progname, spec);
+		return EX_USAGE;
+	}
+	hostname = xstrndup(spec, p - spec);
+	dirname = xstrdup(p + 1);
 #ifdef NFS_MOUNT_DEBUG
 	printf(_("host: %s, directory: %s\n"), hostname, dirname);
 #endif
@@ -180,11 +187,18 @@ static int do_nfs_umount(const char *spec, char *opts)
 	if (opts && (hasmntopt(&mnt, "udp") || hasmntopt(&mnt, "proto=udp")))
 		pmap->pm_prot = IPPROTO_UDP;
 
-	if (!nfs_gethostbyname(hostname, &mnt_server.saddr))
-		goto out_bad;
-	return nfs_call_umount(&mnt_server, &dirname);
- out_bad:
-	nfs_error(_("%s: %s: not found or not mounted"), progname, spec);
+	if (!nfs_gethostbyname(hostname, &mnt_server.saddr)) {
+		nfs_error(_("%s: '%s' does not contain a recognized hostname"),
+				progname, spec);
+		return EX_USAGE;
+	}
+
+	if (!nfs_call_umount(&mnt_server, &dirname)) {
+		nfs_error(_("%s: Server failed to unmount '%s'"),
+				progname, spec);
+		return EX_USAGE;
+	}
+
 	return 0;
 }
 
