@@ -121,18 +121,22 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *saddr)
 }
 
 /*
- * getport() is very similar to pmap_getport() with
- * the exception this version uses a non-reserve ports
- * instead of reserve ports since reserve ports
- * are not needed for pmap requests.
+ * getport() is very similar to pmap_getport() with the exception that
+ * this version tries to use an ephemeral port, since reserved ports are
+ * not needed for GETPORT queries.  This conserves the very limited
+ * reserved port space, which helps reduce failed socket binds
+ * during mount storms.
+ *
+ * A side effect of calling this function is that rpccreateerr is set.
  */
-unsigned short getport(struct sockaddr_in *saddr, unsigned long prog,
-			unsigned long vers, unsigned int prot)
+static unsigned short getport(struct sockaddr_in *saddr,
+				unsigned long program,
+				unsigned long version,
+				unsigned int proto)
 {
 	unsigned short port = 0;
 	int socket;
 	CLIENT *clnt = NULL;
-	struct pmap parms;
 	enum clnt_stat stat;
 
 	saddr->sin_port = htons(PMAPPORT);
@@ -153,25 +157,30 @@ unsigned short getport(struct sockaddr_in *saddr, unsigned long prog,
 		return 0;
 	}
 
-	switch (prot) {
+	switch (proto) {
 	case IPPROTO_UDP:
 		clnt = clntudp_bufcreate(saddr,
-					 PMAPPROG, PMAPVERS, TIMEOUT, &socket,
-					 UDPMSGSIZE, UDPMSGSIZE);
+					 PMAPPROG, PMAPVERS,
+					 RETRY_TIMEOUT, &socket,
+					 RPCSMALLMSGSIZE,
+					 RPCSMALLMSGSIZE);
 		break;
 	case IPPROTO_TCP:
-		clnt = clnttcp_create(saddr,
-			PMAPPROG, PMAPVERS, &socket, 50, 500);
+		clnt = clnttcp_create(saddr, PMAPPROG, PMAPVERS, &socket,
+				      RPCSMALLMSGSIZE, RPCSMALLMSGSIZE);
 		break;
 	}
 	if (clnt != NULL) {
-		parms.pm_prog = prog;
-		parms.pm_vers = vers;
-		parms.pm_prot = prot;
-		parms.pm_port = 0;    /* not needed or used */
+		struct pmap parms = {
+			.pm_prog	= program,
+			.pm_vers	= version,
+			.pm_prot	= proto,
+		};
 
-		stat = clnt_call(clnt, PMAPPROC_GETPORT, (xdrproc_t)xdr_pmap,
-			(caddr_t)&parms, (xdrproc_t)xdr_u_short, (caddr_t)&port, TIMEOUT);
+		stat = clnt_call(clnt, PMAPPROC_GETPORT,
+				 (xdrproc_t)xdr_pmap, (caddr_t)&parms,
+				 (xdrproc_t)xdr_u_short, (caddr_t)&port,
+				 TIMEOUT);
 		if (stat) {
 			clnt_geterr(clnt, &rpc_createerr.cf_error);
 			rpc_createerr.cf_stat = stat;
