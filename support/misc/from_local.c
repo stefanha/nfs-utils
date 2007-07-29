@@ -71,7 +71,7 @@ static struct in_addr *addrs;
 
 /* grow_addrs - extend list of local interface addresses */
 
-static int grow_addrs()
+static int grow_addrs(void)
 {
     struct in_addr *new_addrs;
     int     new_num;
@@ -99,7 +99,7 @@ static int grow_addrs()
 
 /* find_local - find all IP addresses for this host */
 static int
-find_local()
+find_local(void)
 {
     struct ifconf ifc;
     struct ifreq ifreq;
@@ -157,8 +157,7 @@ find_local()
 
 /* from_local - determine whether request comes from the local system */
 int
-from_local(addr)
-struct sockaddr_in *addr;
+from_local(struct sockaddr_in *addr)
 {
     int     i;
 

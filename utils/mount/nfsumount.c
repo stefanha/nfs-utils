@@ -236,7 +236,7 @@ static struct option umount_longopts[] =
   { NULL, 0, 0, 0 }
 };
 
-void umount_usage()
+void umount_usage(void)
 {
 	printf("usage: %s dir [-fvnrlh]\n", progname);
 	printf("options:\n\t-f\t\tforce unmount\n");

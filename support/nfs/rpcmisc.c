@@ -47,7 +47,9 @@ int	_rpcfdtype = 0;
 int	_rpcsvcdirty = 0;
 
 void
-rpc_init(char *name, int prog, int vers, void (*dispatch)(), int defport)
+rpc_init(char *name, int prog, int vers,
+	 void (*dispatch)(struct svc_req *, register SVCXPRT *),
+	 int defport)
 {
 	struct sockaddr_in saddr;
 	SVCXPRT	*transp;

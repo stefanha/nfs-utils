@@ -148,7 +148,7 @@ static void log_modes(void)
  * help the occasional admin. 
  */
 static void 
-usage()
+usage(void)
 {
 	fprintf(stderr,"usage: %s [options]\n", name_p);
 	fprintf(stderr,"      -h, -?, --help       Print this help screen.\n");
@@ -445,7 +445,7 @@ int main (int argc, char **argv)
 
 	/* Child. */
 
-	log_init (name_p,version_p);
+	log_init (/*name_p,version_p*/);
 
 	log_modes();
 

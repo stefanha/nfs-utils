@@ -280,7 +280,7 @@ void load_state(void)
 			b = strchr(buf, '\n');
 			if (b) *b = 0;
 			sscanf(buf, "%x %x %x %x ",
-			       &addr, &prog, &vers, &proc, myname);
+			       &addr, &prog, &vers, &proc);
 			b = buf+36;
 			for (i=0; i<SM_PRIV_SIZE; i++) {
 				sscanf(b, "%2x", &p);

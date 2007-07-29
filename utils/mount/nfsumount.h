@@ -6,6 +6,6 @@
 
 int nfsumount(int, char **);
 int nfs_call_umount(clnt_addr_t *, dirpath *);
-void umount_usage();
+void umount_usage(void);
 
 #endif

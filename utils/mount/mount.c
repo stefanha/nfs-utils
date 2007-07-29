@@ -267,7 +267,7 @@ fail_unlock:
 	return result;
 }
 
-void mount_usage()
+void mount_usage(void)
 {
 	printf("usage: %s remotetarget dir [-rvVwfnh] [-o nfsoptions]\n",
 		progname);

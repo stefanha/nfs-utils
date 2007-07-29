@@ -86,7 +86,7 @@ static int		addr_get_port(nsm_address *);
 static void		addr_set_port(nsm_address *, int);
 static struct addrinfo	*host_lookup(int, const char *);
 void			nsm_log(int fac, const char *fmt, ...);
-static int		record_pid();
+static int		record_pid(void);
 static void		drop_privs(void);
 static void set_kernel_nsm_state(int state);
 
@@ -730,7 +730,7 @@ nsm_log(int fac, const char *fmt, ...)
  * program exits.
  * If file already exists, fail.
  */
-static int record_pid()
+static int record_pid(void)
 {
 	char pid[20];
 	int fd;

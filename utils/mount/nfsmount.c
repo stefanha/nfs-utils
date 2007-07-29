@@ -93,7 +93,7 @@ extern char *progname;
 extern int verbose;
 extern int sloppy;
 
-extern int linux_version_code();
+extern int linux_version_code(void);
 
 static inline enum clnt_stat
 nfs3_mount(CLIENT *clnt, mnt3arg_t *mnt3arg, mnt3res_t *mnt3res)

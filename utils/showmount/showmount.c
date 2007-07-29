@@ -62,16 +62,14 @@ static struct option longopts[] =
 
 #define MAXHOSTLEN 256
 
-int dump_cmp(p, q)
-char **p;
-char **q;
+static int dump_cmp(const void *pv, const void *qv)
 {
+	const char **p = (const char **)pv;
+	const char **q = (const char **)qv;
 	return strcmp(*p, *q);
 }
 
-static void usage(fp, n)
-FILE *fp;
-int n;
+static void usage(FILE *fp, int n)
 {
 	fprintf(fp, "Usage: %s [-adehv]\n", program_name);
 	fprintf(fp, "       [--all] [--directories] [--exports]\n");
@@ -249,9 +247,7 @@ static unsigned short getport(struct sockaddr_in *addr,
 	return htons(port);
 }
 
-int main(argc, argv)
-int argc;
-char **argv;
+int main(int argc, char **argv)
 {
 	char hostname_buf[MAXHOSTLEN];
 	char *hostname;

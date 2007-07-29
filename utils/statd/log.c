@@ -33,7 +33,7 @@ static pid_t	mypid;
 static int	opt_debug = 0;	/* Will be command-line option, eventually */
 #endif
 
-void log_init()
+void log_init(void)
 {
 	if (!(run_mode & MODE_LOG_STDERR)) 
 		openlog(name_p, LOG_PID | LOG_NDELAY, LOG_DAEMON);

@@ -49,8 +49,9 @@
 #include <rpc/rpcent.h>
 #endif
 
-static void logit();
-static void toggle_verboselog();
+static void logit(int severity, struct sockaddr_in *addr,
+		  u_long procnum, u_long prognum, char *text);
+static void toggle_verboselog(int sig);
 int     verboselog = 0;
 int     allow_severity = LOG_INFO;
 int     deny_severity = LOG_WARNING;
@@ -139,7 +140,7 @@ struct sockaddr_in *addr;
 
 /* check_startup - additional startup code */
 
-void    check_startup()
+void    check_startup(void)
 {
 
     /*
@@ -194,11 +195,8 @@ u_long  prog;
 
 /* check_privileged_port - additional checks for privileged-port updates */
 int
-check_privileged_port(addr, proc, prog, port)
-struct sockaddr_in *addr;
-u_long  proc;
-u_long  prog;
-u_long  port;
+check_privileged_port(struct sockaddr_in *addr,	
+		      u_long proc, u_long prog, u_long port)
 {
 #ifdef CHECK_PORT
     if (!legal_port(addr, port)) {
@@ -211,8 +209,7 @@ u_long  port;
 
 /* toggle_verboselog - toggle verbose logging flag */
 
-static void toggle_verboselog(sig)
-int     sig;
+static void toggle_verboselog(int sig)
 {
     (void) signal(sig, toggle_verboselog);
     verboselog = !verboselog;
@@ -220,12 +217,8 @@ int     sig;
 
 /* logit - report events of interest via the syslog daemon */
 
-static void logit(severity, addr, procnum, prognum, text)
-int     severity;
-struct sockaddr_in *addr;
-u_long  procnum;
-u_long  prognum;
-char   *text;
+static void logit(int severity, struct sockaddr_in *addr,
+		  u_long procnum, u_long prognum, char *text)
 {
     char   *procname;
     char    procbuf[16 + 4 * sizeof(u_long)];

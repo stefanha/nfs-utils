@@ -45,7 +45,6 @@ extern char *  SM_STAT_PATH;
  * Function prototypes.
  */
 extern void	change_state(void);
-extern void	do_regist(u_long, void (*)());
 extern void	my_svc_run(void);
 extern void	notify_hosts(void);
 extern void	shuffle_dirs(void);

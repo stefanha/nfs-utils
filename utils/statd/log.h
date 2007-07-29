@@ -16,7 +16,7 @@
 
 #include <syslog.h>
 
-void	log_init();
+void	log_init(void);
 void	log_background(void);
 void	log_enable(int facility);
 int	log_enabled(int facility);

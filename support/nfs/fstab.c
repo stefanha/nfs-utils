@@ -87,14 +87,14 @@ static void read_mounttable(void);
 static void read_fstab(void);
 
 static struct mntentchn *
-mtab_head() {
+mtab_head(void) {
 	if (!got_mtab)
 		read_mounttable();
 	return &mounttable;
 }
 
 static struct mntentchn *
-fstab_head()
+fstab_head(void)
 {
 	if (!got_fstab)
 		read_fstab();
