@@ -137,15 +137,16 @@ static void imconv(struct idmap_client *, struct idmap_msg *);
 static void idtonameres(struct idmap_msg *);
 static void nametoidres(struct idmap_msg *);
 
-static int nfsdopen();
+static int nfsdopen(void);
 static int nfsdopenone(struct idmap_client *);
 static void nfsdreopen(void);
 
 size_t  strlcat(char *, const char *, size_t);
 size_t  strlcpy(char *, const char *, size_t);
-ssize_t atomicio(ssize_t (*)(), int, void *, size_t);
+ssize_t atomicio(ssize_t (*f) (int, void*, size_t),
+		 int, void *, size_t);
 void    mydaemon(int, int);
-void    release_parent();
+void    release_parent(void);
 
 static int verbose = 0;
 #define DEFAULT_IDMAP_CACHE_EXPIRY 600 /* seconds */
@@ -677,7 +678,7 @@ nfsdcb(int fd, short which, void *data)
 
 	bsiz = sizeof(buf) - bsiz;
 
-	if (atomicio(write, ic->ic_fd, buf, bsiz) != bsiz)
+	if (atomicio((void*)write, ic->ic_fd, buf, bsiz) != bsiz)
 		idmapd_warnx("nfsdcb: write(%s) failed: errno %d (%s)",
 			     ic->ic_path, errno, strerror(errno));
 
@@ -743,7 +744,7 @@ nfscb(int fd, short which, void *data)
 	if (im.im_status == IDMAP_STATUS_LOOKUPFAIL)
 		im.im_status = IDMAP_STATUS_SUCCESS;
 
-	if (atomicio(write, ic->ic_fd, &im, sizeof(im)) != sizeof(im))
+	if (atomicio((void*)write, ic->ic_fd, &im, sizeof(im)) != sizeof(im))
 		idmapd_warn("nfscb: write(%s)", ic->ic_path);
 out:
 	event_add(&ic->ic_event, NULL);
@@ -781,7 +782,7 @@ nfsdreopen()
 }
 
 static int
-nfsdopen()
+nfsdopen(void)
 {
 	return ((nfsdopenone(&nfsd_ic[IC_NAMEID]) == 0 &&
 		    nfsdopenone(&nfsd_ic[IC_IDNAME]) == 0) ? 0 : -1);
@@ -1046,7 +1047,7 @@ mydaemon(int nochdir, int noclose)
 	return;
 }
 void
-release_parent()
+release_parent(void)
 {
 	int status;
 

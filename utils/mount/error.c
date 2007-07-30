@@ -86,7 +86,8 @@ void mount_errors(char *server, int will_retry, int bg)
 			"mount to NFS server '%s' failed: ", server);
 	else
 		pos = snprintf(tmp, (erreob - tmp),
-			"%s: mount to NFS server '%s' failed: ", server);
+			       "%s: mount to NFS server '%s' failed: ",
+			       progname, server);
 
 	tmp = &errbuf[pos];
 	if (rpc_createerr.cf_stat == RPC_TIMEDOUT) {
