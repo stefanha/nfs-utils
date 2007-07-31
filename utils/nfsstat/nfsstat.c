@@ -116,28 +116,36 @@ typedef struct statinfo {
 	unsigned int *	valptr;
 } statinfo;
 
-#define STRUCTSIZE(x)   sizeof(x)/sizeof(*x)
-
-static statinfo		srvinfo[] = {
-	{ "net",        STRUCTSIZE(srvnetinfo), srvnetinfo },
-	{ "rpc",        STRUCTSIZE(srvrpcinfo), srvrpcinfo },
-	{ "rc",         STRUCTSIZE(srvrcinfo),  srvrcinfo  },
-	{ "fh",         STRUCTSIZE(srvfhinfo),  srvfhinfo  },
-	{ "proc2",      STRUCTSIZE(srvproc2info),  srvproc2info  },
-	{ "proc3",      STRUCTSIZE(srvproc3info),  srvproc3info  },
-	{ "proc4",      STRUCTSIZE(srvproc4info),  srvproc4info  },
-	{ "proc4ops",   STRUCTSIZE(srvproc4opsinfo),srvproc4opsinfo},
-	{ NULL,         0,                      NULL       }
-};
-
-static statinfo		cltinfo[] = {
-	{ "net",        STRUCTSIZE(cltnetinfo), cltnetinfo },
-	{ "rpc",        STRUCTSIZE(cltrpcinfo), cltrpcinfo },
-	{ "proc2",      STRUCTSIZE(cltproc2info),  cltproc2info  },
-	{ "proc3",      STRUCTSIZE(cltproc3info),  cltproc3info  },
-	{ "proc4",      STRUCTSIZE(cltproc4info),  cltproc4info  },
-	{ NULL,         0,                      NULL       }
-};
+/*
+ * We now build the arrays of statinfos using macros, which will make it easier
+ * to add new variables for --diff-stat.
+ * e.g., SRV(net) expands into the struct statinfo:  { "net", 5, srvnetinfo }
+ */
+#define ARRAYSIZE(x)		sizeof(x)/sizeof(*x)
+#define STATINFO(k, t, s...)	{ #t, ARRAYSIZE(k##t##info##s), k##t##info##s }
+#define SRV(t, s...)		STATINFO(srv, t, s)
+#define CLT(t, s...)		STATINFO(clt, t, s)
+#define DECLARE_SRV(n, s...)	static statinfo n##s[] = { \
+					SRV(net,s), \
+					SRV(rpc,s), \
+					SRV(rc,s), \
+					SRV(fh,s), \
+					SRV(proc2,s), \
+					SRV(proc3,s),\
+					SRV(proc4,s), \
+					SRV(proc4ops,s),\
+					{ NULL, 0, NULL }\
+				}
+#define DECLARE_CLT(n, s...)  	static statinfo n##s[] = { \
+					CLT(net,s), \
+					CLT(rpc,s), \
+					CLT(proc2,s),\
+					CLT(proc3,s), \
+					CLT(proc4,s),\
+					{ NULL, 0, NULL }\
+				}
+DECLARE_SRV(srvinfo);
+DECLARE_CLT(cltinfo);
 
 static void		print_numbers(const char *, unsigned int *,
 					unsigned int);
