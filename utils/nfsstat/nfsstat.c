@@ -149,6 +149,7 @@ static statinfo		*get_stat_info(const char *, struct statinfo *);
 
 static int             mounts(const char *);
 
+static void		get_stats(const char *, statinfo *, int *, int, const char *);
 static int		has_stats(const unsigned int *);
 
 #define PRNT_CALLS	0x0001
@@ -217,8 +218,6 @@ main(int argc, char **argv)
 	int		opt_all = 0,
 			opt_srv = 0,
 			opt_clt = 0,
-			srv_info = 0,
-			clt_info = 0,
 			opt_prt = 0;
 	int		c;
 	char           *progname;
@@ -313,25 +312,10 @@ main(int argc, char **argv)
 			"server.\n");
 	}
 
-	if (opt_srv) {
-		srv_info = parse_statfile(NFSSVCSTAT, svcinfo);
-		if (srv_info == 0 && opt_clt == 0) {
-			fprintf(stderr, "Warning: No Server Stats (%s: %m).\n", NFSSVCSTAT);
-			return 2;
-		}
-		if (srv_info == 0)
-			opt_srv = 0;
-	}
-
-	if (opt_clt) {
-		clt_info = parse_statfile(NFSCLTSTAT, cltinfo);
-		if (opt_srv == 0 && clt_info == 0) {
-			fprintf(stderr, "Warning: No Client Stats (%s: %m).\n", NFSCLTSTAT);
-			return 2;
-		}
-		if (clt_info == 0)
-			opt_clt = 0;
-	}
+	if (opt_srv)
+		get_stats(NFSSVCSTAT, svcinfo, &opt_srv, opt_clt, "Server");
+	if (opt_clt)
+		get_stats(NFSCLTSTAT, cltinfo, &opt_clt, opt_srv, "Client");
 
 	if (opt_srv) {
 		if (opt_prt & PRNT_NET) {
@@ -588,6 +572,18 @@ mounts(const char *name)
 
 	fclose(fp);
 	return 1;
+}
+
+static void
+get_stats(const char *file, statinfo *info, int *opt, int other_opt, const char *label)
+{
+	if (!parse_statfile(file, info)) {
+		if (!other_opt) {
+			fprintf(stderr, "Warning: No %s Stats (%s: %m). \n", label, file);
+			exit(2);
+		}
+		*opt = 0;
+	}
 }
 
 static int
