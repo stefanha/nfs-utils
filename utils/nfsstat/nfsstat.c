@@ -23,55 +23,55 @@
 
 #define MAXNRVALS	32
 
-static unsigned int	srvproc2info[20];	/* NFSv2 call counts ([0] == 18) */
-static unsigned int	cltproc2info[20];	/* NFSv2 call counts ([0] == 18) */
-static unsigned int	srvproc3info[24];	/* NFSv3 call counts ([0] == 22) */
-static unsigned int	cltproc3info[24];	/* NFSv3 call counts ([0] == 22) */
-static unsigned int	srvproc4info[4];	/* NFSv4 call counts ([0] == 2) */
-static unsigned int	cltproc4info[34];	/* NFSv4 call counts ([0] == 32) */
-static unsigned int	srvproc4opsinfo[42];/* NFSv4 call counts ([0] == 40) */
-static unsigned int	srvnetinfo[5];	/* 0  # of received packets
-					 * 1  UDP packets
-					 * 2  TCP packets
-					 * 3  TCP connections
-					 */
-static unsigned int	cltnetinfo[5];	/* 0  # of received packets
-					 * 1  UDP packets
-					 * 2  TCP packets
-					 * 3  TCP connections
-					 */
+static unsigned int	srvproc2info[20], srvproc2info_tmp[20];	/* NFSv2 call counts ([0] == 18) */
+static unsigned int	cltproc2info[20], cltproc2info_tmp[20];	/* NFSv2 call counts ([0] == 18) */
+static unsigned int	srvproc3info[24], srvproc3info_tmp[24];	/* NFSv3 call counts ([0] == 22) */
+static unsigned int	cltproc3info[24], cltproc3info_tmp[24];	/* NFSv3 call counts ([0] == 22) */
+static unsigned int	srvproc4info[4], srvproc4info_tmp[4];	/* NFSv4 call counts ([0] == 2) */
+static unsigned int	cltproc4info[34], cltproc4info_tmp[34];	/* NFSv4 call counts ([0] == 32) */
+static unsigned int	srvproc4opsinfo[42], srvproc4opsinfo_tmp[42];	/* NFSv4 call counts ([0] == 40) */
+static unsigned int	srvnetinfo[5], srvnetinfo_tmp[5];	/* 0  # of received packets
+								 * 1  UDP packets
+								 * 2  TCP packets
+								 * 3  TCP connections
+								 */
+static unsigned int	cltnetinfo[5], cltnetinfo_tmp[5];	/* 0  # of received packets
+								 * 1  UDP packets
+								 * 2  TCP packets
+								 * 3  TCP connections
+								 */
 
-static unsigned int	srvrpcinfo[6];	/* 0  total # of RPC calls
-					 * 1  total # of bad calls
-					 * 2  bad format
-					 * 3  authentication failed
-					 * 4  unknown client
-					 */
-static unsigned int	cltrpcinfo[4];	/* 0  total # of RPC calls
-					 * 1  retransmitted calls
-					 * 2  cred refreshs
-					 */
+static unsigned int	srvrpcinfo[6], srvrpcinfo_tmp[6];	/* 0  total # of RPC calls
+								 * 1  total # of bad calls
+								 * 2  bad format
+								 * 3  authentication failed
+								 * 4  unknown client
+								 */
+static unsigned int	cltrpcinfo[4], cltrpcinfo_tmp[4];	/* 0  total # of RPC calls
+								 * 1  retransmitted calls
+								 * 2  cred refreshs
+								 */
 
-static unsigned int	srvrcinfo[9];	/* 0  repcache hits
-					 * 1  repcache hits
-					 * 2  uncached reqs
-					 * (for pre-2.4 kernels:)
-					 * 3  FH lookups
-					 * 4  'anon' FHs
-					 * 5  noncached non-directories
-					 * 6  noncached directories
-					 * 7  stale
-					 */
+static unsigned int	srvrcinfo[9], srvrcinfo_tmp[9];		/* 0  repcache hits
+								 * 1  repcache hits
+								 * 2  uncached reqs
+								 * (for pre-2.4 kernels:)
+								 * 3  FH lookups
+								 * 4  'anon' FHs
+								 * 5  noncached non-directories
+								 * 6  noncached directories
+								 * 7  stale
+								 */
 
-static unsigned int	srvfhinfo[7];	/* (for kernels >= 2.4.0)
-					 * 0  stale
-					 * 1  FH lookups
-					 * 2  'anon' FHs
-					 * 3  noncached directories
-					 * 4  noncached non-directories
-					 * leave hole to relocate stale for order
-					 *    compatability.
-					 */
+static unsigned int	srvfhinfo[7], srvfhinfo_tmp[7];		/* (for kernels >= 2.4.0)
+								 * 0  stale
+								 * 1  FH lookups
+								 * 2  'anon' FHs
+								 * 3  noncached directories
+								 * 4  noncached non-directories
+								 * leave hole to relocate stale for order
+								 *    compatability.
+								 */
 
 static const char *	nfsv2name[18] = {
 	"null", "getattr", "setattr", "root",   "lookup",  "readlink",
@@ -145,7 +145,9 @@ typedef struct statinfo {
 					{ NULL, 0, NULL }\
 				}
 DECLARE_SRV(srvinfo);
+DECLARE_SRV(srvinfo, _tmp);
 DECLARE_CLT(cltinfo);
+DECLARE_CLT(cltinfo, _tmp);
 
 static void		print_numbers(const char *, unsigned int *,
 					unsigned int);
