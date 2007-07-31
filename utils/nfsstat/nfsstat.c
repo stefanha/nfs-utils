@@ -149,6 +149,8 @@ static statinfo		*get_stat_info(const char *, struct statinfo *);
 
 static int             mounts(const char *);
 
+static int		has_stats(const unsigned int *);
+
 #define PRNT_CALLS	0x0001
 #define PRNT_RPC	0x0002
 #define PRNT_NET	0x0004
@@ -383,17 +385,17 @@ main(int argc, char **argv)
 			printf("\n");
 		}
 		if (opt_prt & PRNT_CALLS) {
-			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && svcv2info[0] && svcv2info[svcv2info[0]+1] != svcv2info[0]))
+			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && has_stats(svcv2info)))
 				print_callstats(
 				"Server nfs v2:\n",
 				    nfsv2name, svcv2info + 1, sizeof(nfsv2name)/sizeof(char *)
 				);
-			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && svcv3info[0] && svcv3info[svcv3info[0]+1] != svcv3info[0]))
+			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && has_stats(svcv3info)))
 				print_callstats(
 				"Server nfs v3:\n",
 				nfsv3name, svcv3info + 1, sizeof(nfsv3name)/sizeof(char *)
 				);
-			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && svcv4info[0] && svcv4info[svcv4info[0]+1] != svcv4info[0])) {
+			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && has_stats(svcv4info))) {
 				print_callstats(
 				"Server nfs v4:\n",
 				nfssvrv4name, svcv4info + 1, sizeof(nfssvrv4name)/sizeof(char *)
@@ -424,17 +426,17 @@ main(int argc, char **argv)
 			printf("\n");
 		}
 		if (opt_prt & PRNT_CALLS) {
-			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && cltv2info[0] && cltv2info[cltv2info[0]+1] != cltv2info[0]))
+			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && has_stats(cltv2info)))
 				print_callstats(
 				"Client nfs v2:\n",
 				nfsv2name, cltv2info + 1,  sizeof(nfsv2name)/sizeof(char *)
 				);
-			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && cltv3info[0] && cltv3info[cltv3info[0]+1] != cltv3info[0]))
+			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && has_stats(cltv3info)))
 				print_callstats(
 				"Client nfs v3:\n",
 				nfsv3name, cltv3info + 1, sizeof(nfsv3name)/sizeof(char *)
 				);
-			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && cltv4info[0] && cltv4info[cltv4info[0]+1] != cltv4info[0]))
+			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && has_stats(cltv4info)))
 				print_callstats(
 				"Client nfs v4:\n",
 				nfscltv4name, cltv4info + 1,  sizeof(nfscltv4name)/sizeof(char *)
@@ -586,4 +588,10 @@ mounts(const char *name)
 
 	fclose(fp);
 	return 1;
+}
+
+static int
+has_stats(const unsigned int *info)
+{
+	return (info[0] && info[info[0] + 1] != info[0]);
 }
