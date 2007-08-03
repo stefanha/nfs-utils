@@ -49,6 +49,9 @@ int nomtab;
 int verbose;
 int sloppy;
 
+#define FOREGROUND	(0)
+#define BACKGROUND	(1)
+
 static struct option longopts[] = {
   { "fake", 0, 0, 'f' },
   { "help", 0, 0, 'h' },
@@ -518,7 +521,26 @@ int main(int argc, char *argv[])
 	}
 
 	mnt_err = try_mount(spec, mount_point, flags, fs_type, &extra_opts,
-				mount_opts, fake, nomtab, 0);
+				mount_opts, fake, nomtab, FOREGROUND);
+	if (mnt_err == EX_BG) {
+		printf(_("mount: backgrounding \"%s\"\n"), spec);
+		fflush(stdout);
+
+		/*
+		 * Parent exits immediately with success.  Make
+		 * sure not to free "mount_point"
+		 */
+		if (fork() > 0)
+			exit(0);
+
+		mnt_err = try_mount(spec, mount_point, flags, fs_type,
+					&extra_opts, mount_opts, fake,
+					nomtab, BACKGROUND);
+		if (verbose && mnt_err)
+			printf(_("%s: giving up \"%s\"\n"),
+				progname, spec);
+		exit(0);
+	}
 
 out:
 	free(mount_point);
