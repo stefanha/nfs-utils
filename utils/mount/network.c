@@ -210,9 +210,9 @@ out:
 }
 
 /*
- * Create a socket that is locally bound to a reserved or non-reserved
- * port. For any failures, RPC_ANYSOCK is returned which will cause 
- * the RPC code to create the socket instead. 
+ * Create a socket that is locally bound to a reserved or non-reserved port.
+ *
+ * The caller should check rpc_createerr to determine the cause of any error.
  */
 static int get_socket(struct sockaddr_in *saddr, unsigned int p_prot,
 			unsigned int timeout, int resvp, int conn)
@@ -360,8 +360,7 @@ static unsigned short getport(struct sockaddr_in *saddr,
 		else if (port == 0)
 			rpc_createerr.cf_stat = RPC_PROGNOTREGISTERED;
 	}
-	if (socket != 1)
-		close(socket);
+	close(socket);
 
 	return port;
 }
