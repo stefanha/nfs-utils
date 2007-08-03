@@ -367,14 +367,14 @@ int nfs4mount(const char *spec, const char *node, int flags,
 	data.host_addrlen = sizeof(server_addr);
 
 #ifdef NFS_MOUNT_DEBUG
-	printf("rsize = %d, wsize = %d, timeo = %d, retrans = %d\n",
+	printf(_("rsize = %d, wsize = %d, timeo = %d, retrans = %d\n"),
 	       data.rsize, data.wsize, data.timeo, data.retrans);
-	printf("acreg (min, max) = (%d, %d), acdir (min, max) = (%d, %d)\n",
+	printf(_("acreg (min, max) = (%d, %d), acdir (min, max) = (%d, %d)\n"),
 	       data.acregmin, data.acregmax, data.acdirmin, data.acdirmax);
-	printf("port = %d, bg = %d, retry = %d, flags = %.8x\n",
+	printf(_("port = %d, bg = %d, retry = %d, flags = %.8x\n"),
 	       ntohs(server_addr.sin_port), bg, retry, data.flags);
-	printf("soft = %d, intr = %d, nocto = %d, noac = %d, "
-	       "nosharecache = %d\n",
+	printf(_("soft = %d, intr = %d, nocto = %d, noac = %d, "
+	       "nosharecache = %d\n"),
 	       (data.flags & NFS4_MOUNT_SOFT) != 0,
 	       (data.flags & NFS4_MOUNT_INTR) != 0,
 	       (data.flags & NFS4_MOUNT_NOCTO) != 0,
@@ -384,7 +384,7 @@ int nfs4mount(const char *spec, const char *node, int flags,
 	if (num_flavour > 0) {
 		int pf_cnt, i;
 
-		printf("sec = ");
+		printf(_("sec = "));
 		for (pf_cnt = 0; pf_cnt < num_flavour; pf_cnt++) {
 			for (i = 0; i < flav_map_size; i++) {
 				if (flav_map[i].fnum == pseudoflavour[pf_cnt]) {
@@ -395,7 +395,7 @@ int nfs4mount(const char *spec, const char *node, int flags,
 			printf("%s", (pf_cnt < num_flavour-1) ? ":" : "\n");
 		}
 	}
-	printf("proto = %s\n", (data.proto == IPPROTO_TCP) ? "tcp" : "udp");
+	printf(_("proto = %s\n"), (data.proto == IPPROTO_TCP) ? _("tcp") : _("udp"));
 #endif
 
 	timeout = time(NULL) + 60 * retry;

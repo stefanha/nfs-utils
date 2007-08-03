@@ -584,34 +584,33 @@ nfsmount(const char *spec, const char *node, int flags,
 	
 	if (retry == 10000 && !bg)
 		retry = 2; /* reset for fg mounts */
-	
 
 #ifdef NFS_MOUNT_DEBUG
-	printf("rsize = %d, wsize = %d, timeo = %d, retrans = %d\n",
+	printf(_("rsize = %d, wsize = %d, timeo = %d, retrans = %d\n"),
 	       data.rsize, data.wsize, data.timeo, data.retrans);
-	printf("acreg (min, max) = (%d, %d), acdir (min, max) = (%d, %d)\n",
+	printf(_("acreg (min, max) = (%d, %d), acdir (min, max) = (%d, %d)\n"),
 	       data.acregmin, data.acregmax, data.acdirmin, data.acdirmax);
-	printf("port = %d, bg = %d, retry = %d, flags = %.8x\n",
+	printf(_("port = %lu, bg = %d, retry = %d, flags = %.8x\n"),
 	       nfs_pmap->pm_port, bg, retry, data.flags);
-	printf("mountprog = %d, mountvers = %d, nfsprog = %d, nfsvers = %d\n",
+	printf(_("mountprog = %lu, mountvers = %lu, nfsprog = %lu, nfsvers = %lu\n"),
 	       mnt_pmap->pm_prog, mnt_pmap->pm_vers,
 	       nfs_pmap->pm_prog, nfs_pmap->pm_vers);
-	printf("soft = %d, intr = %d, posix = %d, nocto = %d, noac = %d ",
+	printf(_("soft = %d, intr = %d, posix = %d, nocto = %d, noac = %d"),
 	       (data.flags & NFS_MOUNT_SOFT) != 0,
 	       (data.flags & NFS_MOUNT_INTR) != 0,
 	       (data.flags & NFS_MOUNT_POSIX) != 0,
 	       (data.flags & NFS_MOUNT_NOCTO) != 0,
 	       (data.flags & NFS_MOUNT_NOAC) != 0);
 #if NFS_MOUNT_VERSION >= 2
-	printf("tcp = %d ",
+	printf(_(", tcp = %d"),
 	       (data.flags & NFS_MOUNT_TCP) != 0);
 #endif
 #if NFS_MOUNT_VERSION >= 4
-	printf("noacl = %d ", (data.flags & NFS_MOUNT_NOACL) != 0);
+	printf(_(", noacl = %d"), (data.flags & NFS_MOUNT_NOACL) != 0);
 #endif
 #if NFS_MOUNT_VERSION >= 5
-	printf("sec = %u ", data.pseudoflavor);
-	printf("readdirplus = %d ", (data.flags & NFS_MOUNT_NORDIRPLUS) != 0);
+	printf(_(", sec = %u"), data.pseudoflavor);
+	printf(_(", readdirplus = %d"), (data.flags & NFS_MOUNT_NORDIRPLUS) != 0);
 #endif
 	printf("\n");
 #endif
@@ -762,8 +761,7 @@ nfsmount(const char *spec, const char *node, int flags,
 			if (flavor[i] == data.pseudoflavor)
 				yum = 1;
 #ifdef NFS_MOUNT_DEBUG
-			printf("auth flavor %d: %d\n",
-				i, flavor[i]);
+			printf(_("auth flavor %d: %d\n"), i, flavor[i]);
 #endif
 		}
 		if (!yum) {
@@ -805,7 +803,7 @@ noauth_flavors:
 	}
 
 #ifdef NFS_MOUNT_DEBUG
-	printf(_("using port %d for nfs deamon\n"), nfs_pmap->pm_port);
+	printf(_("using port %lu for nfs deamon\n"), nfs_pmap->pm_port);
 #endif
 	nfs_saddr->sin_port = htons(nfs_pmap->pm_port);
 	/*
