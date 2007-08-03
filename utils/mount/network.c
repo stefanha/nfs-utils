@@ -310,19 +310,11 @@ static unsigned short getport(struct sockaddr_in *saddr,
 
 	saddr->sin_port = htons(PMAPPORT);
 
-	/*
-	 * Try to get a socket with a non-privileged port.
-	 * clnt*create() will create one anyway if this
-	 * fails.
-	 */
 	socket = get_socket(saddr, proto, PMAP_TIMEOUT, FALSE, FALSE);
 	if (socket == RPC_ANYSOCK) {
-		if (proto == IPPROTO_TCP && errno == ETIMEDOUT) {
-			/*
-			 * TCP SYN timed out, so exit now.
-			 */
+		if (proto == IPPROTO_TCP &&
+		    rpc_createerr.cf_error.re_errno == ETIMEDOUT)
 			rpc_createerr.cf_stat = RPC_TIMEDOUT;
-		}
 		return 0;
 	}
 
@@ -660,10 +652,10 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 	static char clnt_res;
 	struct sockaddr dissolve;
 
-	rpc_createerr.cf_stat = stat = errno = 0;
+	rpc_createerr.cf_stat = stat = 0;
 	sock = get_socket(saddr, prot, CONNECT_TIMEOUT, FALSE, TRUE);
 	if (sock == RPC_ANYSOCK) {
-		if (errno == ETIMEDOUT) {
+		if (rpc_createerr.cf_error.re_errno == ETIMEDOUT) {
 			/*
 			 * TCP timeout. Bubble up the error to see 
 			 * how it should be handled.
