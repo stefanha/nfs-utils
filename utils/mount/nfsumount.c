@@ -119,6 +119,16 @@ static int del_mtab(const char *spec, const char *node)
         return EX_FILEIO;
 }
 
+/*
+ * Pick up certain mount options used during the original mount
+ * from /etc/mtab.  The basics include the server's IP address and
+ * the server pathname of the share to unregister.
+ *
+ * These options might also describe the mount port, mount protocol
+ * version, and transport protocol used to punch through a firewall.
+ * We will need this information to get through the firewall again
+ * to do the umount.
+ */
 static int do_nfs_umount(const char *spec, char *opts)
 {
 	char *hostname;
@@ -184,6 +194,8 @@ static int do_nfs_umount(const char *spec, char *opts)
 		pmap->pm_vers = atoi(p+10);
 	if (opts && (hasmntopt(&mnt, "udp") || hasmntopt(&mnt, "proto=udp")))
 		pmap->pm_prot = IPPROTO_UDP;
+	if (opts && (hasmntopt(&mnt, "tcp") || hasmntopt(&mnt, "proto=tcp")))
+		pmap->pm_prot = IPPROTO_TCP;
 
 	if (!nfs_gethostbyname(hostname, &mnt_server.saddr)) {
 		nfs_error(_("%s: '%s' does not contain a recognized hostname"),
