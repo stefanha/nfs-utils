@@ -52,6 +52,10 @@
 #define NFS_PORT 2049
 #endif
 
+#define PMAP_TIMEOUT	(10)
+#define CONNECT_TIMEOUT	(20)
+#define MOUNT_TIMEOUT	(30)
+
 #if SIZEOF_SOCKLEN_T - 0 == 0
 #define socklen_t unsigned int
 #endif
@@ -158,12 +162,60 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *saddr)
 }
 
 /*
+ * Attempt to connect a socket, but time out after "timeout" seconds.
+ *
+ * On error return, caller closes the socket.
+ */
+static int connect_to(int fd, struct sockaddr *addr,
+			socklen_t addrlen, int timeout)
+{
+	int ret, saved;
+	fd_set rset, wset;
+	struct timeval tv = {
+		.tv_sec = timeout,
+	};
+
+	saved = fcntl(fd, F_GETFL, 0);
+	fcntl(fd, F_SETFL, saved | O_NONBLOCK);
+
+	ret = connect(fd, addr, addrlen);
+	if (ret < 0 && errno != EINPROGRESS)
+		return -1;
+	if (ret == 0)
+		goto out;
+
+	FD_ZERO(&rset);
+	FD_SET(fd, &rset);
+	wset = rset;
+	ret = select(fd + 1, &rset, &wset, NULL, &tv);
+	if (ret == 0) {
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	if (FD_ISSET(fd, &rset) || FD_ISSET(fd, &wset)) {
+		int error;
+		socklen_t len = sizeof(error);
+		if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+			return -1;
+		if (error) {
+			errno = error;
+			return -1;
+		}
+	} else
+		return -1;
+
+out:
+	fcntl(fd, F_SETFL, saved);
+	return 0;
+}
+
+/*
  * Create a socket that is locally bound to a reserved or non-reserved
  * port. For any failures, RPC_ANYSOCK is returned which will cause 
  * the RPC code to create the socket instead. 
  */
 static int get_socket(struct sockaddr_in *saddr, unsigned int p_prot,
-			int resvp, int conn)
+			unsigned int timeout, int resvp, int conn)
 {
 	int so, cc, type;
 	struct sockaddr_in laddr;
@@ -185,7 +237,8 @@ static int get_socket(struct sockaddr_in *saddr, unsigned int p_prot,
 			goto err_bind;
 	}
 	if (type == SOCK_STREAM || (conn && type == SOCK_DGRAM)) {
-		cc = connect(so, (struct sockaddr *)saddr, namelen);
+		cc = connect_to(so, (struct sockaddr *)saddr, namelen,
+				timeout);
 		if (cc < 0)
 			goto err_connect;
 	}
@@ -262,7 +315,7 @@ static unsigned short getport(struct sockaddr_in *saddr,
 	 * clnt*create() will create one anyway if this
 	 * fails.
 	 */
-	socket = get_socket(saddr, proto, FALSE, FALSE);
+	socket = get_socket(saddr, proto, PMAP_TIMEOUT, FALSE, FALSE);
 	if (socket == RPC_ANYSOCK) {
 		if (proto == IPPROTO_TCP && errno == ETIMEDOUT) {
 			/*
@@ -552,7 +605,8 @@ CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
 	CLIENT *clnt = NULL;
 
 	mnt_saddr->sin_port = htons((u_short)mnt_pmap->pm_port);
-	*msock = get_socket(mnt_saddr, mnt_pmap->pm_prot, TRUE, FALSE);
+	*msock = get_socket(mnt_saddr, mnt_pmap->pm_prot, MOUNT_TIMEOUT,
+				TRUE, FALSE);
 	if (*msock == RPC_ANYSOCK) {
 		if (rpc_createerr.cf_error.re_errno == EADDRINUSE)
 			/*
@@ -608,7 +662,7 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 	struct sockaddr dissolve;
 
 	rpc_createerr.cf_stat = stat = errno = 0;
-	sock = get_socket(saddr, prot, FALSE, TRUE);
+	sock = get_socket(saddr, prot, CONNECT_TIMEOUT, FALSE, TRUE);
 	if (sock == RPC_ANYSOCK) {
 		if (errno == ETIMEDOUT) {
 			/*
