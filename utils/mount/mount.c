@@ -174,14 +174,13 @@ static void discover_nfs_mount_data_version(void)
 
 static void print_one(char *spec, char *node, char *type, char *opts)
 {
-	if (verbose) {
-		printf("%s on %s type %s", spec, node, type);
+	if (!verbose)
+		return;
 
-		if (opts != NULL)
-			printf(" (%s)", opts);
-
-		printf("\n");
-	}
+	if (opts)
+		printf(_("%s on %s type %s (%s)\n"), spec, node, type, opts);
+	else
+		printf(_("%s on %s type %s\n"), spec, node, type);
 }
 
 /*
@@ -268,18 +267,18 @@ fail_unlock:
 
 void mount_usage(void)
 {
-	printf("usage: %s remotetarget dir [-rvVwfnh] [-o nfsoptions]\n",
+	printf(_("usage: %s remotetarget dir [-rvVwfnh] [-o nfsoptions]\n"),
 		progname);
-	printf("options:\n");
-	printf("\t-r\t\tMount file system readonly\n");
-	printf("\t-v\t\tVerbose\n");
-	printf("\t-V\t\tPrint version\n");
-	printf("\t-w\t\tMount file system read-write\n");
-	printf("\t-f\t\tFake mount, do not actually mount\n");
-	printf("\t-n\t\tDo not update /etc/mtab\n");
-	printf("\t-s\t\tTolerate sloppy mount options rather than failing.\n");
-	printf("\t-h\t\tPrint this help\n");
-	printf("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n");
+	printf(_("options:\n"));
+	printf(_("\t-r\t\tMount file system readonly\n"));
+	printf(_("\t-v\t\tVerbose\n"));
+	printf(_("\t-V\t\tPrint version\n"));
+	printf(_("\t-w\t\tMount file system read-write\n"));
+	printf(_("\t-f\t\tFake mount, do not actually mount\n"));
+	printf(_("\t-n\t\tDo not update /etc/mtab\n"));
+	printf(_("\t-s\t\tTolerate sloppy mount options rather than failing.\n"));
+	printf(_("\t-h\t\tPrint this help\n"));
+	printf(_("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n"));
 }
 
 static void parse_opt(const char *opt, int *mask, char *extra_opts, int len)

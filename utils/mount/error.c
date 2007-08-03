@@ -67,9 +67,11 @@ static int rpc_strerror(int spos)
 		tmp = &errbuf[spos];
 		if (cf_stat == RPC_SYSTEMERROR)
 			pos = snprintf(tmp, (erreob - tmp),
-				"System Error: %s", strerror(cf_errno));
+					_("System Error: %s"),
+						strerror(cf_errno));
 		else
-			pos = snprintf(tmp, (erreob - tmp), "RPC Error:%s", estr);
+			pos = snprintf(tmp, (erreob - tmp),
+					_("RPC Error:%s"), estr);
 	}
 	return pos;
 }
@@ -83,30 +85,40 @@ void mount_errors(char *server, int will_retry, int bg)
 	tmp = &errbuf[pos];
 	if (bg)
 		pos = snprintf(tmp, (erreob - tmp),
-			"mount to NFS server '%s' failed: ", server);
+				_("mount to NFS server '%s' failed: "),
+					server);
 	else
 		pos = snprintf(tmp, (erreob - tmp),
-			       "%s: mount to NFS server '%s' failed: ",
-			       progname, server);
+				_("%s: mount to NFS server '%s' failed: "),
+					progname, server);
 
 	tmp = &errbuf[pos];
 	if (rpc_createerr.cf_stat == RPC_TIMEDOUT) {
-		pos = snprintf(tmp, (erreob - tmp), "timed out %s",
-			will_retry ? "(retrying)" : "(giving up)");
+		if (will_retry)
+			pos = snprintf(tmp, (erreob - tmp),
+					_("timed out, retrying"));
+		else
+			pos = snprintf(tmp, (erreob - tmp),
+					_("timed out, giving up"));
 	} else {
 		pos += rpc_strerror(pos);
 		tmp = &errbuf[pos];
 		if (bg) {
-			pos = snprintf(tmp, (erreob - tmp), " %s",
-				will_retry ? "(retrying)" : "(giving up)");
+			if (will_retry)
+				pos = snprintf(tmp, (erreob - tmp),
+						_(", retrying"));
+			else
+				pos = snprintf(tmp, (erreob - tmp),
+						_(", giving up"));
 		}
 	}
+
 	if (bg) {
 		if (onlyonce++ < 1)
 			openlog("mount", LOG_CONS|LOG_PID, LOG_AUTH);
-		syslog(LOG_ERR, "%s.", errbuf);
+		syslog(LOG_ERR, "%s", errbuf);
 	} else
-		fprintf(stderr, "%s.\n", errbuf);
+		fprintf(stderr, "%s\n", errbuf);
 }
 
 void mount_error(const char *spec, const char *mount_point, int error)

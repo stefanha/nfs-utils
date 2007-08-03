@@ -67,7 +67,7 @@ static int del_mtab(const char *spec, const char *node)
                 res = umount2 (node, MNT_FORCE);
                 if (res == -1) {
                         int errsv = errno;
-                        perror("umount2");
+                        perror(_("umount2"));
                         errno = errsv;
                         if (errno == ENOSYS) {
                                 if (verbose)
@@ -93,7 +93,7 @@ static int del_mtab(const char *spec, const char *node)
                                 update_mtab(node, &remnt);
                         return 0;
                 } else if (errno != EBUSY) {    /* hmm ... */
-                        perror("remount");
+                        perror(_("remount"));
                         nfs_error(_("%s: could not remount %s read-only"),
                                 	progname, spec);
                 }
@@ -102,7 +102,7 @@ static int del_mtab(const char *spec, const char *node)
         if (res >= 0) {
                 /* Umount succeeded */
                 if (verbose)
-                        printf (_("%s umounted\n"), spec ? spec : node);
+                        printf(_("%s umounted\n"), spec ? spec : node);
         }
 
  writemtab:
@@ -212,13 +212,13 @@ static struct option umount_longopts[] =
 
 static void umount_usage(void)
 {
-	printf("usage: %s dir [-fvnrlh]\n", progname);
-	printf("options:\n\t-f\t\tforce unmount\n");
-	printf("\t-v\t\tverbose\n");
-	printf("\t-n\t\tDo not update /etc/mtab\n");
-	printf("\t-r\t\tremount\n");
-	printf("\t-l\t\tlazy unmount\n");
-	printf("\t-h\t\tprint this help\n\n");
+	printf(_("usage: %s dir [-fvnrlh]\n"), progname);
+	printf(_("options:\n\t-f\t\tforce unmount\n"));
+	printf(_("\t-v\tverbose\n"));
+	printf(_("\t-n\tDo not update /etc/mtab\n"));
+	printf(_("\t-r\tremount\n"));
+	printf(_("\t-l\tlazy unmount\n"));
+	printf(_("\t-h\tprint this help\n\n"));
 }
 
 int nfsumount(int argc, char *argv[])
@@ -282,7 +282,7 @@ int nfsumount(int argc, char *argv[])
 
 	if (mc && strcmp(mc->m.mnt_type, "nfs") != 0 &&
 	    strcmp(mc->m.mnt_type, "nfs4") != 0) {
-		nfs_error(_("%s: %s on %s it not an nfs filesystem"),
+		nfs_error(_("%s: %s on %s is not an NFS filesystem"),
 				progname, mc->m.mnt_fsname, mc->m.mnt_dir);
 		return EX_USAGE;
 	}

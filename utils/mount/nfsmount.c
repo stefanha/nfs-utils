@@ -190,7 +190,6 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 		if ((opteq = strchr(opt, '=')) && isdigit(opteq[1])) {
 			int val = atoi(opteq + 1);	
 			*opteq = '\0';
-/* printf("opt=%s\n", opt); */
 			if (!strcmp(opt, "rsize"))
 				data->rsize = val;
 			else if (!strcmp(opt, "wsize"))
@@ -432,7 +431,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 						val ? "" : "no", opt);
 				goto out_bad;
 			}
-			sprintf(cbuf, val ? "%s,":"no%s,", opt);
+			sprintf(cbuf, val ? "%s," : "no%s,", opt);
 		}
 		len += strlen(cbuf);
 		if (len >= opt_size) {

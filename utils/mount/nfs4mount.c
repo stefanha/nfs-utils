@@ -321,8 +321,8 @@ int nfs4mount(const char *spec, const char *node, int flags,
 			else if (!strcmp(opt, "sharecache"))
 				unshared = !val;
 			else if (!sloppy) {
-				printf(_("unknown nfs mount option: "
-					 "%s%s\n"), val ? "" : "no", opt);
+				printf(_("unknown nfs mount option: %s%s\n"),
+						val ? "" : "no", opt);
 				goto fail;
 			}
 		}
