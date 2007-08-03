@@ -361,6 +361,31 @@ static int chk_mountpoint(char *mount_point)
 	return 0;
 }
 
+static int try_mount(char *spec, char *mount_point, int flags,
+			char *fs_type, char **extra_opts, char *mount_opts,
+			int fake, int nomtab, int bg)
+{
+	int ret;
+
+	if (strcmp(fs_type, "nfs4") == 0)
+		ret = nfs4mount(spec, mount_point, flags,
+				extra_opts, fake, bg);
+	else
+		ret = nfsmount(spec, mount_point, flags,
+				extra_opts, fake, bg);
+
+	if (ret)
+		return ret;
+
+	if (!fake)
+		print_one(spec, mount_point, fs_type, mount_opts);
+
+	if (!nomtab)
+		ret = add_mtab(spec, mount_point, fs_type, flags, *extra_opts,
+				0, 0 /* these are always zero for NFS */ );
+	return ret;
+}
+
 int main(int argc, char *argv[])
 {
 	int c, flags = 0, mnt_err = 1, fake = 0;
@@ -492,22 +517,8 @@ int main(int argc, char *argv[])
 		goto out;
 	}
 
-	if (strcmp(fs_type, "nfs4") == 0)
-		mnt_err = nfs4mount(spec, mount_point, flags,
-					&extra_opts, fake, 0);
-	else
-		mnt_err = nfsmount(spec, mount_point, flags,
-					&extra_opts, fake, 0);
-
-	if (mnt_err)
-		exit(EX_FAIL);
-
-	if (!fake)
-		print_one(spec, mount_point, fs_type, mount_opts);
-
-	if (!nomtab)
-		mnt_err = add_mtab(spec, mount_point, fs_type, flags, extra_opts,
-				0, 0 /* these are always zero for NFS */ );
+	mnt_err = try_mount(spec, mount_point, flags, fs_type, &extra_opts,
+				mount_opts, fake, nomtab, 0);
 
 out:
 	free(mount_point);
