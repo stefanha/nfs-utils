@@ -488,14 +488,14 @@ out_bad:
 
 int
 nfsmount(const char *spec, const char *node, int flags,
-	 char **extra_opts, int fake)
+	 char **extra_opts, int fake, int running_bg)
 {
 	static char *prev_bg_host;
 	char hostdir[1024];
 	char *hostname, *dirname, *old_opts, *mounthost = NULL;
 	char new_opts[1024], cbuf[1024];
 	static struct nfs_mount_data data;
-	int val, running_bg = 0;
+	int val;
 	static int doonce = 0;
 
 	clnt_addr_t mnt_server = { &mounthost, };

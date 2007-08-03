@@ -166,7 +166,7 @@ static int get_my_ipv4addr(char *ip_addr, int len)
 }
 
 int nfs4mount(const char *spec, const char *node, int flags,
-	      char **extra_opts, int fake)
+	      char **extra_opts, int fake, int running_bg)
 {
 	static struct nfs4_mount_data data;
 	static char hostdir[1024];

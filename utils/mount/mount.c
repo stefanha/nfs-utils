@@ -493,9 +493,11 @@ int main(int argc, char *argv[])
 	}
 
 	if (strcmp(fs_type, "nfs4") == 0)
-		mnt_err = nfs4mount(spec, mount_point, flags, &extra_opts, fake);
+		mnt_err = nfs4mount(spec, mount_point, flags,
+					&extra_opts, fake, 0);
 	else
-		mnt_err = nfsmount(spec, mount_point, flags, &extra_opts, fake);
+		mnt_err = nfsmount(spec, mount_point, flags,
+					&extra_opts, fake, 0);
 
 	if (mnt_err)
 		exit(EX_FAIL);
