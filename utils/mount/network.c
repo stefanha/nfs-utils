@@ -333,7 +333,6 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 	p_vers = vers ? &vers : versions;
 	rpc_createerr.cf_stat = 0;
 	for (;;) {
-		saddr->sin_port = htons(PMAPPORT);
 		p_port = getport(saddr, prog, *p_vers, *p_prot);
 		if (p_port) {
 			if (!port || port == p_port) {
