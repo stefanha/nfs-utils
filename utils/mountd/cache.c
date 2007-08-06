@@ -649,8 +649,7 @@ void nfsd_export(FILE *f)
 			     "Cannot export %s, possibly unsupported filesystem"
 			     " or fsid= required", path);
 			dump_to_cache(f, dom, path, NULL);
-		} else
-			mountlist_add(dom, path);
+		}
 	} else {
 		dump_to_cache(f, dom, path, NULL);
 	}
@@ -729,7 +728,6 @@ int cache_export_ent(char *domain, struct exportent *exp, char *path)
 		     "Cannot export %s, possibly unsupported filesystem or"
 		     " fsid= required", exp->e_path);
 	}
-	mountlist_add(domain, exp->e_path);
 
 	while (err == 0 && (exp->e_flags & NFSEXP_CROSSMOUNT) && path) {
 		/* really an 'if', but we can break out of
