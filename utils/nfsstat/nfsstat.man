@@ -2,7 +2,7 @@
 .\" nfsstat(8)
 .\" 
 .\" Copyright (C) 1996-2005 Olaf Kirch <okir@suse.de>
-.TH nfsstat 8 "11 Apr 2005"
+.TH nfsstat 8 "7 Aug 2007"
 .SH NAME
 nfsstat \- list NFS statistics
 .SH SYNOPSIS
@@ -71,6 +71,16 @@ Display all of the above facilities.
 .TP
 .B \-v, \-\-verbose
 This is equivalent to \fB\-o all\fR.
+.TP
+.B \-Z, \-\-sleep
+Instead of printing statistics and immediately exiting,
+.B nfsstat
+takes a snapshot of the current statistics and pauses until it receives
+.B SIGINT
+(typically from
+.BR Ctrl-C ),
+at which point it takes another snapshot and displays the difference
+between the two.
 .SH EXAMPLES
 .TP
 .B nfsstat \-o all \-234
