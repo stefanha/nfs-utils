@@ -207,7 +207,7 @@ void usage(char *name)
   -v, --verbose, --all\tSame as '-o all'\n\
   -r, --rpc\t\tShow RPC statistics\n\
   -n, --nfs\t\tShow NFS statistics\n\
-  -D, --diff-stat\tSaves stats, pauses, diffs current and saved\n\
+  -Z, --sleep\tSaves stats, pauses, diffs current and saved\n\
   --version\t\tShow program version\n\
   --help\t\tWhat you just did\n\
 \n", name);
@@ -228,7 +228,7 @@ static struct option longopts[] =
 	{ "zero", 0, 0, 'z' },
 	{ "help", 0, 0, '\1' },
 	{ "version", 0, 0, '\2' },
-	{ "diff-stat", 0, 0, 'D' },
+	{ "sleep", 0, 0, 'Z' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -239,7 +239,7 @@ main(int argc, char **argv)
 			opt_srv = 0,
 			opt_clt = 0,
 			opt_prt = 0,
-			opt_diffstat = 0;
+			opt_sleep = 0;
 	int		c;
 	char           *progname;
 
@@ -253,7 +253,7 @@ main(int argc, char **argv)
 	else
 		progname = argv[0];
 
-	while ((c = getopt_long(argc, argv, "234acmno:Dvrsz\1\2", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "234acmno:Zvrsz\1\2", longopts, NULL)) != EOF) {
 		switch (c) {
 		case 'a':
 			fprintf(stderr, "nfsstat: nfs acls are not yet supported.\n");
@@ -283,8 +283,8 @@ main(int argc, char **argv)
 				return 2;
 			}
 			break;
-		case 'D':
-			opt_diffstat = 1;
+		case 'Z':
+			opt_sleep = 1;
 			break;
 		case '2':
 		case '3':
@@ -347,7 +347,7 @@ main(int argc, char **argv)
 		get_stats(NFSCLTSTAT, cltinfo, &opt_clt, opt_srv, "Client");
 
 	/* save stat snapshots; wait for signal; then diff current and saved stats */
-	if (opt_diffstat) {
+	if (opt_sleep) {
 		starttime = time(NULL);
 		printf("Collecting statistics; press CTRL-C to view results from interval (i.e., from pause to CTRL-C).\n");
 		if (opt_srv)
