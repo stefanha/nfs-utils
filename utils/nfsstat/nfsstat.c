@@ -30,7 +30,7 @@ static unsigned int	cltproc2info[20], cltproc2info_tmp[20];	/* NFSv2 call counts
 static unsigned int	srvproc3info[24], srvproc3info_tmp[24];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	cltproc3info[24], cltproc3info_tmp[24];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	srvproc4info[4], srvproc4info_tmp[4];	/* NFSv4 call counts ([0] == 2) */
-static unsigned int	cltproc4info[34], cltproc4info_tmp[34];	/* NFSv4 call counts ([0] == 32) */
+static unsigned int	cltproc4info[37], cltproc4info_tmp[37];	/* NFSv4 call counts ([0] == 35) */
 static unsigned int	srvproc4opsinfo[42], srvproc4opsinfo_tmp[42];	/* NFSv4 call counts ([0] == 40) */
 static unsigned int	srvnetinfo[5], srvnetinfo_tmp[5];	/* 0  # of received packets
 								 * 1  UDP packets
@@ -93,13 +93,14 @@ static const char *	nfssrvproc4name[2] = {
 	"compound",
 };
 
-static const char *	nfscltproc4name[32] = {
+static const char *	nfscltproc4name[35] = {
 	"null",      "read",      "write",   "commit",      "open",        "open_conf",
 	"open_noat", "open_dgrd", "close",   "setattr",     "fsinfo",      "renew",
 	"setclntid", "confirm",   "lock",
 	"lockt",     "locku",     "access",  "getattr",     "lookup",      "lookup_root",
 	"remove",    "rename",    "link",    "symlink",     "create",      "pathconf",
-	"statfs",    "readlink",  "readdir", "server_caps", "delegreturn",
+	"statfs",    "readlink",  "readdir", "server_caps", "delegreturn", "getacl",
+	"setacl",    "fs_locations"
 };
 
 static const char *     nfssrvproc4opname[40] = {
@@ -570,7 +571,7 @@ parse_statfile(const char *name, struct statinfo *statp)
 			ip->valptr[i] = atoi(sp);
 			total += ip->valptr[i];
 		}
-		ip->valptr[i] = total;
+		ip->valptr[cnt - 1] = total;
 	}
 
 	fclose(fp);
