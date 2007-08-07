@@ -638,10 +638,16 @@ get_stats(const char *file, statinfo *info, int *opt, int other_opt, const char 
 	}
 }
 
+/*
+ * This is for proc2/3/4-type stats, where, in the /proc files, the first entry's value
+ * denotes the number of subsequent entries.  statinfo value arrays contain an additional
+ * field at the end which contains the sum of all previous elements in the array -- so,
+ * there are stats if the sum's greater than the entry-count.
+ */
 static int
 has_stats(const unsigned int *info)
 {
-	return (info[0] && info[info[0] + 1] != info[0]);
+	return (info[0] && info[info[0] + 1] > info[0]);
 }
 
 /* clone 'src' to 'dest' */
