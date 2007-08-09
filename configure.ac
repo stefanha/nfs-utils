@@ -326,9 +326,9 @@ dnl *************************************************************
 dnl Use architecture-specific compile flags
 dnl (We use $host and not $build in case we are cross-compiling)
 dnl *************************************************************
+dnl Note: we no longer have arch specific compile flags, but 
+dnl the stub is left here in case they are needed one day.
 case $host in
-  alpha*)
-    ARCHFLAGS="-mno-fp-regs -ffixed-8" ;;
   *)
     ARCHFLAGS="" ;;
 esac
