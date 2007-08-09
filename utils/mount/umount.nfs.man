@@ -1,4 +1,4 @@
-.\"@(#)mount.nfs.8"
+.\"@(#)umount.nfs.8"
 .TH UMOUNT.NFS 8 "6 Jun 2006"
 .SH NAME
 umount.nfs, umount.nfs4 \- unmount a Network File System
@@ -66,9 +66,8 @@ table of mounted file systems
 .BR nfs (5),
 .BR umount (8),
 
-.SH BUGS
-Please notify current developers of NFS of any bugs in the current software or mail nfs@lists.sourceforge.net
+.SH "BUGS"
+Please notify nfs@lists.sourceforge.net of any bugs found in this software.
 
 .SH "AUTHOR"
 Amit Gud <agud@redhat.com>
-
