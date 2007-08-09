@@ -270,7 +270,7 @@ fail_unlock:
 
 void mount_usage(void)
 {
-	printf(_("usage: %s remotetarget dir [-rvVwfnh] [-o nfsoptions]\n"),
+	printf(_("usage: %s remotetarget dir [-rvVwfnsh] [-o nfsoptions]\n"),
 		progname);
 	printf(_("options:\n"));
 	printf(_("\t-r\t\tMount file system readonly\n"));
@@ -279,7 +279,7 @@ void mount_usage(void)
 	printf(_("\t-w\t\tMount file system read-write\n"));
 	printf(_("\t-f\t\tFake mount, do not actually mount\n"));
 	printf(_("\t-n\t\tDo not update /etc/mtab\n"));
-	printf(_("\t-s\t\tTolerate sloppy mount options rather than failing.\n"));
+	printf(_("\t-s\t\tTolerate sloppy mount options rather than fail\n"));
 	printf(_("\t-h\t\tPrint this help\n"));
 	printf(_("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n"));
 }

@@ -3,7 +3,7 @@
 .SH NAME
 mount.nfs, mount.nfs4 \- mount a Network File System
 .SH SYNOPSIS
-.BI "mount.nfs" " remotetarget dir" " [\-rvVwfnh ] [\-t " version "] [\-o " options "]
+.BI "mount.nfs" " remotetarget dir" " [\-rvVwfnsh ] [\-o " options "]
 .SH DESCRIPTION
 .BR mount.nfs
 is a part of 
@@ -49,27 +49,17 @@ By default, an entry is created in
 .I /etc/mtab 
 for every mounted file system. Use this option to skip making an entry.
 .TP
+.BI "\-s"
+Tolerate sloppy mount options rather than fail.
+.TP
 .BI "\-h"
 Print help message.
 .TP
-.BI "version"
-Specify NFS file system version. Either
-.BR nfs4 
-or 
-.BR nfs.
-If the command is 
-.BR mount.nfs4 
-or the 
-.I vfstype 
-option of 
-.BR mount(8) 
-command is nfs4, then version 4 is used, else version 3 or 2 is used.
-.TP
 .BI "nfsoptions"
 Refer to 
-.BR nfs(5)
+.BR nfs (5)
 or
-.BR mount(8) 
+.BR mount (8) 
 manual pages.
 
 .SH NOTE
@@ -92,9 +82,8 @@ table of mounted file systems
 .BR nfs (5),
 .BR mount (8),
 
-.SH BUGS
-Please notify current developers of NFS of any bugs in the current software or mail nfs@lists.sourceforge.net
+.SH "BUGS"
+Please notify nfs@lists.sourceforge.net of any bugs found in this software.
 
 .SH "AUTHOR"
 Amit Gud <agud@redhat.com>
-
