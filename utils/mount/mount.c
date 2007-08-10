@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 			break;
 		case 'V':
 			printf("%s: ("PACKAGE_STRING")\n", progname);
-			return 0;
+			exit(0);
 		case 'w':
 			flags &= ~MS_RDONLY;
 			break;
