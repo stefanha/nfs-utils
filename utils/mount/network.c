@@ -388,7 +388,7 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 						inet_ntoa(saddr->sin_addr),
 						prog, *p_vers,
 						*p_prot == IPPROTO_UDP ?
-							"udp" : "tcp",
+							_("UDP") : _("TCP"),
 						p_port);
                                 }
 				if (clnt_ping(saddr, prog, *p_vers, *p_prot, NULL))
