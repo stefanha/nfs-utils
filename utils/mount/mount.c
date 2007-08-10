@@ -470,6 +470,11 @@ int main(int argc, char *argv[])
 					" kernel\n"), progname);
 				exit(EX_USAGE);
 			}
+			if (uid != 0) {
+				nfs_error(_("%s: -i option is restricted to 'root'\n"),
+					progname);
+				exit(EX_USAGE);
+			}
 			++string;
 			break;
 		case 'h':
