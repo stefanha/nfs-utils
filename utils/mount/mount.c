@@ -42,12 +42,14 @@
 #include "mount.h"
 #include "error.h"
 #include "network.h"
+#include "stropts.h"
 
 char *progname;
 int nfs_mount_data_version;
 int nomtab;
 int verbose;
 int sloppy;
+int string;
 
 #define FOREGROUND	(0)
 #define BACKGROUND	(1)
@@ -62,6 +64,7 @@ static struct option longopts[] = {
   { "version", 0, 0, 'V' },
   { "read-write", 0, 0, 'w' },
   { "rw", 0, 0, 'w' },
+  { "string", 0, 0, 'i' },
   { "options", 1, 0, 'o' },
   { NULL, 0, 0, 0 }
 };
@@ -270,7 +273,7 @@ fail_unlock:
 
 void mount_usage(void)
 {
-	printf(_("usage: %s remotetarget dir [-rvVwfnsh] [-o nfsoptions]\n"),
+	printf(_("usage: %s remotetarget dir [-rvVwfnsih] [-o nfsoptions]\n"),
 		progname);
 	printf(_("options:\n"));
 	printf(_("\t-r\t\tMount file system readonly\n"));
@@ -280,6 +283,7 @@ void mount_usage(void)
 	printf(_("\t-f\t\tFake mount, do not actually mount\n"));
 	printf(_("\t-n\t\tDo not update /etc/mtab\n"));
 	printf(_("\t-s\t\tTolerate sloppy mount options rather than fail\n"));
+	printf(_("\t-i\t\tPass mount options to the kernel via a string\n"));
 	printf(_("\t-h\t\tPrint this help\n"));
 	printf(_("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n"));
 }
@@ -370,12 +374,21 @@ static int try_mount(char *spec, char *mount_point, int flags,
 {
 	int ret;
 
-	if (strcmp(fs_type, "nfs4") == 0)
-		ret = nfs4mount(spec, mount_point, flags,
-				extra_opts, fake, bg);
-	else
-		ret = nfsmount(spec, mount_point, flags,
-				extra_opts, fake, bg);
+	if (string) {
+		if (strcmp(fs_type, "nfs4") == 0)
+			ret = nfs4mount_s(spec, mount_point, flags,
+						extra_opts, fake, bg);
+		else
+			ret = nfsmount_s(spec, mount_point, flags,
+						extra_opts, fake, bg);
+	} else {
+		if (strcmp(fs_type, "nfs4") == 0)
+			ret = nfs4mount(spec, mount_point, flags,
+					extra_opts, fake, bg);
+		else
+			ret = nfsmount(spec, mount_point, flags,
+					extra_opts, fake, bg);
+	}
 
 	if (ret)
 		return ret;
@@ -420,7 +433,7 @@ int main(int argc, char *argv[])
 	mount_point = argv[2];
 
 	argv[2] = argv[0]; /* so that getopt error messages are correct */
-	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hs",
+	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hsi",
 				longopts, NULL)) != -1) {
 		switch (c) {
 		case 'r':
@@ -449,6 +462,15 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			++sloppy;
+			break;
+		case 'i':
+			if (linux_version_code() < MAKE_VERSION(2, 6, 23)) {
+				nfs_error(_("%s: Passing mount options via a"
+					" string is unsupported by this"
+					" kernel\n"), progname);
+				exit(EX_USAGE);
+			}
+			++string;
 			break;
 		case 'h':
 		default:
