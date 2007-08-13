@@ -171,7 +171,8 @@ static void		print_numbers(const char *, unsigned int *,
 					unsigned int);
 static void		print_callstats(const char *, const char **,
 					unsigned int *, unsigned int);
-static int		parse_statfile(const char *, struct statinfo *);
+static int		parse_raw_statfile(const char *, struct statinfo *);
+static int 		parse_pretty_statfile(const char *, struct statinfo *);
 
 static statinfo		*get_stat_info(const char *, struct statinfo *);
 
@@ -222,7 +223,8 @@ void usage(char *name)
   -v, --verbose, --all\tSame as '-o all'\n\
   -r, --rpc\t\tShow RPC statistics\n\
   -n, --nfs\t\tShow NFS statistics\n\
-  -Z, --sleep\tSaves stats, pauses, diffs current and saved\n\
+  -Z, --sleep\t\tSaves stats, pauses, diffs current and saved\n\
+  -S, --since file\tShows difference between current stats and those in 'file'\n\
   --version\t\tShow program version\n\
   --help\t\tWhat you just did\n\
 \n", name);
@@ -244,6 +246,7 @@ static struct option longopts[] =
 	{ "help", 0, 0, '\1' },
 	{ "version", 0, 0, '\2' },
 	{ "sleep", 0, 0, 'Z' },
+	{ "since", 1, 0, 'S' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -254,9 +257,12 @@ main(int argc, char **argv)
 			opt_srv = 0,
 			opt_clt = 0,
 			opt_prt = 0,
-			opt_sleep = 0;
+			opt_sleep = 0,
+			opt_since = 0;
 	int		c;
-	char           *progname;
+	char           *progname,
+		       *serverfile = NFSSRVSTAT,
+		       *clientfile = NFSCLTSTAT;
 
 	struct statinfo *serverinfo = srvinfo,
 			*serverinfo_tmp = srvinfo_old,
@@ -273,7 +279,7 @@ main(int argc, char **argv)
 	else
 		progname = argv[0];
 
-	while ((c = getopt_long(argc, argv, "234acmno:Zvrsz\1\2", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "234acmno:ZS:vrsz\1\2", longopts, NULL)) != EOF) {
 		switch (c) {
 		case 'a':
 			fprintf(stderr, "nfsstat: nfs acls are not yet supported.\n");
@@ -305,6 +311,11 @@ main(int argc, char **argv)
 			break;
 		case 'Z':
 			opt_sleep = 1;
+			break;
+		case 'S':
+			opt_since = 1;
+			serverfile = optarg;
+			clientfile = optarg;
 			break;
 		case '2':
 		case '3':
@@ -361,7 +372,7 @@ main(int argc, char **argv)
 			"server.\n");
 	}
 
-	if (opt_sleep) {
+	if (opt_since || opt_sleep) {
 		serverinfo = srvinfo_old;
 		serverinfo_tmp = srvinfo;
 		clientinfo = cltinfo_old;
@@ -369,11 +380,10 @@ main(int argc, char **argv)
 	}
 
 	if (opt_srv)
-		get_stats(NFSSRVSTAT, serverinfo, &opt_srv, opt_clt, 1);
+		get_stats(serverfile, serverinfo, &opt_srv, opt_clt, 1);
 	if (opt_clt)
-		get_stats(NFSCLTSTAT, clientinfo, &opt_clt, opt_srv, 0);
+		get_stats(clientfile, clientinfo, &opt_clt, opt_srv, 0);
 
-	/* save stat snapshots; wait for signal; then diff current and saved stats */
 	if (opt_sleep) {
 		starttime = time(NULL);
 		printf("Collecting statistics; press CTRL-C to view results from interval (i.e., from pause to CTRL-C).\n");
@@ -382,6 +392,9 @@ main(int argc, char **argv)
 			return 1;
 		}
 		pause();
+	}
+
+	if (opt_since || opt_sleep) {
 		if (opt_srv) {
 			get_stats(NFSSRVSTAT, serverinfo_tmp, &opt_srv, opt_clt, 1);
 			diff_stats(serverinfo_tmp, serverinfo, 1);
@@ -556,9 +569,9 @@ print_callstats(const char *hdr, const char **names,
 	printf("\n");
 }
 
-
+/* returns 0 on success, 1 otherwise */
 static int
-parse_statfile(const char *name, struct statinfo *statp)
+parse_raw_statfile(const char *name, struct statinfo *statp)
 {
 	char	buffer[4096], *next;
 	FILE	*fp;
@@ -568,7 +581,7 @@ parse_statfile(const char *name, struct statinfo *statp)
 	 */
 	if ((fp = fopen(name, "r")) == NULL) {
 		// fprintf(stderr, "Warning: %s: %m\n", name);
-		return 0;
+		return 1;
 	}
 
 	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
@@ -598,7 +611,79 @@ parse_statfile(const char *name, struct statinfo *statp)
 	}
 
 	fclose(fp);
-	return 1;
+	return 0;
+}
+
+/* returns 0 on success, 1 otherwise */
+static int
+parse_pretty_statfile(const char *filename, struct statinfo *info)
+{
+	int numvals, curindex, numconsumed, n, sum, err = 1;
+	char buf[4096], *bufp, *fmt, is_proc;
+	FILE *fp = NULL;
+	struct statinfo *ip;
+
+	if ((fp = fopen(filename, "r")) == NULL)
+		//err(2, "Unable to open statfile '%s'.\n", filename);
+		goto out;
+
+	while (fgets(buf, sizeof(buf), fp) != NULL) {
+		for (ip = info; ip->tag; ip++) {
+			if (strcmp(buf, ip->label))
+				continue;
+
+			sum = 0;
+			numvals = ip->nrvals - 1;
+			is_proc = strncmp("proc", ip->tag, 4) ? 0 : 1;
+			if (is_proc) {
+				fmt = " %u %*u%% %n";
+				curindex = 1;
+				ip->valptr[0] = 0;
+			} else {
+				fmt = " %u %n";
+				curindex = 0;
+			}
+more_stats:
+			/* get (and skip) header */
+			if (fgets(buf, sizeof(buf), fp) == NULL) {
+				fprintf(stderr, "Failed to locate header after "
+						"label for '%s' in %s.\n",
+						ip->tag, filename);
+				goto out;
+			}
+			/* no header -- done with this "tag" */
+			if (*buf == '\n') {
+				ip->valptr[numvals] = sum;
+				break;
+			}
+			/* get stats */
+			if (fgets(buf, sizeof(buf), fp) == NULL) {
+				fprintf(stderr, "Failed to locate stats after "
+						"header for '%s' in %s.\n",
+						ip->tag, filename);
+				goto out;
+			}
+			bufp = buf;
+			for (; curindex < numvals; curindex++) {
+				n = sscanf(bufp, fmt, &ip->valptr[curindex],
+						&numconsumed);
+				if (n != 1)
+					break;
+				if (is_proc) {
+					ip->valptr[0]++;
+					sum++;
+				}
+				sum += ip->valptr[curindex];
+				bufp += numconsumed;
+			}
+			goto more_stats;
+		}
+	}
+	err = 0;
+out:
+	if (fp)
+		fclose(fp);
+	return err;
 }
 
 static int
@@ -653,11 +738,42 @@ static void
 get_stats(const char *file, struct statinfo *info, int *opt, int other_opt,
 		int is_srv)
 {
-	const char *label = is_srv ? "Server" : "Client";
+	FILE *fp;
+	char buf[10];
+	int err = 1;
+	char *label = is_srv ? "Server" : "Client";
 
-	if (!parse_statfile(file, info)) {
+	/* try to guess what type of stat file we're dealing with */
+	if ((fp = fopen(file, "r")) == NULL)
+		goto out;
+	if (fgets(buf, 10, fp) == NULL)
+		goto out;
+	if (!strncmp(buf, "net ", 4)) {
+		/* looks like raw client stats */
+		if (is_srv) {
+			fprintf(stderr, "Warning: no server info present in "
+					"raw client stats file.\n");
+			*opt = 0;
+		} else
+			err = parse_raw_statfile(file, info);
+	} else if (!strncmp(buf, "rc ", 3)) {
+		/* looks like raw server stats */
+		if (!is_srv) {
+			fprintf(stderr, "Warning: no client info present in "
+					"raw server stats file.\n");
+			*opt = 0;
+		} else
+			err = parse_raw_statfile(file, info);
+	} else
+		/* looks like pretty client and server stats */
+		err = parse_pretty_statfile(file, info);
+out:
+	if (fp)
+		fclose(fp);
+	if (err) {
 		if (!other_opt) {
-			fprintf(stderr, "Warning: No %s Stats (%s: %m). \n", label, file);
+			fprintf(stderr, "Error: No %s Stats (%s: %m). \n",
+					label, file);
 			exit(2);
 		}
 		*opt = 0;
@@ -711,7 +827,7 @@ diff_stats(struct statinfo *new, struct statinfo *old, int is_srv)
 		 * diff -- i.e., it should always be included in the
 		 * total.
 		 */
-		if (!strncmp("proc", new[i].tag, 4))
+		if (!strncmp("proc", new[i].tag, 4) && old[i].valptr[0])
 			new[i].valptr[new[i].nrvals - 1] += new[i].valptr[0];
 	}
 }
