@@ -25,36 +25,36 @@
 
 #define MAXNRVALS	32
 
-static unsigned int	srvproc2info[20], srvproc2info_tmp[20];	/* NFSv2 call counts ([0] == 18) */
-static unsigned int	cltproc2info[20], cltproc2info_tmp[20];	/* NFSv2 call counts ([0] == 18) */
-static unsigned int	srvproc3info[24], srvproc3info_tmp[24];	/* NFSv3 call counts ([0] == 22) */
-static unsigned int	cltproc3info[24], cltproc3info_tmp[24];	/* NFSv3 call counts ([0] == 22) */
-static unsigned int	srvproc4info[4], srvproc4info_tmp[4];	/* NFSv4 call counts ([0] == 2) */
-static unsigned int	cltproc4info[37], cltproc4info_tmp[37];	/* NFSv4 call counts ([0] == 35) */
-static unsigned int	srvproc4opsinfo[42], srvproc4opsinfo_tmp[42];	/* NFSv4 call counts ([0] == 40) */
-static unsigned int	srvnetinfo[5], srvnetinfo_tmp[5];	/* 0  # of received packets
+static unsigned int	srvproc2info[20], srvproc2info_old[20];	/* NFSv2 call counts ([0] == 18) */
+static unsigned int	cltproc2info[20], cltproc2info_old[20];	/* NFSv2 call counts ([0] == 18) */
+static unsigned int	srvproc3info[24], srvproc3info_old[24];	/* NFSv3 call counts ([0] == 22) */
+static unsigned int	cltproc3info[24], cltproc3info_old[24];	/* NFSv3 call counts ([0] == 22) */
+static unsigned int	srvproc4info[4], srvproc4info_old[4];	/* NFSv4 call counts ([0] == 2) */
+static unsigned int	cltproc4info[37], cltproc4info_old[37];	/* NFSv4 call counts ([0] == 35) */
+static unsigned int	srvproc4opsinfo[42], srvproc4opsinfo_old[42];	/* NFSv4 call counts ([0] == 40) */
+static unsigned int	srvnetinfo[5], srvnetinfo_old[5];	/* 0  # of received packets
 								 * 1  UDP packets
 								 * 2  TCP packets
 								 * 3  TCP connections
 								 */
-static unsigned int	cltnetinfo[5], cltnetinfo_tmp[5];	/* 0  # of received packets
+static unsigned int	cltnetinfo[5], cltnetinfo_old[5];	/* 0  # of received packets
 								 * 1  UDP packets
 								 * 2  TCP packets
 								 * 3  TCP connections
 								 */
 
-static unsigned int	srvrpcinfo[6], srvrpcinfo_tmp[6];	/* 0  total # of RPC calls
+static unsigned int	srvrpcinfo[6], srvrpcinfo_old[6];	/* 0  total # of RPC calls
 								 * 1  total # of bad calls
 								 * 2  bad format
 								 * 3  authentication failed
 								 * 4  unknown client
 								 */
-static unsigned int	cltrpcinfo[4], cltrpcinfo_tmp[4];	/* 0  total # of RPC calls
+static unsigned int	cltrpcinfo[4], cltrpcinfo_old[4];	/* 0  total # of RPC calls
 								 * 1  retransmitted calls
 								 * 2  cred refreshs
 								 */
 
-static unsigned int	srvrcinfo[9], srvrcinfo_tmp[9];		/* 0  repcache hits
+static unsigned int	srvrcinfo[9], srvrcinfo_old[9];		/* 0  repcache hits
 								 * 1  repcache hits
 								 * 2  uncached reqs
 								 * (for pre-2.4 kernels:)
@@ -65,7 +65,7 @@ static unsigned int	srvrcinfo[9], srvrcinfo_tmp[9];		/* 0  repcache hits
 								 * 7  stale
 								 */
 
-static unsigned int	srvfhinfo[7], srvfhinfo_tmp[7];		/* (for kernels >= 2.4.0)
+static unsigned int	srvfhinfo[7], srvfhinfo_old[7];		/* (for kernels >= 2.4.0)
 								 * 0  stale
 								 * 1  FH lookups
 								 * 2  'anon' FHs
@@ -148,9 +148,9 @@ typedef struct statinfo {
 					{ NULL, 0, NULL }\
 				}
 DECLARE_SRV(srvinfo);
-DECLARE_SRV(srvinfo, _tmp);
+DECLARE_SRV(srvinfo, _old);
 DECLARE_CLT(cltinfo);
-DECLARE_CLT(cltinfo, _tmp);
+DECLARE_CLT(cltinfo, _old);
 
 static void		print_numbers(const char *, unsigned int *,
 					unsigned int);
@@ -351,9 +351,9 @@ main(int argc, char **argv)
 		starttime = time(NULL);
 		printf("Collecting statistics; press CTRL-C to view results from interval (i.e., from pause to CTRL-C).\n");
 		if (opt_srv)
-			copy_stats(srvinfo_tmp, srvinfo);
+			copy_stats(srvinfo_old, srvinfo);
 		if (opt_clt)
-			copy_stats(cltinfo_tmp, cltinfo);
+			copy_stats(cltinfo_old, cltinfo);
 		if (sigaction(SIGINT, &act, NULL) != 0) {
 			fprintf(stderr, "Error: couldn't register for signal and pause.\n");
 			return 1;
@@ -361,11 +361,11 @@ main(int argc, char **argv)
 		pause();
 		if (opt_srv) {
 			get_stats(NFSSRVSTAT, srvinfo, &opt_srv, opt_clt, "Server");
-			diff_stats(srvinfo, srvinfo_tmp);
+			diff_stats(srvinfo, srvinfo_old);
 		}
 		if (opt_clt) {
 			get_stats(NFSCLTSTAT, cltinfo, &opt_clt, opt_srv, "Client");
-			diff_stats(cltinfo, cltinfo_tmp);
+			diff_stats(cltinfo, cltinfo_old);
 		}
 	}
 
