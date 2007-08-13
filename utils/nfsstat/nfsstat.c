@@ -164,7 +164,6 @@ static int		mounts(const char *);
 
 static void		get_stats(const char *, statinfo *, int *, int, const char *);
 static int		has_stats(const unsigned int *);
-static void 		copy_stats(statinfo *, statinfo *);
 static void 		diff_stats(statinfo *, statinfo *);
 static void 		unpause(int);
 
@@ -242,6 +241,11 @@ main(int argc, char **argv)
 			opt_sleep = 0;
 	int		c;
 	char           *progname;
+
+	struct statinfo *serverinfo = srvinfo,
+			*serverinfo_tmp = srvinfo_old,
+			*clientinfo = cltinfo,
+			*clientinfo_tmp = cltinfo_old;
 
 	struct sigaction act = {
 		.sa_handler = unpause,
@@ -341,31 +345,34 @@ main(int argc, char **argv)
 			"server.\n");
 	}
 
+	if (opt_sleep) {
+		serverinfo = srvinfo_old;
+		serverinfo_tmp = srvinfo;
+		clientinfo = cltinfo_old;
+		clientinfo_tmp = cltinfo;
+	}
+
 	if (opt_srv)
-		get_stats(NFSSRVSTAT, srvinfo, &opt_srv, opt_clt, "Server");
+		get_stats(NFSSRVSTAT, serverinfo, &opt_srv, opt_clt, "Server");
 	if (opt_clt)
-		get_stats(NFSCLTSTAT, cltinfo, &opt_clt, opt_srv, "Client");
+		get_stats(NFSCLTSTAT, clientinfo, &opt_clt, opt_srv, "Client");
 
 	/* save stat snapshots; wait for signal; then diff current and saved stats */
 	if (opt_sleep) {
 		starttime = time(NULL);
 		printf("Collecting statistics; press CTRL-C to view results from interval (i.e., from pause to CTRL-C).\n");
-		if (opt_srv)
-			copy_stats(srvinfo_old, srvinfo);
-		if (opt_clt)
-			copy_stats(cltinfo_old, cltinfo);
 		if (sigaction(SIGINT, &act, NULL) != 0) {
 			fprintf(stderr, "Error: couldn't register for signal and pause.\n");
 			return 1;
 		}
 		pause();
 		if (opt_srv) {
-			get_stats(NFSSRVSTAT, srvinfo, &opt_srv, opt_clt, "Server");
-			diff_stats(srvinfo, srvinfo_old);
+			get_stats(NFSSRVSTAT, serverinfo_tmp, &opt_srv, opt_clt, "Server");
+			diff_stats(serverinfo_tmp, serverinfo);
 		}
 		if (opt_clt) {
-			get_stats(NFSCLTSTAT, cltinfo, &opt_clt, opt_srv, "Client");
-			diff_stats(cltinfo, cltinfo_old);
+			get_stats(NFSCLTSTAT, clientinfo_tmp, &opt_clt, opt_srv, "Client");
+			diff_stats(clientinfo_tmp, clientinfo);
 		}
 	}
 
@@ -648,20 +655,6 @@ static int
 has_stats(const unsigned int *info)
 {
 	return (info[0] && info[info[0] + 1] > info[0]);
-}
-
-/* clone 'src' to 'dest' */
-static void
-copy_stats(struct statinfo *dest, struct statinfo *src)
-{
-	int i, j;
-
-	for (i = 0; src[i].tag; i++) {
-		dest[i].tag = src[i].tag;
-		dest[i].nrvals = src[i].nrvals;
-		for (j = 0; j < dest[i].nrvals; j++)
-			dest[i].valptr[j] = src[i].valptr[j];
-	}
 }
 
 /*
