@@ -162,9 +162,10 @@ static statinfo		*get_stat_info(const char *, struct statinfo *);
 
 static int		mounts(const char *);
 
-static void		get_stats(const char *, statinfo *, int *, int, const char *);
+static void		get_stats(const char *, struct statinfo *, int *, int,
+					int);
 static int		has_stats(const unsigned int *);
-static void 		diff_stats(statinfo *, statinfo *);
+static void 		diff_stats(struct statinfo *, struct statinfo *, int);
 static void 		unpause(int);
 
 static time_t		starttime;
@@ -353,9 +354,9 @@ main(int argc, char **argv)
 	}
 
 	if (opt_srv)
-		get_stats(NFSSRVSTAT, serverinfo, &opt_srv, opt_clt, "Server");
+		get_stats(NFSSRVSTAT, serverinfo, &opt_srv, opt_clt, 1);
 	if (opt_clt)
-		get_stats(NFSCLTSTAT, clientinfo, &opt_clt, opt_srv, "Client");
+		get_stats(NFSCLTSTAT, clientinfo, &opt_clt, opt_srv, 0);
 
 	/* save stat snapshots; wait for signal; then diff current and saved stats */
 	if (opt_sleep) {
@@ -367,12 +368,12 @@ main(int argc, char **argv)
 		}
 		pause();
 		if (opt_srv) {
-			get_stats(NFSSRVSTAT, serverinfo_tmp, &opt_srv, opt_clt, "Server");
-			diff_stats(serverinfo_tmp, serverinfo);
+			get_stats(NFSSRVSTAT, serverinfo_tmp, &opt_srv, opt_clt, 1);
+			diff_stats(serverinfo_tmp, serverinfo, 1);
 		}
 		if (opt_clt) {
-			get_stats(NFSCLTSTAT, clientinfo_tmp, &opt_clt, opt_srv, "Client");
-			diff_stats(clientinfo_tmp, clientinfo);
+			get_stats(NFSCLTSTAT, clientinfo_tmp, &opt_clt, opt_srv, 0);
+			diff_stats(clientinfo_tmp, clientinfo, 0);
 		}
 	}
 
@@ -634,8 +635,11 @@ mounts(const char *name)
 }
 
 static void
-get_stats(const char *file, statinfo *info, int *opt, int other_opt, const char *label)
+get_stats(const char *file, struct statinfo *info, int *opt, int other_opt,
+		int is_srv)
 {
+	const char *label = is_srv ? "Server" : "Client";
+
 	if (!parse_statfile(file, info)) {
 		if (!other_opt) {
 			fprintf(stderr, "Warning: No %s Stats (%s: %m). \n", label, file);
@@ -662,9 +666,9 @@ has_stats(const unsigned int *info)
  * and store the results back into 'new'
  */
 static void
-diff_stats(struct statinfo *new, struct statinfo *old)
+diff_stats(struct statinfo *new, struct statinfo *old, int is_srv)
 {
-	int i, j, is_srv, nodiff_first_index, should_diff;
+	int i, j, nodiff_first_index, should_diff;
 
 	/*
 	 * Different stat types have different formats in the /proc
@@ -675,7 +679,6 @@ diff_stats(struct statinfo *new, struct statinfo *old)
 	 * procX types ("i" < 2 for clt, < 4 for srv), or if it's not
 	 * the first entry ("j" > 0).
 	 */
-	is_srv = (new == srvinfo);
 	nodiff_first_index = 2 + (2 * is_srv);
 
 	for (i = 0; old[i].tag; i++) {
