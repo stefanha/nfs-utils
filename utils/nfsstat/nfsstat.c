@@ -113,19 +113,34 @@ static const char *     nfssrvproc4opname[40] = {
         "setcltidconf", "verify",     "write",       "rellockowner"
 };
 
+#define LABEL_srvnet		"Server packet stats:\n"
+#define LABEL_srvrpc		"Server rpc stats:\n"
+#define LABEL_srvrc		"Server reply cache:\n"
+#define LABEL_srvfh		"Server file handle cache:\n"
+#define LABEL_srvproc2		"Server nfs v2:\n"
+#define LABEL_srvproc3		"Server nfs v3:\n"
+#define LABEL_srvproc4		"Server nfs v4:\n"
+#define LABEL_srvproc4ops	"Server nfs v4 operations:\n"
+#define LABEL_cltnet		"Client packet stats:\n"
+#define LABEL_cltrpc		"Client rpc stats:\n"
+#define LABEL_cltproc2		"Client nfs v2:\n"
+#define LABEL_cltproc3		"Client nfs v3:\n"
+#define LABEL_cltproc4		"Client nfs v4:\n"
+
 typedef struct statinfo {
 	char		*tag;
+	char		*label;
 	int		nrvals;
 	unsigned int *	valptr;
 } statinfo;
 
 /*
  * We now build the arrays of statinfos using macros, which will make it easier
- * to add new variables for --diff-stat.
- * e.g., SRV(net) expands into the struct statinfo:  { "net", 5, srvnetinfo }
+ * to add new variables for --sleep.  e.g., SRV(net) expands into the struct
+ * statinfo:  { "net", "Server packet stats:\n", 5, srvnetinfo }
  */
 #define ARRAYSIZE(x)		sizeof(x)/sizeof(*x)
-#define STATINFO(k, t, s...)	{ #t, ARRAYSIZE(k##t##info##s), k##t##info##s }
+#define STATINFO(k, t, s...)	{ #t, LABEL_##k##t, ARRAYSIZE(k##t##info##s), k##t##info##s }
 #define SRV(t, s...)		STATINFO(srv, t, s)
 #define CLT(t, s...)		STATINFO(clt, t, s)
 #define DECLARE_SRV(n, s...)	static statinfo n##s[] = { \
@@ -137,7 +152,7 @@ typedef struct statinfo {
 					SRV(proc3,s),\
 					SRV(proc4,s), \
 					SRV(proc4ops,s),\
-					{ NULL, 0, NULL }\
+					{ NULL, NULL, 0, NULL }\
 				}
 #define DECLARE_CLT(n, s...)  	static statinfo n##s[] = { \
 					CLT(net,s), \
@@ -145,7 +160,7 @@ typedef struct statinfo {
 					CLT(proc2,s),\
 					CLT(proc3,s), \
 					CLT(proc4,s),\
-					{ NULL, 0, NULL }\
+					{ NULL, NULL, 0, NULL }\
 				}
 DECLARE_SRV(srvinfo);
 DECLARE_SRV(srvinfo, _old);
@@ -380,7 +395,7 @@ main(int argc, char **argv)
 	if (opt_srv) {
 		if (opt_prt & PRNT_NET) {
 			print_numbers(
-			"Server packet stats:\n"
+			LABEL_srvnet
 			"packets    udp        tcp        tcpconn\n",
 			srvnetinfo, 4
 			);
@@ -388,7 +403,7 @@ main(int argc, char **argv)
 		}
 		if (opt_prt & PRNT_RPC) {
 			print_numbers(
-			"Server rpc stats:\n"
+			LABEL_srvrpc
 			"calls      badcalls   badauth    badclnt    xdrcall\n",
 			srvrpcinfo, 5
 			);
@@ -396,7 +411,7 @@ main(int argc, char **argv)
 		}
 		if (opt_prt & PRNT_RC) {
 			print_numbers(
-			"Server reply cache:\n"
+			LABEL_srvrc
 			"hits       misses     nocache\n",
 			srvrcinfo, 3
 			);
@@ -418,12 +433,12 @@ main(int argc, char **argv)
 				srvfhinfo[5]=srvfhinfo[0]; /* relocate 'stale' */
 				
 				print_numbers(
-					"Server file handle cache:\n"
+					LABEL_srvfh
 					"lookup     anon       ncachedir  ncachedir  stale\n",
 					srvfhinfo + 1, 5);
 			} else					/* < 2.4 */
 				print_numbers(
-					"Server file handle cache:\n"
+					LABEL_srvfh
 					"lookup     anon       ncachedir  ncachedir  stale\n",
 					srvrcinfo + 3, 5);
 			printf("\n");
@@ -431,21 +446,21 @@ main(int argc, char **argv)
 		if (opt_prt & PRNT_CALLS) {
 			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && has_stats(srvproc2info)))
 				print_callstats(
-				"Server nfs v2:\n",
-				    nfsv2name, srvproc2info + 1, sizeof(nfsv2name)/sizeof(char *)
+				LABEL_srvproc2,
+				nfsv2name, srvproc2info + 1, sizeof(nfsv2name)/sizeof(char *)
 				);
 			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && has_stats(srvproc3info)))
 				print_callstats(
-				"Server nfs v3:\n",
+				LABEL_srvproc3,
 				nfsv3name, srvproc3info + 1, sizeof(nfsv3name)/sizeof(char *)
 				);
 			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && has_stats(srvproc4info))) {
 				print_callstats(
-				"Server nfs v4:\n",
+				LABEL_srvproc4,
 				nfssrvproc4name, srvproc4info + 1, sizeof(nfssrvproc4name)/sizeof(char *)
 				);
 				print_callstats(
-				"Server nfs v4 operations:\n",
+				LABEL_srvproc4ops,
 				nfssrvproc4opname, srvproc4opsinfo + 1, sizeof(nfssrvproc4opname)/sizeof(char *)
 				);
 			}
@@ -455,7 +470,7 @@ main(int argc, char **argv)
 	if (opt_clt) {
 		if (opt_prt & PRNT_NET) {
 			print_numbers(
-			"Client packet stats:\n"
+			LABEL_cltnet
 			"packets    udp        tcp        tcpconn\n",
 			cltnetinfo, 4
 			);
@@ -463,7 +478,7 @@ main(int argc, char **argv)
 		}
 		if (opt_prt & PRNT_RPC) {
 			print_numbers(
-			"Client rpc stats:\n"
+			LABEL_cltrpc
 			"calls      retrans    authrefrsh\n",
 			cltrpcinfo, 3
 			);
@@ -472,17 +487,17 @@ main(int argc, char **argv)
 		if (opt_prt & PRNT_CALLS) {
 			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && has_stats(cltproc2info)))
 				print_callstats(
-				"Client nfs v2:\n",
+				LABEL_cltproc2,
 				nfsv2name, cltproc2info + 1,  sizeof(nfsv2name)/sizeof(char *)
 				);
 			if ((opt_prt & PRNT_V3) || ((opt_prt & PRNT_AUTO) && has_stats(cltproc3info)))
 				print_callstats(
-				"Client nfs v3:\n",
+				LABEL_cltproc3,
 				nfsv3name, cltproc3info + 1, sizeof(nfsv3name)/sizeof(char *)
 				);
 			if ((opt_prt & PRNT_V4) || ((opt_prt & PRNT_AUTO) && has_stats(cltproc4info)))
 				print_callstats(
-				"Client nfs v4:\n",
+				LABEL_cltproc4,
 				nfscltproc4name, cltproc4info + 1,  sizeof(nfscltproc4name)/sizeof(char *)
 				);
 		}
