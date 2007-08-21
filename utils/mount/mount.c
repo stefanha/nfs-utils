@@ -550,14 +550,19 @@ int main(int argc, char *argv[])
 	mnt_err = try_mount(spec, mount_point, flags, fs_type, &extra_opts,
 				mount_opts, fake, nomtab, FOREGROUND);
 	if (mnt_err == EX_BG) {
-		printf(_("mount: backgrounding \"%s\"\n"), spec);
+		printf(_("%s: backgrounding \"%s\"\n"),
+			progname, spec);
 		fflush(stdout);
 
 		/*
 		 * Parent exits immediately with success.
 		 */
-		if (fork() > 0)
-			exit(0);
+		if (daemon(0, 0)) {
+			nfs_error(_("%s: failed to start "
+					"background process: %s\n"),
+						progname, strerror(errno));
+			exit(EX_FAIL);
+		}
 
 		mnt_err = try_mount(spec, mount_point, flags, fs_type,
 					&extra_opts, mount_opts, fake,
