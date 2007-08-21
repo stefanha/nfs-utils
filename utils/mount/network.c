@@ -303,14 +303,16 @@ static unsigned short getport(struct sockaddr_in *saddr,
 				unsigned long version,
 				unsigned int proto)
 {
+	struct sockaddr_in bind_saddr;
 	unsigned short port = 0;
 	int socket;
 	CLIENT *clnt = NULL;
 	enum clnt_stat stat;
+ 
+	bind_saddr = *saddr;
+	bind_saddr.sin_port = htons(PMAPPORT);
 
-	saddr->sin_port = htons(PMAPPORT);
-
-	socket = get_socket(saddr, proto, PMAP_TIMEOUT, FALSE, FALSE);
+	socket = get_socket(&bind_saddr, proto, PMAP_TIMEOUT, FALSE, FALSE);
 	if (socket == RPC_ANYSOCK) {
 		if (proto == IPPROTO_TCP &&
 		    rpc_createerr.cf_error.re_errno == ETIMEDOUT)
@@ -320,14 +322,16 @@ static unsigned short getport(struct sockaddr_in *saddr,
 
 	switch (proto) {
 	case IPPROTO_UDP:
-		clnt = clntudp_bufcreate(saddr,
+		clnt = clntudp_bufcreate(&bind_saddr,
 					 PMAPPROG, PMAPVERS,
 					 RETRY_TIMEOUT, &socket,
 					 RPCSMALLMSGSIZE,
 					 RPCSMALLMSGSIZE);
 		break;
 	case IPPROTO_TCP:
-		clnt = clnttcp_create(saddr, PMAPPROG, PMAPVERS, &socket,
+		clnt = clnttcp_create(&bind_saddr,
+				      PMAPPROG, PMAPVERS,
+				      &socket,
 				      RPCSMALLMSGSIZE, RPCSMALLMSGSIZE);
 		break;
 	}
