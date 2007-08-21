@@ -254,17 +254,13 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 {
 	int retval = EX_FAIL;
 
-	if (verbose)
-		printf(_("%s: using C string mount system call interface\n"),
-			progname);
-
 	extract_interesting_options(*extra_opts);
 
 	if (!addr_opt && !append_addr_opt(spec, extra_opts))
 		goto fail;
 
 	if (verbose)
-		printf(_("%s: option string is '%s'\n"),
+		printf(_("%s: text-based options: '%s'\n"),
 			progname, *extra_opts);
 
 	if (!fake) {
@@ -300,10 +296,6 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 {
 	int retval = EX_FAIL;
 
-	if (verbose)
-		printf(_("%s: using C string mount system call interface\n"),
-			progname);
-
 	extract_interesting_options(*extra_opts);
 
 	if (!addr_opt && !append_addr_opt(spec, extra_opts))
@@ -313,7 +305,7 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 		goto fail;
 
 	if (verbose)
-		printf(_("%s: option string is '%s'\n"),
+		printf(_("%s: text-based options: '%s'\n"),
 			progname, *extra_opts);
 
 	if (!fake) {
