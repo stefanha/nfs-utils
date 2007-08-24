@@ -168,7 +168,7 @@ static void extract_interesting_options(char *opts)
  */
 static int append_addr_opt(const char *spec, char **extra_opts)
 {
-	static char hostdir[1024], new_opts[1024], ip_addr[255];
+	static char hostdir[1024], new_opts[1024];
 	char *hostname, *dirname, *s, *old_opts;
 	struct sockaddr_in addr;
 
@@ -185,8 +185,6 @@ static int append_addr_opt(const char *spec, char **extra_opts)
 	}
 
 	if (!fill_ipv4_sockaddr(hostname, &addr))
-		return 0;
-	if (!get_my_ipv4addr(ip_addr, sizeof(ip_addr)))
 		return 0;
 
 	/* add IP address to mtab options for use when unmounting */
