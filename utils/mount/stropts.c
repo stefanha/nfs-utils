@@ -37,6 +37,7 @@
 #include "nls.h"
 #include "nfs_mount.h"
 #include "mount_constants.h"
+#include "stropts.h"
 #include "error.h"
 #include "network.h"
 
@@ -286,13 +287,13 @@ fail:
  * @extra_opts:	pointer to C string containing fs-specific mount options
  *		(possibly also a return argument)
  * @fake:	flag indicating whether to carry out the whole operation
- * @bg:		one if this is a backgrounded mount attempt
+ * @child:	one if this is a backgrounded mount
  *
  * XXX: need to handle bg, fg, and retry options.
  *
  */
 int nfs4mount_s(const char *spec, const char *node, int flags,
-		char **extra_opts, int fake)
+		char **extra_opts, int fake, int child)
 {
 	int retval = EX_FAIL;
 
