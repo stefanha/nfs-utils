@@ -121,6 +121,13 @@ void mount_errors(char *server, int will_retry, int bg)
 		fprintf(stderr, "%s\n", errbuf);
 }
 
+/*
+ * mount_error - report a foreground mount error
+ * @spec: C string containing the device name being mounted
+ * @mount_point: C string containing the pathname of the local mounted on dir
+ * @error: errno value to report
+ *
+ */
 void mount_error(const char *spec, const char *mount_point, int error)
 {
 	switch(error) {
@@ -148,7 +155,10 @@ void mount_error(const char *spec, const char *mount_point, int error)
 }
 
 /*
- * Report a failed umount
+ * umount_error - report a failed umount request
+ * @err: errno value to report
+ * @dev: C string containing the pathname of the local mounted on dir
+ *
  */
 void umount_error(int err, const char *dev)
 {
