@@ -130,7 +130,7 @@ static int get_my_ipv4addr(char *ip_addr, int len)
 
 /*
  * Walk through our mount options string, and indicate the presence
- * of 'bg', 'retry=', and 'clientaddr='.
+ * of 'bg', 'retry=', 'addr=', and 'clientaddr='.
  */
 static void extract_interesting_options(char *opts)
 {
@@ -161,9 +161,10 @@ static void extract_interesting_options(char *opts)
 }
 
 /*
- * Append the "addr=" option to the options string.
+ * Append the 'addr=' option to the options string.
  *
- * We always add our own addr= to the end of the options string.
+ * Returns 1 if 'addr=' option created successfully;
+ * otherwise zero.
  */
 static int append_addr_opt(const char *spec, char **extra_opts)
 {
@@ -206,9 +207,9 @@ static int append_addr_opt(const char *spec, char **extra_opts)
 }
 
 /*
- * Append the "clientaddr=" option to the options string.
+ * Append the 'clientaddr=' option to the options string.
  *
- * Returns 1 if clientaddr option created successfully;
+ * Returns 1 if 'clientaddr=' option created successfully;
  * otherwise zero.
  */
 static int append_clientaddr_opt(const char *spec, char **extra_opts)
@@ -257,7 +258,12 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 
 	extract_interesting_options(*extra_opts);
 
-	if (!addr_opt && !append_addr_opt(spec, extra_opts))
+	if (!bg && addr_opt) {
+		nfs_error(_("%s: Illegal option: 'addr='"), progname);
+		goto fail;
+	}
+
+	if (!append_addr_opt(spec, extra_opts))
 		goto fail;
 
 	if (verbose)
@@ -299,10 +305,20 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 
 	extract_interesting_options(*extra_opts);
 
-	if (!addr_opt && !append_addr_opt(spec, extra_opts))
+	if (addr_opt) {
+		nfs_error(_("%s: Illegal option: 'addr='"), progname);
+		goto fail;
+	}
+
+	if (ca_opt) {
+		nfs_error(_("%s: Illegal option: 'clientaddr='"), progname);
+		goto fail;
+	}
+
+	if (!append_addr_opt(spec, extra_opts))
 		goto fail;
 
-	if (!ca_opt && !append_clientaddr_opt(spec, extra_opts))
+	if (!append_clientaddr_opt(spec, extra_opts))
 		goto fail;
 
 	if (verbose)
