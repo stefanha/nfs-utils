@@ -554,8 +554,7 @@ int main(int argc, char *argv[])
 		fflush(stdout);
 
 		/*
-		 * Parent exits immediately with success.  Make
-		 * sure not to free "mount_point"
+		 * Parent exits immediately with success.
 		 */
 		if (fork() > 0)
 			exit(0);
@@ -566,7 +565,6 @@ int main(int argc, char *argv[])
 		if (verbose && mnt_err)
 			printf(_("%s: giving up \"%s\"\n"),
 				progname, spec);
-		exit(0);
 	}
 
 out:
