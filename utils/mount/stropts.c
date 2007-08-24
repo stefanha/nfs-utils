@@ -204,27 +204,17 @@ static void extract_interesting_options(char *opts)
  * Returns 1 if 'addr=' option created successfully;
  * otherwise zero.
  */
-static int append_addr_opt(const char *spec, char **extra_opts)
+static int append_addr_opt(struct sockaddr_in *saddr, char **extra_opts)
 {
 	static char new_opts[1024];
-	char *hostname, *s, *old_opts;
-	struct sockaddr_in addr;
-	int err;
+	char *s, *old_opts;
 
-	if (!parse_devname(spec, &hostname))
-		return 0;
-
-	err = fill_ipv4_sockaddr(hostname, &addr);
-	free(hostname);
-	if (!err)
-		return 0;
-
-	s = inet_ntoa(addr.sin_addr);
+	s = inet_ntoa(saddr->sin_addr);
 	old_opts = *extra_opts;
 	if (!old_opts)
 		old_opts = "";
 	if (strlen(old_opts) + strlen(s) + 10 >= sizeof(new_opts)) {
-		nfs_error(_("%s: excessively long option argument\n"),
+		nfs_error(_("%s: too many mount options\n"),
 				progname);
 		return 0;
 	}
@@ -283,17 +273,26 @@ static int append_clientaddr_opt(const char *spec, char **extra_opts)
 int nfsmount_s(const char *spec, const char *node, int flags,
 		char **extra_opts, int fake, int bg)
 {
-	int retval = EX_FAIL;
+	struct sockaddr_in saddr;
+	char *hostname;
+	int err;
+
+	if (!parse_devname(spec, &hostname))
+		return EX_FAIL;
+	err = fill_ipv4_sockaddr(hostname, &saddr);
+	free(hostname);
+	if (!err)
+		return EX_FAIL;
 
 	extract_interesting_options(*extra_opts);
 
 	if (!bg && addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
-		goto fail;
+		return EX_FAIL;
 	}
 
-	if (!append_addr_opt(spec, extra_opts))
-		goto fail;
+	if (!append_addr_opt(&saddr, extra_opts))
+		return EX_FAIL;
 
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
@@ -303,14 +302,11 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 		if (mount(spec, node, "nfs",
 				flags & ~(MS_USER|MS_USERS), *extra_opts)) {
 			mount_error(spec, node, errno);
-			goto fail;
+			return EX_FAIL;
 		}
 	}
 
 	return 0;
-
-fail:
-	return retval;
 }
 
 /*
@@ -330,25 +326,34 @@ fail:
 int nfs4mount_s(const char *spec, const char *node, int flags,
 		char **extra_opts, int fake, int child)
 {
-	int retval = EX_FAIL;
+	struct sockaddr_in saddr;
+	char *hostname;
+	int err;
+
+	if (!parse_devname(spec, &hostname))
+		return EX_FAIL;
+	err = fill_ipv4_sockaddr(hostname, &saddr);
+	free(hostname);
+	if (!err)
+		return EX_FAIL;
 
 	extract_interesting_options(*extra_opts);
 
 	if (addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
-		goto fail;
+		return EX_FAIL;
 	}
 
 	if (ca_opt) {
 		nfs_error(_("%s: Illegal option: 'clientaddr='"), progname);
-		goto fail;
+		return EX_FAIL;
 	}
 
-	if (!append_addr_opt(spec, extra_opts))
-		goto fail;
+	if (!append_addr_opt(&saddr, extra_opts))
+		return EX_FAIL;
 
 	if (!append_clientaddr_opt(spec, extra_opts))
-		goto fail;
+		return EX_FAIL;
 
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
@@ -358,12 +363,9 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 		if (mount(spec, node, "nfs4",
 				flags & ~(MS_USER|MS_USERS), *extra_opts)) {
 			mount_error(spec, node, errno);
-			goto fail;
+			return EX_FAIL;
 		}
 	}
 
 	return 0;
-
-fail:
-	return retval;
 }
