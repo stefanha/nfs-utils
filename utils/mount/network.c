@@ -642,10 +642,23 @@ void mnt_closeclnt(CLIENT *clnt, int msock)
 }
 
 /*
+ * clnt_ping - send an RPC ping to the remote RPC service endpoint
+ * @saddr: server's address
+ * @prog: target RPC program number
+ * @vers: target RPC version number
+ * @prot: target RPC protocol
+ * @caddr: filled in with our network address
+ *
  * Sigh... getport() doesn't actually check the version number.
  * In order to make sure that the server actually supports the service
  * we're requesting, we open and RPC client, and fire off a NULL
  * RPC call.
+ *
+ * caddr is the network address that the server will use to call us back.
+ * On multi-homed clients, this address depends on which NIC we use to
+ * route requests to the server.
+ *
+ * Returns one if successful, otherwise zero.
  */
 int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 		const unsigned long vers, const unsigned int prot,
@@ -714,4 +727,37 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 		return 1;
 	else
 		return 0;
+}
+
+/*
+ * get_client_address - acquire our local network address
+ * @saddr: server's address
+ * @caddr: filled in with our network address
+ *
+ * Discover a network address that the server will use to call us back.
+ * On multi-homed clients, this address depends on which NIC we use to
+ * route requests to the server.
+ *
+ * Use a connected datagram socket so as not to leave a socket in TIME_WAIT.
+ *
+ * Returns one if successful, otherwise zero.
+ */
+int get_client_address(struct sockaddr_in *saddr, struct sockaddr_in *caddr)
+{
+	socklen_t len = sizeof(*caddr);
+	int socket, err;
+
+	socket = get_socket(saddr, IPPROTO_UDP, CONNECT_TIMEOUT, FALSE, TRUE);
+	if (socket == RPC_ANYSOCK)
+		return 0;
+
+	err = getsockname(socket, caddr, &len);
+	close(socket);
+
+	if (err && verbose) {
+		nfs_error(_("%s: getsockname failed: %s"),
+				progname, strerror(errno));
+		return 0;
+	}
+	return 1;
 }
