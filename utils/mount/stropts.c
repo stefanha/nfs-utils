@@ -231,17 +231,16 @@ static int append_addr_opt(struct sockaddr_in *saddr, char **extra_opts)
  * Returns 1 if 'clientaddr=' option created successfully;
  * otherwise zero.
  */
-static int append_clientaddr_opt(const char *spec, char **extra_opts)
+static int append_clientaddr_opt(struct sockaddr_in *saddr, char **extra_opts)
 {
-	static char new_opts[1024], cbuf[1024];
-	static char ip_addr[16] = "127.0.0.1";
+	static char new_opts[2048], cbuf[256];
+	struct sockaddr_in my_addr;
 
-	if (!get_my_ipv4addr(ip_addr, sizeof(ip_addr)))
+	if (!get_client_address(saddr, &my_addr))
 		return 0;
 
-	/* Ensure we have enough padding for the following strcat()s */
-	if (strlen(*extra_opts) + strlen(ip_addr) + 10 >= sizeof(new_opts)) {
-		nfs_error(_("%s: excessively long option argument"),
+	if (strlen(*extra_opts) + 30 >= sizeof(new_opts)) {
+		nfs_error(_("%s: too many mount options"),
 				progname);
 		return 0;
 	}
@@ -249,7 +248,8 @@ static int append_clientaddr_opt(const char *spec, char **extra_opts)
 	strcat(new_opts, *extra_opts);
 
 	snprintf(cbuf, sizeof(cbuf) - 1, "%sclientaddr=%s",
-			*extra_opts ? "," : "", ip_addr);
+			*extra_opts ? "," : "", inet_ntoa(my_addr.sin_addr));
+
 	strcat(new_opts, cbuf);
 
 	*extra_opts = xstrdup(new_opts);
@@ -352,7 +352,7 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 	if (!append_addr_opt(&saddr, extra_opts))
 		return EX_FAIL;
 
-	if (!append_clientaddr_opt(spec, extra_opts))
+	if (!append_clientaddr_opt(&saddr, extra_opts))
 		return EX_FAIL;
 
 	if (verbose)
