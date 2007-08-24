@@ -141,31 +141,6 @@ static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
 }
 
 /*
- * XXX: This should really use the technique neil recently added
- * to get the address off the local end of a socket connected to
- * the server -- to get the right address to use on multi-homed
- * clients
- */
-static int get_my_ipv4addr(char *ip_addr, int len)
-{
-	char myname[1024];
-	struct sockaddr_in myaddr;
-
-	if (gethostname(myname, sizeof(myname))) {
-		nfs_error(_("%s: can't determine client address\n"),
-				progname);
-		return 0;
-	}
-	if (!fill_ipv4_sockaddr(myname, &myaddr))
-		return 0;
-
-	snprintf(ip_addr, len, "%s", inet_ntoa(myaddr.sin_addr));
-	ip_addr[len - 1] = '\0';
-
-	return 1;
-}
-
-/*
  * Walk through our mount options string, and indicate the presence
  * of 'bg', 'retry=', 'addr=', and 'clientaddr='.
  */
