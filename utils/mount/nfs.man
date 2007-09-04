@@ -411,11 +411,23 @@ Valid protocol types are
 and
 .IR tcp .
 .TP 1.5i
-.I clientaddr=n
-On a multi-homed client, this
-causes the client to use a specific callback address when
-communicating with an NFS version 4 server.
-This option is currently ignored.
+.I clientaddr=n.n.n.n
+Specifies a single IPv4 address in dotted-quad form that
+the NFS client advertises to allow servers to perform
+NFSv4 callback requests against files on this mount point.
+If the server is not able to establish callback connections
+to clients, performance may degrade, or accesses to
+files may temporarily hang.
+.IP
+If this option is not specified, the
+.BR mount (8)
+command attempts to discover an appropriate callback
+address automatically.
+The automatic discovery process is not perfect, however.
+In the presence of multiple client network interfaces, special
+routing policies, or atypical network topologies, the exact
+address to use for callbacks may be nontrivial to determine,
+and should be explicitly set using this mount option.
 .TP 1.5i
 .I sec=mode
 Same as \f3sec=mode\f1 for the nfs filesystem type (see above).
