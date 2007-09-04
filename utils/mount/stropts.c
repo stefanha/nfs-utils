@@ -201,7 +201,9 @@ static int append_addr_opt(struct sockaddr_in *saddr, char **extra_opts)
 }
 
 /*
- * Append the 'clientaddr=' option to the options string.
+ * Called if no 'clientaddr=' option was specified in the options string
+ * to discover our address and append an appropriate 'clientaddr=' option
+ * to the options string.
  *
  * Returns 1 if 'clientaddr=' option created successfully;
  * otherwise zero.
@@ -319,15 +321,10 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 		return EX_FAIL;
 	}
 
-	if (ca_opt) {
-		nfs_error(_("%s: Illegal option: 'clientaddr='"), progname);
-		return EX_FAIL;
-	}
-
 	if (!append_addr_opt(&saddr, extra_opts))
 		return EX_FAIL;
 
-	if (!append_clientaddr_opt(&saddr, extra_opts))
+	if (!ca_opt && !append_clientaddr_opt(&saddr, extra_opts))
 		return EX_FAIL;
 
 	if (verbose)
