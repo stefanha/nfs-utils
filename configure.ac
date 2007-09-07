@@ -181,11 +181,11 @@ if test "$enable_nfsv4" = yes; then
     dnl librpcsecgss already has a dependency on libgssapi,
     dnl but we need to make sure we get the right version
     if test "$enable_gss" = yes; then
-     PKG_CHECK_MODULES(RPCSECGSS, librpcsecgss >= 0.10, ,
+     PKG_CHECK_MODULES(RPCSECGSS, librpcsecgss >= 0.16, ,
       [AC_MSG_ERROR([Unable to locate information required to use librpcsecgss.  If you have pkgconfig installed, you might try setting environment variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig])
       ]
      )
-    PKG_CHECK_MODULES(GSSAPI, libgssapi >= 0.11)
+    PKG_CHECK_MODULES(GSSGLUE, libgssglue >= 0.1)
     fi
 
 fi
@@ -228,9 +228,9 @@ if test "$enable_gss" = yes; then
 
   dnl This is not done until here because we need to have KRBLIBS set
   dnl ("librpcsecgss=1" is so that it doesn't get added to LIBS)
-  AC_CHECK_LIB(rpcsecgss, authgss_create_default, [librpcsecgss=1], AC_MSG_ERROR([librpcsecgss needed for nfsv4 support]), -lgssapi -ldl)
+  AC_CHECK_LIB(rpcsecgss, authgss_create_default, [librpcsecgss=1], AC_MSG_ERROR([librpcsecgss needed for nfsv4 support]), -lgssglue -ldl)
   AC_CHECK_LIB(rpcsecgss, authgss_set_debug_level,
-  	       AC_DEFINE(HAVE_AUTHGSS_SET_DEBUG_LEVEL, 1, [Define this if the rpcsec_gss library has the function authgss_set_debug_level]),, -lgssapi -ldl)
+  	       AC_DEFINE(HAVE_AUTHGSS_SET_DEBUG_LEVEL, 1, [Define this if the rpcsec_gss library has the function authgss_set_debug_level]),, -lgssglue -ldl)
 
 fi
 
@@ -284,7 +284,7 @@ AC_CHECK_FUNCS([alarm atexit dup2 fdatasync ftruncate getcwd \
 
 
 dnl *************************************************************
-dnl Check for data sizes (XXX These should go away with libgssapi pkg-config)
+dnl Check for data sizes
 dnl *************************************************************
 AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
