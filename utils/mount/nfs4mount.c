@@ -448,7 +448,7 @@ int nfs4mount(const char *spec, const char *node, int flags,
 		}
 	}
 
-	return 0;
+	return EX_SUCCESS;
 
 fail:
 	return retval;

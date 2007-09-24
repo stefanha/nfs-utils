@@ -237,7 +237,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 
 	if (flags & MS_REMOUNT) {
 		update_mtab(ment.mnt_dir, &ment);
-		return 0;
+		return EX_SUCCESS;
 	}
 
 	lock_mtab();
@@ -261,7 +261,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 		goto fail_close;
 	}
 
-	result = 0;
+	result = EX_SUCCESS;
 
 fail_close:
 	endmntent(mtab);
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 			printf("%s ("PACKAGE_STRING")\n", progname);
 		else
 			mount_usage();
-		exit(0);
+		exit(EX_SUCCESS);
 	}
 
 	if ((argc < 3)) {
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 			break;
 		case 'V':
 			printf("%s: ("PACKAGE_STRING")\n", progname);
-			exit(0);
+			exit(EX_SUCCESS);
 		case 'w':
 			flags &= ~MS_RDONLY;
 			break;

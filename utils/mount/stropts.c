@@ -283,7 +283,7 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 		}
 	}
 
-	return 0;
+	return EX_SUCCESS;
 }
 
 /*
@@ -339,5 +339,5 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 		}
 	}
 
-	return 0;
+	return EX_SUCCESS;
 }

@@ -863,7 +863,7 @@ noauth_flavors:
 		}
 	}
 
-	return 0;
+	return EX_SUCCESS;
 
 	/* abort */
  fail:

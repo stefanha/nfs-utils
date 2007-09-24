@@ -209,7 +209,7 @@ static int do_nfs_umount(const char *spec, char *opts)
 		return EX_USAGE;
 	}
 
-	return 0;
+	return EX_SUCCESS;
 }
 
 static struct option umount_longopts[] =
@@ -305,7 +305,7 @@ int nfsumount(int argc, char *argv[])
 			/* umount might call us twice.  The second time there will
 			 * be no entry in mtab and we should just exit quietly
 			 */
-			return 0;
+			return EX_SUCCESS;
 
 		only_root:
 			nfs_error(_("%s: You are not permitted to unmount %s"),
