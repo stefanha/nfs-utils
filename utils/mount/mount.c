@@ -470,19 +470,19 @@ int main(int argc, char *argv[])
 				nfs_error(_("%s: Passing mount options via a"
 					" string is unsupported by this"
 					" kernel\n"), progname);
-				exit(EX_USAGE);
+				goto out_usage;
 			}
 			if (uid != 0) {
 				nfs_error(_("%s: -i option is restricted to 'root'\n"),
 					progname);
-				exit(EX_USAGE);
+				goto out_usage;
 			}
 			++string;
 			break;
 		case 'h':
 		default:
 			mount_usage();
-			exit(EX_USAGE);
+			goto out_usage;
 		}
 	}
 
@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
 	 */
 	if (optind != argc - 2) {
 		mount_usage();
-		exit(EX_USAGE);
+		goto out_usage;
 	}
 
 	if (strcmp(progname, "mount.nfs4") == 0)
@@ -510,7 +510,7 @@ int main(int argc, char *argv[])
 		    strcmp(mc->m.mnt_type, fs_type) != 0) {
 			nfs_error(_("%s: permission denied: no match for %s "
 				"found in /etc/fstab"), progname, mount_point);
-			exit(EX_USAGE);
+			goto out_usage;
 		}
 
 		/*
@@ -525,7 +525,7 @@ int main(int argc, char *argv[])
 	mount_point = canonicalize(mount_point);
 	if (!mount_point) {
 		nfs_error(_("%s: no mount point provided"), progname);
-		exit(EX_USAGE);
+		goto out_usage;
 	}
 	if (mount_point[0] != '/') {
 		nfs_error(_("%s: unrecognized mount point %s"),
@@ -575,7 +575,12 @@ int main(int argc, char *argv[])
 	}
 
 out:
+	free(mount_opts);
 	free(extra_opts);
 	free(mount_point);
 	exit(mnt_err);
+
+out_usage:
+	free(mount_opts);
+	exit(EX_USAGE);
 }
