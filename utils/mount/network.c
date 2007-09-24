@@ -139,6 +139,13 @@ static const unsigned long probe_mnt3_first[] = {
 	0,
 };
 
+/**
+ * nfs_gethostbyname - resolve a hostname to an IPv4 address
+ * @hostname: pointer to a C string containing a DNS hostname
+ * @saddr: returns an IPv4 address 
+ *
+ * Returns 1 if successful, otherwise zero.
+ */
 int nfs_gethostbyname(const char *hostname, struct sockaddr_in *saddr)
 {
 	struct hostent *hp;
@@ -457,6 +464,16 @@ static int probe_mntport(clnt_addr_t *mnt_server)
 		return probe_port(mnt_server, probe_mnt1_first, probe_udp_only);
 }
 
+/**
+ * probe_bothports - discover the RPC endpoints of mountd and NFS server
+ * @mnt_server: pointer to address and pmap argument for mountd results
+ * @nfs_server: pointer to address and pmap argument for NFS server
+ *
+ * Returns 1 if successful, otherwise zero if some error occurred.
+ * Note that the arguments are both input and output arguments.
+ *
+ * A side effect of calling this function is that rpccreateerr is set.
+ */
 int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 {
 	struct pmap *nfs_pmap = &nfs_server->pmap;
@@ -524,8 +541,10 @@ static int probe_statd(void)
 	return 1;
 }
 
-/*
- * Attempt to start rpc.statd
+/**
+ * start_statd - attempt to start rpc.statd
+ *
+ * Returns 1 if statd is running; otherwise zero.
  */
 int start_statd(void)
 {
@@ -549,7 +568,7 @@ int start_statd(void)
 	return 0;
 }
 
-/*
+/**
  * nfs_call_umount - ask the server to remove a share from it's rmtab
  * @mnt_server: address of RPC MNT program server
  * @argp: directory path of share to "unmount"
@@ -593,6 +612,13 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 	return 0;
 }
 
+/**
+ * mnt_openclnt - get a handle for a remote mountd service
+ * @mnt_server: address and pmap arguments of mountd service
+ * @msock: returns a file descriptor of the underlying transport socket
+ *
+ * Returns an active handle for the remote's mountd service
+ */
 CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
 {
 	struct sockaddr_in *mnt_saddr = &mnt_server->saddr;
@@ -634,6 +660,12 @@ CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
 	return NULL;
 }
 
+/**
+ * mnt_closeclnt - terminate a handle for a remote mountd service
+ * @clnt: pointer to an active handle for a remote mountd service
+ * @msock: file descriptor of the underlying transport socket
+ *
+ */
 void mnt_closeclnt(CLIENT *clnt, int msock)
 {
 	auth_destroy(clnt->cl_auth);
@@ -641,7 +673,7 @@ void mnt_closeclnt(CLIENT *clnt, int msock)
 	close(msock);
 }
 
-/*
+/**
  * clnt_ping - send an RPC ping to the remote RPC service endpoint
  * @saddr: server's address
  * @prog: target RPC program number
@@ -729,7 +761,7 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 		return 0;
 }
 
-/*
+/**
  * get_client_address - acquire our local network address
  * @saddr: server's address
  * @caddr: filled in with our network address
