@@ -348,7 +348,7 @@ int nfsumount(int argc, char *argv[])
 
 	ret = 0;
 	if (mc) {
-		if (!lazy)
+		if (!lazy && strcmp(mc->m.mnt_type, "nfs4") != 0)
 			ret = do_nfs_umount(mc->m.mnt_fsname, mc->m.mnt_opts);
 		if (!ret || force)
 			ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
