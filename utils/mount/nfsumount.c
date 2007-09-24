@@ -102,10 +102,14 @@ static int del_mtab(const char *spec, const char *node)
 	} else
 		res = umount (node);
 
-	if (res < 0 && remount && errno == EBUSY && spec) {
-		res = try_remount(spec, node);
-		if (!res)
+	if (res < 0) {
+		if (remount && errno == EBUSY && spec) {
+			res = try_remount(spec, node);
+			if (res)
+				goto writemtab;
 			return 0;
+		} else
+			umnt_err = errno;
 	}
 
 	if (res >= 0) {
