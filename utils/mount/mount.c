@@ -575,6 +575,7 @@ int main(int argc, char *argv[])
 	}
 
 out:
+	free(extra_opts);
 	free(mount_point);
 	exit(mnt_err);
 }
