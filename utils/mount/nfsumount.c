@@ -51,6 +51,30 @@ int force;
 int lazy;
 int remount;
 
+
+static int try_remount(const char *spec, const char *node)
+{
+	int res;
+
+	res = mount(spec, node, NULL,
+		    MS_MGC_VAL | MS_REMOUNT | MS_RDONLY, NULL);
+	if (res == 0) {
+		struct mntent remnt;
+		nfs_error(_("%s: %s busy - remounted read-only"),
+				progname, spec);
+		remnt.mnt_type = remnt.mnt_fsname = NULL;
+		remnt.mnt_dir = xstrdup(node);
+		remnt.mnt_opts = xstrdup("ro");
+		if (!nomtab)
+			update_mtab(node, &remnt);
+	} else if (errno != EBUSY) {    /* hmm ... */
+		perror(_("remount"));
+		nfs_error(_("%s: could not remount %s read-only"),
+				progname, spec);
+	}
+	return res;
+}
+
 static int del_mtab(const char *spec, const char *node)
 {
 	int umnt_err, res;
@@ -79,24 +103,9 @@ static int del_mtab(const char *spec, const char *node)
 		res = umount (node);
 
 	if (res < 0 && remount && errno == EBUSY && spec) {
-		/* Umount failed - let us try a remount */
-		res = mount(spec, node, NULL,
-			    MS_MGC_VAL | MS_REMOUNT | MS_RDONLY, NULL);
-		if (res == 0) {
-			struct mntent remnt;
-			nfs_error(_("%s: %s busy - remounted read-only"),
-					progname, spec);
-			remnt.mnt_type = remnt.mnt_fsname = NULL;
-			remnt.mnt_dir = xstrdup(node);
-			remnt.mnt_opts = xstrdup("ro");
-			if (!nomtab)
-				update_mtab(node, &remnt);
+		res = try_remount(spec, node);
+		if (!res)
 			return 0;
-		} else if (errno != EBUSY) {    /* hmm ... */
-			perror(_("remount"));
-			nfs_error(_("%s: could not remount %s read-only"),
-					progname, spec);
-		}
 	}
 
 	if (res >= 0) {
