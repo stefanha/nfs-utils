@@ -76,7 +76,16 @@ static int rpc_strerror(int spos)
 	return pos;
 }
 
-void mount_errors(char *server, int will_retry, int bg)
+/**
+ * rpc_mount_errors - log an RPC error that occurred during a user-space mount
+ * @server: C string containing name of server we are attempting to mount
+ * @will_retry: one indicates mount will retry at some later point
+ * @bg: one indicates this is a background mount
+ *
+ * Extracts the error code from the user-space RPC library, and reports it
+ * on stderr (fg mount) or in the system log (bg mount).
+ */
+void rpc_mount_errors(char *server, int will_retry, int bg)
 {
 	int pos = 0;
 	char *tmp;

@@ -428,15 +428,15 @@ int nfs4mount(const char *spec, const char *node, int flags,
 			if (errno == ETIMEDOUT)
 				break;
 		default:
-			mount_errors(hostname, 0, bg);
+			rpc_mount_errors(hostname, 0, bg);
 			goto fail;
 		}
 		t = time(NULL);
 		if (t >= timeout) {
-			mount_errors(hostname, 0, bg);
+			rpc_mount_errors(hostname, 0, bg);
 			goto fail;
 		}
-		mount_errors(hostname, 1, bg);
+		rpc_mount_errors(hostname, 1, bg);
 		continue;
 	}
 

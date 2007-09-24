@@ -24,5 +24,5 @@
 char *nfs_strerror(int);
 
 void mount_error(const char *, const char *, int);
-void mount_errors(char *, int, int);
+void rpc_mount_errors(char *, int, int);
 void umount_error(int, const char *);

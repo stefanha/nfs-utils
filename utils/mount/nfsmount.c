@@ -688,15 +688,15 @@ nfsmount(const char *spec, const char *node, int flags,
 				if (errno == ETIMEDOUT)
 					break;
 			default:
-				mount_errors(*nfs_server.hostname, 0, bg);
+				rpc_mount_errors(*nfs_server.hostname, 0, bg);
 		        goto fail;
 			}
 			t = time(NULL);
 			if (t >= timeout) {
-				mount_errors(*nfs_server.hostname, 0, bg);
+				rpc_mount_errors(*nfs_server.hostname, 0, bg);
 				goto fail;
 			}
-			mount_errors(*nfs_server.hostname, 1, bg);
+			rpc_mount_errors(*nfs_server.hostname, 1, bg);
 			continue;
 		}
 		if (!running_bg) {
@@ -707,11 +707,11 @@ nfsmount(const char *spec, const char *node, int flags,
 		}
 		t = time(NULL);
 		if (t >= timeout) {
-			mount_errors(*nfs_server.hostname, 0, bg);
+			rpc_mount_errors(*nfs_server.hostname, 0, bg);
 			goto fail;
 		}
 		if (doonce++ < 1)
-			mount_errors(*nfs_server.hostname, 1, bg);
+			rpc_mount_errors(*nfs_server.hostname, 1, bg);
 	}
 
 	if (nfs_pmap->pm_vers == 2) {
