@@ -243,12 +243,12 @@ static int append_clientaddr_opt(struct sockaddr_in *saddr, char **extra_opts)
  * @extra_opts:	pointer to C string containing fs-specific mount options
  *		(possibly also a return argument)
  * @fake:	flag indicating whether to carry out the whole operation
- * @bg:		one if this is a backgrounded mount attempt
+ * @child:	one if this is a backgrounded mount
  *
  * XXX: need to handle bg, fg, and retry options.
  */
 int nfsmount_s(const char *spec, const char *node, int flags,
-		char **extra_opts, int fake, int bg)
+		char **extra_opts, int fake, int child)
 {
 	struct sockaddr_in saddr;
 	char *hostname;
@@ -263,7 +263,7 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 
 	extract_interesting_options(*extra_opts);
 
-	if (!bg && addr_opt) {
+	if (!child && addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
 		return EX_FAIL;
 	}
