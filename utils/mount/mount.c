@@ -237,6 +237,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 
 	if (flags & MS_REMOUNT) {
 		update_mtab(ment.mnt_dir, &ment);
+		free(ment.mnt_opts);
 		return EX_SUCCESS;
 	}
 
@@ -267,6 +268,7 @@ fail_close:
 	endmntent(mtab);
 fail_unlock:
 	unlock_mtab();
+	free(ment.mnt_opts);
 
 	return result;
 }
