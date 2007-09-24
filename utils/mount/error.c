@@ -185,7 +185,7 @@ void sys_mount_errors(char *server, int error, int will_retry, int bg)
 		fprintf(stderr, "%s\n", errbuf);
 }
 
-/*
+/**
  * mount_error - report a foreground mount error
  * @spec: C string containing the device name being mounted
  * @mount_point: C string containing the pathname of the local mounted on dir
@@ -195,12 +195,24 @@ void sys_mount_errors(char *server, int error, int will_retry, int bg)
 void mount_error(const char *spec, const char *mount_point, int error)
 {
 	switch(error) {
+	case EACCES:
+		nfs_error(_("%s: access denied by server while mounting %s"),
+				progname, spec);
+		break;
+	case EINVAL:
+		nfs_error(_("%s: an incorrect mount option was specified"), progname);
+		break;
+	case EOPNOTSUPP:
+		nfs_error(_("%s: requested NFS version or transport"
+				" protocol is not supported"),
+				progname);
+		break;
 	case ENOTDIR:
 		nfs_error(_("%s: mount point %s is not a directory"),
 				progname, mount_point);
 		break;
 	case EBUSY:
-		nfs_error(_("%s: %s is already mounted or busy"),
+		nfs_error(_("%s: %s is busy or already mounted"),
 			progname, mount_point);
 		break;
 	case ENOENT:
@@ -211,6 +223,10 @@ void mount_error(const char *spec, const char *mount_point, int error)
 		else
 			nfs_error(_("%s: mount point %s does not exist"),
 				progname, mount_point);
+		break;
+	case EIO:
+	case EFAULT:
+		nfs_error(_("%s: internal error"), progname);
 		break;
 	default:
 		nfs_error(_("%s: %s"),
