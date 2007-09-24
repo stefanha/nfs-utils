@@ -36,6 +36,7 @@ extern void die(int err, const char *fmt, ...);
 extern void (*at_die)(void);
 
 /* exit status - bits below are ORed */
+#define EX_SUCCESS	0	/* no failure occurred */
 #define EX_USAGE	1	/* incorrect invocation or permission */
 #define EX_SYSERR	2	/* out of memory, cannot fork, ... */
 #define EX_SOFTWARE	4	/* internal mount bug or wrong version */
