@@ -93,8 +93,13 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 		*error = unknown_host;
 		if (!n)
 			return NULL;
-		strcpy(my_client.m_hostname, *n?n:"DEFAULT");
-		free(n);
+		free(my_client.m_hostname);
+		if (*n) {
+			my_client.m_hostname = n;
+		} else {
+			free(n);
+			my_client.m_hostname = xstrdup("DEFAULT");
+		}
 		my_client.m_naddr = 1;
 		my_exp.m_client = &my_client;
 

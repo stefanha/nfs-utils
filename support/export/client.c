@@ -118,6 +118,7 @@ client_dup(nfs_client *clp, struct hostent *hp)
 	new = (nfs_client *) xmalloc(sizeof(*new));
 	memcpy(new, clp, sizeof(*new));
 	new->m_type = MCL_FQDN;
+	new->m_hostname = NULL;
 
 	client_init(new, (char *) hp->h_name, hp);
 	client_add(new);
@@ -127,14 +128,11 @@ client_dup(nfs_client *clp, struct hostent *hp)
 static void
 client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 {
-	if (hp) {
-		strncpy(clp->m_hostname, hp->h_name,
-			sizeof (clp->m_hostname) -  1);
-	} else {
-		strncpy(clp->m_hostname, hname,
-			sizeof (clp->m_hostname) - 1);
-	}
-	clp->m_hostname[sizeof (clp->m_hostname) - 1] = '\0';
+	xfree(clp->m_hostname);
+	if (hp)
+		clp->m_hostname = xstrdup(hp->h_name);
+	else
+		clp->m_hostname = xstrdup(hname);
 
 	clp->m_exported = 0;
 	clp->m_count = 0;
@@ -207,6 +205,7 @@ client_freeall(void)
 		head = clientlist + i;
 		while (*head) {
 			*head = (clp = *head)->m_next;
+			xfree(clp->m_hostname);
 			xfree(clp);
 		}
 	}

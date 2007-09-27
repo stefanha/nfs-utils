@@ -32,7 +32,7 @@ enum {
 
 typedef struct mclient {
 	struct mclient *	m_next;
-	char			m_hostname[NFSCLNT_IDMAX+1];
+	char *			m_hostname;
 	int			m_type;
 	int			m_naddr;
 	struct in_addr		m_addrlist[NFSCLNT_ADDRMAX];
