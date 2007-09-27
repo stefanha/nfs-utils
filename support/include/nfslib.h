@@ -65,7 +65,7 @@ struct sec_entry {
  * allow overrides when using exportfs.
  */
 struct exportent {
-	char		e_hostname[NFSCLNT_IDMAX+1];
+	char *		e_hostname;
 	char		e_path[NFS_MAXPATHLEN+1];
 	/* The mount path may be different from the exported path due
 	   to submount. It may change for every mount. The idea is we

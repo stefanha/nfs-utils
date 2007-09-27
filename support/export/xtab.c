@@ -108,10 +108,7 @@ xtab_write(char *xtab, char *xtabtmp, int is_export)
 
 			/* write out the export entry using the FQDN */
 			xe = exp->m_export;
-			strncpy(xe.e_hostname,
-				exp->m_client->m_hostname,
-				sizeof (xe.e_hostname) - 1);
-			xe.e_hostname[sizeof (xe.e_hostname) - 1] = '\0';
+			xe.e_hostname = exp->m_client->m_hostname;
 			putexportent(&xe);
 		}
 	}
@@ -146,9 +143,7 @@ xtab_append(nfs_export *exp)
 		return;
 	setexportent(_PATH_XTAB, "a");
 	xe = exp->m_export;
-	strncpy(xe.e_hostname, exp->m_client->m_hostname,
-	       sizeof (xe.e_hostname) - 1);
-	xe.e_hostname[sizeof (xe.e_hostname) - 1] = '\0';
+	xe.e_hostname = exp->m_client->m_hostname;
 	putexportent(&xe);
 	endexportent();
 	xfunlock(lockid);

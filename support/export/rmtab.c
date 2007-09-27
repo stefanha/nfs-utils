@@ -43,9 +43,7 @@ rmtab_read(void)
 			if (!exp2) {
 				struct exportent ee;
 				dupexportent(&ee, &exp->m_export);
-				strncpy (ee.e_hostname, rep->r_client,
-					 sizeof (ee.e_hostname) - 1);
-				ee.e_hostname[sizeof (ee.e_hostname) -1] = '\0';
+				ee.e_hostname = rep->r_client;
 				exp2 = export_create(&ee, 0);
 				exp2->m_changed = exp->m_changed;
 			}

@@ -85,6 +85,8 @@ export_init(nfs_export *exp, nfs_client *clp, struct exportent *nep)
 	struct exportent	*e = &exp->m_export;
 
 	dupexportent(e, nep);
+	if (nep->e_hostname)
+		e->e_hostname = xstrdup(nep->e_hostname);
 
 	exp->m_exported = 0;
 	exp->m_xtabent = 0;
@@ -109,6 +111,8 @@ export_dup(nfs_export *exp, struct hostent *hp)
 	new = (nfs_export *) xmalloc(sizeof(*new));
 	memcpy(new, exp, sizeof(*new));
 	dupexportent(&new->m_export, &exp->m_export);
+	if (exp->m_export.e_hostname)
+		new->m_export.e_hostname = xstrdup(exp->m_export.e_hostname);
 	clp = client_dup(exp->m_client, hp);
 	clp->m_count++;
 	new->m_client = clp;
@@ -244,6 +248,7 @@ export_freeall(void)
 				free(exp->m_export.e_mountpoint);
 			if (exp->m_export.e_fslocdata)
 				xfree(exp->m_export.e_fslocdata);
+			xfree(exp->m_export.e_hostname);
 			xfree(exp);
 		}
 		exportlist[i] = NULL;

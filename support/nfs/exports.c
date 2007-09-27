@@ -176,13 +176,8 @@ getexportent(int fromkernel, int fromexports)
 		if (!has_default_opts)
 			xlog(L_WARNING, "No options for %s %s: suggest %s(sync) to avoid warning", ee.e_path, exp, exp);
 	}
-	if (strlen(hostname) >= sizeof(ee.e_hostname)) {
-		syntaxerr("client name too long");
-		export_errno = EINVAL;
-		return NULL;
-	}
-	strncpy(ee.e_hostname, hostname, sizeof (ee.e_hostname) - 1);
-	ee.e_hostname[sizeof (ee.e_hostname) - 1] = '\0';
+	xfree(ee.e_hostname);
+	ee.e_hostname = xstrdup(hostname);
 
 	if (parseopts(opt, &ee, fromexports && !has_default_subtree_opts, NULL) < 0)
 		return NULL;
@@ -335,6 +330,7 @@ dupexportent(struct exportent *dst, struct exportent *src)
 		dst->e_mountpoint = strdup(src->e_mountpoint);
 	if (src->e_fslocdata)
 		dst->e_fslocdata = strdup(src->e_fslocdata);
+	dst->e_hostname = NULL;
 }
 
 struct exportent *
@@ -355,12 +351,9 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_nsqgids = 0;
 	ee.e_uuid = NULL;
 
-	if (strlen(hname) >= sizeof(ee.e_hostname)) {
-		xlog(L_WARNING, "client name %s too long", hname);
-		return NULL;
-	}
-	strncpy(ee.e_hostname, hname, sizeof (ee.e_hostname) - 1);
-	ee.e_hostname[sizeof (ee.e_hostname) - 1] = '\0';
+	xfree(ee.e_hostname);
+	ee.e_hostname = xstrdup(hname);
+
 	if (strlen(path) >= sizeof(ee.e_path)) {
 		xlog(L_WARNING, "path name %s too long", path);
 		return NULL;
