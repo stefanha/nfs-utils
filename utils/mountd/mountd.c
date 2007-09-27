@@ -40,6 +40,7 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, mountstat3 *, 
 int reverse_resolve = 0;
 int new_cache = 0;
 int manage_gids;
+int use_ipaddr = -1;
 
 /* PRC: a high-availability callout program can be specified with -H
  * When this is done, the program will receive callouts whenever clients

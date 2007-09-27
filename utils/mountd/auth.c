@@ -37,6 +37,7 @@ static nfs_export my_exp;
 static nfs_client my_client;
 
 extern int new_cache;
+extern int use_ipaddr;
 
 void
 auth_init(char *exports)
@@ -45,6 +46,34 @@ auth_init(char *exports)
 	export_file = exports;
 	auth_reload();
 	xtab_mount_write();
+}
+
+/*
+ * A client can match many different netgroups and it's tough to know
+ * beforehand whether it will. If the concatenated string of netgroup
+ * m_hostnames is >512 bytes, then enable the "use_ipaddr" mode. This
+ * makes mountd change how it matches a client ip address when a mount
+ * request comes in. It's more efficient at handling netgroups at the
+ * expense of larger kernel caches.
+ */
+static void
+check_useipaddr()
+{
+	nfs_client *clp;
+	int old_use_ipaddr = use_ipaddr;
+	unsigned int len = 0;
+
+	/* add length of m_hostname + 1 for the comma */
+	for (clp = clientlist[MCL_NETGROUP]; clp; clp = clp->m_next)
+		len += (strlen(clp->m_hostname) + 1);
+
+	if (len > (NFSCLNT_IDMAX / 2))
+		use_ipaddr = 1;
+	else
+		use_ipaddr = 0;
+
+	if (use_ipaddr != old_use_ipaddr)
+		cache_flush(1);
 }
 
 unsigned int
@@ -72,6 +101,7 @@ auth_reload()
 	export_freeall();
 	memset(&my_client, 0, sizeof(my_client));
 	xtab_export_read();
+	check_useipaddr();
 	++counter;
 
 	return counter;
@@ -88,27 +118,36 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 		int i;
 		/* return static nfs_export with details filled in */
 		char *n;
-		my_client.m_addrlist[0] = caller->sin_addr;
-		n = client_compose(hp);
-		*error = unknown_host;
-		if (!n)
-			return NULL;
 		free(my_client.m_hostname);
-		if (*n) {
-			my_client.m_hostname = n;
+		if (use_ipaddr) {
+			my_client.m_hostname =
+				strdup(inet_ntoa(caller->sin_addr));
 		} else {
-			free(n);
-			my_client.m_hostname = xstrdup("DEFAULT");
+			n = client_compose(hp);
+			*error = unknown_host;
+			if (!n)
+				my_client.m_hostname = NULL;
+			else if (*n)
+				my_client.m_hostname = n;
+			else {
+				free(n);
+				my_client.m_hostname = strdup("DEFAULT");
+			}
 		}
+		if (my_client.m_hostname == NULL)
+			return NULL;
 		my_client.m_naddr = 1;
+		my_client.m_addrlist[0] = caller->sin_addr;
 		my_exp.m_client = &my_client;
 
 		exp = NULL;
 		for (i = 0; !exp && i < MCL_MAXTYPES; i++) 
 			for (exp = exportlist[i]; exp; exp = exp->m_next) {
-				if (!client_member(my_client.m_hostname, exp->m_client->m_hostname))
-					continue;
 				if (strcmp(path, exp->m_export.e_path))
+					continue;
+				if (!use_ipaddr && !client_member(my_client.m_hostname, exp->m_client->m_hostname))
+					continue;
+				if (use_ipaddr && !client_check(exp->m_client, hp))
 					continue;
 				break;
 			}
