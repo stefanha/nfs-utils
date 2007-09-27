@@ -89,7 +89,7 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 		/* return static nfs_export with details filled in */
 		char *n;
 		my_client.m_addrlist[0] = caller->sin_addr;
-		n = client_compose(caller->sin_addr);
+		n = client_compose(hp);
 		*error = unknown_host;
 		if (!n)
 			return NULL;
@@ -160,11 +160,7 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	epath[sizeof (epath) - 1] = '\0';
 	auth_fixpath(epath); /* strip duplicate '/' etc */
 
-	hp = get_reliable_hostbyaddr((const char*)&caller->sin_addr, sizeof(struct in_addr),
-				     AF_INET);
-	if (!hp)
-		hp = get_hostent((const char*)&caller->sin_addr, sizeof(struct in_addr),
-				     AF_INET);
+	hp = client_resolve(caller->sin_addr);
 	if (!hp)
 		return exp;
 

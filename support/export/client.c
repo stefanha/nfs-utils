@@ -233,6 +233,19 @@ client_find(struct hostent *hp)
 	return NULL;
 }
 
+struct hostent *
+client_resolve(struct in_addr addr)
+{
+	struct hostent *he = NULL;
+
+	if (clientlist[MCL_WILDCARD] || clientlist[MCL_NETGROUP])
+		he = get_reliable_hostbyaddr((const char*)&addr, sizeof(addr), AF_INET);
+	if (he == NULL)
+		he = get_hostent((const char*)&addr, sizeof(addr), AF_INET);
+
+	return he;
+}
+
 /*
  * Find client name given an IP address
  * This is found by gathering all known names that match that IP address,
@@ -242,16 +255,10 @@ client_find(struct hostent *hp)
 static char *add_name(char *old, char *add);
 
 char *
-client_compose(struct in_addr addr)
+client_compose(struct hostent *he)
 {
-	struct hostent *he = NULL;
 	char *name = NULL;
 	int i;
-
-	if (clientlist[MCL_WILDCARD] || clientlist[MCL_NETGROUP])
-		he = get_reliable_hostbyaddr((const char*)&addr, sizeof(addr), AF_INET);
-	if (he == NULL)
-		he = get_hostent((const char*)&addr, sizeof(addr), AF_INET);
 
 	for (i = 0 ; i < MCL_MAXTYPES; i++) {
 		nfs_client	*clp;
@@ -261,7 +268,6 @@ client_compose(struct in_addr addr)
 			name = add_name(name, clp->m_hostname);
 		}
 	}
-	free(he);
 	return name;
 }
 

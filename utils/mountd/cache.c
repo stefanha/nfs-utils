@@ -76,6 +76,7 @@ void auth_unix_ip(FILE *f)
 	char ipaddr[20];
 	char *client;
 	struct in_addr addr;
+	struct hostent *he;
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
 
@@ -94,7 +95,8 @@ void auth_unix_ip(FILE *f)
 	auth_reload();
 
 	/* addr is a valid, interesting address, find the domain name... */
-	client = client_compose(addr);
+	he = client_resolve(addr);
+	client = client_compose(he);
 
 	
 	qword_print(f, "nfsd");
@@ -105,7 +107,7 @@ void auth_unix_ip(FILE *f)
 	qword_eol(f);
 
 	if (client) free(client);
-	
+	free(he);
 }
 
 void auth_unix_gid(FILE *f)
