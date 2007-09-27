@@ -445,6 +445,8 @@ void nfsd_fh(FILE *f)
 			if (!found) {
 				found = &exp->m_export;
 				found_path = strdup(path);
+				if (found_path == NULL)
+					goto out;
 			} else if (strcmp(found->e_path, exp->m_export.e_path)!= 0)
 			{
 				xlog(L_WARNING, "%s and %s have same filehandle for %s, using first",
@@ -492,6 +494,7 @@ void nfsd_fh(FILE *f)
 		qword_print(f, found->e_path);
 	qword_eol(f);
  out:
+	free(found_path);
 	free(dom);
 	return;		
 }
