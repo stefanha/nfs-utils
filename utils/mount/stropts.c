@@ -191,6 +191,30 @@ static int append_clientaddr_option(struct sockaddr_in *saddr,
 }
 
 /*
+ * Called to resolve the 'mounthost=' hostname and append a new
+ * option using an IPv4 address.
+ */
+static int fix_up_mounthost_opt(struct mount_options *options)
+{
+	struct sockaddr_in maddr;
+	char *mounthost, new_option[32];
+
+	mounthost = po_get(options, "mounthost");
+	if (!mounthost)
+		return 1;
+
+	if (!fill_ipv4_sockaddr(mounthost, &maddr))
+		return 0;
+
+	snprintf(new_option, sizeof(new_option) - 1,
+			"mountaddr=%s", inet_ntoa(maddr.sin_addr));
+
+	if (po_append(options, new_option) == PO_SUCCEEDED)
+		return 1;
+	return 0;
+}
+
+/*
  * nfsmount_s - Mount an NFSv2 or v3 file system using C string options
  *
  * @spec:	C string hostname:path specifying remoteshare to mount
@@ -225,6 +249,9 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 	}
 
 	if (!append_addr_option(&saddr, options))
+		goto out;
+
+	if (!fix_up_mounthost_opt(options))
 		goto out;
 
 	if (po_join(options, extra_opts) == PO_FAILED) {
