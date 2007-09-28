@@ -305,6 +305,7 @@ static int append_clientaddr_option(struct sockaddr_in *saddr,
 int nfsmount_s(const char *spec, const char *node, int flags,
 		char **extra_opts, int fake, int child)
 {
+	struct mount_options *options = NULL;
 	struct sockaddr_in saddr;
 	char *hostname;
 	int err, retval = EX_FAIL;
@@ -318,6 +319,12 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 
 	extract_interesting_options(*extra_opts);
 
+	options = po_split(*extra_opts);
+	if (!options) {
+		nfs_error(_("%s: internal option parsing error"), progname);
+		goto out;
+	}
+
 	if (!child && addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
 		goto out;
@@ -325,6 +332,11 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 
 	if (!append_addr_opt(&saddr, extra_opts))
 		goto out;
+
+	if (po_join(options, extra_opts) == PO_FAILED) {
+		nfs_error(_("%s: internal option parsing error"), progname);
+		goto out;
+	}
 
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
@@ -341,6 +353,7 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 	retval = EX_SUCCESS;
 
 out:
+	po_destroy(options);
 	return retval;
 }
 
@@ -361,6 +374,7 @@ out:
 int nfs4mount_s(const char *spec, const char *node, int flags,
 		char **extra_opts, int fake, int child)
 {
+	struct mount_options *options = NULL;
 	struct sockaddr_in saddr;
 	char *hostname;
 	int err, retval = EX_FAIL;
@@ -374,6 +388,12 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 
 	extract_interesting_options(*extra_opts);
 
+	options = po_split(*extra_opts);
+	if (!options) {
+		nfs_error(_("%s: internal option parsing error"), progname);
+		goto out;
+	}
+
 	if (addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
 		goto out;
@@ -384,6 +404,11 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 
 	if (!ca_opt && !append_clientaddr_opt(&saddr, extra_opts))
 		goto out;
+
+	if (po_join(options, extra_opts) == PO_FAILED) {
+		nfs_error(_("%s: internal option parsing error"), progname);
+		goto out;
+	}
 
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
@@ -400,5 +425,6 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 	retval = EX_SUCCESS;
 
 out:
+	po_destroy(options);
 	return retval;
 }
