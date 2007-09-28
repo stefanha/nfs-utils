@@ -65,11 +65,6 @@ extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
 
-static int retry_opt = 10000;		/* 10,000 minutes ~= 1 week */
-static int bg_opt = 0;
-static int addr_opt = 0;
-static int ca_opt = 0;
-
 static int parse_devname(const char *spec, char **hostname)
 {
 	int ret = 0;
@@ -138,100 +133,6 @@ static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
 		hp->h_length = sizeof(struct in_addr);
 	}
 	memcpy(&addr->sin_addr, hp->h_addr, hp->h_length);
-	return 1;
-}
-
-/*
- * Walk through our mount options string, and indicate the presence
- * of 'bg', 'retry=', 'addr=', and 'clientaddr='.
- */
-static void extract_interesting_options(char *opts)
-{
-	char *opt, *opteq;
-	int val;
-
-	opts = xstrdup(opts);
-
-	for (opt = strtok(opts, ","); opt; opt = strtok(NULL, ",")) {
-		if ((opteq = strchr(opt, '='))) {
-			val = atoi(opteq + 1);
-			*opteq = '\0';
-			if (strcmp(opt, "bg") == 0)
-				bg_opt++;
-			else if (strcmp(opt, "retry") == 0)
-				retry_opt = val;
-			else if (strcmp(opt, "addr") == 0)
-				addr_opt++;
-			else if (strcmp(opt, "clientaddr") == 0)
-				ca_opt++;
-		} else {
-			if (strcmp(opt, "bg") == 0)
-				bg_opt++;
-		}
-	}
-
-	free(opts);
-}
-
-/*
- * Append the 'addr=' option to the options string.  The server
- * address is added to /etc/mtab for use when unmounting.
- *
- * Returns 1 if 'addr=' option created successfully;
- * otherwise zero.
- */
-static int append_addr_opt(struct sockaddr_in *saddr, char **extra_opts)
-{
-	static char new_opts[1024];
-	char *s, *old_opts;
-
-	s = inet_ntoa(saddr->sin_addr);
-	old_opts = *extra_opts;
-	if (!old_opts)
-		old_opts = "";
-	if (strlen(old_opts) + strlen(s) + 10 >= sizeof(new_opts)) {
-		nfs_error(_("%s: too many mount options\n"),
-				progname);
-		return 0;
-	}
-	snprintf(new_opts, sizeof(new_opts), "%s%saddr=%s",
-		 old_opts, *old_opts ? "," : "", s);
-	*extra_opts = xstrdup(new_opts);
-
-	return 1;
-}
-
-/*
- * Called if no 'clientaddr=' option was specified in the options string
- * to discover our address and append an appropriate 'clientaddr=' option
- * to the options string.
- *
- * Returns 1 if 'clientaddr=' option created successfully;
- * otherwise zero.
- */
-static int append_clientaddr_opt(struct sockaddr_in *saddr, char **extra_opts)
-{
-	static char new_opts[2048], cbuf[256];
-	struct sockaddr_in my_addr;
-
-	if (!get_client_address(saddr, &my_addr))
-		return 0;
-
-	if (strlen(*extra_opts) + 30 >= sizeof(new_opts)) {
-		nfs_error(_("%s: too many mount options"),
-				progname);
-		return 0;
-	}
-
-	strcat(new_opts, *extra_opts);
-
-	snprintf(cbuf, sizeof(cbuf) - 1, "%sclientaddr=%s",
-			*extra_opts ? "," : "", inet_ntoa(my_addr.sin_addr));
-
-	strcat(new_opts, cbuf);
-
-	*extra_opts = xstrdup(new_opts);
-
 	return 1;
 }
 
