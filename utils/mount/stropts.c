@@ -317,20 +317,13 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 	if (!err)
 		goto out;
 
-	extract_interesting_options(*extra_opts);
-
 	options = po_split(*extra_opts);
 	if (!options) {
 		nfs_error(_("%s: internal option parsing error"), progname);
 		goto out;
 	}
 
-	if (!child && addr_opt) {
-		nfs_error(_("%s: Illegal option: 'addr='"), progname);
-		goto out;
-	}
-
-	if (!append_addr_opt(&saddr, extra_opts))
+	if (!append_addr_option(&saddr, options))
 		goto out;
 
 	if (po_join(options, extra_opts) == PO_FAILED) {
@@ -386,23 +379,16 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 	if (!err)
 		goto out;
 
-	extract_interesting_options(*extra_opts);
-
 	options = po_split(*extra_opts);
 	if (!options) {
 		nfs_error(_("%s: internal option parsing error"), progname);
 		goto out;
 	}
 
-	if (addr_opt) {
-		nfs_error(_("%s: Illegal option: 'addr='"), progname);
-		goto out;
-	}
-
-	if (!append_addr_opt(&saddr, extra_opts))
+	if (!append_addr_option(&saddr, options))
 		goto out;
 
-	if (!ca_opt && !append_clientaddr_opt(&saddr, extra_opts))
+	if (!append_clientaddr_option(&saddr, options))
 		goto out;
 
 	if (po_join(options, extra_opts) == PO_FAILED) {
