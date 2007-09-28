@@ -307,24 +307,24 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 {
 	struct sockaddr_in saddr;
 	char *hostname;
-	int err;
+	int err, retval = EX_FAIL;
 
 	if (!parse_devname(spec, &hostname))
-		return EX_FAIL;
+		goto out;
 	err = fill_ipv4_sockaddr(hostname, &saddr);
 	free(hostname);
 	if (!err)
-		return EX_FAIL;
+		goto out;
 
 	extract_interesting_options(*extra_opts);
 
 	if (!child && addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
-		return EX_FAIL;
+		goto out;
 	}
 
 	if (!append_addr_opt(&saddr, extra_opts))
-		return EX_FAIL;
+		goto out;
 
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
@@ -334,11 +334,14 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 		if (mount(spec, node, "nfs",
 				flags & ~(MS_USER|MS_USERS), *extra_opts)) {
 			mount_error(spec, node, errno);
-			return EX_FAIL;
+			goto out;
 		}
 	}
 
-	return EX_SUCCESS;
+	retval = EX_SUCCESS;
+
+out:
+	return retval;
 }
 
 /*
@@ -360,27 +363,27 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 {
 	struct sockaddr_in saddr;
 	char *hostname;
-	int err;
+	int err, retval = EX_FAIL;
 
 	if (!parse_devname(spec, &hostname))
-		return EX_FAIL;
+		goto out;
 	err = fill_ipv4_sockaddr(hostname, &saddr);
 	free(hostname);
 	if (!err)
-		return EX_FAIL;
+		goto out;
 
 	extract_interesting_options(*extra_opts);
 
 	if (addr_opt) {
 		nfs_error(_("%s: Illegal option: 'addr='"), progname);
-		return EX_FAIL;
+		goto out;
 	}
 
 	if (!append_addr_opt(&saddr, extra_opts))
-		return EX_FAIL;
+		goto out;
 
 	if (!ca_opt && !append_clientaddr_opt(&saddr, extra_opts))
-		return EX_FAIL;
+		goto out;
 
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
@@ -390,9 +393,12 @@ int nfs4mount_s(const char *spec, const char *node, int flags,
 		if (mount(spec, node, "nfs4",
 				flags & ~(MS_USER|MS_USERS), *extra_opts)) {
 			mount_error(spec, node, errno);
-			return EX_FAIL;
+			goto out;
 		}
 	}
 
-	return EX_SUCCESS;
+	retval = EX_SUCCESS;
+
+out:
+	return retval;
 }
