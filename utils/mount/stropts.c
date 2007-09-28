@@ -40,6 +40,7 @@
 #include "stropts.h"
 #include "error.h"
 #include "network.h"
+#include "parse_opt.h"
 
 #ifdef HAVE_RPCSVC_NFS_PROT_H
 #include <rpcsvc/nfs_prot.h>
@@ -232,6 +233,60 @@ static int append_clientaddr_opt(struct sockaddr_in *saddr, char **extra_opts)
 	*extra_opts = xstrdup(new_opts);
 
 	return 1;
+}
+
+/*
+ * Append the 'addr=' option to the options string to pass a resolved
+ * server address to the kernel.  After a successful mount, this address
+ * is also added to /etc/mtab for use when unmounting.
+ *
+ * If 'addr=' is already present, we strip it out.  This prevents users
+ * from setting a bogus 'addr=' option themselves, and also allows bg
+ * retries to recompute the server's address, in case it has changed.
+ *
+ * Returns 1 if 'addr=' option appended successfully;
+ * otherwise zero.
+ */
+static int append_addr_option(struct sockaddr_in *saddr,
+			   struct mount_options *options)
+{
+	char new_option[24];
+
+	po_remove_all(options, "addr");
+
+	snprintf(new_option, sizeof(new_option) - 1,
+			"addr=%s", inet_ntoa(saddr->sin_addr));
+
+	if (po_append(options, new_option) == PO_SUCCEEDED)
+		return 1;
+	return 0;
+}
+
+/*
+ * Called to discover our address and append an appropriate 'clientaddr='
+ * option to the options string.
+ *
+ * Returns 1 if 'clientaddr=' option created successfully or if
+ * 'clientaddr=' option is already present; otherwise zero.
+ */
+static int append_clientaddr_option(struct sockaddr_in *saddr,
+				    struct mount_options *options)
+{
+	struct sockaddr_in my_addr;
+	char new_option[32];
+
+	if (po_contains(options, "clientaddr") == PO_SUCCEEDED)
+		return 1;
+
+	if (!get_client_address(saddr, &my_addr))
+		return 0;
+
+	snprintf(new_option, sizeof(new_option) - 1,
+			"clientaddr=%s", inet_ntoa(my_addr.sin_addr));
+
+	if (po_append(options, new_option) == PO_SUCCEEDED)
+		return 1;
+	return 0;
 }
 
 /*
