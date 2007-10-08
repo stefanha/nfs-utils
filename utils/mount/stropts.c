@@ -237,6 +237,80 @@ static int set_mandatory_options(const char *type,
 	return 1;
 }
 
+/*
+ * Attempt an NFSv2/3 mount via a mount(2) system call.
+ *
+ * Returns 1 if successful.  Otherwise, returns zero.
+ * "errno" is set to reflect the individual error.
+ */
+static int try_nfs23mount(const char *spec, const char *node,
+			  int flags, struct mount_options *options,
+			  int fake, char **extra_opts)
+{
+	if (po_join(options, extra_opts) == PO_FAILED) {
+		errno = EIO;
+		return 0;
+	}
+
+	if (verbose)
+		printf(_("%s: text-based options: '%s'\n"),
+			progname, *extra_opts);
+
+	if (fake)
+		return 1;
+
+	if (!mount(spec, node, "nfs",
+				flags & ~(MS_USER|MS_USERS), *extra_opts))
+		return 1;
+	return 0;
+}
+
+/*
+ * Attempt an NFS v4 mount via a mount(2) system call.
+ *
+ * Returns 1 if successful.  Otherwise, returns zero.
+ * "errno" is set to reflect the individual error.
+ */
+static int try_nfs4mount(const char *spec, const char *node,
+			 int flags, struct mount_options *options,
+			 int fake, char **extra_opts)
+{
+	if (po_join(options, extra_opts) == PO_FAILED) {
+		errno = EIO;
+		return 0;
+	}
+
+	if (verbose)
+		printf(_("%s: text-based options: '%s'\n"),
+			progname, *extra_opts);
+
+	if (fake)
+		return 1;
+
+	if (!mount(spec, node, "nfs4",
+				flags & ~(MS_USER|MS_USERS), *extra_opts))
+		return 1;
+	return 0;
+}
+
+/*
+ * Try the mount(2) system call.
+ *
+ * Returns 1 if successful.  Otherwise, returns zero.
+ * "errno" is set to reflect the individual error.
+ */
+static int try_mount(const char *spec, const char *node, const char *type,
+		     int flags, struct mount_options *options, int fake,
+		     char **extra_opts)
+{
+	if (strncmp(type, "nfs4", 4) == 0)
+		return try_nfs4mount(spec, node, flags,
+					options, fake, extra_opts);
+	else
+		return try_nfs23mount(spec, node, flags,
+					options, fake, extra_opts);
+}
+
 /**
  * nfsmount_string - Mount an NFS file system using C string options
  * @spec: C string specifying remote share to mount ("hostname:path")
