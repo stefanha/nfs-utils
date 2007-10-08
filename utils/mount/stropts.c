@@ -215,6 +215,29 @@ static int fix_mounthost_option(struct mount_options *options)
 }
 
 /*
+ * Set up mandatory mount options.
+ *
+ * Returns 1 if successful; otherwise zero.
+ */
+static int set_mandatory_options(const char *type,
+				 struct sockaddr_in *saddr,
+				 struct mount_options *options)
+{
+	if (!append_addr_option(saddr, options))
+		return 0;
+
+	if (strncmp(type, "nfs4", 4) == 0) {
+		if (!append_clientaddr_option(saddr, options))
+			return 0;
+	} else {
+		if (!fix_mounthost_option(options))
+			return 0;
+	}
+
+	return 1;
+}
+
+/*
  * nfsmount_s - Mount an NFSv2 or v3 file system using C string options
  *
  * @spec:	C string hostname:path specifying remoteshare to mount
