@@ -191,10 +191,10 @@ static int append_clientaddr_option(struct sockaddr_in *saddr,
 }
 
 /*
- * Called to resolve the 'mounthost=' hostname and append a new
- * option using an IPv4 address.
+ * Resolve the 'mounthost=' hostname and append a new option using
+ * the resulting IPv4 address.
  */
-static int fix_up_mounthost_opt(struct mount_options *options)
+static int fix_mounthost_option(struct mount_options *options)
 {
 	struct sockaddr_in maddr;
 	char *mounthost, new_option[32];
@@ -251,7 +251,7 @@ int nfsmount_s(const char *spec, const char *node, int flags,
 	if (!append_addr_option(&saddr, options))
 		goto out;
 
-	if (!fix_up_mounthost_opt(options))
+	if (!fix_mounthost_option(options))
 		goto out;
 
 	if (po_join(options, extra_opts) == PO_FAILED) {
