@@ -376,14 +376,10 @@ static int try_mount(char *spec, char *mount_point, int flags,
 {
 	int ret;
 
-	if (string) {
-		if (strcmp(fs_type, "nfs4") == 0)
-			ret = nfs4mount_s(spec, mount_point, flags,
-						extra_opts, fake, bg);
-		else
-			ret = nfsmount_s(spec, mount_point, flags,
-						extra_opts, fake, bg);
-	} else {
+	if (string)
+		ret = nfsmount_string(spec, mount_point, fs_type, flags,
+					extra_opts, fake, bg);
+	else {
 		if (strcmp(fs_type, "nfs4") == 0)
 			ret = nfs4mount(spec, mount_point, flags,
 					extra_opts, fake, bg);

@@ -365,3 +365,62 @@ out:
 	po_destroy(options);
 	return retval;
 }
+
+/**
+ * nfsmount_string - Mount an NFS file system using C string options
+ * @spec: C string specifying remote share to mount ("hostname:path")
+ * @node: C string pathname of local mounted-on directory
+ * @type: C string that represents file system type ("nfs" or "nfs4")
+ * @flags: MS_ style mount flags
+ * @extra_opts:	pointer to C string containing fs-specific mount options
+ *		(input and output argument)
+ * @fake: flag indicating whether to carry out the whole operation
+ * @child: one if this is a mount daemon (bg)
+ */
+int nfsmount_string(const char *spec, const char *node, const char *type,
+		    int flags, char **extra_opts, int fake, int child)
+{
+	struct mount_options *options = NULL;
+	struct sockaddr_in saddr;
+	char *hostname;
+	int err, retval = EX_FAIL;
+
+	if (!parse_devname(spec, &hostname))
+		goto out;
+	err = fill_ipv4_sockaddr(hostname, &saddr);
+	free(hostname);
+	if (!err)
+		goto out;
+
+	options = po_split(*extra_opts);
+	if (!options) {
+		nfs_error(_("%s: internal option parsing error"), progname);
+		goto out;
+	}
+
+	if (!set_mandatory_options(type, &saddr, options))
+		goto out;
+
+	if (po_join(options, extra_opts) == PO_FAILED) {
+		nfs_error(_("%s: internal option parsing error"), progname);
+		goto out;
+	}
+
+	if (verbose)
+		printf(_("%s: text-based options: '%s'\n"),
+			progname, *extra_opts);
+
+	if (!fake) {
+		if (mount(spec, node, type,
+				flags & ~(MS_USER|MS_USERS), *extra_opts)) {
+			mount_error(spec, node, errno);
+			goto out;
+		}
+	}
+
+	retval = EX_SUCCESS;
+
+out:
+	po_destroy(options);
+	return retval;
+}

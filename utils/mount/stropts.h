@@ -21,5 +21,5 @@
  *
  */
 
-int nfsmount_s(const char *, const char *, int , char **, int, int);
-int nfs4mount_s(const char *, const char *, int, char **, int, int);
+int nfsmount_string(const char *, const char *, const char *, int,
+			char **, int, int);
