@@ -238,6 +238,27 @@ static int set_mandatory_options(const char *type,
 }
 
 /*
+ * Distinguish between permanent and temporary errors.
+ *
+ * Returns 0 if the passed-in error is temporary, thus the
+ * mount system call should be retried; returns one if the
+ * passed-in error is permanent, thus the mount system call
+ * should not be retried.
+ */
+static int is_permanent_error(int error)
+{
+	switch (error) {
+	case EACCES:
+	case ESTALE:
+	case ETIMEDOUT:
+	case ECONNREFUSED:
+		return 0;	/* temporary */
+	default:
+		return 1;	/* permanent */
+	}
+}
+
+/*
  * Reconstruct the mount option string based on a portmapper probe
  * of the server.  Returns one if the server's portmapper returned
  * something we can use, otherwise zero.
