@@ -538,21 +538,9 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 	if (!set_mandatory_options(type, &saddr, options))
 		goto out;
 
-	if (po_join(options, extra_opts) == PO_FAILED) {
-		nfs_error(_("%s: internal option parsing error"), progname);
+	if (try_mount(spec, node, type, flags, options, fake, extra_opts)) {
+		mount_error(spec, node, errno);
 		goto out;
-	}
-
-	if (verbose)
-		printf(_("%s: text-based options: '%s'\n"),
-			progname, *extra_opts);
-
-	if (!fake) {
-		if (mount(spec, node, type,
-				flags & ~(MS_USER|MS_USERS), *extra_opts)) {
-			mount_error(spec, node, errno);
-			goto out;
-		}
 	}
 
 	retval = EX_SUCCESS;
