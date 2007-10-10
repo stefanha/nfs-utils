@@ -524,6 +524,57 @@ static int try_mount(const char *spec, const char *node, const char *type,
 					options, fake, extra_opts);
 }
 
+/*
+ * Handle "foreground" NFS mounts.
+ *
+ * Retry the mount request for as long as the 'retry=' option says.
+ *
+ * Returns a valid mount command exit code.
+ */
+static int nfsmount_fg(const char *spec, const char *node,
+		       const char *type, int flags,
+		       struct mount_options *options, int fake,
+		       char **extra_opts)
+{
+	unsigned int secs = 1;
+	time_t timeout = time(NULL);
+	char *retry;
+
+	timeout += 60 * 2;		/* default: 2 minutes */
+	retry = po_get(options, "retry");
+	if (retry)
+		timeout += 60 * atoi(retry);
+
+	if (verbose)
+		printf(_("%s: timeout set for %s"),
+			progname, ctime(&timeout));
+
+	for (;;) {
+		if (try_mount(spec, node, type, flags,
+					options, fake, extra_opts))
+			return EX_SUCCESS;
+
+		if (is_permanent_error(errno))
+			break;
+
+		if (time(NULL) > timeout) {
+			errno = ETIMEDOUT;
+			break;
+		}
+
+		if (errno != ETIMEDOUT) {
+			if (sleep(secs))
+				break;
+			secs <<= 1;
+			if (secs > 10)
+				secs = 10;
+		}
+	};
+
+	mount_error(spec, node, errno);
+	return EX_FAIL;
+}
+
 /**
  * nfsmount_string - Mount an NFS file system using C string options
  * @spec: C string specifying remote share to mount ("hostname:path")
