@@ -238,6 +238,136 @@ static int set_mandatory_options(const char *type,
 }
 
 /*
+ * Reconstruct the mount option string based on a portmapper probe
+ * of the server.  Returns one if the server's portmapper returned
+ * something we can use, otherwise zero.
+ *
+ * To handle version and transport protocol fallback properly, we
+ * need to parse some of the mount options in order to set up a
+ * portmap probe.  Mount options that rewrite_mount_options()
+ * doesn't recognize are left alone.
+ *
+ * Returns a new group of mount options if successful; otherwise
+ * NULL is returned if some failure occurred.
+ */
+static struct mount_options *rewrite_mount_options(char *str)
+{
+	struct mount_options *options;
+	char *option, new_option[64];
+	clnt_addr_t mnt_server = { };
+	clnt_addr_t nfs_server = { };
+	int p;
+
+	options = po_split(str);
+	if (!options)
+		return NULL;
+
+	option = po_get(options, "addr");
+	if (option) {
+		nfs_server.saddr.sin_family = AF_INET;
+		if (!inet_aton((const char *)option, &nfs_server.saddr.sin_addr))
+			goto err;
+	} else
+		goto err;
+
+	option = po_get(options, "mountaddr");
+	if (option) {
+		mnt_server.saddr.sin_family = AF_INET;
+		if (!inet_aton((const char *)option, &mnt_server.saddr.sin_addr))
+			goto err;
+	} else
+		memcpy(&mnt_server.saddr, &nfs_server.saddr,
+				sizeof(mnt_server.saddr));
+
+	option = po_get(options, "mountport");
+	if (option)
+		mnt_server.pmap.pm_port = atoi(option);
+	mnt_server.pmap.pm_prog = MOUNTPROG;
+	option = po_get(options, "mountprog");
+	if (option)
+		mnt_server.pmap.pm_prog = atoi(option);
+	option = po_get(options, "mountvers");
+	if (option)
+		mnt_server.pmap.pm_vers = atoi(option);
+
+	option = po_get(options, "port");
+	if (option) {
+		nfs_server.pmap.pm_port = atoi(option);
+		po_remove_all(options, "port");
+	}
+	nfs_server.pmap.pm_prog = NFS_PROGRAM;
+	option = po_get(options, "nfsprog");
+	if (option)
+		nfs_server.pmap.pm_prog = atoi(option);
+
+	option = po_get(options, "nfsvers");
+	if (option) {
+		nfs_server.pmap.pm_vers = atoi(option);
+		po_remove_all(options, "nfsvers");
+	}
+	option = po_get(options, "vers");
+	if (option) {
+		nfs_server.pmap.pm_vers = atoi(option);
+		po_remove_all(options, "vers");
+	}
+	option = po_get(options, "proto");
+	if (option) {
+		if (strcmp(option, "tcp") == 0) {
+			nfs_server.pmap.pm_prot = IPPROTO_TCP;
+			po_remove_all(options, "proto");
+		}
+		if (strcmp(option, "udp") == 0) {
+			nfs_server.pmap.pm_prot = IPPROTO_UDP;
+			po_remove_all(options, "proto");
+		}
+	}
+	p = po_rightmost(options, "tcp", "udp");
+	switch (p) {
+	case PO_KEY2_RIGHTMOST:
+		nfs_server.pmap.pm_prot = IPPROTO_UDP;
+		break;
+	case PO_KEY1_RIGHTMOST:
+		nfs_server.pmap.pm_prot = IPPROTO_TCP;
+		break;
+	}
+	po_remove_all(options, "tcp");
+	po_remove_all(options, "udp");
+
+	if (!probe_bothports(&mnt_server, &nfs_server)) {
+		rpc_mount_errors("rpcbind", 0, 0);
+		goto err;
+	}
+
+	snprintf(new_option, sizeof(new_option) - 1,
+		 "nfsvers=%lu", nfs_server.pmap.pm_vers);
+	if (po_append(options, new_option) == PO_FAILED)
+		goto err;
+
+	if (nfs_server.pmap.pm_prot == IPPROTO_TCP)
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "proto=tcp");
+	else
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "proto=udp");
+	if (po_append(options, new_option) == PO_FAILED)
+		goto err;
+
+	if (nfs_server.pmap.pm_port != NFS_PORT) {
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "port=%lu", nfs_server.pmap.pm_port);
+		if (po_append(options, new_option) == PO_FAILED)
+			goto err;
+
+	}
+
+	return options;
+
+err:
+	po_destroy(options);
+	return NULL;
+}
+
+/*
  * Attempt an NFSv2/3 mount via a mount(2) system call.
  *
  * Returns 1 if successful.  Otherwise, returns zero.
