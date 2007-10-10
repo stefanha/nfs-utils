@@ -575,6 +575,95 @@ static int nfsmount_fg(const char *spec, const char *node,
 	return EX_FAIL;
 }
 
+/*
+ * Handle "background" NFS mount [first try]
+ *
+ * Returns a valid mount command exit code.
+ *
+ * EX_BG should cause the caller to fork and invoke nfsmount_child.
+ */
+static int nfsmount_parent(const char *spec, const char *node,
+			   const char *type, char *hostname, int flags,
+			   struct mount_options *options,
+			   int fake, char **extra_opts)
+{
+	if (try_mount(spec, node, type, flags, options,
+					fake, extra_opts))
+		return EX_SUCCESS;
+
+	if (is_permanent_error(errno)) {
+		mount_error(spec, node, errno);
+		return EX_FAIL;
+	}
+
+	sys_mount_errors(hostname, errno, 1, 1);
+	return EX_BG;
+}
+
+/*
+ * Handle "background" NFS mount [retry daemon]
+ *
+ * Returns a valid mount command exit code: EX_SUCCESS if successful,
+ * EX_FAIL if a failure occurred.  There's nothing to catch the
+ * error return, though, so we use sys_mount_errors to log the
+ * failure.
+ */
+static int nfsmount_child(const char *spec, const char *node,
+			  const char *type, char *hostname, int flags,
+			  struct mount_options *options,
+			  int fake, char **extra_opts)
+{
+	unsigned int secs = 1;
+	time_t timeout = time(NULL);
+	char *retry;
+
+	timeout += 60 * 10000;		/* default: 10,000 minutes */
+	retry = po_get(options, "retry");
+	if (retry)
+		timeout += 60 * atoi(retry);
+
+	for (;;) {
+		if (sleep(secs))
+			break;
+		secs <<= 1;
+		if (secs > 120)
+			secs = 120;
+
+		if (try_mount(spec, node, type, flags, options,
+							fake, extra_opts))
+			return EX_SUCCESS;
+
+		if (is_permanent_error(errno))
+			break;
+
+		if (time(NULL) > timeout)
+			break;
+
+		sys_mount_errors(hostname, errno, 1, 1);
+	};
+
+	sys_mount_errors(hostname, errno, 1, 0);
+	return EX_FAIL;
+}
+
+/*
+ * Handle "background" NFS mount
+ *
+ * Returns a valid mount command exit code.
+ */
+static int nfsmount_bg(const char *spec, const char *node,
+			  const char *type, char *hostname, int flags,
+			  struct mount_options *options,
+			  int fake, int child, char **extra_opts)
+{
+	if (!child)
+		return nfsmount_parent(spec, node, type, hostname, flags,
+					options, fake, extra_opts);
+	else
+		return nfsmount_child(spec, node, type, hostname, flags,
+					options, fake, extra_opts);
+}
+
 /**
  * nfsmount_string - Mount an NFS file system using C string options
  * @spec: C string specifying remote share to mount ("hostname:path")
