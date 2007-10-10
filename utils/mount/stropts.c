@@ -368,10 +368,64 @@ err:
 }
 
 /*
- * Attempt an NFSv2/3 mount via a mount(2) system call.
+ * Retry an NFS mount that failed because the requested service isn't
+ * available on the server.
  *
  * Returns 1 if successful.  Otherwise, returns zero.
  * "errno" is set to reflect the individual error.
+ *
+ * Side effect: If the retry is successful, both 'options' and
+ * 'extra_opts' are updated to reflect the mount options that worked.
+ * If the retry fails, 'options' and 'extra_opts' are left unchanged.
+ */
+static int retry_nfsmount(const char *spec, const char *node,
+			int flags, struct mount_options *options,
+			int fake, char **extra_opts)
+{
+	struct mount_options *retry_options;
+	char *retry_str = NULL;
+
+	retry_options = rewrite_mount_options(*extra_opts);
+	if (!retry_options) {
+		errno = EIO;
+		return 0;
+	}
+
+	if (po_join(retry_options, &retry_str) == PO_FAILED) {
+		po_destroy(retry_options);
+		errno = EIO;
+		return 0;
+	}
+
+	if (verbose)
+		printf(_("%s: text-based options (retry): '%s'\n"),
+			progname, retry_str);
+
+	if (!mount(spec, node, "nfs",
+				flags & ~(MS_USER|MS_USERS), retry_str)) {
+		free(*extra_opts);
+		*extra_opts = retry_str;
+		po_replace(options, retry_options);
+		return 1;
+	}
+
+	po_destroy(retry_options);
+	free(retry_str);
+	return 0;
+}
+
+/*
+ * Attempt an NFSv2/3 mount via a mount(2) system call.  If the kernel
+ * claims the requested service isn't supported on the server, probe
+ * the server to see what's supported, rewrite the mount options,
+ * and retry the request.
+ *
+ * Returns 1 if successful.  Otherwise, returns zero.
+ * "errno" is set to reflect the individual error.
+ *
+ * Side effect: If the retry is successful, both 'options' and
+ * 'extra_opts' are updated to reflect the mount options that worked.
+ * If the retry fails, 'options' and 'extra_opts' are left unchanged.
  */
 static int try_nfs23mount(const char *spec, const char *node,
 			  int flags, struct mount_options *options,
@@ -392,7 +446,15 @@ static int try_nfs23mount(const char *spec, const char *node,
 	if (!mount(spec, node, "nfs",
 				flags & ~(MS_USER|MS_USERS), *extra_opts))
 		return 1;
-	return 0;
+
+	/*
+	 * The kernel returns EOPNOTSUPP if the RPC bind failed,
+	 * and EPROTONOSUPPORT if the version isn't supported.
+	 */
+	if (errno != EOPNOTSUPP && errno != EPROTONOSUPPORT)
+		return 0;
+
+	return retry_nfsmount(spec, node, flags, options, fake, extra_opts);
 }
 
 /*
