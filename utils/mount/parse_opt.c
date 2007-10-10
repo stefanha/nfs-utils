@@ -394,9 +394,9 @@ int po_rightmost(struct mount_options *options, char *key1, char *key2)
 	if (options) {
 		for (option = options->tail; option; option = option->prev) {
 			if (key2 && strcmp(option->keyword, key2) == 0)
-				return 1;
+				return PO_KEY2_RIGHTMOST;
 			if (key1 && strcmp(option->keyword, key1) == 0)
-				return -1;
+				return PO_KEY1_RIGHTMOST;
 		}
 	}
 

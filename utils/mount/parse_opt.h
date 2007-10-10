@@ -31,6 +31,11 @@ enum {
 	PO_FOUND = 1,
 };
 
+enum {
+	PO_KEY2_RIGHTMOST = 1,
+	PO_KEY1_RIGHTMOST = -1,
+};
+
 struct mount_options;
 
 struct mount_options *	po_split(char *);
