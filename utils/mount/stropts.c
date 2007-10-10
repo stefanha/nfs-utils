@@ -681,32 +681,32 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 	struct mount_options *options = NULL;
 	struct sockaddr_in saddr;
 	char *hostname;
-	int err, retval = EX_FAIL;
+	int retval = EX_FAIL;
 
 	if (!parse_devname(spec, &hostname))
-		goto out;
-	err = fill_ipv4_sockaddr(hostname, &saddr);
-	free(hostname);
-	if (!err)
-		goto out;
+		return retval;
+	if (!fill_ipv4_sockaddr(hostname, &saddr))
+		goto fail;
 
 	options = po_split(*extra_opts);
 	if (!options) {
 		nfs_error(_("%s: internal option parsing error"), progname);
-		goto out;
+		goto fail;
 	}
 
 	if (!set_mandatory_options(type, &saddr, options))
 		goto out;
 
-	if (try_mount(spec, node, type, flags, options, fake, extra_opts)) {
-		mount_error(spec, node, errno);
-		goto out;
-	}
-
-	retval = EX_SUCCESS;
+	if (po_rightmost(options, "bg", "fg") == PO_KEY1_RIGHTMOST)
+		retval = nfsmount_bg(spec, node, type, hostname, flags,
+					options, fake, child, extra_opts);
+	else
+		retval = nfsmount_fg(spec, node, type, flags, options,
+							fake, extra_opts);
 
 out:
 	po_destroy(options);
+fail:
+	free(hostname);
 	return retval;
 }
