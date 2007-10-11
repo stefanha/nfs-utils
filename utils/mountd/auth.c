@@ -187,7 +187,7 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	char		*p = NULL;
 	struct hostent	*hp = NULL;
 	struct in_addr	addr = caller->sin_addr;
-	enum auth_error	error;
+	enum auth_error	error = bad_path;
 
 	if (path [0] != '/') {
 		xlog(L_WARNING, "bad path in %s request from %s: \"%s\"",
