@@ -408,7 +408,8 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 					goto out_bad;
 			}
 		}
-		if (rpc_createerr.cf_stat != RPC_PROGNOTREGISTERED)
+		if (rpc_createerr.cf_stat != RPC_PROGNOTREGISTERED &&
+		    rpc_createerr.cf_stat != RPC_PROGVERSMISMATCH)
 			goto out_bad;
 
 		if (!prot) {
@@ -585,27 +586,16 @@ int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 	enum clnt_stat res = 0;
 	int msock;
 
-	switch (mnt_server->pmap.pm_vers) {
-	case 3:
-	case 2:
-	case 1:
-		if (!probe_mntport(mnt_server))
-			return 0;
-		clnt = mnt_openclnt(mnt_server, &msock);
-		if (!clnt)
-			return 0;
-		res = clnt_call(clnt, MOUNTPROC_UMNT,
-				(xdrproc_t)xdr_dirpath, (caddr_t)argp,
-				(xdrproc_t)xdr_void, NULL,
-				TIMEOUT);
-		mnt_closeclnt(clnt, msock);
-		if (res == RPC_SUCCESS)
-			return 1;
-		break;
-	default:
-		res = RPC_SUCCESS;
-		break;
-	}
+	if (!probe_mntport(mnt_server))
+		return 0;
+	clnt = mnt_openclnt(mnt_server, &msock);
+	if (!clnt)
+		return 0;
+	res = clnt_call(clnt, MOUNTPROC_UMNT,
+			(xdrproc_t)xdr_dirpath, (caddr_t)argp,
+			(xdrproc_t)xdr_void, NULL,
+			TIMEOUT);
+	mnt_closeclnt(clnt, msock);
 
 	if (res == RPC_SUCCESS)
 		return 1;

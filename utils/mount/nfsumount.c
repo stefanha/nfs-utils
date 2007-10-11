@@ -142,7 +142,7 @@ static int del_mtab(const char *spec, const char *node)
  * We will need this information to get through the firewall again
  * to do the umount.
  */
-static int do_nfs_umount(const char *spec, char *opts)
+static int do_nfs_umount23(const char *spec, char *opts)
 {
 	char *hostname;
 	char *dirname;
@@ -190,7 +190,7 @@ static int do_nfs_umount(const char *spec, char *opts)
 	}
 
 	pmap->pm_prog = MOUNTPROG;
-	pmap->pm_vers = MOUNTVERS_NFSV3;
+	pmap->pm_vers = 0; /* unknown */
 	if (opts && (p = strstr(opts, "mountprog=")) && isdigit(*(p+10)))
 		pmap->pm_prog = atoi(p+10);
 	if (opts && (p = strstr(opts, "mountport=")) && isdigit(*(p+10)))
@@ -199,8 +199,6 @@ static int do_nfs_umount(const char *spec, char *opts)
 		pmap->pm_vers = nfsvers_to_mnt(2);
 	if (opts && hasmntopt(&mnt, "v3"))
 		pmap->pm_vers = nfsvers_to_mnt(3);
-	if (opts && hasmntopt(&mnt, "v4"))
-		pmap->pm_vers = nfsvers_to_mnt(4);
 	if (opts && (p = strstr(opts, "vers=")) && isdigit(*(p+5)))
 		pmap->pm_vers = nfsvers_to_mnt(atoi(p+5));
 	if (opts && (p = strstr(opts, "mountvers=")) && isdigit(*(p+10)))
@@ -349,11 +347,11 @@ int nfsumount(int argc, char *argv[])
 	ret = 0;
 	if (mc) {
 		if (!lazy && strcmp(mc->m.mnt_type, "nfs4") != 0)
-			ret = do_nfs_umount(mc->m.mnt_fsname, mc->m.mnt_opts);
+			ret = do_nfs_umount23(mc->m.mnt_fsname, mc->m.mnt_opts);
 		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir) ?: ret;
 	} else if (*spec != '/') {
 		if (!lazy)
-			ret = do_nfs_umount(spec, "tcp,v3");
+			ret = do_nfs_umount23(spec, "tcp,v3");
 	} else
 		ret = del_mtab(NULL, spec);
 
