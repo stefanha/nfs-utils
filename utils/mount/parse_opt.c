@@ -255,13 +255,12 @@ void po_replace(struct mount_options *target, struct mount_options *source)
  * Convert our mount options object back into a string that the
  * rest of the world can use.
  *
- * Returns 1 if the string was successfully created; otherwise
- * zero.  Upon return, @string contains the address of a
- * replacement C string containing a comma-delimited list of
- * mount options and values; or the passed-in string is freed
- * and NULL is returned if some failure occurred.
+ * Upon return, @string contains the address of a replacement
+ * C string containing a comma-delimited list of mount options
+ * and values; or the passed-in string is freed and NULL is
+ * returned if some failure occurred.
  */
-int po_join(struct mount_options *options, char **str)
+po_return_t po_join(struct mount_options *options, char **str)
 {
 	size_t len = 0;
 	struct mount_option *option;
@@ -310,10 +309,8 @@ int po_join(struct mount_options *options, char **str)
  * @options: pointer to mount options
  * @option: pointer to a C string containing the option to add
  *
- * Returns 1 if the list was successfully concatenated; otherwise
- * zero.
  */
-int po_append(struct mount_options *options, char *str)
+po_return_t po_append(struct mount_options *options, char *str)
 {
 	struct mount_option *option = option_create(str);
 
@@ -329,9 +326,8 @@ int po_append(struct mount_options *options, char *str)
  * @options: pointer to mount options
  * @keyword: pointer to a C string containing option keyword for which to search
  *
- * Returns 1 if the option is present in the list; otherwise zero.
  */
-int po_contains(struct mount_options *options, char *keyword)
+po_found_t po_contains(struct mount_options *options, char *keyword)
 {
 	struct mount_option *option;
 
@@ -382,12 +378,9 @@ char *po_get(struct mount_options *options, char *keyword)
  *
  * This function can be used to determine which of two similar
  * options will be the one to take effect.
- *
- * Returns 1 if key2 is rightmost or key1 is not present.
- * Returns -1 if key1 is rightmost or key2 is not present.
- * Returns 0 if neither key is present.
  */
-int po_rightmost(struct mount_options *options, char *key1, char *key2)
+po_rightmost_t po_rightmost(struct mount_options *options,
+			    char *key1, char *key2)
 {
 	struct mount_option *option;
 
@@ -400,7 +393,7 @@ int po_rightmost(struct mount_options *options, char *key1, char *key2)
 		}
 	}
 
-	return PO_NOT_FOUND;
+	return PO_NEITHER_FOUND;
 }
 
 /**
@@ -408,10 +401,9 @@ int po_rightmost(struct mount_options *options, char *key1, char *key2)
  * @options: pointer to mount options
  * @keyword: pointer to a C string containing an option keyword to remove
  *
- * Returns 1 if the option was found and removed; passed-in list is
- * truncated upon return; otherwise zero.
+ * Side-effect: the passed-in list is truncated on success.
  */
-int po_remove_all(struct mount_options *options, char *keyword)
+po_found_t po_remove_all(struct mount_options *options, char *keyword)
 {
 	struct mount_option *option, *next;
 	int found = PO_NOT_FOUND;
