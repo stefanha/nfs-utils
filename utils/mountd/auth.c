@@ -57,7 +57,7 @@ auth_init(char *exports)
  * expense of larger kernel caches.
  */
 static void
-check_useipaddr()
+check_useipaddr(void)
 {
 	nfs_client *clp;
 	int old_use_ipaddr = use_ipaddr;
