@@ -30,64 +30,33 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <syslog.h>
 #include <string.h>
-#include "err_util.h"
+#include "xlog.h"
 
 static int verbosity = 0;
 static int fg = 0;
-
-static char message_buf[500];
 
 void initerr(char *progname, int set_verbosity, int set_fg)
 {
 	verbosity = set_verbosity;
 	fg = set_fg;
 	if (!fg)
-		openlog(progname, LOG_PID, LOG_DAEMON);
+		xlog_open(progname);
 }
 
 
 void printerr(int priority, char *format, ...)
 {
 	va_list args;
-	int ret;
-	int buf_used, buf_available;
-	char *buf;
 
 	/* Don't bother formatting a message we're never going to print! */
 	if (priority > verbosity)
 		return;
 
-	buf_used = strlen(message_buf);
-	/* subtract 4 to leave room for "...\n" if necessary */
-	buf_available = sizeof(message_buf) - buf_used - 4;
-	buf = message_buf + buf_used;
-
-	/*
-	 * Aggregate lines: only print buffer when we get to the
-	 * end of a line or run out of space
-	 */
 	va_start(args, format);
-	ret = vsnprintf(buf, buf_available, format, args);
+	if (fg)
+		vfprintf(stderr, format, args);
+	else
+		xlog_backend(L_ERROR, format, args);
 	va_end(args);
-
-	if (ret < 0)
-		goto printit;
-	if (ret >= buf_available) {
-		/* Indicate we're truncating */
-		strcat(message_buf, "...\n");
-		goto printit;
-	}
-	if (message_buf[strlen(message_buf) - 1] == '\n')
-		goto printit;
-	return;
-printit:
-	if (fg) {
-		fprintf(stderr, "%s", message_buf);
-	} else {
-		syslog(LOG_ERR, "%s", message_buf);
-	}
-	/* reset the buffer */
-	memset(message_buf, 0, sizeof(message_buf));
 }

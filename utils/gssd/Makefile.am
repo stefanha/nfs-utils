@@ -38,7 +38,8 @@ gssd_SOURCES = \
 	krb5_util.h \
 	write_bytes.h
 
-gssd_LDADD = $(RPCSECGSS_LIBS) $(KRBLIBS)
+gssd_LDADD =	../../support/nfs/libnfs.a \
+		$(RPCSECGSS_LIBS) $(KRBLIBS)
 gssd_LDFLAGS = $(KRBLDFLAGS)
 
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
