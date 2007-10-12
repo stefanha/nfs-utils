@@ -7,6 +7,8 @@
 #ifndef XLOG_H
 #define XLOG_H
 
+#include <stdarg.h>
+
 /* These are logged always. L_FATAL also does exit(1) */
 #define L_FATAL		0x0100
 #define L_ERROR		0x0200
@@ -40,5 +42,8 @@ void			xlog_config(int fac, int on);
 void			xlog_sconfig(char *, int on);
 int			xlog_enabled(int fac);
 void			xlog(int fac, const char *fmt, ...);
+void			xlog_warn(const char *fmt, ...);
+void			xlog_err(const char *fmt, ...);
+void			xlog_backend(int fac, const char *fmt, va_list args);
 
 #endif /* XLOG_H */

@@ -131,39 +131,28 @@ xlog_enabled(int fac)
 
 /* Write something to the system logfile and/or stderr */
 void
-xlog(int kind, const char *fmt, ...)
+xlog_backend(int kind, const char *fmt, va_list args)
 {
-	char		buff[1024];
-	va_list		args;
-	int		n;
-
 	if (!(kind & (L_ALL)) && !(logging && (kind & logmask)))
 		return;
-
-	va_start(args, fmt);
-	vsnprintf(buff, sizeof (buff), fmt, args);
-	va_end(args);
-
-	if ((n = strlen(buff)) > 0 && buff[n-1] == '\n')
-		buff[--n] = '\0';
 
 	if (log_syslog) {
 		switch (kind) {
 		case L_FATAL:
-			syslog(LOG_ERR, "%s", buff);
+			vsyslog(LOG_ERR, fmt, args);
 			break;
 		case L_ERROR:
-			syslog(LOG_ERR, "%s", buff);
+			vsyslog(LOG_ERR, fmt, args);
 			break;
 		case L_WARNING:
-			syslog(LOG_WARNING, "%s", buff);
+			vsyslog(LOG_WARNING, fmt, args);
 			break;
 		case L_NOTICE:
-			syslog(LOG_NOTICE, "%s", buff);
+			vsyslog(LOG_NOTICE, fmt, args);
 			break;
 		default:
 			if (!log_stderr)
-				syslog(LOG_INFO, "%s", buff);
+				vsyslog(LOG_INFO, fmt, args);
 			break;
 		}
 	}
@@ -175,16 +164,49 @@ xlog(int kind, const char *fmt, ...)
 
 		time(&now);
 		tm = localtime(&now);
-		fprintf(stderr, "%s[%d] %04d-%02d-%02d %02d:%02d:%02d %s\n",
+		fprintf(stderr, "%s[%d] %04d-%02d-%02d %02d:%02d:%02d ",
 				log_name, log_pid,
 				tm->tm_year+1900, tm->tm_mon + 1, tm->tm_mday,
-				tm->tm_hour, tm->tm_min, tm->tm_sec,
-				buff);
+				tm->tm_hour, tm->tm_min, tm->tm_sec);
 #else
-		fprintf(stderr, "%s: %s\n", log_name, buff);
+		fprintf(stderr, "%s: ", log_name);
 #endif
+
+		vfprintf(stderr, fmt, args);
+		fprintf(stderr, "\n");
 	}
 
 	if (kind == L_FATAL)
 		exit(1);
+}
+
+void
+xlog(int kind, const char* fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	xlog_backend(kind, fmt, args);
+	va_end(args);
+}
+
+void
+xlog_warn(const char* fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	xlog_backend(L_WARNING, fmt, args);
+	va_end(args);
+}
+
+
+void
+xlog_err(const char* fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	xlog_backend(L_FATAL, fmt, args);
+	va_end(args);
 }
