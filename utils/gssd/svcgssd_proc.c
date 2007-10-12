@@ -90,8 +90,14 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 	qword_printint(f, cred->cr_uid);
 	qword_printint(f, cred->cr_gid);
 	qword_printint(f, cred->cr_ngroups);
-	for (i=0; i < cred->cr_ngroups; i++)
+	printerr(2, "mech: %s, hndl len: %d, ctx len %d, timeout: %d, "
+		 "uid: %d, gid: %d, num aux grps: %d:\n",
+		 fname, out_handle->length, context_token->length, 0x7fffffff,
+		 cred->cr_uid, cred->cr_gid, cred->cr_ngroups);
+	for (i=0; i < cred->cr_ngroups; i++) {
 		qword_printint(f, cred->cr_groups[i]);
+		printerr(2, "  (%4d) %d\n", i+1, cred->cr_groups[i]);
+	}
 	qword_print(f, fname);
 	qword_printhex(f, context_token->value, context_token->length);
 	err = qword_eol(f);
