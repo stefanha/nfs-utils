@@ -46,13 +46,11 @@ gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 
 svcgssd_SOURCES = \
 	$(COMMON_SRCS) \
-	cacheio.c \
 	svcgssd.c \
 	svcgssd_main_loop.c \
 	svcgssd_mech2file.c \
 	svcgssd_proc.c \
 	\
-	cacheio.h \
 	svcgssd.h
 
 svcgssd_LDADD = \

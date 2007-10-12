@@ -45,12 +45,12 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <nfsidmap.h>
+#include <nfslib.h>
 
 #include "svcgssd.h"
 #include "gss_util.h"
 #include "err_util.h"
 #include "context.h"
-#include "cacheio.h"
 
 extern char * mech2file(gss_OID mech);
 #define SVCGSSD_CONTEXT_CHANNEL "/proc/net/rpc/auth.rpcsec.context/channel"
