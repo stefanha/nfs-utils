@@ -144,6 +144,11 @@ int qword_get(char **bpp, char *dest, int bufsize);
 int qword_get_int(char **bpp, int *anint);
 void cache_flush(int force);
 int check_new_cache(void);
+void qword_add(char **bpp, int *lp, char *str);
+void qword_addhex(char **bpp, int *lp, char *buf, int blen);
+void qword_addint(char **bpp, int *lp, int n);
+void qword_adduint(char **bpp, int *lp, unsigned int n);
+void qword_addeol(char **bpp, int *lp);
 
 void closeall(int min);
 

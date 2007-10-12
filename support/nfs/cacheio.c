@@ -88,6 +88,37 @@ void qword_addhex(char **bpp, int *lp, char *buf, int blen)
 	*lp = len;
 }
 
+void qword_addint(char **bpp, int *lp, int n)
+{
+	int len;
+
+	len = snprintf(*bpp, *lp, "%d ", n);
+	if (len > *lp)
+		len = *lp;
+	*bpp += len;
+	*lp -= len;
+}
+
+void qword_adduint(char **bpp, int *lp, unsigned int n)
+{
+	int len;
+
+	len = snprintf(*bpp, *lp, "%u ", n);
+	if (len > *lp)
+		len = *lp;
+	*bpp += len;
+	*lp -= len;
+}
+
+void qword_addeol(char **bpp, int *lp)
+{
+	if (*lp <= 0)
+		return;
+	**bpp = '\n';
+	(*bpp)++;
+	(*lp)--;
+}
+
 static char qword_buf[8192];
 void qword_print(FILE *f, char *str)
 {
@@ -192,23 +223,25 @@ int qword_get_int(char **bpp, int *anint)
 	return 0;
 }
 
+#define READLINE_BUFFER_INCREMENT 2048
+
 int readline(int fd, char **buf, int *lenp)
 {
 	/* read a line into *buf, which is malloced *len long
 	 * realloc if needed until we find a \n
 	 * nul out the \n and return
-	 * 0 of eof, 1 of success 
+	 * 0 on eof, 1 on success
 	 */
-	int len = *lenp;
+	int len;
 
-	if (len == 0) {
-		char *b = malloc(128);
+	if (*lenp == 0) {
+		char *b = malloc(READLINE_BUFFER_INCREMENT);
 		if (b == NULL)
 			return 0;
 		*buf = b;
-		*lenp = 128;
+		*lenp = READLINE_BUFFER_INCREMENT;
 	}
-	len = read(fd, *buf, len);
+	len = read(fd, *buf, *lenp);
 	if (len <= 0)
 		return 0;
 	while ((*buf)[len-1] != '\n') {
@@ -217,7 +250,7 @@ int readline(int fd, char **buf, int *lenp)
 	 */
 		char *new;
 		int nl;
-		*lenp *= 2;
+		*lenp += READLINE_BUFFER_INCREMENT;
 		new = realloc(*buf, *lenp);
 		if (new == NULL)
 			return 0;
