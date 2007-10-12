@@ -250,42 +250,43 @@ out:
 	return res;
 }
 
+#ifdef DEBUG
 void
-print_hexl(int pri, unsigned char *cp, int length)
+print_hexl(const char *description, unsigned char *cp, int length)
 {
 	int i, j, jm;
 	unsigned char c;
 
-	printerr(pri, "length %d\n",length);
-	printerr(pri, "\n");
+	printf("%s (length %d)\n", description, length);
 
 	for (i = 0; i < length; i += 0x10) {
-		printerr(pri, "  %04x: ", (u_int)i);
+		printf("  %04x: ", (u_int)i);
 		jm = length - i;
 		jm = jm > 16 ? 16 : jm;
 
 		for (j = 0; j < jm; j++) {
 			if ((j % 2) == 1)
-				printerr(pri,"%02x ", (u_int)cp[i+j]);
+				printf("%02x ", (u_int)cp[i+j]);
 			else
-				printerr(pri,"%02x", (u_int)cp[i+j]);
+				printf("%02x", (u_int)cp[i+j]);
 		}
 		for (; j < 16; j++) {
 			if ((j % 2) == 1)
-				printerr(pri,"   ");
+				printf("   ");
 			else
-				printerr(pri,"  ");
+				printf("  ");
 		}
-		printerr(pri," ");
+		printf(" ");
 
 		for (j = 0; j < jm; j++) {
 			c = cp[i+j];
 			c = isprint(c) ? c : '.';
-			printerr(pri,"%c", c);
+			printf("%c", c);
 		}
-		printerr(pri,"\n");
+		printf("\n");
 	}
 }
+#endif
 
 void
 handle_nullreq(FILE *f) {
@@ -326,13 +327,15 @@ handle_nullreq(FILE *f) {
 
 	in_handle.length = (size_t) qword_get(&cp, in_handle.value,
 					      sizeof(in_handle_buf));
-	printerr(2, "in_handle: \n");
-	print_hexl(2, in_handle.value, in_handle.length);
+#ifdef DEBUG
+	print_hexl("in_handle", in_handle.value, in_handle.length);
+#endif
 
 	in_tok.length = (size_t) qword_get(&cp, in_tok.value,
 					   sizeof(in_tok_buf));
-	printerr(2, "in_tok: \n");
-	print_hexl(2, in_tok.value, in_tok.length);
+#ifdef DEBUG
+	print_hexl("in_tok", in_tok.value, in_tok.length);
+#endif
 
 	if (in_tok.length < 0) {
 		printerr(0, "WARNING: handle_nullreq: "
