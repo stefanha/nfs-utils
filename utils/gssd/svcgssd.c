@@ -125,7 +125,7 @@ mydaemon(int nochdir, int noclose)
 }
 
 static void
-release_parent()
+release_parent(void)
 {
 	int status;
 
