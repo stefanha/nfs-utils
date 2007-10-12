@@ -61,11 +61,4 @@ struct idmap_msg {
 	u_int8_t  im_status;
 };
 
-#ifdef __KERNEL__
-void      *nfs_idmap_new(struct nfs_server *);
-void       nfs_idmap_delete(struct nfs_server *);
-int        nfs_idmap_id(struct nfs_server *, u_int8_t, char *, u_int,  uid_t *);
-int        nfs_idmap_name(struct nfs_server *, u_int8_t, uid_t, char *, u_int *);
-#endif /* __KERNEL__ */
-
 #endif /* NFS_IDMAP_H */

@@ -16,7 +16,6 @@ idmapd_SOURCES = \
 	atomicio.c \
 	cfg.c \
 	idmapd.c \
-	setproctitle.c \
 	strlcat.c \
 	strlcpy.c \
 	\
