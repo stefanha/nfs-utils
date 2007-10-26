@@ -72,8 +72,27 @@ Display all of the above facilities.
 .B \-v, \-\-verbose
 This is equivalent to \fB\-o all\fR.
 .TP
+.BI "\-S, \-\-since " file
+Instead of printing current statistics, 
+.B nfsstat
+imports statistics from
+.I file
+and displays the difference between those and the current statistics.
+Valid input
+.IR file "s may be in the form of "
+.B /proc/net/rpc/nfs
+(raw client stats),
+.B /proc/net/rpc/nfsd
+(raw server stats), or saved output from
+.B nfsstat
+itself (client and/or server stats).   Any statistics missing from a saved
+.B nfsstat
+output 
+.I file
+are treated as zeroes.
+.TP
 .B \-Z, \-\-sleep
-Instead of printing statistics and immediately exiting,
+Instead of printing current statistics and immediately exiting,
 .B nfsstat
 takes a snapshot of the current statistics and pauses until it receives
 .B SIGINT
@@ -81,6 +100,7 @@ takes a snapshot of the current statistics and pauses until it receives
 .BR Ctrl-C ),
 at which point it takes another snapshot and displays the difference
 between the two.
+.\" --------------------- EXAMPLES -------------------------------
 .SH EXAMPLES
 .TP
 .B nfsstat \-o all \-234
