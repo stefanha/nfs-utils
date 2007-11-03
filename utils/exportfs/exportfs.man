@@ -167,11 +167,13 @@ all entries listed in
 are removed from the kernel export tables, and the file is cleared. This
 effectively shuts down all NFS activity.
 .P
-To remove individual export entries, one can specify a
+To remove an export to a host, specify a
 .I host:/path
 pair. This deletes the specified entry from
 .B xtab
 and removes the corresponding kernel entry (if any).
+To remove one or more exports to several hosts, use
+.BR "exportfs -ua" .
 .P
 .\" -------------------- Dumping the Export Table -----------------
 .SS Dumping the Export Table 
@@ -186,7 +188,7 @@ option, the list of flags pertaining to each export are shown in addition.
 The following adds all directories listed in
 .B /etc/exports
 to
-.B /var/lib/nfs/xtab
+.B /var/lib/nfs/etab
 and pushes the resulting export entries into the kernel:
 .P
 .nf
@@ -201,6 +203,21 @@ allowing asynchronous writes, one would do this:
 .P
 .nf
 .B "# exportfs -o async django:/usr/tmp
+.fi
+.P
+To unexport the
+.B /usr/tmp
+directory:
+.P
+.nf
+.B "# exportfs -u django:/usr/tmp
+.fi
+.P
+To unexport all the directories listed in
+.B /etc/exports:
+.P
+.nf
+.B "# exportfs -au
 .fi
 .\" -------------------- DEPENDENCIES -----------------------------
 .SH DEPENDENCIES
