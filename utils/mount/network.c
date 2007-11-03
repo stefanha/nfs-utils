@@ -494,7 +494,7 @@ int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 	for (; *probe_vers; probe_vers++) {
 		nfs_pmap->pm_vers = mntvers_to_nfs(*probe_vers);
 		if ((res = probe_nfsport(nfs_server) != 0)) {
-			mnt_pmap->pm_vers = nfsvers_to_mnt(nfs_pmap->pm_vers);
+			mnt_pmap->pm_vers = *probe_vers;
 			if ((res = probe_mntport(mnt_server)) != 0)
 				return 1;
 			memcpy(mnt_pmap, &save_mnt, sizeof(*mnt_pmap));
