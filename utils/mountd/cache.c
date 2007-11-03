@@ -508,7 +508,7 @@ void nfsd_fh(FILE *f)
 	 */
 	qword_printint(f, 0x7fffffff);
 	if (found)
-		qword_print(f, found->e_path);
+		qword_print(f, found_path);
 	qword_eol(f);
  out:
 	free(found_path);
