@@ -417,10 +417,6 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 				continue;
 			p_prot = protos;
 		}
-		if (vers == pmap->pm_vers) {
-			p_vers = versions;
-			vers = 0;
-		}
 		if (vers || !*++p_vers)
 			break;
 	}
