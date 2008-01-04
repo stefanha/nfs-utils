@@ -64,7 +64,6 @@ static struct option longopts[] = {
   { "version", 0, 0, 'V' },
   { "read-write", 0, 0, 'w' },
   { "rw", 0, 0, 'w' },
-  { "string", 0, 0, 'i' },
   { "options", 1, 0, 'o' },
   { NULL, 0, 0, 0 }
 };
@@ -176,6 +175,9 @@ static void discover_nfs_mount_data_version(void)
 	}
 	if (nfs_mount_data_version > NFS_MOUNT_VERSION)
 		nfs_mount_data_version = NFS_MOUNT_VERSION;
+	else
+		if (kernel_version > MAKE_VERSION(2, 6, 22))
+			string++;
 }
 
 static void print_one(char *spec, char *node, char *type, char *opts)
@@ -285,7 +287,6 @@ void mount_usage(void)
 	printf(_("\t-f\t\tFake mount, do not actually mount\n"));
 	printf(_("\t-n\t\tDo not update /etc/mtab\n"));
 	printf(_("\t-s\t\tTolerate sloppy mount options rather than fail\n"));
-	printf(_("\t-i\t\tPass mount options to the kernel via a string\n"));
 	printf(_("\t-h\t\tPrint this help\n"));
 	printf(_("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n"));
 }
@@ -431,7 +432,7 @@ int main(int argc, char *argv[])
 	mount_point = argv[2];
 
 	argv[2] = argv[0]; /* so that getopt error messages are correct */
-	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hsi",
+	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hs",
 				longopts, NULL)) != -1) {
 		switch (c) {
 		case 'r':
@@ -460,20 +461,6 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			++sloppy;
-			break;
-		case 'i':
-			if (linux_version_code() < MAKE_VERSION(2, 6, 23)) {
-				nfs_error(_("%s: Passing mount options via a"
-					" string is unsupported by this"
-					" kernel\n"), progname);
-				goto out_usage;
-			}
-			if (uid != 0) {
-				nfs_error(_("%s: -i option is restricted to 'root'\n"),
-					progname);
-				goto out_usage;
-			}
-			++string;
 			break;
 		case 'h':
 		default:
