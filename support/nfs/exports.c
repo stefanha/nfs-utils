@@ -641,6 +641,12 @@ bad_option:
 		while (isblank(*cp))
 			cp++;
 	}
+	/*
+	 * Turn on nohide which will allow this export to cross over
+	 * the 'mount --bind' mount point.
+	 */
+	if (ep->e_fslocdata)
+		ep->e_flags |= NFSEXP_NOHIDE;
 
 	for (p = ep->e_secinfo; p->flav; p++)
 		p->flags |= ep->e_flags & ~NFSEXP_SECINFO_FLAGS;

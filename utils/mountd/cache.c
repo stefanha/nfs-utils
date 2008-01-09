@@ -81,6 +81,8 @@ void auth_unix_ip(FILE *f)
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
 
+	xlog(D_CALL, "auth_unix_ip: inbuf '%s'", lbuf);
+
 	cp = lbuf;
 
 	if (qword_get(&cp, class, 20) <= 0 ||
@@ -109,6 +111,7 @@ void auth_unix_ip(FILE *f)
 	else if (client)
 		qword_print(f, *client?client:"DEFAULT");
 	qword_eol(f);
+	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, *client?client: "DEFAULT");
 
 	if (client) free(client);
 	free(he);
@@ -282,8 +285,10 @@ void nfsd_fh(FILE *f)
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
 
-	cp = lbuf;
+	xlog(D_CALL, "nfsd_fh: inbuf '%s'", lbuf);
 
+	cp = lbuf;
+	
 	dom = malloc(strlen(cp));
 	if (dom == NULL)
 		return;
@@ -514,6 +519,7 @@ void nfsd_fh(FILE *f)
 	free(found_path);
 	free(he);
 	free(dom);
+	xlog(D_CALL, "nfsd_fh: found %p path %s", found, found ? found->e_path : NULL);
 	return;		
 }
 
@@ -607,6 +613,8 @@ void nfsd_export(FILE *f)
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
 
+	xlog(D_CALL, "nfsd_export: inbuf '%s'", lbuf);
+
 	cp = lbuf;
 	dom = malloc(strlen(cp));
 	path = malloc(strlen(cp));
@@ -686,6 +694,7 @@ void nfsd_export(FILE *f)
 		dump_to_cache(f, dom, path, NULL);
 	}
  out:
+	xlog(D_CALL, "nfsd_export: found %p path %s", found, path ? path : NULL);
 	if (dom) free(dom);
 	if (path) free(path);
 	if (he) free(he);
