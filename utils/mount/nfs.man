@@ -121,25 +121,29 @@ option.
 .BI timeo= n
 The time (in tenths of a second) the NFS client waits for a 
 response before it retries an NFS request. If this 
-option is not specified, requests are retried after 
-60 seconds for NFS over TCP, and are retried after 7/10 of a second for
-NFS over UDP.
+option is not specified, requests are retried every
+60 seconds for NFS over TCP.
+The NFS client does not perform any kind of timeout backoff
+for NFS over TCP.
 .IP
-For NFS over TCP, the client uses a fixed timeout, as specified by the
-.B timeo
-option. However, for NFS over UDP, the client uses an adaptive
+However, for NFS over UDP, the client uses an adaptive
 algorithm to estimate an appropriate timeout value for frequently used
 request types (such as READ and WRITE requests), but uses the 
 .B timeo
 setting for infrequently used request types (such as FSINFO requests).
-After each retransmission, the NFS client doubles the timeout for that
-request, up to a maximum timeout length of 60 seconds.
+If the
+.B timeo
+option is not specified,
+infrequently used request types are retried after 1.1 seconds.
+After each retransmission, the NFS client doubles the timeout for
+that request,
+up to a maximum timeout length of 60 seconds.
 .TP 1.5i
 .BI retrans= n
 The number of times the NFS client retries a request before
 it attempts further recovery action. If the 
 .B retrans
-option is not specified, the NFS client retries each request 
+option is not specified, the NFS client tries each request 
 three times.
 .IP
 The NFS client generates a "server not responding" message
