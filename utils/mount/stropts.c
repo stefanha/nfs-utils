@@ -317,9 +317,6 @@ static struct mount_options *rewrite_mount_options(char *str)
 		po_remove_all(options, "port");
 	}
 	nfs_server.pmap.pm_prog = NFS_PROGRAM;
-	option = po_get(options, "nfsprog");
-	if (option)
-		nfs_server.pmap.pm_prog = atoi(option);
 
 	option = po_get(options, "nfsvers");
 	if (option) {
