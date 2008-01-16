@@ -36,6 +36,7 @@
 #include "nls.h"
 #include "mount_constants.h"
 #include "nfs_paths.h"
+#include "nfs_mntent.h"
 
 #include "nfs_mount.h"
 #include "nfs4_mount.h"
@@ -227,7 +228,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 			int flags, char *opts, int freq, int pass)
 {
 	struct mntent ment;
-	FILE *mtab;
+	mntFILE *mtab;
 	int result = EX_FILEIO;
 
 	ment.mnt_fsname = spec;
@@ -245,19 +246,20 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 
 	lock_mtab();
 
-	if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
+	mtab = nfs_setmntent(MOUNTED, "a+");
+	if (mtab == NULL || mtab->mntent_fp == NULL) {
 		nfs_error(_("Can't open mtab: %s"),
 				strerror(errno));
 		goto fail_unlock;
 	}
 
-	if (addmntent(mtab, &ment) == 1) {
+	if (nfs_addmntent(mtab, &ment) == 1) {
 		nfs_error(_("Can't write mount entry to mtab: %s"),
 				strerror(errno));
 		goto fail_close;
 	}
 
-	if (fchmod(fileno(mtab), 0644) == -1) {
+	if (fchmod(fileno(mtab->mntent_fp), 0644) == -1) {
 		nfs_error(_("Can't set permissions on mtab: %s"),
 				strerror(errno));
 		goto fail_close;
@@ -266,7 +268,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 	result = EX_SUCCESS;
 
 fail_close:
-	endmntent(mtab);
+	nfs_endmntent(mtab);
 fail_unlock:
 	unlock_mtab();
 	free(ment.mnt_opts);
