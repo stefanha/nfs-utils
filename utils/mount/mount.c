@@ -246,7 +246,6 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 	lock_mtab();
 
 	if ((mtab = setmntent(MOUNTED, "a+")) == NULL) {
-		unlock_mtab();
 		nfs_error(_("Can't open mtab: %s"),
 				strerror(errno));
 		goto fail_unlock;
