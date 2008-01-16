@@ -304,9 +304,6 @@ static struct mount_options *rewrite_mount_options(char *str)
 	if (option)
 		mnt_server.pmap.pm_port = atoi(option);
 	mnt_server.pmap.pm_prog = MOUNTPROG;
-	option = po_get(options, "mountprog");
-	if (option)
-		mnt_server.pmap.pm_prog = atoi(option);
 	option = po_get(options, "mountvers");
 	if (option)
 		mnt_server.pmap.pm_vers = atoi(option);
