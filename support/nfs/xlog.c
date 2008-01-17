@@ -133,8 +133,13 @@ xlog_enabled(int fac)
 void
 xlog_backend(int kind, const char *fmt, va_list args)
 {
+	va_list args2;
+
 	if (!(kind & (L_ALL)) && !(logging && (kind & logmask)))
 		return;
+
+	if (log_stderr)
+		va_copy(args2, args);
 
 	if (log_syslog) {
 		switch (kind) {
@@ -171,9 +176,9 @@ xlog_backend(int kind, const char *fmt, va_list args)
 #else
 		fprintf(stderr, "%s: ", log_name);
 #endif
-
-		vfprintf(stderr, fmt, args);
+		vfprintf(stderr, fmt, args2);
 		fprintf(stderr, "\n");
+		va_end(args2);
 	}
 
 	if (kind == L_FATAL)
