@@ -571,20 +571,25 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 	qword_print(f, path);
 	qword_printint(f, time(0)+30*60);
 	if (exp) {
-		qword_printint(f, exp->e_flags);
+		int different_fs = strcmp(path, exp->e_path) != 0;
+		
+		if (different_fs)
+			qword_printint(f, exp->e_flags & ~NFSEXP_FSID);
+		else
+			qword_printint(f, exp->e_flags);
 		qword_printint(f, exp->e_anonuid);
 		qword_printint(f, exp->e_anongid);
 		qword_printint(f, exp->e_fsid);
 		write_fsloc(f, exp, path);
 		write_secinfo(f, exp);
 #if USE_BLKID
- 		if (exp->e_uuid == NULL) {
+ 		if (exp->e_uuid == NULL || different_fs) {
  			char u[16];
  			if (get_uuid(path, NULL, 16, u)) {
  				qword_print(f, "uuid");
  				qword_printhex(f, u, 16);
  			}
- 		} else if (exp->e_uuid) {
+ 		} else {
  			qword_print(f, "uuid");
  			qword_printhex(f, exp->e_uuid, 16);
  		}
