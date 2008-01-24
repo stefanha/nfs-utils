@@ -39,7 +39,10 @@ if we have a stack or plain mount - mount atop of it, forming a stack. */
 #ifndef MS_VERBOSE
 #define MS_VERBOSE	0x8000	/* 32768 */
 #endif
-
+#ifndef MS_RELATIME
+#define MS_RELATIME 0x200000 /* 200000: Update access times relative
+                                  to mtime/ctime */
+#endif
 /*
  * NFS fs-specific mount option flags
  *
