@@ -111,7 +111,7 @@ void auth_unix_ip(FILE *f)
 	else if (client)
 		qword_print(f, *client?client:"DEFAULT");
 	qword_eol(f);
-	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, *client?client: "DEFAULT");
+	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, client?client: "DEFAULT");
 
 	if (client) free(client);
 	free(he);
@@ -516,8 +516,10 @@ void nfsd_fh(FILE *f)
 		qword_print(f, found_path);
 	qword_eol(f);
  out:
-	free(found_path);
-	free(he);
+	if (found_path)
+		free(found_path);
+	if (he)
+		free(he);
 	free(dom);
 	xlog(D_CALL, "nfsd_fh: found %p path %s", found, found ? found->e_path : NULL);
 	return;		
@@ -667,9 +669,9 @@ void nfsd_export(FILE *f)
 			}
 			/* If one is a CROSSMOUNT, then prefer the longest path */
 			if (((found->m_export.e_flags & NFSEXP_CROSSMOUNT) ||
-			     (found->m_export.e_flags & NFSEXP_CROSSMOUNT)) &&
+			     (exp->m_export.e_flags & NFSEXP_CROSSMOUNT)) &&
 			    strlen(found->m_export.e_path) !=
-			    strlen(found->m_export.e_path)) {
+			    strlen(exp->m_export.e_path)) {
 
 				if (strlen(exp->m_export.e_path) >
 				    strlen(found->m_export.e_path)) {
