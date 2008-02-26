@@ -848,7 +848,7 @@ validateascii(char *string, u_int32_t len)
 			return (-1);
 	}
 
-	if (string[i] != '\0')
+	if ((i >= len) || string[i] != '\0')
 		return (-1);
 
 	return (i + 1);
