@@ -404,7 +404,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 	    cache_type = "FILE";
 	snprintf(cc_name, sizeof(cc_name), "%s:%s/%s%s_%s",
 		cache_type,
-		GSSD_DEFAULT_CRED_DIR, GSSD_DEFAULT_CRED_PREFIX,
+		ccachedir, GSSD_DEFAULT_CRED_PREFIX,
 		GSSD_DEFAULT_MACHINE_CRED_SUFFIX, ple->realm);
 	ple->endtime = my_creds.times.endtime;
 	if (ple->ccname != NULL)
