@@ -36,7 +36,7 @@
 #include <gssapi/gssapi.h>
 
 #define MAX_FILE_NAMELEN	32
-#define FD_ALLOC_BLOCK		32
+#define FD_ALLOC_BLOCK		256
 #ifndef GSSD_PIPEFS_DIR
 #define GSSD_PIPEFS_DIR		"/var/lib/nfs/rpc_pipefs"
 #endif
