@@ -66,8 +66,5 @@ table of mounted file systems
 .BR nfs (5),
 .BR umount (8),
 
-.SH "BUGS"
-Please notify nfs@lists.sourceforge.net of any bugs found in this software.
-
 .SH "AUTHOR"
 Amit Gud <agud@redhat.com>
