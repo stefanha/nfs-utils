@@ -35,7 +35,7 @@ With the \-n option, "machine credentials" will not be used
 for accesses by UID 0.  Instead, credentials must be obtained
 manually like all other users.  Use of this option means that
 "root" must manually obtain Kerberos credentials before
-attemtpting to mount an nfs filesystem requiring Kerberos
+attempting to mount an nfs filesystem requiring Kerberos
 authentication.
 .TP
 .B -k keytab
