@@ -34,6 +34,8 @@ double quotes. You can also specify spaces or other unusual character in
 the export name using a backslash followed by the character code as three
 octal digits.
 .PP
+To apply changes to this file, run exportfs \-ra or restart the NFS server.
+.PP
 .SS Machine Name Formats
 NFS clients may be specified in a number of ways:
 .IP "single host
