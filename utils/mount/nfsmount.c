@@ -714,7 +714,7 @@ nfsmount(const char *spec, const char *node, int flags,
 			rpc_mount_errors(*nfs_server.hostname, 1, bg);
 	}
 
-	if (nfs_pmap->pm_vers == 2) {
+	if (mnt_pmap->pm_vers <= 2) {
 		if (mntres.nfsv2.fhs_status != 0) {
 			nfs_error(_("%s: %s:%s failed, reason given by server: %s"),
 					progname, hostname, dirname,
