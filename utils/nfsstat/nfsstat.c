@@ -207,7 +207,7 @@ void usage(char *name)
 {
 	printf("Usage: %s [OPTION]...\n\
 \n\
-  -m, --mounted\t\tShow statistics on mounted NFS filesystems\n\
+  -m, --mounts\t\tShow statistics on mounted NFS filesystems\n\
   -c, --client\t\tShow NFS client statistics\n\
   -s, --server\t\tShow NFS server statistics\n\
   -2\t\t\tShow NFS version 2 statistics\n\

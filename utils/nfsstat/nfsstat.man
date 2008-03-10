@@ -35,7 +35,7 @@ Print only NFS v3 statistics.
 .B \-4
 Print only NFS v4 statistics. 
 .TP
-.B \-m, \-\-mounted
+.B \-m, \-\-mounts
 Print information about each of the mounted \fBNFS\fR file systems.
 
 If this option is used, all other options are ignored.
