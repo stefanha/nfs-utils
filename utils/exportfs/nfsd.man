@@ -12,7 +12,7 @@ nfsd \- special filesystem for controlling Linux NFS server
 .SH DESCRIPTION
 The
 .B nfsd
-filessytem is a special filesystem which provides access to the Linux
+filesytem is a special filesystem which provides access to the Linux
 NFS server.  The filesystem consists of a single directory which
 contains a number of files.  These files are actually gateways into
 the NFS server.  Writing to them can affect the server.  Reading from
