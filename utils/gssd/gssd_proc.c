@@ -464,7 +464,7 @@ do_error_downcall(int k5_fd, uid_t uid, int err)
 	if (write(k5_fd, buf, p - buf) < p - buf) goto out_err;
 	return 0;
 out_err:
-	printerr(0, "Failed to write error downcall!\n");
+	printerr(1, "Failed to write error downcall!\n");
 	return -1;
 }
 
