@@ -184,8 +184,6 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 		if (cache == NULL)
 			blkid_get_cache(&cache, NULL);
 
-		blkid_probe_all_new(cache);
-
 		if (stat(path, &stb) != 0)
 			return 0;
 		devname = blkid_devno_to_devname(stb.st_dev);
