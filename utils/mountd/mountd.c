@@ -342,7 +342,14 @@ mount_mnt_3_svc(struct svc_req *rqstp, dirpath *path, mountres3 *res)
 #define AUTH_GSS_KRB5 390003
 #define AUTH_GSS_KRB5I 390004
 #define AUTH_GSS_KRB5P 390005
-	static int	flavors[] = { AUTH_NULL, AUTH_UNIX, AUTH_GSS_KRB5, AUTH_GSS_KRB5I, AUTH_GSS_KRB5P};
+	static int	flavors[] = { AUTH_UNIX, AUTH_GSS_KRB5, AUTH_GSS_KRB5I, AUTH_GSS_KRB5P};
+	/*
+	 * We should advertise the preferred flavours first. (See RFC 2623
+	 * section 2.7.) AUTH_UNIX is arbitrarily ranked over the GSS's.
+	 * AUTH_NULL is dropped from the list to avoid backward compatibility
+	 * issue with older Linux clients, who inspect the list in reversed
+	 * order.
+	 */
 	struct nfs_fh_len *fh;
 
 	xlog(D_CALL, "MNT3(%s) called", *path);
