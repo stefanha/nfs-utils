@@ -22,14 +22,14 @@ The
 .B exportfs
 command is used to maintain the current table of exported file systems for
 NFS. This list is kept in a separate file named
-.BR /var/lib/nfs/xtab
+.BR /var/lib/nfs/etab
 which is read by
 .B mountd
 when a remote host requests access to mount a file tree, and parts of
 the list which are active are kept in the kernel's export table.
 .P
 Normally this 
-.B xtab
+.B etab
 file is initialized with the list of all file systems named in
 .B /etc/exports 
 by invoking
@@ -59,7 +59,7 @@ In the new mode,
 does not give any information to the kernel but only provides it to
 .B mountd
 through the
-.B /var/lib/nfs/xtab
+.B /var/lib/nfs/etab
 file.
 .B mountd
 will listen to requests from the kernel and will provide information
@@ -69,7 +69,7 @@ In the legacy mode,
 any export requests which identify a specific host (rather than a
 subnet or netgroup etc) are entered directly into the kernel's export
 table as well as being written to
-.BR /var/lib/nfs/xtab .
+.BR /var/lib/nfs/etab .
 Further, any mount points listed in
 .B /var/lib/nfs/rmtab
 which match a non host-specific export request will cause an
@@ -93,8 +93,8 @@ file, so that only default options and options given on the command
 line are used.
 .TP
 .B -r
-Reexport all directories. It synchronizes /var/lib/nfs/xtab
-with /etc/exports. It removes entries in /var/lib/nfs/xtab
+Reexport all directories. It synchronizes /var/lib/nfs/etab
+with /etc/exports. It removes entries in /var/lib/nfs/etab
 which are deleted from /etc/exports, and remove any entries from the
 kernel export table which are no longer valid.
 .TP
@@ -120,7 +120,7 @@ entries to the export table.  When using
 all directories in
 .B exports(5)
 are added to
-.B xtab
+.B etab
 and the resulting list is pushed into the kernel.
 .P
 The
@@ -152,7 +152,7 @@ directory.
 Modifications of the kernel export table used by
 .B nfsd(8)
 take place immediately after parsing the command line and updating the
-.B xtab
+.B etab
 file.
 .P
 The default export options are
@@ -163,14 +163,14 @@ The third synopsis shows how to unexported a currently exported directory.
 When using
 .BR "exportfs -ua" ,
 all entries listed in
-.B xtab
+.B etab
 are removed from the kernel export tables, and the file is cleared. This
 effectively shuts down all NFS activity.
 .P
 To remove an export to a host, specify a
 .I host:/path
 pair. This deletes the specified entry from
-.B xtab
+.B etab
 and removes the corresponding kernel entry (if any).
 To remove one or more exports to several hosts, use
 .BR "exportfs -ua" .
