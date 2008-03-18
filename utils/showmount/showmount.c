@@ -240,6 +240,8 @@ static unsigned short getport(struct sockaddr_in *addr,
 		rpc_createerr.cf_stat = status;
 		clnt_destroy(client);
 		return 0;
+	} else if (port == 0) {
+		rpc_createerr.cf_stat = RPC_PROGNOTREGISTERED;
 	}
 
 	clnt_destroy(client);
@@ -364,7 +366,7 @@ int main(int argc, char **argv)
 		server_addr.sin_port = getport(&server_addr,
 					 MOUNTPROG, MOUNTVERS, IPPROTO_UDP);
 		if (!server_addr.sin_port) {
-			clnt_pcreateerror("portmap getport");
+			clnt_pcreateerror("showmount");
 			exit(1);
 		}
 		msock = RPC_ANYSOCK;
