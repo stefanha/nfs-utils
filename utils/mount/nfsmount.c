@@ -479,7 +479,7 @@ static int nfsmnt_check_compat(const struct pmap *nfs_pmap,
 	}
 
 	if (mnt_pmap->pm_vers > max_mnt_vers) {
-		nfs_error(_("%s: NFS mount version %ld s not supported"),
+		nfs_error(_("%s: NFS mount version %ld is not supported"),
 				progname, mnt_pmap->pm_vers);
 		goto out_bad;
 	}
