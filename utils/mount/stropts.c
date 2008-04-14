@@ -252,7 +252,6 @@ static int set_mandatory_options(const char *type,
 static int is_permanent_error(int error)
 {
 	switch (error) {
-	case EACCES:
 	case ESTALE:
 	case ETIMEDOUT:
 	case ECONNREFUSED:
