@@ -125,12 +125,12 @@ struct sockaddr_in *addr;
 	   return 0;
 
    /* Check the official name first. */
-   if (hosts_ctl(daemon, "", hp->h_name, ""))
+   if (hosts_ctl(daemon, hp->h_name, "", ""))
 	return 1;
 
    /* Check aliases. */
    for (sp = hp->h_aliases; *sp ; sp++) {
-	if (hosts_ctl(daemon, "", *sp, ""))
+	if (hosts_ctl(daemon, *sp, "", ""))
 	    return 1;
    }
 
