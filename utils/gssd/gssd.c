@@ -57,6 +57,7 @@ char pipefs_dir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char pipefs_nfsdir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
 char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR;
+char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
 int  use_memcache = 0;
 int  root_uses_machine_creds = 1;
 
@@ -93,9 +94,11 @@ main(int argc, char *argv[])
 	int verbosity = 0;
 	int rpc_verbosity = 0;
 	int opt;
+	int i;
 	extern char *optarg;
 	char *progname;
 
+	memset(ccachesearch, 0, sizeof(ccachesearch));
 	while ((opt = getopt(argc, argv, "fvrmnMp:k:d:")) != -1) {
 		switch (opt) {
 			case 'f':
@@ -136,6 +139,13 @@ main(int argc, char *argv[])
 				break;
 		}
 	}
+
+	i = 0;
+	ccachesearch[i++] = strtok(ccachedir, ":");
+	do {
+		ccachesearch[i++] = strtok(NULL, ":");
+	} while (ccachesearch[i-1] != NULL && i < GSSD_MAX_CCACHE_SEARCH);
+
 	snprintf(pipefs_nfsdir, sizeof(pipefs_nfsdir), "%s/%s",
 		 pipefs_dir, GSSD_SERVICE_NAME);
 	if (pipefs_nfsdir[sizeof(pipefs_nfsdir)-1] != '\0')
