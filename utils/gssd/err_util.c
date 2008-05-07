@@ -60,3 +60,8 @@ void printerr(int priority, char *format, ...)
 		xlog_backend(L_ERROR, format, args);
 	va_end(args);
 }
+
+int get_verbosity(void)
+{
+	return verbosity;
+}
