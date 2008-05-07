@@ -494,7 +494,6 @@ int
 nfsmount(const char *spec, const char *node, int flags,
 	 char **extra_opts, int fake, int running_bg)
 {
-	static char *prev_bg_host;
 	char hostdir[1024];
 	char *hostname, *dirname, *old_opts, *mounthost = NULL;
 	char new_opts[1024], cbuf[1024];
@@ -628,18 +627,6 @@ nfsmount(const char *spec, const char *node, int flags,
 	if (flags & MS_REMOUNT)
 		goto out_ok;
 
-	/*
-	 * If the previous mount operation on the same host was
-	 * backgrounded, and the "bg" for this mount is also set,
-	 * give up immediately, to avoid the initial timeout.
-	 */
-	if (bg && !running_bg &&
-	    prev_bg_host && strcmp(hostname, prev_bg_host) == 0) {
-		if (retry > 0)
-			retval = EX_BG;
-		return retval;
-	}
-
 	/* create mount deamon client */
 
 	/*
@@ -708,7 +695,6 @@ nfsmount(const char *spec, const char *node, int flags,
 			continue;
 		}
 		if (!running_bg) {
-			prev_bg_host = xstrdup(hostname);
 			if (retry > 0)
 				retval = EX_BG;
 			goto fail;
