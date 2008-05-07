@@ -571,7 +571,7 @@ nfsmount(const char *spec, const char *node, int flags,
 #endif
 
 	bg = 0;
-	retry = 10000;		/* 10000 minutes ~ 1 week */
+	retry = -1;
 
 	memset(mnt_pmap, 0, sizeof(*mnt_pmap));
 	mnt_pmap->pm_prog = MOUNTPROG;
@@ -585,9 +585,13 @@ nfsmount(const char *spec, const char *node, int flags,
 		goto fail;
 	if (!nfsmnt_check_compat(nfs_pmap, mnt_pmap))
 		goto fail;
-	
-	if (retry == 10000 && !bg)
-		retry = 2; /* reset for fg mounts */
+
+	if (retry == -1) {
+		if (bg)
+			retry = 10000;	/* 10000 mins == ~1 week*/
+		else
+			retry = 2;	/* 2 min default on fg mounts */
+	}
 
 #ifdef NFS_MOUNT_DEBUG
 	printf(_("rsize = %d, wsize = %d, timeo = %d, retrans = %d\n"),

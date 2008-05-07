@@ -238,7 +238,7 @@ int nfs4mount(const char *spec, const char *node, int flags,
 	nocto = 0;
 	noac = 0;
 	unshared = 0;
-	retry = 10000;		/* 10000 minutes ~ 1 week */
+	retry = -1;
 
 	/*
 	 * NFSv4 specifies that the default port should be 2049
@@ -330,6 +330,14 @@ int nfs4mount(const char *spec, const char *node, int flags,
 				goto fail;
 			}
 		}
+	}
+
+	/* if retry is still -1, then it wasn't set via an option */
+	if (retry == -1) {
+		if (bg)
+			retry = 10000;	/* 10000 mins == ~1 week */
+		else
+			retry = 2;	/* 2 min default on fg mounts */
 	}
 
 	data.flags = (soft ? NFS4_MOUNT_SOFT : 0)
