@@ -188,10 +188,9 @@ int nfs4mount(const char *spec, const char *node, int flags,
 	int bg, soft, intr;
 	int nocto, noac, unshared;
 	int retry;
-	int retval;
+	int retval = EX_FAIL;
 	time_t timeout, t;
 
-	retval = EX_FAIL;
 	if (strlen(spec) >= sizeof(hostdir)) {
 		nfs_error(_("%s: excessively long host:dir argument\n"),
 				progname);
@@ -443,6 +442,13 @@ int nfs4mount(const char *spec, const char *node, int flags,
 			rpc_mount_errors(hostname, 0, bg);
 			goto fail;
 		}
+
+		if (bg && !running_bg) {
+			if (retry > 0)
+				retval = EX_BG;
+			goto fail;
+		}
+
 		t = time(NULL);
 		if (t >= timeout) {
 			rpc_mount_errors(hostname, 0, bg);
