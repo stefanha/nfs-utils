@@ -102,7 +102,7 @@ int pollsize;  /* the size of pollaray (in pollfd's) */
 /* XXX buffer problems: */
 static int
 read_service_info(char *info_file_name, char **servicename, char **servername,
-		  int *prog, int *vers, char **protocol) {
+		  int *prog, int *vers, char **protocol, int *port) {
 #define INFOBUFLEN 256
 	char		buf[INFOBUFLEN];
 	static char	dummy[128];
@@ -112,6 +112,8 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	char		program[16];
 	char		version[16];
 	char		protoname[16];
+	char		cb_port[128];
+	char		*p;
 	in_addr_t	inaddr;
 	int		fd = -1;
 	struct hostent	*ent = NULL;
@@ -143,6 +145,10 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 		goto fail;
 	}
 
+	cb_port[0] = '\0';
+	if ((p = strstr(buf, "port")) != NULL)
+		sscanf(p, "port: %127s\n", cb_port);
+
 	/* check service, program, and version */
 	if(memcmp(service, "nfs", 3)) return -1;
 	*prog = atoi(program + 1); /* skip open paren */
@@ -163,6 +169,8 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	if (!(*servicename = calloc(strlen(buf) + 1, 1)))
 		goto fail;
 	memcpy(*servicename, buf, strlen(buf));
+	if (cb_port[0] != '\0')
+		*port = atoi(cb_port);
 
 	if (!(*protocol = strdup(protoname)))
 		goto fail;
@@ -238,7 +246,7 @@ process_clnt_dir_files(struct clnt_info * clp)
 	if ((clp->servicename == NULL) &&
 	     read_service_info(info_file_name, &clp->servicename,
 				&clp->servername, &clp->prog, &clp->vers,
-				&clp->protocol))
+				&clp->protocol, &clp->port))
 		return -1;
 	return 0;
 }
@@ -587,6 +595,8 @@ int create_auth_rpc_client(struct clnt_info *clp,
 			 clp->servername, uid);
 		goto out_fail;
 	}
+	if (clp->port)
+		((struct sockaddr_in *)a->ai_addr)->sin_port = htons(clp->port);
 	if (a->ai_protocol == IPPROTO_TCP) {
 		if ((rpc_clnt = clnttcp_create(
 					(struct sockaddr_in *) a->ai_addr,
