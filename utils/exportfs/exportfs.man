@@ -198,7 +198,7 @@ and pushes the resulting export entries into the kernel:
 To export the
 .B /usr/tmp
 directory to host 
-.BR djando ,
+.BR django ,
 allowing asynchronous writes, one would do this:
 .P
 .nf
