@@ -539,6 +539,12 @@ int main(int argc, char *argv[])
 			mnt_err = EX_USAGE;
 			goto out;
 		}
+
+		if (geteuid() != 0) {
+			nfs_error(_("%s: not installed setuid - "
+				    "\"user\" NFS mounts not supported."), progname);
+			exit(EX_FAIL);
+		}
 	}
 
 	if (chk_mountpoint(mount_point)) {
