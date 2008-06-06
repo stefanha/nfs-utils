@@ -65,6 +65,14 @@
 #define NFS_MAXPATHNAME		(1024)
 #endif
 
+#ifndef NFS_DEF_FG_TIMEOUT_MINUTES
+#define NFS_DEF_FG_TIMEOUT_MINUTES	(2u)
+#endif
+
+#ifndef NFS_DEF_BG_TIMEOUT_MINUTES
+#define NFS_DEF_BG_TIMEOUT_MINUTES	(10000u)
+#endif
+
 extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
@@ -138,6 +146,32 @@ static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
 	}
 	memcpy(&addr->sin_addr, hp->h_addr, hp->h_length);
 	return 1;
+}
+
+/*
+ * Obtain a retry timeout value based on the value of the "retry=" option.
+ *
+ * Returns a time_t timeout timestamp, in seconds.
+ */
+static time_t nfs_parse_retry_option(struct mount_options *options,
+				     unsigned int timeout_minutes)
+{
+	char *retry_option, *endptr;
+
+	retry_option = po_get(options, "retry");
+	if (retry_option) {
+		long tmp;
+
+		errno = 0;
+		tmp = strtol(retry_option, &endptr, 10);
+		if (errno == 0 && endptr != retry_option && tmp >= 0)
+			timeout_minutes = tmp;
+		else if (verbose)
+			nfs_error(_("%s: invalid retry timeout was specified; "
+					"using default timeout"), progname);
+	}
+
+	return time(NULL) + (time_t)(timeout_minutes * 60);
 }
 
 /*
@@ -557,14 +591,9 @@ static int nfsmount_fg(const char *spec, const char *node,
 		       char **extra_opts)
 {
 	unsigned int secs = 1;
-	time_t timeout = time(NULL);
-	char *retry;
+	time_t timeout;
 
-	timeout += 60 * 2;		/* default: 2 minutes */
-	retry = po_get(options, "retry");
-	if (retry)
-		timeout += 60 * atoi(retry);
-
+	timeout = nfs_parse_retry_option(options, NFS_DEF_FG_TIMEOUT_MINUTES);
 	if (verbose)
 		printf(_("%s: timeout set for %s"),
 			progname, ctime(&timeout));
@@ -634,13 +663,9 @@ static int nfsmount_child(const char *spec, const char *node,
 			  int fake, char **extra_opts)
 {
 	unsigned int secs = 1;
-	time_t timeout = time(NULL);
-	char *retry;
+	time_t timeout;
 
-	timeout += 60 * 10000;		/* default: 10,000 minutes */
-	retry = po_get(options, "retry");
-	if (retry)
-		timeout += 60 * atoi(retry);
+	timeout = nfs_parse_retry_option(options, NFS_DEF_BG_TIMEOUT_MINUTES);
 
 	for (;;) {
 		if (sleep(secs))
