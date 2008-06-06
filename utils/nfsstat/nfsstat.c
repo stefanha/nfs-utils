@@ -716,7 +716,7 @@ mounts(const char *name)
 		if (!(type = strtok(NULL, " \t")))
 			continue;
 
-		if (strcmp(type, "nfs")) {
+		if (strcmp(type, "nfs") && strcmp(type,"nfs4")) {
 		    continue;
 		}
 
