@@ -219,13 +219,34 @@ static int fix_mounthost_option(struct mount_options *options)
 }
 
 /*
+ * Returns zero if the "lock" option is in effect, but statd
+ * can't be started.  Otherwise, returns 1.
+ */
+static int verify_lock_option(struct mount_options *options)
+{
+	if (po_rightmost(options, "nolock", "lock") == PO_KEY1_RIGHTMOST)
+		return 1;
+
+	if (!start_statd()) {
+		nfs_error(_("%s: rpc.statd is not running but is "
+			    "required for remote locking."), progname);
+		nfs_error(_("%s: Either use '-o nolock' to keep "
+			    "locks local, or start statd."), progname);
+		return 0;
+	}
+
+	return 1;
+}
+
+/*
  * Set up mandatory mount options.
  *
  * Returns 1 if successful; otherwise zero.
  */
-static int set_mandatory_options(const char *type,
-				 struct sockaddr_in *saddr,
-				 struct mount_options *options)
+static int validate_options(const char *type,
+			    struct sockaddr_in *saddr,
+			    struct mount_options *options,
+			    int fake)
 {
 	if (!append_addr_option(saddr, options))
 		return 0;
@@ -235,6 +256,8 @@ static int set_mandatory_options(const char *type,
 			return 0;
 	} else {
 		if (!fix_mounthost_option(options))
+			return 0;
+		if (!fake && !verify_lock_option(options))
 			return 0;
 	}
 
@@ -691,7 +714,7 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 		goto fail;
 	}
 
-	if (!set_mandatory_options(type, &saddr, options))
+	if (!validate_options(type, &saddr, options, fake))
 		goto out;
 
 	if (po_rightmost(options, "bg", "fg") == PO_KEY1_RIGHTMOST)
