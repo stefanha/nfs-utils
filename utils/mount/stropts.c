@@ -77,12 +77,26 @@ extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
 
-static int parse_devname(const char *spec, char **hostname)
+struct nfsmount_info {
+	const char		*spec,		/* server:/path */
+				*node,		/* mounted-on dir */
+				*type;		/* "nfs" or "nfs4" */
+	char			*hostname;	/* server's hostname */
+
+	struct mount_options	*options;	/* parsed mount options */
+	char			**extra_opts;	/* string for /etc/mtab */
+
+	int			flags,		/* MS_ flags */
+				fake,		/* actually do the mount? */
+				child;		/* forked bg child? */
+};
+
+static int nfs_parse_devname(struct nfsmount_info *mi)
 {
 	int ret = 0;
 	char *dev, *pathname, *s;
 
-	dev = xstrdup(spec);
+	dev = xstrdup(mi->spec);
 
 	if (!(pathname = strchr(dev, ':'))) {
 		nfs_error(_("%s: remote share not in 'host:dir' format"),
@@ -113,11 +127,12 @@ static int parse_devname(const char *spec, char **hostname)
 		nfs_error(_("%s: ignoring hostnames that follow the first one"),
 				progname);
 	}
-	*hostname = xstrdup(dev);
-	if (strlen(*hostname) > NFS_MAXHOSTNAME) {
+	mi->hostname = xstrdup(dev);
+	if (strlen(mi->hostname) > NFS_MAXHOSTNAME) {
 		nfs_error(_("%s: server hostname is too long"),
 				progname);
-		free(*hostname);
+		free(mi->hostname);
+		mi->hostname = NULL;
 		goto out;
 	}
 
@@ -273,27 +288,29 @@ static int verify_lock_option(struct mount_options *options)
 }
 
 /*
- * Set up mandatory mount options.
+ * Set up mandatory NFS mount options.
  *
  * Returns 1 if successful; otherwise zero.
  */
-static int validate_options(const char *type,
-			    struct sockaddr_in *saddr,
-			    struct mount_options *options,
-			    int fake)
+static int nfs_validate_options(struct nfsmount_info *mi)
 {
-	if (!append_addr_option(saddr, options))
+	struct sockaddr_in saddr;
+
+	if (!fill_ipv4_sockaddr(mi->hostname, &saddr))
 		return 0;
 
-	if (strncmp(type, "nfs4", 4) == 0) {
-		if (!append_clientaddr_option(saddr, options))
+	if (strncmp(mi->type, "nfs4", 4) == 0) {
+		if (!append_clientaddr_option(&saddr, mi->options))
 			return 0;
 	} else {
-		if (!fix_mounthost_option(options))
+		if (!fix_mounthost_option(mi->options))
 			return 0;
-		if (!fake && !verify_lock_option(options))
+		if (!mi->fake && !verify_lock_option(mi->options))
 			return 0;
 	}
+
+	if (!append_addr_option(&saddr, mi->options))
+		return 0;
 
 	return 1;
 }
@@ -443,6 +460,27 @@ err:
 }
 
 /*
+ * Do the mount(2) system call.
+ *
+ * Returns 1 if successful, otherwise zero.
+ * "errno" is set to reflect the individual error.
+ */
+static int nfs_sys_mount(const struct nfsmount_info *mi, const char *type,
+			 const char *options)
+{
+	int result;
+
+	result = mount(mi->spec, mi->node, type,
+				mi->flags & ~(MS_USER|MS_USERS), options);
+	if (verbose && result) {
+		int save = errno;
+		nfs_error(_("%s: mount(2): %s"), progname, strerror(save));
+		errno = save;
+	}
+	return !result;
+}
+
+/*
  * Retry an NFS mount that failed because the requested service isn't
  * available on the server.
  *
@@ -453,12 +491,11 @@ err:
  * 'extra_opts' are updated to reflect the mount options that worked.
  * If the retry fails, 'options' and 'extra_opts' are left unchanged.
  */
-static int retry_nfsmount(const char *spec, const char *node,
-			int flags, struct mount_options *options,
-			int fake, char **extra_opts)
+static int nfs_retry_nfs23mount(struct nfsmount_info *mi)
 {
 	struct mount_options *retry_options;
 	char *retry_str = NULL;
+	char **extra_opts = mi->extra_opts;
 
 	retry_options = rewrite_mount_options(*extra_opts);
 	if (!retry_options) {
@@ -476,17 +513,16 @@ static int retry_nfsmount(const char *spec, const char *node,
 		printf(_("%s: text-based options (retry): '%s'\n"),
 			progname, retry_str);
 
-	if (!mount(spec, node, "nfs",
-				flags & ~(MS_USER|MS_USERS), retry_str)) {
-		free(*extra_opts);
-		*extra_opts = retry_str;
-		po_replace(options, retry_options);
-		return 1;
+	if (!nfs_sys_mount(mi, "nfs", retry_str)) {
+		po_destroy(retry_options);
+		free(retry_str);
+		return 0;
 	}
 
-	po_destroy(retry_options);
-	free(retry_str);
-	return 0;
+	free(*extra_opts);
+	*extra_opts = retry_str;
+	po_replace(mi->options, retry_options);
+	return 1;
 }
 
 /*
@@ -502,11 +538,11 @@ static int retry_nfsmount(const char *spec, const char *node,
  * 'extra_opts' are updated to reflect the mount options that worked.
  * If the retry fails, 'options' and 'extra_opts' are left unchanged.
  */
-static int try_nfs23mount(const char *spec, const char *node,
-			  int flags, struct mount_options *options,
-			  int fake, char **extra_opts)
+static int nfs_try_nfs23mount(struct nfsmount_info *mi)
 {
-	if (po_join(options, extra_opts) == PO_FAILED) {
+	char **extra_opts = mi->extra_opts;
+
+	if (po_join(mi->options, extra_opts) == PO_FAILED) {
 		errno = EIO;
 		return 0;
 	}
@@ -515,11 +551,10 @@ static int try_nfs23mount(const char *spec, const char *node,
 		printf(_("%s: text-based options: '%s'\n"),
 			progname, *extra_opts);
 
-	if (fake)
+	if (mi->fake)
 		return 1;
 
-	if (!mount(spec, node, "nfs",
-				flags & ~(MS_USER|MS_USERS), *extra_opts))
+	if (nfs_sys_mount(mi, "nfs", *extra_opts))
 		return 1;
 
 	/*
@@ -529,7 +564,7 @@ static int try_nfs23mount(const char *spec, const char *node,
 	if (errno != EOPNOTSUPP && errno != EPROTONOSUPPORT)
 		return 0;
 
-	return retry_nfsmount(spec, node, flags, options, fake, extra_opts);
+	return nfs_retry_nfs23mount(mi);
 }
 
 /*
@@ -538,11 +573,11 @@ static int try_nfs23mount(const char *spec, const char *node,
  * Returns 1 if successful.  Otherwise, returns zero.
  * "errno" is set to reflect the individual error.
  */
-static int try_nfs4mount(const char *spec, const char *node,
-			 int flags, struct mount_options *options,
-			 int fake, char **extra_opts)
+static int nfs_try_nfs4mount(struct nfsmount_info *mi)
 {
-	if (po_join(options, extra_opts) == PO_FAILED) {
+	char **extra_opts = mi->extra_opts;
+
+	if (po_join(mi->options, extra_opts) == PO_FAILED) {
 		errno = EIO;
 		return 0;
 	}
@@ -551,31 +586,24 @@ static int try_nfs4mount(const char *spec, const char *node,
 		printf(_("%s: text-based options: '%s'\n"),
 			progname, *extra_opts);
 
-	if (fake)
+	if (mi->fake)
 		return 1;
 
-	if (!mount(spec, node, "nfs4",
-				flags & ~(MS_USER|MS_USERS), *extra_opts))
-		return 1;
-	return 0;
+	return nfs_sys_mount(mi, "nfs4", *extra_opts);
 }
 
 /*
- * Try the mount(2) system call.
+ * Perform either an NFSv2/3 mount, or an NFSv4 mount system call.
  *
  * Returns 1 if successful.  Otherwise, returns zero.
  * "errno" is set to reflect the individual error.
  */
-static int try_mount(const char *spec, const char *node, const char *type,
-		     int flags, struct mount_options *options, int fake,
-		     char **extra_opts)
+static int nfs_try_mount(struct nfsmount_info *mi)
 {
-	if (strncmp(type, "nfs4", 4) == 0)
-		return try_nfs4mount(spec, node, flags,
-					options, fake, extra_opts);
+	if (strncmp(mi->type, "nfs4", 4) == 0)
+		return nfs_try_nfs4mount(mi);
 	else
-		return try_nfs23mount(spec, node, flags,
-					options, fake, extra_opts);
+		return nfs_try_nfs23mount(mi);
 }
 
 /*
@@ -585,22 +613,19 @@ static int try_mount(const char *spec, const char *node, const char *type,
  *
  * Returns a valid mount command exit code.
  */
-static int nfsmount_fg(const char *spec, const char *node,
-		       const char *type, int flags,
-		       struct mount_options *options, int fake,
-		       char **extra_opts)
+static int nfsmount_fg(struct nfsmount_info *mi)
 {
 	unsigned int secs = 1;
 	time_t timeout;
 
-	timeout = nfs_parse_retry_option(options, NFS_DEF_FG_TIMEOUT_MINUTES);
+	timeout = nfs_parse_retry_option(mi->options,
+					 NFS_DEF_FG_TIMEOUT_MINUTES);
 	if (verbose)
 		printf(_("%s: timeout set for %s"),
 			progname, ctime(&timeout));
 
 	for (;;) {
-		if (try_mount(spec, node, type, flags,
-					options, fake, extra_opts))
+		if (nfs_try_mount(mi))
 			return EX_SUCCESS;
 
 		if (is_permanent_error(errno))
@@ -620,7 +645,7 @@ static int nfsmount_fg(const char *spec, const char *node,
 		}
 	};
 
-	mount_error(spec, node, errno);
+	mount_error(mi->spec, mi->node, errno);
 	return EX_FAIL;
 }
 
@@ -631,21 +656,17 @@ static int nfsmount_fg(const char *spec, const char *node,
  *
  * EX_BG should cause the caller to fork and invoke nfsmount_child.
  */
-static int nfsmount_parent(const char *spec, const char *node,
-			   const char *type, char *hostname, int flags,
-			   struct mount_options *options,
-			   int fake, char **extra_opts)
+static int nfsmount_parent(struct nfsmount_info *mi)
 {
-	if (try_mount(spec, node, type, flags, options,
-					fake, extra_opts))
+	if (nfs_try_mount(mi))
 		return EX_SUCCESS;
 
 	if (is_permanent_error(errno)) {
-		mount_error(spec, node, errno);
+		mount_error(mi->spec, mi->node, errno);
 		return EX_FAIL;
 	}
 
-	sys_mount_errors(hostname, errno, 1, 1);
+	sys_mount_errors(mi->hostname, errno, 1, 1);
 	return EX_BG;
 }
 
@@ -657,15 +678,13 @@ static int nfsmount_parent(const char *spec, const char *node,
  * error return, though, so we use sys_mount_errors to log the
  * failure.
  */
-static int nfsmount_child(const char *spec, const char *node,
-			  const char *type, char *hostname, int flags,
-			  struct mount_options *options,
-			  int fake, char **extra_opts)
+static int nfsmount_child(struct nfsmount_info *mi)
 {
 	unsigned int secs = 1;
 	time_t timeout;
 
-	timeout = nfs_parse_retry_option(options, NFS_DEF_BG_TIMEOUT_MINUTES);
+	timeout = nfs_parse_retry_option(mi->options,
+					 NFS_DEF_BG_TIMEOUT_MINUTES);
 
 	for (;;) {
 		if (sleep(secs))
@@ -674,8 +693,7 @@ static int nfsmount_child(const char *spec, const char *node,
 		if (secs > 120)
 			secs = 120;
 
-		if (try_mount(spec, node, type, flags, options,
-							fake, extra_opts))
+		if (nfs_try_mount(mi))
 			return EX_SUCCESS;
 
 		if (is_permanent_error(errno))
@@ -684,10 +702,10 @@ static int nfsmount_child(const char *spec, const char *node,
 		if (time(NULL) > timeout)
 			break;
 
-		sys_mount_errors(hostname, errno, 1, 1);
+		sys_mount_errors(mi->hostname, errno, 1, 1);
 	};
 
-	sys_mount_errors(hostname, errno, 1, 0);
+	sys_mount_errors(mi->hostname, errno, 1, 0);
 	return EX_FAIL;
 }
 
@@ -696,17 +714,28 @@ static int nfsmount_child(const char *spec, const char *node,
  *
  * Returns a valid mount command exit code.
  */
-static int nfsmount_bg(const char *spec, const char *node,
-			  const char *type, char *hostname, int flags,
-			  struct mount_options *options,
-			  int fake, int child, char **extra_opts)
+static int nfsmount_bg(struct nfsmount_info *mi)
 {
-	if (!child)
-		return nfsmount_parent(spec, node, type, hostname, flags,
-					options, fake, extra_opts);
+	if (!mi->child)
+		return nfsmount_parent(mi);
 	else
-		return nfsmount_child(spec, node, type, hostname, flags,
-					options, fake, extra_opts);
+		return nfsmount_child(mi);
+}
+
+/*
+ * Process mount options and try a mount system call.
+ *
+ * Returns a valid mount command exit code.
+ */
+static int nfsmount_start(struct nfsmount_info *mi)
+{
+	if (!nfs_validate_options(mi))
+		return EX_FAIL;
+
+	if (po_rightmost(mi->options, "bg", "fg") == PO_KEY1_RIGHTMOST)
+		return nfsmount_bg(mi);
+	else
+		return nfsmount_fg(mi);
 }
 
 /**
@@ -723,35 +752,27 @@ static int nfsmount_bg(const char *spec, const char *node,
 int nfsmount_string(const char *spec, const char *node, const char *type,
 		    int flags, char **extra_opts, int fake, int child)
 {
-	struct mount_options *options = NULL;
-	struct sockaddr_in saddr;
-	char *hostname;
+	struct nfsmount_info mi = {
+		.spec		= spec,
+		.node		= node,
+		.type		= type,
+		.extra_opts	= extra_opts,
+		.flags		= flags,
+		.fake		= fake,
+		.child		= child,
+	};
 	int retval = EX_FAIL;
 
-	if (!parse_devname(spec, &hostname))
+	if (!nfs_parse_devname(&mi))
 		return retval;
-	if (!fill_ipv4_sockaddr(hostname, &saddr))
-		goto fail;
 
-	options = po_split(*extra_opts);
-	if (!options) {
+	mi.options = po_split(*extra_opts);
+	if (mi.options) {
+		retval = nfsmount_start(&mi);
+		po_destroy(mi.options);
+	} else
 		nfs_error(_("%s: internal option parsing error"), progname);
-		goto fail;
-	}
 
-	if (!validate_options(type, &saddr, options, fake))
-		goto out;
-
-	if (po_rightmost(options, "bg", "fg") == PO_KEY1_RIGHTMOST)
-		retval = nfsmount_bg(spec, node, type, hostname, flags,
-					options, fake, child, extra_opts);
-	else
-		retval = nfsmount_fg(spec, node, type, flags, options,
-							fake, extra_opts);
-
-out:
-	po_destroy(options);
-fail:
-	free(hostname);
+	free(mi.hostname);
 	return retval;
 }
