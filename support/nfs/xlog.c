@@ -133,7 +133,7 @@ xlog_enabled(int fac)
 void
 xlog_backend(int kind, const char *fmt, va_list args)
 {
-	va_list args2 = NULL;
+	va_list args2;
 
 	if (!(kind & (L_ALL)) && !(logging && (kind & logmask)))
 		return;
