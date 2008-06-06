@@ -356,6 +356,8 @@ static struct mount_options *rewrite_mount_options(char *str)
 	clnt_addr_t nfs_server = { };
 	int p;
 
+	errno = EIO;
+
 	options = po_split(str);
 	if (!options)
 		return NULL;
@@ -426,7 +428,7 @@ static struct mount_options *rewrite_mount_options(char *str)
 	po_remove_all(options, "udp");
 
 	if (!probe_bothports(&mnt_server, &nfs_server)) {
-		rpc_mount_errors("rpcbind", 0, 0);
+		errno = ESPIPE;
 		goto err;
 	}
 
@@ -452,6 +454,7 @@ static struct mount_options *rewrite_mount_options(char *str)
 
 	}
 
+	errno = 0;
 	return options;
 
 err:
@@ -498,10 +501,8 @@ static int nfs_retry_nfs23mount(struct nfsmount_info *mi)
 	char **extra_opts = mi->extra_opts;
 
 	retry_options = rewrite_mount_options(*extra_opts);
-	if (!retry_options) {
-		errno = EIO;
+	if (!retry_options)
 		return 0;
-	}
 
 	if (po_join(retry_options, &retry_str) == PO_FAILED) {
 		po_destroy(retry_options);
