@@ -116,6 +116,26 @@ class DeviceData:
                 self.__rpc_data['badxids'] = int(words[9])
                 self.__rpc_data['inflightsends'] = long(words[10])
                 self.__rpc_data['backlogutil'] = int(words[11])
+            elif words[1] == 'rdma':
+                self.__rpc_data['port'] = words[2]
+                self.__rpc_data['bind_count'] = int(words[3])
+                self.__rpc_data['connect_count'] = int(words[4])
+                self.__rpc_data['connect_time'] = int(words[5])
+                self.__rpc_data['idle_time'] = int(words[6])
+                self.__rpc_data['rpcsends'] = int(words[7])
+                self.__rpc_data['rpcreceives'] = int(words[8])
+                self.__rpc_data['badxids'] = int(words[9])
+                self.__rpc_data['backlogutil'] = int(words[10])
+                self.__rpc_data['read_chunks'] = int(words[11])
+                self.__rpc_data['write_chunks'] = int(words[12])
+                self.__rpc_data['reply_chunks'] = int(words[13])
+                self.__rpc_data['total_rdma_req'] = int(words[14])
+                self.__rpc_data['total_rdma_rep'] = int(words[15])
+                self.__rpc_data['pullup'] = int(words[16])
+                self.__rpc_data['fixup'] = int(words[17])
+                self.__rpc_data['hardway'] = int(words[18])
+                self.__rpc_data['failed_marshal'] = int(words[19])
+                self.__rpc_data['bad_reply'] = int(words[20])
         elif words[0] == 'per-op':
             self.__rpc_data['per-op'] = words
         else:
