@@ -539,7 +539,7 @@ print_numbers(const char *hdr, unsigned int *info, unsigned int nr)
 
 	fputs(hdr, stdout);
 	for (i = 0; i < nr; i++)
-		printf("%s%-8d", i? "   " : "", info[i]);
+		printf("%s%-8u", i? "   " : "", info[i]);
 	printf("\n");
 }
 
@@ -562,7 +562,7 @@ print_callstats(const char *hdr, const char **names,
 		printf("\n");
 		for (j = 0; j < 6 && i + j < nr; j++) {
 			pct = ((unsigned long long) info[i+j]*100)/total;
-			printf("%-8d%3llu%% ", info[i+j], pct);
+			printf("%-8u%3llu%% ", info[i+j], pct);
 		}
 		printf("\n");
 	}
@@ -604,7 +604,7 @@ parse_raw_statfile(const char *name, struct statinfo *statp)
 		for (i = 0; i < cnt; i++) {
 			if (!(sp = strtok(NULL, " \t")))
 				break;
-			ip->valptr[i] = atoi(sp);
+			ip->valptr[i] = (unsigned int) strtoul(sp, NULL, 0);
 			total += ip->valptr[i];
 		}
 		ip->valptr[cnt - 1] = total;
@@ -618,7 +618,8 @@ parse_raw_statfile(const char *name, struct statinfo *statp)
 static int
 parse_pretty_statfile(const char *filename, struct statinfo *info)
 {
-	int numvals, curindex, numconsumed, n, sum, err = 1;
+	int numvals, curindex, numconsumed, n, err = 1;
+	unsigned int sum;
 	char buf[4096], *bufp, *fmt, is_proc;
 	FILE *fp = NULL;
 	struct statinfo *ip;
