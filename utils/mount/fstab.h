@@ -9,6 +9,7 @@
 
 int mtab_is_writable(void);
 int mtab_does_not_exist(void);
+void reset_mtab_info(void);
 
 struct mntentchn {
 	struct mntentchn *nxt, *prev;
