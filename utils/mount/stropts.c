@@ -25,11 +25,7 @@
 #include <config.h>
 #endif
 
-#include <ctype.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <netdb.h>
 #include <time.h>
@@ -42,7 +38,6 @@
 #include "xcommon.h"
 #include "mount.h"
 #include "nls.h"
-#include "nfs_mount.h"
 #include "mount_constants.h"
 #include "stropts.h"
 #include "error.h"
@@ -51,15 +46,12 @@
 #include "version.h"
 #include "parse_dev.h"
 
-#ifdef HAVE_RPCSVC_NFS_PROT_H
-#include <rpcsvc/nfs_prot.h>
-#else
-#include <linux/nfs.h>
-#define nfsstat nfs_stat
+#ifndef NFS_PROGRAM
+#define NFS_PROGRAM	(100003)
 #endif
 
 #ifndef NFS_PORT
-#define NFS_PORT 2049
+#define NFS_PORT	(2049)
 #endif
 
 #ifndef NFS_MAXHOSTNAME
