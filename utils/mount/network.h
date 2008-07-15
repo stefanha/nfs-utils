@@ -53,6 +53,10 @@ int probe_bothports(clnt_addr_t *, clnt_addr_t *);
 int nfs_gethostbyname(const char *, struct sockaddr_in *);
 int nfs_name_to_address(const char *, const sa_family_t,
 		struct sockaddr *, socklen_t *);
+int nfs_string_to_sockaddr(const char *, const size_t,
+			   struct sockaddr *, socklen_t *);
+int nfs_present_sockaddr(const struct sockaddr *,
+			 const socklen_t, char *, const size_t);
 int get_client_address(struct sockaddr_in *, struct sockaddr_in *);
 int nfs_call_umount(clnt_addr_t *, dirpath *);
 int clnt_ping(struct sockaddr_in *, const unsigned long,

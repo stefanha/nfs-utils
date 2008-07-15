@@ -215,6 +215,98 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *sin)
 					(struct sockaddr *)sin, &len);
 }
 
+/**
+ * nfs_string_to_sockaddr - convert string address to sockaddr
+ * @address:	pointer to presentation format address to convert
+ * @addrlen:	length of presentation address
+ * @sap:	pointer to socket address buffer to fill in
+ * @salen:	IN: length of address buffer
+ *		OUT: length of converted socket address
+ *
+ * Convert a presentation format address string to a socket address.
+ * Similar to nfs_name_to_address(), but the DNS query is squelched,
+ * and won't make any noise if the getaddrinfo() call fails.
+ *
+ * Returns 1 and fills in @sap and @salen if successful; otherwise zero.
+ *
+ * See RFC 4038 section 5.1 or RFC 3513 section 2.2 for more details
+ * on presenting IPv6 addresses as text strings.
+ */
+int nfs_string_to_sockaddr(const char *address, const size_t addrlen,
+			   struct sockaddr *sap, socklen_t *salen)
+{
+	struct addrinfo *gai_results;
+	struct addrinfo gai_hint = {
+		.ai_flags	= AI_NUMERICHOST,
+	};
+	socklen_t len = *salen;
+	int ret = 0;
+
+	*salen = 0;
+
+	if (getaddrinfo(address, NULL, &gai_hint, &gai_results) == 0) {
+		switch (gai_results->ai_addr->sa_family) {
+		case AF_INET:
+		case AF_INET6:
+			if (len >= gai_results->ai_addrlen) {
+				*salen = gai_results->ai_addrlen;
+				memcpy(sap, gai_results->ai_addr, *salen);
+				ret = 1;
+			}
+			break;
+		}
+		freeaddrinfo(gai_results);
+	}
+
+	return ret;
+}
+
+/**
+ * nfs_present_sockaddr - convert sockaddr to string
+ * @sap: pointer to socket address to convert
+ * @salen: length of socket address
+ * @buf: pointer to buffer to fill in
+ * @buflen: length of buffer
+ *
+ * Convert the passed-in sockaddr-style address to presentation format.
+ * The presentation format address is placed in @buf and is
+ * '\0'-terminated.
+ *
+ * Returns 1 if successful; otherwise zero.
+ *
+ * See RFC 4038 section 5.1 or RFC 3513 section 2.2 for more details
+ * on presenting IPv6 addresses as text strings.
+ */
+int nfs_present_sockaddr(const struct sockaddr *sap, const socklen_t salen,
+			 char *buf, const size_t buflen)
+{
+#ifdef HAVE_GETNAMEINFO
+	int result;
+
+	result = getnameinfo(sap, salen, buf, buflen,
+					NULL, 0, NI_NUMERICHOST);
+	if (!result)
+		return 1;
+
+	nfs_error(_("%s: invalid server address: %s"), progname,
+			gai_strerror(result));
+	return 0;
+#else	/* HAVE_GETNAMEINFO */
+	char *addr;
+
+	if (sap->sa_family == AF_INET) {
+		addr = inet_ntoa(((struct sockaddr_in *)sap)->sin_addr);
+		if (addr && strlen(addr) < buflen) {
+			strcpy(buf, addr);
+			return 1;
+		}
+	}
+
+	nfs_error(_("%s: invalid server address"), progname);
+	return 0;
+#endif	/* HAVE_GETNAMEINFO */
+}
+
 /*
  * Attempt to connect a socket, but time out after "timeout" seconds.
  *
