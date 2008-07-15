@@ -195,6 +195,37 @@ static time_t nfs_parse_retry_option(struct mount_options *options,
 }
 
 /*
+ * Convert the passed-in sockaddr-style address to presentation
+ * format, then append an option of the form "keyword=address".
+ *
+ * Returns 1 if the option was appended successfully; otherwise zero.
+ */
+static int nfs_append_generic_address_option(const struct sockaddr *sap,
+					     const socklen_t salen,
+					     const char *keyword,
+					     struct mount_options *options)
+{
+	char address[NI_MAXHOST];
+	char new_option[512];
+
+	if (!nfs_present_sockaddr(sap, salen, address, sizeof(address)))
+		goto out_err;
+
+	if (snprintf(new_option, sizeof(new_option), "%s=%s",
+					keyword, address) >= sizeof(new_option))
+		goto out_err;
+
+	if (po_append(options, new_option) != PO_SUCCEEDED)
+		goto out_err;
+
+	return 1;
+
+out_err:
+	nfs_error(_("%s: failed to construct %s option"), progname, keyword);
+	return 0;
+}
+
+/*
  * Append the 'addr=' option to the options string to pass a resolved
  * server address to the kernel.  After a successful mount, this address
  * is also added to /etc/mtab for use when unmounting.
