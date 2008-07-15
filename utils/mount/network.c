@@ -918,3 +918,121 @@ int get_client_address(struct sockaddr_in *saddr, struct sockaddr_in *caddr)
 	}
 	return 1;
 }
+
+/*
+ * Try a getsockname() on a connected datagram socket.
+ *
+ * Returns 1 and fills in @buf if successful; otherwise, zero.
+ *
+ * A connected datagram socket prevents leaving a socket in TIME_WAIT.
+ * This conserves the ephemeral port number space, helping reduce failed
+ * socket binds during mount storms.
+ */
+static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
+			   struct sockaddr *buf, socklen_t *buflen)
+{
+	struct sockaddr_in sin = {
+		.sin_family		= AF_INET,
+		.sin_addr.s_addr	= htonl(INADDR_ANY),
+	};
+	struct sockaddr_in6 sin6 = {
+		.sin6_family		= AF_INET6,
+		.sin6_addr		= IN6ADDR_ANY_INIT,
+	};
+	int sock;
+
+	sock = socket(sap->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+	if (sock < 0)
+		return 0;
+
+	switch (sap->sa_family) {
+	case AF_INET:
+		if (bind(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+			close(sock);
+			return 0;
+		}
+		break;
+	case AF_INET6:
+		if (bind(sock, (struct sockaddr *)&sin6, sizeof(sin6)) < 0) {
+			close(sock);
+			return 0;
+		}
+		break;
+	default:
+		errno = EAFNOSUPPORT;
+		return 0;
+	}
+
+	if (connect(sock, sap, salen) < 0) {
+		close(sock);
+		return 0;
+	}
+
+	return !getsockname(sock, buf, buflen);
+}
+
+/*
+ * Try to generate an address that prevents the server from calling us.
+ *
+ * Returns 1 and fills in @buf if successful; otherwise, zero.
+ */
+static int nfs_ca_gai(const struct sockaddr *sap, const socklen_t salen,
+		      struct sockaddr *buf, socklen_t *buflen)
+{
+	struct addrinfo *gai_results;
+	struct addrinfo gai_hint = {
+		.ai_family	= sap->sa_family,
+		.ai_flags	= AI_PASSIVE,	/* ANYADDR */
+	};
+
+	if (getaddrinfo(NULL, "", &gai_hint, &gai_results))
+		return 0;
+
+	*buflen = gai_results->ai_addrlen;
+	memcpy(buf, gai_results->ai_addr, *buflen);
+
+	freeaddrinfo(gai_results);
+
+	return 1;
+}
+
+/**
+ * nfs_callback_address - acquire our local network address
+ * @sap: pointer to address of remote
+ * @sap_len: length of address
+ * @buf: pointer to buffer to be filled in with local network address
+ * @buflen: IN: length of buffer to fill in; OUT: length of filled-in address
+ *
+ * Discover a network address that an NFSv4 server can use to call us back.
+ * On multi-homed clients, this address depends on which NIC we use to
+ * route requests to the server.
+ *
+ * Returns 1 and fills in @buf if an unambiguous local address is
+ * available; returns 1 and fills in an appropriate ANYADDR address
+ * if a local address isn't available; otherwise, returns zero.
+ */
+int nfs_callback_address(const struct sockaddr *sap, const socklen_t salen,
+			 struct sockaddr *buf, socklen_t *buflen)
+{
+	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)buf;
+
+	if (nfs_ca_sockname(sap, salen, buf, buflen) == 0)
+		if (nfs_ca_gai(sap, salen, buf, buflen) == 0)
+			goto out_failed;
+
+	/*
+	 * The server can't use an interface ID that was generated
+	 * here on the client, so always clear sin6_scope_id.
+	 */
+	if (sin6->sin6_family == AF_INET6)
+		sin6->sin6_scope_id = 0;
+
+	return 1;
+
+out_failed:
+	*buflen = 0;
+	if (verbose)
+		nfs_error(_("%s: failed to construct callback address"));
+	return 0;
+
+}
