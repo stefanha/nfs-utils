@@ -894,9 +894,10 @@ out:
  * do the best we can.
  *
  * Returns:
- *	void
+ *	0 => a ccache was found
+ *	1 => no ccache was found
  */
-void
+int
 gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirname)
 {
 	char			buf[MAX_NETOBJ_SZ];
@@ -910,11 +911,11 @@ gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirname)
 		free(d);
 	}
 	else
-		snprintf(buf, sizeof(buf), "FILE:%s/%s%u",
-			dirname, GSSD_DEFAULT_CRED_PREFIX, uid);
+		return 1;
 	printerr(2, "using %s as credentials cache for client with "
 		    "uid %u for server %s\n", buf, uid, servername);
 	gssd_set_krb5_ccache_name(buf);
+	return 0;
 }
 
 /*

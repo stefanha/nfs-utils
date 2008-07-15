@@ -703,9 +703,8 @@ handle_krb5_upcall(struct clnt_info *clp)
 	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0)) {
 		/* Tell krb5 gss which credentials cache to use */
 		for (dirname = ccachesearch; *dirname != NULL; dirname++) {
-			gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname);
-
-			create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
+			if (gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname) == 0)
+				create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
 							     AUTHTYPE_KRB5);
 			if (create_resp == 0)
 				break;
