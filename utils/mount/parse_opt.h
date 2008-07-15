@@ -21,6 +21,9 @@
  *
  */
 
+#ifndef _NFS_UTILS_PARSE_OPT_H
+#define _NFS_UTILS_PARSE_OPT_H
+
 typedef enum {
 	PO_FAILED = 0,
 	PO_SUCCEEDED = 1,
@@ -50,3 +53,5 @@ char *			po_get(struct mount_options *, char *);
 po_rightmost_t		po_rightmost(struct mount_options *, char *, char *);
 po_found_t		po_remove_all(struct mount_options *, char *);
 void			po_destroy(struct mount_options *);
+
+#endif	/* _NFS_UTILS_PARSE_OPT_H */

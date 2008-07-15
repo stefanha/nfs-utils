@@ -21,6 +21,9 @@
  *
  */
 
+#ifndef _NFS_UTILS_MOUNT_NETWORK_H
+#define _NFS_UTILS_MOUNT_NETWORK_H
+
 #include <rpc/pmap_prot.h>
 #include <rpc/clnt.h>
 
@@ -62,3 +65,5 @@ unsigned long nfsvers_to_mnt(const unsigned long);
 
 CLIENT *mnt_openclnt(clnt_addr_t *, int *);
 void mnt_closeclnt(CLIENT *, int);
+
+#endif	/* _NFS_UTILS_MOUNT_NETWORK_H */

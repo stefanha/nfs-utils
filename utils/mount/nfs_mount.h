@@ -8,8 +8,8 @@
  * so it is easiest to ignore the kernel altogether (at compile time).
  */
 
-#ifndef _NFS_MOUNT_H
-#define _NFS_MOUNT_H
+#ifndef _NFS_UTILS_MOUNT_NFS_MOUNT_H
+#define _NFS_UTILS_MOUNT_NFS_MOUNT_H
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -83,4 +83,4 @@ struct nfs_mount_data {
 int	nfsmount(const char *, const char *, int , char **, int, int);
 int	nfsumount(int, char **);
 
-#endif /* _NFS_MOUNT_H */
+#endif	/* _NFS_UTILS_MOUNT_NFS_MOUNT_H */

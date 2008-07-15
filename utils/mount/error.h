@@ -21,6 +21,9 @@
  *
  */
 
+#ifndef _NFS_UTILS_MOUNT_ERROR_H
+#define _NFS_UTILS_MOUNT_ERROR_H
+
 char *nfs_strerror(int);
 
 void mount_error(const char *, const char *, int);
@@ -28,3 +31,5 @@ void rpc_mount_errors(char *, int, int);
 void sys_mount_errors(char *, int, int, int);
 
 void umount_error(int, const char *);
+
+#endif	/* _NFS_UTILS_MOUNT_ERROR_H */

@@ -21,9 +21,14 @@
  *
  */
 
+#ifndef _NFS_UTILS_MOUNT_TOKEN_H
+#define _NFS_UTILS_MOUNT_TOKEN_H
+
 struct tokenizer_state;
 
 char *next_token(struct tokenizer_state *);
 struct tokenizer_state *init_tokenizer(char *, char);
 int tokenizer_error(struct tokenizer_state *);
 void end_tokenizer(struct tokenizer_state *);
+
+#endif	/* _NFS_UTILS_MOUNT_TOKEN_H */
