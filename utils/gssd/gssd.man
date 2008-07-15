@@ -86,6 +86,14 @@ Increases the verbosity of the output (can be specified multiple times).
 .B -r
 If the rpcsec_gss library supports setting debug level,
 increases the verbosity of the output (can be specified multiple times).
+.TP
+.B -t timeout
+Timeout, in seconds, for kernel gss contexts. This option allows you to force 
+new kernel contexts to be negotiated after
+.I timeout
+seconds, which allows changing Kerberos tickets and identities frequently.
+The default is no explicit timeout, which means the kernel context will live
+the lifetime of the Kerberos service ticket used in its creation.
 .SH SEE ALSO
 .BR rpc.svcgssd(8)
 .SH AUTHORS

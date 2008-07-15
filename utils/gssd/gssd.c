@@ -60,6 +60,7 @@ char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR;
 char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
 int  use_memcache = 0;
 int  root_uses_machine_creds = 1;
+unsigned int  context_timeout = 0;
 
 void
 sig_die(int signal)
@@ -82,7 +83,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-f] [-M] [-n] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir]\n",
+	fprintf(stderr, "usage: %s [-f] [-M] [-n] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir] [-t timeout]\n",
 		progname);
 	exit(1);
 }
@@ -99,7 +100,7 @@ main(int argc, char *argv[])
 	char *progname;
 
 	memset(ccachesearch, 0, sizeof(ccachesearch));
-	while ((opt = getopt(argc, argv, "fvrmnMp:k:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "fvrmnMp:k:d:t:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -133,6 +134,9 @@ main(int argc, char *argv[])
 				strncpy(ccachedir, optarg, sizeof(ccachedir));
 				if (ccachedir[sizeof(ccachedir)-1] != '\0')
 					errx(1, "ccachedir path name too long");
+				break;
+			case 't':
+				context_timeout = atoi(optarg);
 				break;
 			default:
 				usage(argv[0]);

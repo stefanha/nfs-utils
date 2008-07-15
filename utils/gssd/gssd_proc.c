@@ -427,7 +427,7 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	    gss_buffer_desc *context_token)
 {
 	char    *buf = NULL, *p = NULL, *end = NULL;
-	unsigned int timeout = 0; /* XXX decide on a reasonable value */
+	unsigned int timeout = context_timeout;
 	unsigned int buf_size = 0;
 
 	printerr(1, "doing downcall\n");
@@ -438,7 +438,6 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	end = buf + buf_size;
 
 	if (WRITE_BYTES(&p, end, uid)) goto out_err;
-	/* Not setting any timeout for now: */
 	if (WRITE_BYTES(&p, end, timeout)) goto out_err;
 	if (WRITE_BYTES(&p, end, pd->pd_seq_win)) goto out_err;
 	if (write_buffer(&p, end, &pd->pd_ctx_hndl)) goto out_err;
