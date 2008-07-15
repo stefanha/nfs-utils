@@ -67,6 +67,7 @@
 #include "nls.h"
 #include "error.h"
 #include "network.h"
+#include "version.h"
 
 #ifndef NFS_PORT
 #define NFS_PORT 2049
@@ -94,8 +95,6 @@ extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
 extern int sloppy;
-
-extern int linux_version_code(void);
 
 static inline enum clnt_stat
 nfs3_mount(CLIENT *clnt, mnt3arg_t *mnt3arg, mnt3res_t *mnt3res)
@@ -808,7 +807,7 @@ noauth_flavors:
 	 * to avoid problems with multihomed hosts.
 	 * --Swen
 	 */
-	if (linux_version_code() <= 0x01030a && fsock != -1
+	if (linux_version_code() <= MAKE_VERSION(1, 3, 10) && fsock != -1
 	    && connect(fsock, (struct sockaddr *) nfs_saddr,
 		       sizeof (*nfs_saddr)) < 0) {
 		perror(_("nfs connect"));

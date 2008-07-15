@@ -29,7 +29,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mount.h>
-#include <sys/utsname.h>
 #include <getopt.h>
 #include <mntent.h>
 #include <pwd.h>
@@ -47,6 +46,7 @@
 #include "error.h"
 #include "network.h"
 #include "stropts.h"
+#include "version.h"
 
 char *progname;
 int nfs_mount_data_version;
@@ -146,23 +146,7 @@ static const struct opt_map opt_map[] = {
   { NULL,	0, 0, 0		}
 };
 
-#define MAKE_VERSION(p,q,r)	(65536 * (p) + 256 * (q) + (r))
-
 static void parse_opts(const char *options, int *flags, char **extra_opts);
-
-int linux_version_code(void)
-{
-	struct utsname my_utsname;
-	int p, q, r;
-
-	if (uname(&my_utsname) == 0) {
-		p = atoi(strtok(my_utsname.release, "."));
-		q = atoi(strtok(NULL, "."));
-		r = atoi(strtok(NULL, "."));
-		return MAKE_VERSION(p,q,r);
-	}
-	return 0;
-}
 
 /*
  * Choose the version of the nfs_mount_data structure that is appropriate
