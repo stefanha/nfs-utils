@@ -344,7 +344,7 @@ class DeviceData:
 
         op += ':'
         print '%s' % op.lower().ljust(15),
-        print '  ops/s\t\t   Kb/s\t\t  Kb/op\t\tretrans\t\tavg RTT (ms)\tavg exe (ms)'
+        print '  ops/s\t\t   kB/s\t\t  kB/op\t\tretrans\t\tavg RTT (ms)\tavg exe (ms)'
 
         print '\t\t%7.3f' % (ops / sample_time),
         print '\t%7.3f' % (kilobytes / sample_time),

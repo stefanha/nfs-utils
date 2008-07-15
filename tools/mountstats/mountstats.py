@@ -317,7 +317,7 @@ class DeviceData:
         else:
             print '\t0.00'
 
-        # reads:  ops/s, Kb/s, avg rtt, and avg exe
+        # reads:  ops/s, kB/s, avg rtt, and avg exe
         # XXX: include avg xfer size and retransmits?
         read_rpc_stats = self.__rpc_data['READ']
         ops = float(read_rpc_stats[0])
@@ -325,7 +325,7 @@ class DeviceData:
         rtt = float(read_rpc_stats[6])
         exe = float(read_rpc_stats[7])
 
-        print '\treads:\tops/s\t\tKb/s\t\tavg RTT (ms)\tavg exe (ms)'
+        print '\treads:\tops/s\t\tkB/s\t\tavg RTT (ms)\tavg exe (ms)'
         print '\t\t%.2f' % (ops / sample_time),
         print '\t\t%.2f' % (kilobytes / sample_time),
         if ops != 0:
@@ -335,7 +335,7 @@ class DeviceData:
             print '\t\t0.00',
             print '\t\t0.00'
 
-        # writes:  ops/s, Kb/s, avg rtt, and avg exe
+        # writes:  ops/s, kB/s, avg rtt, and avg exe
         # XXX: include avg xfer size and retransmits?
         write_rpc_stats = self.__rpc_data['WRITE']
         ops = float(write_rpc_stats[0])
@@ -343,7 +343,7 @@ class DeviceData:
         rtt = float(write_rpc_stats[6])
         exe = float(write_rpc_stats[7])
 
-        print '\twrites:\tops/s\t\tKb/s\t\tavg RTT (ms)\tavg exe (ms)'
+        print '\twrites:\tops/s\t\tkB/s\t\tavg RTT (ms)\tavg exe (ms)'
         print '\t\t%.2f' % (ops / sample_time),
         print '\t\t%.2f' % (kilobytes / sample_time),
         if ops != 0:
