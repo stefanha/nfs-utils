@@ -66,6 +66,7 @@ extern char			*ccachesearch[];
 extern int			use_memcache;
 extern int			root_uses_machine_creds;
 extern unsigned int 		context_timeout;
+extern char			*preferred_realm;
 
 TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 

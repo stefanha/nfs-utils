@@ -61,6 +61,7 @@ char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
 int  use_memcache = 0;
 int  root_uses_machine_creds = 1;
 unsigned int  context_timeout = 0;
+char *preferred_realm = NULL;
 
 void
 sig_die(int signal)
@@ -83,7 +84,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-f] [-M] [-n] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir] [-t timeout]\n",
+	fprintf(stderr, "usage: %s [-f] [-M] [-n] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir] [-t timeout] [-R preferred realm]\n",
 		progname);
 	exit(1);
 }
@@ -100,7 +101,7 @@ main(int argc, char *argv[])
 	char *progname;
 
 	memset(ccachesearch, 0, sizeof(ccachesearch));
-	while ((opt = getopt(argc, argv, "fvrmnMp:k:d:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "fvrmnMp:k:d:t:R:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -138,6 +139,9 @@ main(int argc, char *argv[])
 			case 't':
 				context_timeout = atoi(optarg);
 				break;
+			case 'R':
+				preferred_realm = strdup(optarg);
+				break;
 			default:
 				usage(argv[0]);
 				break;
@@ -149,6 +153,9 @@ main(int argc, char *argv[])
 	do {
 		ccachesearch[i++] = strtok(NULL, ":");
 	} while (ccachesearch[i-1] != NULL && i < GSSD_MAX_CCACHE_SEARCH);
+
+	if (preferred_realm == NULL)
+		gssd_k5_get_default_realm(&preferred_realm);
 
 	snprintf(pipefs_nfsdir, sizeof(pipefs_nfsdir), "%s/%s",
 		 pipefs_dir, GSSD_SERVICE_NAME);
