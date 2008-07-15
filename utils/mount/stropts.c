@@ -49,6 +49,7 @@
 #include "network.h"
 #include "parse_opt.h"
 #include "version.h"
+#include "parse_dev.h"
 
 #ifdef HAVE_RPCSVC_NFS_PROT_H
 #include <rpcsvc/nfs_prot.h>
@@ -97,58 +98,6 @@ struct nfsmount_info {
 
 	sa_family_t		family;		/* supported address family */
 };
-
-static int nfs_parse_devname(struct nfsmount_info *mi)
-{
-	int ret = 0;
-	char *dev, *pathname, *s;
-
-	dev = xstrdup(mi->spec);
-
-	if (!(pathname = strchr(dev, ':'))) {
-		nfs_error(_("%s: remote share not in 'host:dir' format"),
-				progname);
-		goto out;
-	}
-	*pathname = '\0';
-	pathname++;
-
-	/*
-	 * We don't need a copy of the pathname, but let's
-	 * sanity check it anyway.
-	 */
-	if (strlen(pathname) > NFS_MAXPATHNAME) {
-		nfs_error(_("%s: export pathname is too long"),
-				progname);
-		goto out;
-	}
-
-	/*
-	 * Ignore all but first hostname in replicated mounts
-	 * until they can be fully supported. (mack@sgi.com)
-	 */
-	if ((s = strchr(dev, ','))) {
-		*s = '\0';
-		nfs_error(_("%s: warning: multiple hostnames not supported"),
-				progname);
-		nfs_error(_("%s: ignoring hostnames that follow the first one"),
-				progname);
-	}
-	mi->hostname = xstrdup(dev);
-	if (strlen(mi->hostname) > NFS_MAXHOSTNAME) {
-		nfs_error(_("%s: server hostname is too long"),
-				progname);
-		free(mi->hostname);
-		mi->hostname = NULL;
-		goto out;
-	}
-
-	ret = 1;
-
-out:
-	free(dev);
-	return ret;
-}
 
 static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
 {
@@ -334,14 +283,18 @@ static int nfs_append_sloppy_option(struct mount_options *options)
  */
 static int nfs_validate_options(struct nfsmount_info *mi)
 {
-	struct sockaddr_in saddr;
+	struct sockaddr_storage dummy;
+	struct sockaddr *sap = (struct sockaddr *)&dummy;
+	socklen_t salen = sizeof(dummy);
 
-	if (!fill_ipv4_sockaddr(mi->hostname, &saddr))
+	if (!nfs_parse_devname(mi->spec, &mi->hostname, NULL))
+		return 0;
+
+	if (!nfs_name_to_address(mi->hostname, mi->family, sap, &salen))
 		return 0;
 
 	if (strncmp(mi->type, "nfs4", 4) == 0) {
-		if (!nfs_append_clientaddr_option((struct sockaddr *)&saddr,
-						  sizeof(saddr), mi->options))
+		if (!nfs_append_clientaddr_option(sap, salen, mi->options))
 			return 0;
 	} else {
 		if (!nfs_fix_mounthost_option(mi->family, mi->options))
@@ -353,8 +306,7 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
 
-	return nfs_append_addr_option((struct sockaddr *)&saddr,
-					sizeof(saddr), mi->options);
+	return nfs_append_addr_option(sap, salen, mi->options);
 }
 
 /*
@@ -811,9 +763,6 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 #endif
 	};
 	int retval = EX_FAIL;
-
-	if (!nfs_parse_devname(&mi))
-		return retval;
 
 	mi.options = po_split(*extra_opts);
 	if (mi.options) {

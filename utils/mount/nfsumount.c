@@ -34,6 +34,7 @@
 #include "mount.h"
 #include "error.h"
 #include "network.h"
+#include "parse_dev.h"
 
 #if !defined(MNT_FORCE)
 /* dare not try to include <linux/mount.h> -- lots of errors */
@@ -150,21 +151,11 @@ static int do_nfs_umount23(const char *spec, char *opts)
 	struct mntent mnt = { .mnt_opts = opts };
 	struct pmap *pmap = &mnt_server.pmap;
 	char *p;
+	int result = EX_USAGE;
 
-	if (spec == NULL) {
-		nfs_error(_("%s: No NFS export name was provided"),
-				progname);
-		return EX_USAGE;
-	}
-	
-	p = strchr(spec, ':');
-	if (p == NULL) {
-		nfs_error(_("%s: '%s' is not a legal NFS export name"),
-				progname, spec);
-		return EX_USAGE;
-	}
-	hostname = xstrndup(spec, p - spec);
-	dirname = xstrdup(p + 1);
+	if (!nfs_parse_devname(spec, &hostname, &dirname))
+		return result;
+
 #ifdef NFS_MOUNT_DEBUG
 	printf(_("host: %s, directory: %s\n"), hostname, dirname);
 #endif
@@ -209,18 +200,24 @@ static int do_nfs_umount23(const char *spec, char *opts)
 		pmap->pm_prot = IPPROTO_TCP;
 
 	if (!nfs_gethostbyname(hostname, &mnt_server.saddr)) {
-		nfs_error(_("%s: '%s' does not contain a recognized hostname"),
-				progname, spec);
-		return EX_USAGE;
+		nfs_error(_("%s: DNS resolution of '%s' failed"),
+				progname, hostname);
+		goto out;
 	}
 
 	if (!nfs_call_umount(&mnt_server, &dirname)) {
 		nfs_error(_("%s: Server failed to unmount '%s'"),
 				progname, spec);
-		return EX_USAGE;
+		result = EX_FAIL;
+		goto out;
 	}
 
-	return EX_SUCCESS;
+	result = EX_SUCCESS;
+
+out:
+	free(hostname);
+	free(dirname);
+	return result;
 }
 
 static struct option umount_longopts[] =

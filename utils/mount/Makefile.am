@@ -9,10 +9,12 @@ man5_MANS	= nfs.man
 
 sbin_PROGRAMS	= mount.nfs
 EXTRA_DIST = nfsmount.x $(man8_MANS) $(man5_MANS)
-mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c parse_opt.c \
+mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c \
+		    parse_opt.c parse_dev.c \
 		    nfsmount.c nfs4mount.c stropts.c\
 		    nfsumount.c \
-		    mount_constants.h error.h network.h fstab.h token.h parse_opt.h \
+		    mount_constants.h error.h network.h fstab.h token.h \
+		    parse_opt.h parse_dev.h \
 		    nfs4_mount.h nfs_mount4.h stropts.h version.h
 
 mount_nfs_LDADD = ../../support/nfs/libnfs.a \
