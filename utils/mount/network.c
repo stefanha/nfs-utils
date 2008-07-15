@@ -144,32 +144,72 @@ static const unsigned long probe_mnt3_first[] = {
 };
 
 /**
+ * nfs_name_to_address - resolve hostname to an IPv4 or IPv6 socket address
+ * @hostname: pointer to C string containing DNS hostname to resolve
+ * @sap: pointer to buffer to fill with socket address
+ * @len: IN: size of buffer to fill; OUT: size of socket address
+ *
+ * Returns 1 and places a socket address at @sap if successful;
+ * otherwise zero.
+ */
+int nfs_name_to_address(const char *hostname,
+			const sa_family_t af_hint,
+			struct sockaddr *sap, socklen_t *salen)
+{
+	struct addrinfo *gai_results;
+	struct addrinfo gai_hint = {
+		.ai_family	= af_hint,
+		.ai_flags	= AI_ADDRCONFIG,
+	};
+	socklen_t len = *salen;
+	int error, ret = 0;
+
+	if (af_hint == AF_INET6)
+		gai_hint.ai_flags |= AI_V4MAPPED|AI_ALL;
+
+	*salen = 0;
+
+	error = getaddrinfo(hostname, NULL, &gai_hint, &gai_results);
+	if (error) {
+		nfs_error(_("%s: DNS resolution failed for %s: %s"),
+			progname, hostname, (error == EAI_SYSTEM ?
+				strerror(errno) : gai_strerror(error)));
+		return ret;
+	}
+
+	switch (gai_results->ai_addr->sa_family) {
+	case AF_INET:
+	case AF_INET6:
+		if (len >= gai_results->ai_addrlen) {
+			*salen = gai_results->ai_addrlen;
+			memcpy(sap, gai_results->ai_addr, *salen);
+			ret = 1;
+		}
+		break;
+	default:
+		/* things are really broken if we get here, so warn */
+		nfs_error(_("%s: unrecognized DNS resolution results for %s"),
+				progname, hostname);
+		break;
+	}
+
+	freeaddrinfo(gai_results);
+	return ret;
+}
+
+/**
  * nfs_gethostbyname - resolve a hostname to an IPv4 address
  * @hostname: pointer to a C string containing a DNS hostname
  * @saddr: returns an IPv4 address 
  *
  * Returns 1 if successful, otherwise zero.
  */
-int nfs_gethostbyname(const char *hostname, struct sockaddr_in *saddr)
+int nfs_gethostbyname(const char *hostname, struct sockaddr_in *sin)
 {
-	struct hostent *hp;
+	socklen_t len = sizeof(*sin);
 
-	saddr->sin_family = AF_INET;
-	if (!inet_aton(hostname, &saddr->sin_addr)) {
-		if ((hp = gethostbyname(hostname)) == NULL) {
-			nfs_error(_("%s: can't get address for %s\n"),
-					progname, hostname);
-			return 0;
-		} else {
-			if (hp->h_length > sizeof(*saddr)) {
-				nfs_error(_("%s: got bad hp->h_length\n"),
-						progname);
-				hp->h_length = sizeof(*saddr);
-			}
-			memcpy(&saddr->sin_addr, hp->h_addr, hp->h_length);
-		}
-	}
-	return 1;
+	return nfs_name_to_address(hostname, AF_INET,
+					(struct sockaddr *)sin, &len);
 }
 
 /*
