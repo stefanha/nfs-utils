@@ -252,24 +252,21 @@ static int nfs_append_addr_option(const struct sockaddr *sap,
  * Returns 1 if 'clientaddr=' option created successfully or if
  * 'clientaddr=' option is already present; otherwise zero.
  */
-static int append_clientaddr_option(struct sockaddr_in *saddr,
-				    struct mount_options *options)
+static int nfs_append_clientaddr_option(const struct sockaddr *sap,
+					socklen_t salen,
+					struct mount_options *options)
 {
-	struct sockaddr_in my_addr;
-	char new_option[32];
+	struct sockaddr_storage dummy;
+	struct sockaddr *my_addr = (struct sockaddr *)&dummy;
+	socklen_t my_len = sizeof(dummy);
 
-	if (po_contains(options, "clientaddr") == PO_SUCCEEDED)
+	if (po_contains(options, "clientaddr") == PO_FOUND)
 		return 1;
 
-	if (!get_client_address(saddr, &my_addr))
-		return 0;
+	nfs_callback_address(sap, salen, my_addr, &my_len);
 
-	snprintf(new_option, sizeof(new_option) - 1,
-			"clientaddr=%s", inet_ntoa(my_addr.sin_addr));
-
-	if (po_append(options, new_option) == PO_SUCCEEDED)
-		return 1;
-	return 0;
+	return nfs_append_generic_address_option(my_addr, my_len,
+							"clientaddr", options);
 }
 
 /*
@@ -339,7 +336,8 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 		return 0;
 
 	if (strncmp(mi->type, "nfs4", 4) == 0) {
-		if (!append_clientaddr_option(&saddr, mi->options))
+		if (!nfs_append_clientaddr_option((struct sockaddr *)&saddr,
+						  sizeof(saddr), mi->options))
 			return 0;
 	} else {
 		if (!fix_mounthost_option(mi->options))
