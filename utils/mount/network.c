@@ -886,39 +886,6 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 		return 0;
 }
 
-/**
- * get_client_address - acquire our local network address
- * @saddr: server's address
- * @caddr: filled in with our network address
- *
- * Discover a network address that the server will use to call us back.
- * On multi-homed clients, this address depends on which NIC we use to
- * route requests to the server.
- *
- * Use a connected datagram socket so as not to leave a socket in TIME_WAIT.
- *
- * Returns one if successful, otherwise zero.
- */
-int get_client_address(struct sockaddr_in *saddr, struct sockaddr_in *caddr)
-{
-	socklen_t len = sizeof(*caddr);
-	int socket, err;
-
-	socket = get_socket(saddr, IPPROTO_UDP, CONNECT_TIMEOUT, FALSE, TRUE);
-	if (socket == RPC_ANYSOCK)
-		return 0;
-
-	err = getsockname(socket, caddr, &len);
-	close(socket);
-
-	if (err && verbose) {
-		nfs_error(_("%s: getsockname failed: %s"),
-				progname, strerror(errno));
-		return 0;
-	}
-	return 1;
-}
-
 /*
  * Try a getsockname() on a connected datagram socket.
  *

@@ -99,26 +99,6 @@ struct nfsmount_info {
 	sa_family_t		family;		/* supported address family */
 };
 
-static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
-{
-	struct hostent *hp;
-	addr->sin_family = AF_INET;
-
-	if (inet_aton(hostname, &addr->sin_addr))
-		return 1;
-	if ((hp = gethostbyname(hostname)) == NULL) {
-		nfs_error(_("%s: can't get address for %s\n"),
-				progname, hostname);
-		return 0;
-	}
-	if (hp->h_length > sizeof(struct in_addr)) {
-		nfs_error(_("%s: got bad hp->h_length"), progname);
-		hp->h_length = sizeof(struct in_addr);
-	}
-	memcpy(&addr->sin_addr, hp->h_addr, hp->h_length);
-	return 1;
-}
-
 /*
  * Obtain a retry timeout value based on the value of the "retry=" option.
  *
