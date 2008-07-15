@@ -33,8 +33,11 @@
 #include <errno.h>
 #include <netdb.h>
 #include <time.h>
+
 #include <sys/socket.h>
 #include <sys/mount.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "xcommon.h"
 #include "mount.h"
