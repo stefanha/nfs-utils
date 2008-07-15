@@ -231,8 +231,13 @@ void mount_error(const char *spec, const char *mount_point, int error)
 		rpc_mount_errors((char *)spec, 0, 0);
 		break;
 	case EIO:
+		nfs_error(_("%s: mount system call failed"), progname);
+		break;
 	case EFAULT:
-		nfs_error(_("%s: internal error"), progname);
+		nfs_error(_("%s: encountered unexpected error condition."),
+				progname);
+		nfs_error(_("%s: please report the error to" PACKAGE_BUGREPORT),
+				progname);
 		break;
 	default:
 		nfs_error(_("%s: %s"),

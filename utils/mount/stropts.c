@@ -356,12 +356,13 @@ static struct mount_options *rewrite_mount_options(char *str)
 	clnt_addr_t nfs_server = { };
 	int p;
 
-	errno = EIO;
-
 	options = po_split(str);
-	if (!options)
+	if (!options) {
+		errno = EFAULT;
 		return NULL;
+	}
 
+	errno = EINVAL;
 	option = po_get(options, "addr");
 	if (option) {
 		nfs_server.saddr.sin_family = AF_INET;
