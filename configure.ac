@@ -127,6 +127,18 @@ AC_ARG_ENABLE(mount,
 	enable_mount=$enableval,
 	enable_mount=yes)
 	AM_CONDITIONAL(CONFIG_MOUNT, [test "$enable_mount" = "yes"])
+AC_ARG_ENABLE(ipv6,
+	[AC_HELP_STRING([--enable-ipv6],
+                        [enable support for IPv6 @<:@default=no@:>@])],
+	enable_ipv6=$enableval,
+	enable_ipv6=no)
+	if test "$enable_ipv6" = yes; then
+		AC_DEFINE(IPV6_SUPPORTED, 1, [Define this if you want IPv6 support compiled in])
+	else
+		enable_ipv6=
+	fi
+	AC_SUBST(enable_ipv6)
+	AM_CONDITIONAL(CONFIG_IPV6, [test "$enable_ipv6" = "yes"])
 
 # Check whether user wants TCP wrappers support
 AC_TCP_WRAPPERS
@@ -237,6 +249,17 @@ if test "$enable_gss" = yes; then
 
 fi
 
+if test "$enable_ipv6" = yes; then
+  AC_CHECK_FUNC(inet_ntop, , ,
+               AC_MSG_ERROR(Function 'inet_ntop' not found.))
+  AC_CHECK_FUNC(getnameinfo, , ,
+               AC_MSG_ERROR(Function 'getnameinfo' not found.))
+  AC_CHECK_LIB(tirpc, clnt_tli_create, ,
+               AC_MSG_ERROR([libtirpc needed for IPv6 support]))
+  AC_CHECK_HEADERS(tirpc/netconfig.h, ,
+               AC_MSG_ERROR([libtirpc-devel needed for IPv6 support]))
+fi
+
 dnl *************************************************************
 dnl Check for headers
 dnl *************************************************************
@@ -245,7 +268,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h libintl.h limits.h \
                  stdlib.h string.h sys/file.h sys/ioctl.h sys/mount.h \
                  sys/param.h sys/socket.h sys/time.h sys/vfs.h \
                  syslog.h unistd.h com_err.h et/com_err.h \
-                 ifaddrs.h])
+                 ifaddrs.h tirpc/netconfig.h])
 
 dnl *************************************************************
 dnl Checks for typedefs, structures, and compiler characteristics
@@ -281,6 +304,10 @@ AC_FUNC_STAT
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit dup2 fdatasync ftruncate getcwd \
                gethostbyaddr gethostbyname gethostname getmntent \
+               inet_ntop getnameinfo getrpcbyname \
+               bindresvport_sa getnetconfig \
+               clnt_create clnt_create_timed \
+               clnt_tli_create clnt_vc_create clnt_dg_create xdr_rpcb \
                gettimeofday hasmntopt inet_ntoa innetgr memset mkdir pathconf \
                realpath rmdir select socket strcasecmp strchr strdup \
                strerror strrchr strtol strtoul sigprocmask])
