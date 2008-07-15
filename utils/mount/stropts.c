@@ -237,19 +237,12 @@ out_err:
  * Returns 1 if 'addr=' option appended successfully;
  * otherwise zero.
  */
-static int append_addr_option(struct sockaddr_in *saddr,
-			   struct mount_options *options)
+static int nfs_append_addr_option(const struct sockaddr *sap,
+				  socklen_t salen,
+				  struct mount_options *options)
 {
-	char new_option[24];
-
 	po_remove_all(options, "addr");
-
-	snprintf(new_option, sizeof(new_option) - 1,
-			"addr=%s", inet_ntoa(saddr->sin_addr));
-
-	if (po_append(options, new_option) == PO_SUCCEEDED)
-		return 1;
-	return 0;
+	return nfs_append_generic_address_option(sap, salen, "addr", options);
 }
 
 /*
@@ -358,10 +351,8 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
 
-	if (!append_addr_option(&saddr, mi->options))
-		return 0;
-
-	return 1;
+	return nfs_append_addr_option((struct sockaddr *)&saddr,
+					sizeof(saddr), mi->options);
 }
 
 /*
