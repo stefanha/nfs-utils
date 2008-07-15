@@ -45,6 +45,7 @@
 #include "error.h"
 #include "network.h"
 #include "parse_opt.h"
+#include "version.h"
 
 #ifdef HAVE_RPCSVC_NFS_PROT_H
 #include <rpcsvc/nfs_prot.h>
@@ -76,6 +77,7 @@
 extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
+extern int sloppy;
 
 struct nfsmount_info {
 	const char		*spec,		/* server:/path */
@@ -287,6 +289,16 @@ static int verify_lock_option(struct mount_options *options)
 	return 1;
 }
 
+static int nfs_append_sloppy_option(struct mount_options *options)
+{
+	if (!sloppy || linux_version_code() < MAKE_VERSION(2, 6, 27))
+		return 1;
+
+	if (po_append(options, "sloppy") == PO_FAILED)
+		return 0;
+	return 1;
+}
+
 /*
  * Set up mandatory NFS mount options.
  *
@@ -308,6 +320,9 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 		if (!mi->fake && !verify_lock_option(mi->options))
 			return 0;
 	}
+
+	if (!nfs_append_sloppy_option(mi->options))
+		return 0;
 
 	if (!append_addr_option(&saddr, mi->options))
 		return 0;
