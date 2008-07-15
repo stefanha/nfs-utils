@@ -94,6 +94,8 @@ struct nfsmount_info {
 	int			flags,		/* MS_ flags */
 				fake,		/* actually do the mount? */
 				child;		/* forked bg child? */
+
+	sa_family_t		family;		/* supported address family */
 };
 
 static int nfs_parse_devname(struct nfsmount_info *mi)
@@ -271,26 +273,28 @@ static int nfs_append_clientaddr_option(const struct sockaddr *sap,
 
 /*
  * Resolve the 'mounthost=' hostname and append a new option using
- * the resulting IPv4 address.
+ * the resulting address.
  */
-static int fix_mounthost_option(struct mount_options *options)
+static int nfs_fix_mounthost_option(const sa_family_t family,
+				    struct mount_options *options)
 {
-	struct sockaddr_in maddr;
-	char *mounthost, new_option[32];
+	struct sockaddr_storage dummy;
+	struct sockaddr *sap = (struct sockaddr *)&dummy;
+	socklen_t salen = sizeof(dummy);
+	char *mounthost;
 
 	mounthost = po_get(options, "mounthost");
 	if (!mounthost)
 		return 1;
 
-	if (!fill_ipv4_sockaddr(mounthost, &maddr))
+	if (!nfs_name_to_address(mounthost, family, sap, &salen)) {
+		nfs_error(_("%s: unable to determine mount server's address"),
+				progname);
 		return 0;
+	}
 
-	snprintf(new_option, sizeof(new_option) - 1,
-			"mountaddr=%s", inet_ntoa(maddr.sin_addr));
-
-	if (po_append(options, new_option) == PO_SUCCEEDED)
-		return 1;
-	return 0;
+	return nfs_append_generic_address_option(sap, salen,
+							"mountaddr", options);
 }
 
 /*
@@ -340,7 +344,7 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 						  sizeof(saddr), mi->options))
 			return 0;
 	} else {
-		if (!fix_mounthost_option(mi->options))
+		if (!nfs_fix_mounthost_option(mi->family, mi->options))
 			return 0;
 		if (!mi->fake && !verify_lock_option(mi->options))
 			return 0;
@@ -800,6 +804,11 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 		.flags		= flags,
 		.fake		= fake,
 		.child		= child,
+#ifdef IPV6_SUPPORTED
+		.family		= AF_UNSPEC,	/* either IPv4 or v6 */
+#else
+		.family		= AF_INET,	/* only IPv4 */
+#endif
 	};
 	int retval = EX_FAIL;
 
