@@ -25,16 +25,6 @@
 #define _NFS_UTILS_MOUNT_NETWORK_H
 
 #include <rpc/pmap_prot.h>
-#include <rpc/clnt.h>
-
-#include "mount.h"
-
-#ifdef HAVE_RPCSVC_NFS_PROT_H
-#include <rpcsvc/nfs_prot.h>
-#else
-#include <linux/nfs.h>
-#define nfsstat nfs_stat
-#endif
 
 #define MNT_SENDBUFSIZE (2048U)
 #define MNT_RECVBUFSIZE (1024U)

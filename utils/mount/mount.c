@@ -44,7 +44,6 @@
 #include "nfs4_mount.h"
 #include "mount.h"
 #include "error.h"
-#include "network.h"
 #include "stropts.h"
 #include "version.h"
 

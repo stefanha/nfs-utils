@@ -34,6 +34,7 @@
 #include <arpa/inet.h>
 #include <rpc/auth.h>
 #include <rpc/rpc.h>
+
 #ifdef HAVE_RPCSVC_NFS_PROT_H
 #include <rpcsvc/nfs_prot.h>
 #else
@@ -45,6 +46,7 @@
 #include "nls.h"
 #include "xcommon.h"
 
+#include "mount.h"
 #include "mount_constants.h"
 #include "nfs4_mount.h"
 #include "nfs_mount.h"

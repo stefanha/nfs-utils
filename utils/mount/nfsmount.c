@@ -69,6 +69,13 @@
 #include "network.h"
 #include "version.h"
 
+#ifdef HAVE_RPCSVC_NFS_PROT_H
+#include <rpcsvc/nfs_prot.h>
+#else
+#include <linux/nfs.h>
+#define nfsstat nfs_stat
+#endif
+
 #ifndef NFS_PORT
 #define NFS_PORT 2049
 #endif

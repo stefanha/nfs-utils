@@ -48,17 +48,6 @@
 #include "mount_constants.h"
 #include "network.h"
 
-#ifdef HAVE_RPCSVC_NFS_PROT_H
-#include <rpcsvc/nfs_prot.h>
-#else
-#include <linux/nfs.h>
-#define nfsstat nfs_stat
-#endif
-
-#ifndef NFS_PORT
-#define NFS_PORT 2049
-#endif
-
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
 #define MOUNT_TIMEOUT	(30)
