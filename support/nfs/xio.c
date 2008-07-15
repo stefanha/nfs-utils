@@ -54,13 +54,19 @@ xflock(char *fname, char *type)
 {
 	struct sigaction sa, oldsa;
 	int		readonly = !strcmp(type, "r");
+	mode_t  mode = (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	struct flock	fl = { readonly? F_RDLCK : F_WRLCK, SEEK_SET, 0, 0, 0 };
 	int		fd;
 
-	if ((fd = open(fname, readonly? O_RDONLY : (O_RDWR|O_CREAT), 0644)) < 0) {
+	if (readonly)
+		fd = open(fname, O_RDONLY);
+	else
+		fd = open(fname, (O_RDWR|O_CREAT), mode);
+	if (fd < 0) {
 		xlog(L_WARNING, "could not open %s for locking", fname);
 		return -1;
 	}
+
 	sa.sa_handler = doalarm;
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
