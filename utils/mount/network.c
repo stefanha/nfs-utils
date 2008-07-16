@@ -532,11 +532,10 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
                                 }
 				if (clnt_ping(saddr, prog, *p_vers, *p_prot, NULL))
 					goto out_ok;
-				if (rpc_createerr.cf_stat == RPC_TIMEDOUT)
-					goto out_bad;
 			}
 		}
 		if (rpc_createerr.cf_stat != RPC_PROGNOTREGISTERED &&
+		    rpc_createerr.cf_stat != RPC_TIMEDOUT &&
 		    rpc_createerr.cf_stat != RPC_PROGVERSMISMATCH)
 			goto out_bad;
 
@@ -545,6 +544,9 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 				continue;
 			p_prot = protos;
 		}
+		if (rpc_createerr.cf_stat == RPC_TIMEDOUT)
+			goto out_bad;
+
 		if (vers || !*++p_vers)
 			break;
 	}

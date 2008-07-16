@@ -353,6 +353,17 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 	option = po_get(options, "mountvers");
 	if (option)
 		mnt_server.pmap.pm_vers = atoi(option);
+	option = po_get(options, "mountproto");
+	if (option) {
+		if (strcmp(option, "tcp") == 0) {
+			mnt_server.pmap.pm_prot = IPPROTO_TCP;
+			po_remove_all(options, "mountproto");
+		}
+		if (strcmp(option, "udp") == 0) {
+			mnt_server.pmap.pm_prot = IPPROTO_UDP;
+			po_remove_all(options, "mountproto");
+		}
+	}
 
 	option = po_get(options, "port");
 	if (option) {
@@ -420,6 +431,20 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 			goto err;
 
 	}
+
+	if (mnt_server.pmap.pm_prot == IPPROTO_TCP)
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "mountproto=tcp");
+	else
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "mountproto=udp");
+	if (po_append(options, new_option) == PO_FAILED)
+		goto err;
+
+	snprintf(new_option, sizeof(new_option) - 1,
+		 "mountport=%lu", mnt_server.pmap.pm_port);
+	if (po_append(options, new_option) == PO_FAILED)
+		goto err;
 
 	errno = 0;
 	return options;
