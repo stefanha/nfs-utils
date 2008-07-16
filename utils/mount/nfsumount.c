@@ -194,9 +194,15 @@ static int do_nfs_umount23(const char *spec, char *opts)
 		pmap->pm_vers = nfsvers_to_mnt(atoi(p+5));
 	if (opts && (p = strstr(opts, "mountvers=")) && isdigit(*(p+10)))
 		pmap->pm_vers = atoi(p+10);
-	if (opts && (hasmntopt(&mnt, "udp") || hasmntopt(&mnt, "proto=udp")))
+	if (opts && (hasmntopt(&mnt, "udp")
+		     || hasmntopt(&mnt, "proto=udp")
+		     || hasmntopt(&mnt, "mountproto=udp")
+		    ))
 		pmap->pm_prot = IPPROTO_UDP;
-	if (opts && (hasmntopt(&mnt, "tcp") || hasmntopt(&mnt, "proto=tcp")))
+	if (opts && (hasmntopt(&mnt, "tcp")
+		     || hasmntopt(&mnt, "proto=tcp")
+		     || hasmntopt(&mnt, "mountproto=tcp")
+		    ))
 		pmap->pm_prot = IPPROTO_TCP;
 
 	if (!nfs_gethostbyname(hostname, &mnt_server.saddr)) {
@@ -344,8 +350,13 @@ int nfsumount(int argc, char *argv[])
 	ret = 0;
 	if (mc) {
 		if (!lazy && strcmp(mc->m.mnt_type, "nfs4") != 0)
-			ret = do_nfs_umount23(mc->m.mnt_fsname, mc->m.mnt_opts);
-		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir) ?: ret;
+			/* We ignore the error from do_nfs_umount23.
+			 * If the actual umount succeeds (in del_mtab),
+			 * we don't want to signal an error, as that
+			 * could cause /sbin/mount to retry!
+			 */
+			do_nfs_umount23(mc->m.mnt_fsname, mc->m.mnt_opts);
+		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
 	} else if (*spec != '/') {
 		if (!lazy)
 			ret = do_nfs_umount23(spec, "tcp,v3");
