@@ -489,6 +489,25 @@ or the server's mountd service is not available on the advertised port.
 This option can be used when mounting an NFS server
 through a firewall that blocks the rpcbind protocol.
 .TP 1.5i
+.BI mountproto= netid
+The transport protocol used by the NFS client
+to transmit requests to the NFS server's mountd service when performing
+this mount request, and when later unmounting this mount point.
+.I netid
+can be either
+.B udp
+or
+.BR tcp .
+.IP
+This option can be used when mounting an NFS server
+through a firewall that blocks a particular transport protocol.
+When used in combination with the
+.B proto
+option, different transports for mountd requests and NFS requests
+can be specified.
+If the server's mountd service is not available via the specified
+transport, the mount request fails.
+.TP 1.5i
 .BI mounthost= name
 The hostname of the host running mountd.
 If this option is not specified, the
