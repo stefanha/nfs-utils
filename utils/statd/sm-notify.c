@@ -24,6 +24,8 @@
 #include <errno.h>
 #include <grp.h>
 
+#include "config.h"
+
 #ifndef BASEDIR
 # ifdef NFS_STATEDIR
 #  define BASEDIR		NFS_STATEDIR
@@ -76,7 +78,7 @@ static int		log_syslog = 0;
 
 static unsigned int	nsm_get_state(int);
 static void		notify(void);
-static void		notify_host(int, struct nsm_host *);
+static int		notify_host(int, struct nsm_host *);
 static void		recv_reply(int);
 static void		backup_hosts(const char *, const char *);
 static void		get_hosts(const char *);
@@ -277,7 +279,7 @@ notify(void)
 		if (failtime && now >= failtime)
 			break;
 
-		while ((wait = hosts->send_next - now) <= 0) {
+		while (hosts && ((wait = hosts->send_next - now) <= 0)) {
 			/* Never send more than 10 packets at once */
 			if (sent++ >= 10)
 				break;
@@ -286,7 +288,13 @@ notify(void)
 			hp = hosts;
 			hosts = hp->next;
 
-			notify_host(sock, hp);
+			if (notify_host(sock, hp)){
+				unlink(hp->path);
+				free(hp->name);
+				free(hp->path);
+				free(hp);
+				continue;
+			}
 
 			/* Set the timeout for this call, using an
 			   exponential timeout strategy */
@@ -298,6 +306,8 @@ notify(void)
 
 			insert_host(hp);
 		}
+		if (hosts == NULL)
+			return;
 
 		nsm_log(LOG_DEBUG, "Host %s due in %ld seconds",
 				hosts->name, wait);
@@ -318,7 +328,7 @@ notify(void)
 /*
  * Send notification to a single host
  */
-void
+int
 notify_host(int sock, struct nsm_host *host)
 {
 	static unsigned int	xid = 0;
@@ -330,6 +340,16 @@ notify_host(int sock, struct nsm_host *host)
 		xid = getpid() + time(NULL);
 	if (!host->xid)
 		host->xid = xid++;
+
+	if (host->ai == NULL) {
+		host->ai = host_lookup(AF_UNSPEC, host->name);
+		if (host->ai == NULL) {
+			nsm_log(LOG_WARNING,
+				"%s doesn't seem to be a valid address,"
+				" skipped", host->name);
+			return 1;
+		}
+	}
 
 	memset(msgbuf, 0, sizeof(msgbuf));
 	p = msgbuf;
@@ -343,14 +363,19 @@ notify_host(int sock, struct nsm_host *host)
 	 * point.
 	 */
 	if (host->retries >= 4) {
-		struct addrinfo *hold = host->ai;
+		struct addrinfo *first = host->ai;
 		struct addrinfo **next = &host->ai;
-		*next = hold->ai_next;
+
+		/* remove the first entry from the list */
+		host->ai = first->ai_next;
+		first->ai_next = NULL;
+		/* find the end of the list */
+		next = &first->ai_next;
 		while ( *next )
 			next = & (*next)->ai_next;
-		*next = hold;
-		hold->ai_next = NULL;
-		memcpy(&host->addr, hold->ai_addr, hold->ai_addrlen);
+		/* put first entry at end */
+		*next = first;
+		memcpy(&host->addr, first->ai_addr, first->ai_addrlen);
 		addr_set_port(&host->addr, 0);
 		host->retries = 0;
 	}
@@ -394,7 +419,11 @@ notify_host(int sock, struct nsm_host *host)
 	}
 	len = (p - msgbuf) << 2;
 
-	sendto(sock, msgbuf, len, 0, (struct sockaddr *) &dest, sizeof(dest));
+	if (sendto(sock, msgbuf, len, 0, (struct sockaddr *) &dest, sizeof(dest)) < 0)
+		nsm_log(LOG_WARNING, "Sending Reboot Notification to "
+			"'%s' failed: errno %d (%s)", host->name, errno, strerror(errno));
+	
+	return 0;
 }
 
 /*
@@ -504,7 +533,7 @@ backup_hosts(const char *dirname, const char *bakname)
 }
 
 /*
- * Get all entries from sm.bak and convert them to host names
+ * Get all entries from sm.bak and convert them to host entries
  */
 static void
 get_hosts(const char *dirname)
@@ -531,15 +560,6 @@ get_hosts(const char *dirname)
 		snprintf(path, sizeof(path), "%s/%s", dirname, de->d_name);
 		if (stat(path, &stb) < 0)
 			continue;
-
-		host->ai = host_lookup(AF_UNSPEC, de->d_name);
-		if (! host->ai) {
-			nsm_log(LOG_WARNING,
-				"%s doesn't seem to be a valid address, skipped",
-				de->d_name);
-			unlink(path);
-			continue;
-		}
 
 		host->last_used = stb.st_mtime;
 		host->timeout = NSM_TIMEOUT;
