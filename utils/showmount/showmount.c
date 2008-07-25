@@ -82,6 +82,8 @@ static void usage(FILE *fp, int n)
  *
  *  tout contains the timeout.  It will be modified to contain the time
  *  remaining (i.e. time provided - time elasped).
+ *
+ *  Returns 0 for success 
  */
 static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
 {
@@ -177,7 +179,7 @@ static unsigned short getport(struct sockaddr_in *addr,
 		tout.tv_sec = TIMEOUT_TCP;
 
 		ret = connect_nb(sock, &saddr, &tout);
-		if (ret == -1) {
+		if (ret < 0) {
 			close(sock);
 			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
 			rpc_createerr.cf_error.re_errno = errno;
@@ -352,7 +354,7 @@ int main(int argc, char **argv)
 					 MOUNTPROG, MOUNTVERS, IPPROTO_TCP);
 		if (server_addr.sin_port) {
 			ret = connect_nb(msock, &server_addr, 0);
-			if (ret != -1)
+			if (ret == 0) /* success */
 				mclient = clnttcp_create(&server_addr,
 						MOUNTPROG, MOUNTVERS, &msock,
 						0, 0);
