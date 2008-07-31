@@ -48,6 +48,24 @@
 #include "mount_constants.h"
 #include "network.h"
 
+/*
+ * Earlier versions of glibc's /usr/include/netdb.h exclude these
+ * definitions because it was thought they were not part of a stable
+ * POSIX standard.  However, they are defined by RFC 2553 and 3493
+ * and in POSIX 1003.1-2001, so these definitions were added in later
+ * versions of netdb.h.
+ */
+#ifndef AI_V4MAPPED
+#define AI_V4MAPPED     0x0008  /* IPv4-mapped addresses are acceptable.  */
+#endif	/* AI_V4MAPPED */
+#ifndef AI_ALL
+#define AI_ALL          0x0010  /* Return both IPv4 and IPv6 addresses.  */
+#endif	/* AI_ALL */
+#ifndef AI_ADDRCONFIG
+#define AI_ADDRCONFIG   0x0020  /* Use configuration of this host to choose \
+				   returned address type.  */
+#endif	/* AI_ADDRCONFIG */
+
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
 #define MOUNT_TIMEOUT	(30)
