@@ -158,8 +158,10 @@ void auth_unix_gid(FILE *f)
 		qword_printint(f, ngroups);
 		for (i=0; i<ngroups; i++)
 			qword_printint(f, groups[i]);
-	}
+	} else
+		qword_printint(f, 0);
 	qword_eol(f);
+
 	if (groups != glist)
 		free(groups);
 }
