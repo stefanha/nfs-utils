@@ -215,8 +215,17 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 
 	if (path) {
 		val = get_uuid_blkdev(path);
-		if (!val)
-			return 0;
+		if (!val) {
+			struct statfs64 st;
+
+			if (statfs64(path, &st))
+				return 0;
+			if (!st.f_fsid.__val[0] && !st.f_fsid.__val[1])
+				return 0;
+			snprintf(fsid_val, 17, "%08x%08x",
+				 st.f_fsid.__val[0], st.f_fsid.__val[1]);
+			val = fsid_val;
+		}
 	} else {
 		val = uuid;
 	}
