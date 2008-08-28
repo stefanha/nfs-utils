@@ -592,8 +592,10 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  				qword_printhex(f, u, 16);
  			}
  		} else {
+ 			char u[16];
+ 			get_uuid(NULL, exp->e_uuid, 16, u);
  			qword_print(f, "uuid");
- 			qword_printhex(f, exp->e_uuid, 16);
+ 			qword_printhex(f, u, 16);
  		}
 #endif
 	}

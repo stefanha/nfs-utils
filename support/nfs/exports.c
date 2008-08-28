@@ -595,7 +595,7 @@ bad_option:
 				if (opt[5]!='\0' && *oe == '\0') 
 					ep->e_flags |= NFSEXP_FSID;
 				else if (valid_uuid(opt+5))
-					ep->e_uuid = strdup(opt+7);
+					ep->e_uuid = strdup(opt+5);
 				else {
 					xlog(L_ERROR, "%s: %d: bad fsid \"%s\"\n",
 					     flname, flline, opt);	
