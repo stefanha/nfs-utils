@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/stat.h>
+#include <sys/vfs.h>
 #include <time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -167,6 +168,41 @@ void auth_unix_gid(FILE *f)
 }
 
 #if USE_BLKID
+static const char *get_uuid_blkdev(char *path)
+{
+	static blkid_cache cache = NULL;
+	struct stat stb;
+	char *devname;
+	blkid_tag_iterate iter;
+	blkid_dev dev;
+	const char *type;
+	const char *val = NULL;
+
+	if (cache == NULL)
+		blkid_get_cache(&cache, NULL);
+
+	if (stat(path, &stb) != 0)
+		return NULL;
+	devname = blkid_devno_to_devname(stb.st_dev);
+	if (!devname)
+		return NULL;
+	dev = blkid_get_dev(cache, devname, BLKID_DEV_NORMAL);
+	free(devname);
+	if (!dev)
+		return NULL;
+	iter = blkid_tag_iterate_begin(dev);
+	if (!iter)
+		return NULL;
+	while (blkid_tag_next(iter, &type, &val) == 0)
+		if (strcmp(type, "UUID") == 0)
+			break;
+	blkid_tag_iterate_end(iter);
+	return val;
+}
+#else
+#define get_uuid_blkdev(path) (NULL)
+#endif
+
 int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 {
 	/* extract hex digits from uuidstr and compose a uuid
@@ -174,35 +210,12 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 	 * a smaller uuid.  Then compare with uuid
 	 */
 	int i = 0;
-	const char *val;
+	const char *val = NULL;
+	char fsid_val[17];
 
 	if (path) {
-		static blkid_cache cache = NULL;
-		struct stat stb;
-		char *devname;
-		blkid_tag_iterate iter;
-		blkid_dev dev;
-		const char *type;
-		if (cache == NULL)
-			blkid_get_cache(&cache, NULL);
-
-		if (stat(path, &stb) != 0)
-			return 0;
-		devname = blkid_devno_to_devname(stb.st_dev);
-		if (!devname)
-			return 0;
-		dev = blkid_get_dev(cache, devname, BLKID_DEV_NORMAL);
-		free(devname);
-		if (!dev)
-			return 0;
-		iter = blkid_tag_iterate_begin(dev);
-		if (!iter)
-			return 0;
-		while (blkid_tag_next(iter, &type, &val) == 0)
-			if (strcmp(type, "UUID") == 0)
-				break;
-		blkid_tag_iterate_end(iter);
-		if (!type)
+		val = get_uuid_blkdev(path);
+		if (!val)
 			return 0;
 	} else {
 		val = uuid;
@@ -229,7 +242,6 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 	}
 	return 1;
 }
-#endif
 
 /* Iterate through /etc/mtab, finding mountpoints
  * at or below a given path
@@ -439,20 +451,15 @@ void nfsd_fh(FILE *f)
 				if (!is_mountpoint(path))
 					continue;
 			check_uuid:
-#if USE_BLKID
 				if (exp->m_export.e_uuid)
 					get_uuid(NULL, exp->m_export.e_uuid,
 						 uuidlen, u);
-				else if (get_uuid(path, NULL,
-						  uuidlen, u) == 0)
+				else if (get_uuid(path, NULL, uuidlen, u) == 0)
 					continue;
 
 				if (memcmp(u, fhuuid, uuidlen) != 0)
 					continue;
 				break;
-#else
-				continue;
-#endif
 			}
 			if (use_ipaddr) {
 				if (he == NULL) {
@@ -584,7 +591,6 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		qword_printint(f, exp->e_fsid);
 		write_fsloc(f, exp, path);
 		write_secinfo(f, exp);
-#if USE_BLKID
  		if (exp->e_uuid == NULL || different_fs) {
  			char u[16];
  			if (get_uuid(path, NULL, 16, u)) {
@@ -597,7 +603,6 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  			qword_print(f, "uuid");
  			qword_printhex(f, u, 16);
  		}
-#endif
 	}
 	return qword_eol(f);
 }
