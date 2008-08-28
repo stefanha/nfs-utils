@@ -127,8 +127,6 @@ getexportent(int fromkernel, int fromexports)
 		if (ok <= 0)
 			return NULL;
 
-		strncpy (def_ee.m_path, def_ee.e_path, sizeof (def_ee.m_path) - 1);
-		def_ee.m_path [sizeof (def_ee.m_path) - 1] = '\0';
 		ok = getexport(exp, sizeof(exp));
 	}
 	if (ok < 0) {
@@ -187,8 +185,6 @@ getexportent(int fromkernel, int fromexports)
 		rpath[sizeof (rpath) - 1] = '\0';
 		strncpy(ee.e_path, rpath, sizeof (ee.e_path) - 1);
 		ee.e_path[sizeof (ee.e_path) - 1] = '\0';
-		strncpy (ee.m_path, ee.e_path, sizeof (ee.m_path) - 1);
-		ee.m_path [sizeof (ee.m_path) - 1] = '\0';
 	}
 
 	return &ee;
@@ -360,8 +356,6 @@ mkexportent(char *hname, char *path, char *options)
 	}
 	strncpy(ee.e_path, path, sizeof (ee.e_path));
 	ee.e_path[sizeof (ee.e_path) - 1] = '\0';
-	strncpy (ee.m_path, ee.e_path, sizeof (ee.m_path) - 1);
-	ee.m_path [sizeof (ee.m_path) - 1] = '\0';
 	if (parseopts(options, &ee, 0, NULL) < 0)
 		return NULL;
 	return &ee;

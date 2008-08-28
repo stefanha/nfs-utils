@@ -89,11 +89,11 @@ expsetup(struct nfsctl_export *exparg, nfs_export *exp, int unexport)
 	nfs_client		*clp = exp->m_client;
 	struct stat		stb;
 
-	if (stat(exp->m_export.m_path, &stb) < 0)
+	if (stat(exp->m_export.e_path, &stb) < 0)
 		return 0;
 
 	memset(exparg, 0, sizeof(*exparg));
-	strncpy(exparg->ex_path, exp->m_export.m_path,
+	strncpy(exparg->ex_path, exp->m_export.e_path,
 		sizeof (exparg->ex_path) - 1);
 	strncpy(exparg->ex_client, clp->m_hostname,
 		sizeof (exparg->ex_client) - 1);

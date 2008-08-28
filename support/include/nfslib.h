@@ -67,11 +67,6 @@ struct sec_entry {
 struct exportent {
 	char *		e_hostname;
 	char		e_path[NFS_MAXPATHLEN+1];
-	/* The mount path may be different from the exported path due
-	   to submount. It may change for every mount. The idea is we
-	   set m_path every time when we process a mount. We should not
-	   use it for anything else. */
-	char		m_path[NFS_MAXPATHLEN+1];
 	int		e_flags;
 	int		e_anonuid;
 	int		e_anongid;

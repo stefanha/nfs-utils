@@ -255,15 +255,3 @@ export_freeall(void)
 	}
 	client_freeall();
 }
-
-void
-export_reset(nfs_export *exp)
-{
-	if (!exp)
-		return;
-
-	/* Restore m_path. */
-	strncpy(exp->m_export.m_path, exp->m_export.e_path,
-		sizeof (exp->m_export.m_path) - 1);
-	exp->m_export.m_path[sizeof (exp->m_export.m_path) - 1] = '\0';
-}

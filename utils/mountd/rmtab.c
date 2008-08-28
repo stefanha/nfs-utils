@@ -162,10 +162,8 @@ mountlist_del_all(struct sockaddr_in *sin)
 	}
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		if (strcmp(rep->r_client, hp->h_name) == 0 &&
-		    (exp = auth_authenticate("umountall", sin, rep->r_path))) {
-			export_reset(exp);
+		    (exp = auth_authenticate("umountall", sin, rep->r_path)))
 			continue;
-		}
 		fputrmtabent(fp, rep, NULL);
 	}
 	if (slink_safe_rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {

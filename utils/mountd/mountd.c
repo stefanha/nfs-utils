@@ -230,9 +230,6 @@ mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *resp)
 		return 1;
 	}
 
-	if (!new_cache)
-		export_reset (exp);
-
 	mountlist_del(inet_ntoa(sin->sin_addr), p);
 	return 1;
 }
@@ -312,7 +309,6 @@ mount_pathconf_2_svc(struct svc_req *rqstp, dirpath *path, ppathcnf *res)
 	} else if (stat(p, &stb) < 0) {
 		xlog(L_WARNING, "can't stat exported dir %s: %s",
 				p, strerror(errno));
-		export_reset (exp);
 		return 1;
 	}
 
@@ -327,8 +323,6 @@ mount_pathconf_2_svc(struct svc_req *rqstp, dirpath *path, ppathcnf *res)
 	/* Can't figure out what to do with pc_mask */
 	res->pc_mask[0]   = 0;
 	res->pc_mask[1]   = 0;
-
-	export_reset (exp);
 
 	return 1;
 }
@@ -457,13 +451,11 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, mountstat3 *error, int v3)
 		if (fh != NULL) {
 			mountlist_add(inet_ntoa(sin->sin_addr), p);
 			*error = NFS_OK;
-			export_reset (exp);
 			return fh;
 		}
 		xlog(L_WARNING, "getfh failed: %s", strerror(errno));
 		*error = NFSERR_ACCES;
 	}
-	export_reset (exp);
 	return NULL;
 }
 
@@ -499,14 +491,14 @@ get_exportlist(void)
 	for (i = 0; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i]; exp; exp = exp->m_next) {
 			for (e = elist; e != NULL; e = e->ex_next) {
-				if (!strcmp(exp->m_export.m_path, e->ex_dir))
+				if (!strcmp(exp->m_export.e_path, e->ex_dir))
 					break;
 			}
 			if (!e) {
 				e = (struct exportnode *) xmalloc(sizeof(*e));
 				e->ex_next = elist;
 				e->ex_groups = NULL;
-				e->ex_dir = xstrdup(exp->m_export.m_path);
+				e->ex_dir = xstrdup(exp->m_export.e_path);
 				elist = e;
 			}
 
