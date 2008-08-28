@@ -12,6 +12,7 @@
 #include <config.h>
 #endif
 
+#include <sys/vfs.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -388,6 +389,8 @@ validate_export(nfs_export *exp)
 	 */
 	struct stat stb;
 	char *path = exp->m_export.e_path;
+	struct statfs64 stf;
+	int fs_has_fsid = 0;
 
 	if (stat(path, &stb) < 0) {
 		fprintf(stderr, "exportfs: Warning: %s does not exist\n",
@@ -403,7 +406,12 @@ validate_export(nfs_export *exp)
 	if (!can_test())
 		return;
 
-	if ((exp->m_export.e_flags & NFSEXP_FSID) || exp->m_export.e_uuid) {
+	if (!statfs64(path, &stf) &&
+	    (stf.f_fsid.__val[0] || stf.f_fsid.__val[1]))
+		fs_has_fsid = 1;
+
+	if ((exp->m_export.e_flags & NFSEXP_FSID) || exp->m_export.e_uuid ||
+	    fs_has_fsid) {
 		if ( !test_export(path, 1)) {
 			fprintf(stderr, "exportfs: Warning: %s does not "
 				"support NFS export.\n",
