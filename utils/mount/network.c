@@ -465,7 +465,7 @@ static unsigned short getport(struct sockaddr_in *saddr,
 	bind_saddr = *saddr;
 	bind_saddr.sin_port = htons(PMAPPORT);
 
-	socket = get_socket(&bind_saddr, proto, PMAP_TIMEOUT, FALSE, FALSE);
+	socket = get_socket(&bind_saddr, proto, PMAP_TIMEOUT, FALSE, TRUE);
 	if (socket == RPC_ANYSOCK) {
 		if (proto == IPPROTO_TCP &&
 		    rpc_createerr.cf_error.re_errno == ETIMEDOUT)
@@ -554,6 +554,7 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 		}
 		if (rpc_createerr.cf_stat != RPC_PROGNOTREGISTERED &&
 		    rpc_createerr.cf_stat != RPC_TIMEDOUT &&
+		    rpc_createerr.cf_stat != RPC_CANTRECV &&
 		    rpc_createerr.cf_stat != RPC_PROGVERSMISMATCH)
 			goto out_bad;
 
@@ -562,7 +563,8 @@ static int probe_port(clnt_addr_t *server, const unsigned long *versions,
 				continue;
 			p_prot = protos;
 		}
-		if (rpc_createerr.cf_stat == RPC_TIMEDOUT)
+		if (rpc_createerr.cf_stat == RPC_TIMEDOUT ||
+		    rpc_createerr.cf_stat == RPC_CANTRECV)
 			goto out_bad;
 
 		if (vers || !*++p_vers)
