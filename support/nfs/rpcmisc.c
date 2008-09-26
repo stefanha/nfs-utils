@@ -192,22 +192,6 @@ int makesock(int port, int proto)
 			xlog(L_ERROR, "setsockopt failed: %s\n",
 			     strerror(errno));
 
-#if 0
-	/* I was told it didn't work with gigabit ethernet.
-	   Don't bothet with it.  H.J. */
-#ifdef SO_SNDBUF
-	{
-		int sblen, rblen;
-
-		/* 1024 for rpc & transport overheads */
-		sblen = rblen = socksz + 1024;
-		if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, &sblen, sizeof sblen) < 0 ||
-		    setsockopt(s, SOL_SOCKET, SO_RCVBUF, &rblen, sizeof rblen) < 0)
-			xlog(L_ERROR, "setsockopt failed: %s\n", strerror(errno));
-	}
-#endif				/* SO_SNDBUF */
-#endif
-
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) == -1) {
 		xlog(L_FATAL, "Could not bind name to socket: %s\n",
 					strerror(errno));
