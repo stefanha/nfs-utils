@@ -395,6 +395,7 @@ int main(int argc, char **argv)
 			total_timeout);
 		if (clnt_stat != RPC_SUCCESS) {
 			clnt_perror(mclient, "rpc mount export");
+			clnt_destroy(mclient);
 			exit(1);
 		}
 		if (headers)
@@ -418,6 +419,7 @@ int main(int argc, char **argv)
 			printf("\n");
 			exportlist = exportlist->ex_next;
 		}
+		clnt_destroy(mclient);
 		exit(0);
 	}
 
@@ -428,8 +430,10 @@ int main(int argc, char **argv)
 		total_timeout);
 	if (clnt_stat != RPC_SUCCESS) {
 		clnt_perror(mclient, "rpc mount dump");
+		clnt_destroy(mclient);
 		exit(1);
 	}
+	clnt_destroy(mclient);
 
 	n = 0;
 	for (list = dumplist; list; list = list->ml_next)
