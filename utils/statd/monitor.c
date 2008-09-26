@@ -326,12 +326,13 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 
 
 	/* Check if we're monitoring anyone. */
-	if (!(clnt = rtnl)) {
+	if (rtnl == NULL) {
 		note(N_WARNING,
 			"Received SM_UNMON request from %s for %s while not "
 			"monitoring any hosts.", my_name, argp->mon_name);
 		return (&result);
 	}
+	clnt = rtnl;
 
 	/*
 	 * OK, we are.  Now look for appropriate entry in run-time list.
@@ -379,11 +380,12 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 
 	result.state = MY_STATE;
 
-	if (!(clnt = rtnl)) {
+	if (rtnl == NULL) {
 		note(N_WARNING, "Received SM_UNMON_ALL request from %s "
 			"while not monitoring any hosts", my_name);
 		return (&result);
 	}
+	clnt = rtnl;
 
 	while ((clnt = nlist_gethost(clnt, my_name, 1))) {
 		if (NL_MY_PROC(clnt) == argp->my_proc &&

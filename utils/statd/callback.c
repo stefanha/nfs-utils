@@ -36,11 +36,9 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 				argp->mon_name, argp->state);
 
 	/* quick check - don't bother if we're not monitoring anyone */
-	/* LH - this was != MULL, meaning that if anyone _was_ in our RTNL,
-	 * we'd never pass this point. */
-	if (!(lp = rtnl)) {
+	if (rtnl == NULL) {
 		note(N_WARNING, "SM_NOTIFY from %s while not monitoring any hosts.",
-				argp->mon_name, argp->state);
+				argp->mon_name);
 		return ((void *) &result);
 	}
 
