@@ -4,6 +4,10 @@
  * Copyright (C) 2004-2006 Olaf Kirch <okir@suse.de>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -23,8 +27,6 @@
 #include <netdb.h>
 #include <errno.h>
 #include <grp.h>
-
-#include "config.h"
 
 #ifndef BASEDIR
 # ifdef NFS_STATEDIR
