@@ -95,15 +95,6 @@ AC_ARG_ENABLE(kprefix,
 	test "$enableval" = "yes" && kprefix=k,
 	kprefix=)
 	AC_SUBST(kprefix)
-AC_ARG_ENABLE(secure-statd,
-	[AC_HELP_STRING([--enable-secure-statd],
-                        [Only lockd can use statd (security)])],
-	test "$enableval" = "yes" && secure_statd=yes,
-	secure_statd=yes)
-	if test "$secure_statd" = yes; then
-		AC_DEFINE(RESTRICTED_STATD, 1, [Define this if you want to enable various security checks in statd. These checks basically keep anyone but lockd from using this service.])
-	fi
-	AC_SUBST(secure_statd)
 AC_ARG_WITH(rpcgen,
 	[AC_HELP_STRING([--with-rpcgen=internal], [use internal rpcgen instead of system one])],
 	rpcgen_path=$withval,

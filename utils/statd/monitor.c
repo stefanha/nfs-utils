@@ -29,7 +29,6 @@ notify_list *		rtnl = NULL;	/* Run-time notify list. */
 
 #define LINELEN (4*(8+1)+SM_PRIV_SIZE*2+1)
 
-#ifdef RESTRICTED_STATD
 /*
  * Reject requests from non-loopback addresses in order
  * to prevent attack described in CERT CA-99.05.
@@ -48,16 +47,6 @@ caller_is_localhost(struct svc_req *rqstp)
 	}
 	return 1;
 }
-#else	/* RESTRICTED_STATD */
-/*
- * No restrictions for remote callers.
- */
-static int
-caller_is_localhost(struct svc_req *rqstp)
-{
-	return 1;
-}
-#endif	/* RESTRICTED_STATD */
 
 /*
  * Services SM_MON requests.
@@ -81,7 +70,6 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	result.res_stat = STAT_FAIL;
 	result.state = -1;	/* State is undefined for STAT_FAIL. */
 
-#ifdef RESTRICTED_STATD
 	/* 1.	Reject any remote callers.
 	 *	Ignore the my_name specified by the caller, and
 	 *	use "127.0.0.1" instead.
@@ -107,28 +95,6 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		goto failure;
 	}
 
-#if 0
-	This is not usable anymore.  Linux-kernel can be configured to use
-	host names with NSM so that multi-homed hosts are handled properly.
-		NeilBrown 15mar2007
-
-	/* 3.	mon_name must be an address in dotted quad.
-	 *	Again, specific to the linux kernel lockd.
-	 */
-	if (!inet_aton(mon_name, &mon_addr)) {
-		note(N_WARNING,
-			"Attempt to register host %s (not a dotted quad)",
-			mon_name);
-		goto failure;
-	}
-#endif
-#else
-	if (!(hostinfo = gethostbyname(my_name))) {
-		note(N_WARNING, "gethostbyname error for %s", my_name);
-		goto failure;
-	} else
-		my_addr = *(struct in_addr *) hostinfo->h_addr;
-#endif
 	/*
 	 * Check hostnames.  If I can't look them up, I won't monitor.  This
 	 * might not be legal, but it adds a little bit of safety and sanity.
