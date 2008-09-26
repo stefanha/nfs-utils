@@ -56,7 +56,15 @@ static unsigned long	xid = 0;	/* RPC XID counter */
 static int		sockfd = -1;	/* notify socket */
 
 /*
- * Initialize callback socket
+ * Initialize socket used to notify lockd of peer reboots.
+ *
+ * Returns the file descriptor of the new socket if successful;
+ * otherwise returns -1 and logs an error.
+ *
+ * Lockd rejects such requests if the source port is not privileged.
+ * statd_get_socket() must be invoked while statd still holds root
+ * privileges in order for the socket to acquire a privileged source
+ * port.
  */
 int
 statd_get_socket(void)
@@ -97,7 +105,7 @@ statd_get_socket(void)
 }
 
 static unsigned long
-xmit_call(int sockfd, struct sockaddr_in *sin,
+xmit_call(struct sockaddr_in *sin,
 	  u_int32_t prog, u_int32_t vers, u_int32_t proc,
 	  xdrproc_t func, void *obj)
 /* 		__u32 prog, __u32 vers, __u32 proc, xdrproc_t func, void *obj) */
@@ -163,7 +171,7 @@ xmit_call(int sockfd, struct sockaddr_in *sin,
 }
 
 static notify_list *
-recv_rply(int sockfd, struct sockaddr_in *sin, u_long *portp)
+recv_rply(struct sockaddr_in *sin, u_long *portp)
 {
 	unsigned int		msgbuf[MAXMSGSIZE], msglen;
 	struct rpc_msg		mesg;
@@ -242,7 +250,7 @@ done:
  * Notify operation for a single list entry
  */
 static int
-process_entry(int sockfd, notify_list *lp)
+process_entry(notify_list *lp)
 {
 	struct sockaddr_in	sin;
 	struct status		new_status;
@@ -276,7 +284,7 @@ process_entry(int sockfd, notify_list *lp)
 	new_status.state    = NL_STATE(lp);
 	memcpy(new_status.priv, NL_PRIV(lp), SM_PRIV_SIZE);
 
-	lp->xid = xmit_call(sockfd, &sin, prog, vers, proc, func, objp);
+	lp->xid = xmit_call(&sin, prog, vers, proc, func, objp);
 	if (!lp->xid) {
 		note(N_WARNING, "%s: failed to notify port %d",
 				__func__, ntohs(lp->port));
@@ -299,13 +307,13 @@ process_reply(FD_SET_TYPE *rfds)
 	if (sockfd == -1 || !FD_ISSET(sockfd, rfds))
 		return 0;
 
-	if (!(lp = recv_rply(sockfd, &sin, &port)))
+	if (!(lp = recv_rply(&sin, &port)))
 		return 1;
 
 	if (lp->port == 0) {
 		if (port != 0) {
 			lp->port = htons((unsigned short) port);
-			process_entry(sockfd, lp);
+			process_entry(lp);
 			NL_WHEN(lp) = time(NULL) + NOTIFY_TIMEOUT;
 			nlist_remove(&notify, lp);
 			nlist_insert_timer(&notify, lp);
@@ -331,13 +339,9 @@ process_notify_list(void)
 {
 	notify_list	*entry;
 	time_t		now;
-	int		fd;
-
-	if ((fd = statd_get_socket()) < 0)
-		return 0;
 
 	while ((entry = notify) != NULL && NL_WHEN(entry) < time(&now)) {
-		if (process_entry(fd, entry)) {
+		if (process_entry(entry)) {
 			NL_WHEN(entry) = time(NULL) + NOTIFY_TIMEOUT;
 			nlist_remove(&notify, entry);
 			nlist_insert_timer(&notify, entry);

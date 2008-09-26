@@ -48,6 +48,7 @@ extern void	change_state(void);
 extern void	my_svc_run(void);
 extern void	notify_hosts(void);
 extern void	shuffle_dirs(void);
+extern int	statd_get_socket(void);
 extern int	process_notify_list(void);
 extern int	process_reply(FD_SET_TYPE *);
 extern char *	xstrdup(const char *);

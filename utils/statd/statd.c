@@ -75,7 +75,6 @@ static struct option longopts[] =
 };
 
 extern void sm_prog_1 (struct svc_req *, register SVCXPRT *);
-extern int statd_get_socket(void);
 static void load_state_number(void);
 
 #ifdef SIMULATIONS
@@ -477,7 +476,8 @@ int main (int argc, char **argv)
 		}
 
 	/* Make sure we have a privilege port for calling into the kernel */
-	statd_get_socket();
+	if (statd_get_socket() < 0)
+		exit(1);
 
 	/* If sm-notify didn't take all the state files, load
 	 * state information into our notify-list so we can
