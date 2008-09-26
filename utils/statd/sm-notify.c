@@ -241,8 +241,11 @@ notify(void)
 				opt_srcaddr);
 			exit(1);
 		}
-		memcpy(&local_addr, ai->ai_addr, ai->ai_addrlen);
+
 		/* We know it's IPv4 at this point */
+		memcpy(&local_addr, ai->ai_addr, ai->ai_addrlen);
+
+		freeaddrinfo(ai);
 	}
 
 	/* Use source port if provided on the command line,
