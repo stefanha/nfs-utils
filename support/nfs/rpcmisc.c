@@ -1,9 +1,8 @@
 /*
- * support/nfs/rpcmisc.c
+ * Miscellaneous functions for RPC service startup and shutdown.
  *
- * Miscellaneous functions for RPC startup and shutdown.
  * This code is partially snarfed from rpcgen -s tcp -s udp,
- * partly written by Mark Shand, Donald Becker, and Rick 
+ * partly written by Mark Shand, Donald Becker, and Rick
  * Sladkey. It was tweaked slightly by Olaf Kirch to be
  * usable by both unfsd and mountd.
  *
@@ -60,7 +59,7 @@ rpc_init(char *name, int prog, int vers,
 	sock = 0;
 	if (getsockname(0, (struct sockaddr *) &saddr, &asize) == 0
 	    && saddr.sin_family == AF_INET) {
-		socklen_t ssize = sizeof (int);
+		socklen_t ssize = sizeof(int);
 		int fdtype = 0;
 		if (getsockopt(0, SOL_SOCKET, SO_TYPE,
 				(char *)&fdtype, &ssize) == -1)
@@ -80,7 +79,7 @@ rpc_init(char *name, int prog, int vers,
 
 	if ((_rpcfdtype == 0) || (_rpcfdtype == SOCK_DGRAM)) {
 		static SVCXPRT *last_transp = NULL;
- 
+
 		if (_rpcpmstart == 0) {
 			if (last_transp
 			    && (!defport || defport == last_transp->xp_port)) {
@@ -135,8 +134,8 @@ rpc_init(char *name, int prog, int vers,
 	}
 
 	if (_rpcpmstart) {
-		signal (SIGALRM, closedown);
-		alarm (_RPCSVC_CLOSEDOWN);
+		signal(SIGALRM, closedown);
+		alarm(_RPCSVC_CLOSEDOWN);
 	}
 }
 
