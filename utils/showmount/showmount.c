@@ -83,7 +83,8 @@ static void usage(FILE *fp, int n)
  *  tout contains the timeout.  It will be modified to contain the time
  *  remaining (i.e. time provided - time elasped).
  *
- *  Returns 0 for success 
+ *  Returns zero on success; otherwise, -1 is returned and errno is set
+ *  to reflect the nature of the error.
  */
 static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
 {
@@ -107,7 +108,7 @@ static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
 	len = sizeof(struct sockaddr);
 	ret = connect(fd, (struct sockaddr *)addr, len);
 	if (ret < 0 && errno != EINPROGRESS) {
-		ret = -errno;
+		ret = -1;
 		goto done;
 	}
 
@@ -121,9 +122,8 @@ static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
 	ret = select(fd + 1, NULL, &rset, NULL, tout);
 	if (ret <= 0) {
 		if (ret == 0)
-			ret = -ETIMEDOUT;
-		else
-			ret = -errno;
+			errno = ETIMEDOUT;
+		ret = -1;
 		goto done;
 	}
 
@@ -133,13 +133,15 @@ static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
 		len = sizeof(ret);
 		status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &ret, &len);
 		if (status < 0) {
-			ret = -errno;
+			ret = -1;
 			goto done;
 		}
 
 		/* Oops - something wrong with connect */
-		if (ret)
-			ret = -ret;
+		if (ret != 0) {
+			errno = ret;
+			ret = -1;
+		}
 	}
 
 done:
@@ -179,10 +181,10 @@ static unsigned short getport(struct sockaddr_in *addr,
 		tout.tv_sec = TIMEOUT_TCP;
 
 		ret = connect_nb(sock, &saddr, &tout);
-		if (ret < 0) {
-			close(sock);
+		if (ret != 0) {
 			rpc_createerr.cf_stat = RPC_SYSTEMERROR;
 			rpc_createerr.cf_error.re_errno = errno;
+			close(sock);
 			return 0;
 		}
 		client = clnttcp_create(&saddr,
