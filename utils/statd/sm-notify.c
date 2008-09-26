@@ -83,11 +83,11 @@ static void		recv_reply(int);
 static void		backup_hosts(const char *, const char *);
 static void		get_hosts(const char *);
 static void		insert_host(struct nsm_host *);
-struct nsm_host *	find_host(uint32_t);
-void			nsm_log(int fac, const char *fmt, ...);
+static struct nsm_host *find_host(uint32_t);
+static void		nsm_log(int fac, const char *fmt, ...);
 static int		record_pid(void);
 static void		drop_privs(void);
-static void set_kernel_nsm_state(int state);
+static void		set_kernel_nsm_state(int state);
 
 static struct nsm_host *	hosts = NULL;
 
@@ -249,7 +249,7 @@ usage:		fprintf(stderr,
 /*
  * Notify hosts
  */
-void
+static void
 notify(void)
 {
 	struct sockaddr_storage address;
@@ -372,7 +372,7 @@ notify(void)
 /*
  * Send notification to a single host
  */
-int
+static int
 notify_host(int sock, struct nsm_host *host)
 {
 	struct sockaddr_storage address;
@@ -475,7 +475,7 @@ notify_host(int sock, struct nsm_host *host)
 /*
  * Receive reply from remote host
  */
-void
+static void
 recv_reply(int sock)
 {
 	struct nsm_host	*hp;
@@ -634,7 +634,7 @@ get_hosts(const char *dirname)
 /*
  * Insert host into sorted list
  */
-void
+static void
 insert_host(struct nsm_host *host)
 {
 	struct nsm_host	**where, *p;
@@ -662,7 +662,7 @@ insert_host(struct nsm_host *host)
 /*
  * Find host given the XID
  */
-struct nsm_host *
+static struct nsm_host *
 find_host(uint32_t xid)
 {
 	struct nsm_host	**where, *p;
@@ -682,7 +682,7 @@ find_host(uint32_t xid)
 /*
  * Retrieve the current NSM state
  */
-unsigned int
+static unsigned int
 nsm_get_state(int update)
 {
 	char		newfile[PATH_MAX];
@@ -738,7 +738,7 @@ nsm_get_state(int update)
 /*
  * Log a message
  */
-void
+static void
 nsm_log(int fac, const char *fmt, ...)
 {
 	va_list	ap;
