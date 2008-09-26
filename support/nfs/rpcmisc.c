@@ -89,10 +89,8 @@ rpc_init(char *name, int prog, int vers,
 			}
 			if (defport == 0)
 				sock = RPC_ANYSOCK;
-			else if ((sock = makesock(defport, IPPROTO_UDP)) < 0) {
-				xlog(L_FATAL, "%s: cannot make a UDP socket\n",
-						name);
-			}
+			else
+				sock = makesock(defport, IPPROTO_UDP);
 		}
 		if (sock == RPC_ANYSOCK)
 			sock = svcudp_socket (prog, 1);
@@ -119,10 +117,8 @@ rpc_init(char *name, int prog, int vers,
 			}
 			if (defport == 0)
 				sock = RPC_ANYSOCK;
-			else if ((sock = makesock(defport, IPPROTO_TCP)) < 0) {
-				xlog(L_FATAL, "%s: cannot make a TCP socket\n",
-						name);
-			}
+			else
+				sock = makesock(defport, IPPROTO_TCP);
 		}
 		if (sock == RPC_ANYSOCK)
 			sock = svctcp_socket (prog, 1);
