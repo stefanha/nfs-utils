@@ -42,7 +42,6 @@ struct rpc_dtable {
 	}
 
 
-int		makesock(int port, int proto);
 void		rpc_init(char *name, int prog, int vers,
 				void (*dispatch)(struct svc_req *, SVCXPRT *),
 				int defport);
