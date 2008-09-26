@@ -50,7 +50,6 @@ void		rpc_svcrun(void);
 void		rpc_dispatch(struct svc_req *rq, SVCXPRT *xprt,
 				struct rpc_dtable *dtable, int nvers,
 				void *argp, void *resp);
-void		rpc_logcall(struct svc_req *, char *xname, char *args);
 
 extern int	_rpcpmstart;
 extern int	_rpcfdtype;
