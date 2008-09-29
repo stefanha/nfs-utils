@@ -223,7 +223,7 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 		break;
 
 	case unknown_host:
-		xlog(L_WARNING, "%s request from unknown host %s for %s (%s)",
+		xlog(L_WARNING, "refused %s request from %s for %s (%s): unmatched host",
 		     what, inet_ntoa(addr), path, epath);
 		break;
 
