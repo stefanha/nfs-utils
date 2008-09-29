@@ -411,10 +411,10 @@ for mounting the
 .B nfs
 file system type.
 .TP 1.5i
-.BI proto= netid
+.BI proto= transport
 The transport protocol used by the NFS client
 to transmit requests to the NFS server for this mount point.
-.I netid
+.I prot
 can be either
 .B udp
 or
@@ -489,11 +489,11 @@ or the server's mountd service is not available on the advertised port.
 This option can be used when mounting an NFS server
 through a firewall that blocks the rpcbind protocol.
 .TP 1.5i
-.BI mountproto= netid
+.BI mountproto= transport
 The transport protocol used by the NFS client
 to transmit requests to the NFS server's mountd service when performing
 this mount request, and when later unmounting this mount point.
-.I netid
+.I prot
 can be either
 .B udp
 or
@@ -638,10 +638,10 @@ for mounting the
 .B nfs4
 file system type.
 .TP 1.5i
-.BI proto= netid
+.BI proto= transport
 The transport protocol used by the NFS client
 to transmit requests to the NFS server for this mount point.
-.I netid
+.I prot
 can be either
 .B udp
 or
