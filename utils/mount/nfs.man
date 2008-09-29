@@ -412,14 +412,14 @@ for mounting the
 file system type.
 .TP 1.5i
 .BI proto= transport
-The transport protocol used by the NFS client
+The transport the NFS client uses
 to transmit requests to the NFS server for this mount point.
-.I prot
+.I transport
 can be either
 .B udp
 or
 .BR tcp .
-Each transport protocol uses different default
+Each transport uses different default
 .B retrans
 and
 .B timeo
@@ -490,17 +490,17 @@ This option can be used when mounting an NFS server
 through a firewall that blocks the rpcbind protocol.
 .TP 1.5i
 .BI mountproto= transport
-The transport protocol used by the NFS client
+The transport the NFS client uses
 to transmit requests to the NFS server's mountd service when performing
 this mount request, and when later unmounting this mount point.
-.I prot
+.I transport
 can be either
 .B udp
 or
 .BR tcp .
 .IP
 This option can be used when mounting an NFS server
-through a firewall that blocks a particular transport protocol.
+through a firewall that blocks a particular transport.
 When used in combination with the
 .B proto
 option, different transports for mountd requests and NFS requests
@@ -639,9 +639,9 @@ for mounting the
 file system type.
 .TP 1.5i
 .BI proto= transport
-The transport protocol used by the NFS client
+The transport the NFS client uses
 to transmit requests to the NFS server for this mount point.
-.I prot
+.I transport
 can be either
 .B udp
 or
