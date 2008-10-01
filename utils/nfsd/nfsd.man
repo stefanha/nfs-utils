@@ -12,7 +12,7 @@ The
 .B rpc.nfsd
 program implements the user level part of the NFS service. The
 main functionality is handled by the
-.B nfsd.o
+.B nfsd
 kernel module; the user space program merely starts the specified
 number of kernel threads.
 .P
