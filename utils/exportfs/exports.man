@@ -139,7 +139,7 @@ storage (see
 above).
 
 In releases of nfs-utils up to and including 1.0.0, this option was the
-default.  In all subsequence releases,
+default.  In all releases after 1.0.0,
 .I sync
 is the default, and
 .I async
