@@ -37,13 +37,37 @@
 #define socklen_t int
 #endif
 
-static void	closedown(int sig);
 static int	makesock(int port, int proto);
 
 #define _RPCSVC_CLOSEDOWN	120
 int	_rpcpmstart = 0;
 int	_rpcfdtype = 0;
 int	_rpcsvcdirty = 0;
+
+static void
+closedown(int sig)
+{
+	(void) signal(sig, closedown);
+
+	if (_rpcsvcdirty == 0) {
+		static int size;
+		int i, openfd;
+
+		if (_rpcfdtype == SOCK_DGRAM)
+			exit(0);
+
+		if (size == 0)
+			size = getdtablesize();
+
+		for (i = 0, openfd = 0; i < size && openfd < 2; i++)
+			if (FD_ISSET(i, &svc_fdset))
+				openfd++;
+		if (openfd <= 1)
+			exit(0);
+	}
+
+	(void) alarm(_RPCSVC_CLOSEDOWN);
+}
 
 void
 rpc_init(char *name, int prog, int vers,
@@ -137,28 +161,6 @@ rpc_init(char *name, int prog, int vers,
 		signal(SIGALRM, closedown);
 		alarm(_RPCSVC_CLOSEDOWN);
 	}
-}
-
-static void closedown(sig)
-int sig;
-{
-	(void) signal(sig, closedown);
-	if (_rpcsvcdirty == 0) {
-		static int size;
-		int i, openfd;
-
-		if (_rpcfdtype == SOCK_DGRAM)
-			exit(0);
-		if (size == 0) {
-			size = getdtablesize();
-		}
-		for (i = 0, openfd = 0; i < size && openfd < 2; i++)
-			if (FD_ISSET(i, &svc_fdset))
-				openfd++;
-		if (openfd <= 1)
-			exit(0);
-	}
-	(void) alarm(_RPCSVC_CLOSEDOWN);
 }
 
 /*
