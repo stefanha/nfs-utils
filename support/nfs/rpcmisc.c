@@ -37,8 +37,6 @@
 #define socklen_t int
 #endif
 
-static int	makesock(int port, int proto);
-
 #define _RPCSVC_CLOSEDOWN	120
 int	_rpcpmstart = 0;
 int	_rpcfdtype = 0;
@@ -67,6 +65,46 @@ closedown(int sig)
 	}
 
 	(void) alarm(_RPCSVC_CLOSEDOWN);
+}
+
+/*
+ * Create listener socket for a given port
+ *
+ * Return an open network socket on success; otherwise return -1
+ * if some error occurs.
+ */
+static int
+makesock(int port, int proto)
+{
+	struct sockaddr_in sin;
+	int	sock, sock_type, val;
+
+	sock_type = (proto == IPPROTO_UDP) ? SOCK_DGRAM : SOCK_STREAM;
+	sock = socket(AF_INET, sock_type, proto);
+	if (sock < 0) {
+		xlog(L_FATAL, "Could not make a socket: %s",
+					strerror(errno));
+		return -1;
+	}
+	memset((char *) &sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = htonl(INADDR_ANY);
+	sin.sin_port = htons(port);
+
+	val = 1;
+	if (proto == IPPROTO_TCP)
+		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+			       &val, sizeof(val)) < 0)
+			xlog(L_ERROR, "setsockopt failed: %s",
+			     strerror(errno));
+
+	if (bind(sock, (struct sockaddr *) &sin, sizeof(sin)) == -1) {
+		xlog(L_FATAL, "Could not bind name to socket: %s",
+					strerror(errno));
+		return -1;
+	}
+
+	return sock;
 }
 
 void
@@ -161,44 +199,4 @@ rpc_init(char *name, int prog, int vers,
 		signal(SIGALRM, closedown);
 		alarm(_RPCSVC_CLOSEDOWN);
 	}
-}
-
-/*
- * Create listener socket for a given port
- *
- * Return an open network socket on success; otherwise return -1
- * if some error occurs.
- */
-static int
-makesock(int port, int proto)
-{
-	struct sockaddr_in sin;
-	int	sock, sock_type, val;
-
-	sock_type = (proto == IPPROTO_UDP) ? SOCK_DGRAM : SOCK_STREAM;
-	sock = socket(AF_INET, sock_type, proto);
-	if (sock < 0) {
-		xlog(L_FATAL, "Could not make a socket: %s",
-					strerror(errno));
-		return -1;
-	}
-	memset((char *) &sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = htonl(INADDR_ANY);
-	sin.sin_port = htons(port);
-
-	val = 1;
-	if (proto == IPPROTO_TCP)
-		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-			       &val, sizeof(val)) < 0)
-			xlog(L_ERROR, "setsockopt failed: %s",
-			     strerror(errno));
-
-	if (bind(sock, (struct sockaddr *) &sin, sizeof(sin)) == -1) {
-		xlog(L_FATAL, "Could not bind name to socket: %s",
-					strerror(errno));
-		return -1;
-	}
-
- 	return sock;
 }
