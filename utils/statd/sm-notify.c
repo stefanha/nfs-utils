@@ -189,9 +189,13 @@ usage:		fprintf(stderr,
 		exit(1);
 	}
 
+	log_syslog = 1;
+	openlog("sm-notify", LOG_PID, LOG_DAEMON);
+
 	if (strcmp(_SM_BASE_PATH, BASEDIR) == 0) {
 		if (record_pid() == 0 && force == 0 && opt_update_state == 1)
 			/* already run, don't try again */
+			nsm_log(LOG_NOTICE, "Already notifying clients; Exiting!");
 			exit(0);
 	}
 
@@ -207,6 +211,12 @@ usage:		fprintf(stderr,
 	backup_hosts(_SM_DIR_PATH, _SM_BAK_PATH);
 	get_hosts(_SM_BAK_PATH);
 
+	/* If there are not hosts to notify, just exit */
+	if (!hosts) {
+		nsm_log(LOG_DEBUG, "No hosts to notify; exiting");
+		return 0;
+	}
+
 	/* Get and update the NSM state. This will call sync() */
 	nsm_state = nsm_get_state(opt_update_state);
 	set_kernel_nsm_state(nsm_state);
@@ -214,9 +224,6 @@ usage:		fprintf(stderr,
 	if (!opt_debug) {
 		if (!opt_quiet)
 			printf("Backgrounding to notify hosts...\n");
-
-		openlog("sm-notify", LOG_PID, LOG_DAEMON);
-		log_syslog = 1;
 
 		if (daemon(0, 0) < 0) {
 			nsm_log(LOG_ERR, "unable to background: %s",
