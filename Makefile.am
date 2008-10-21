@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+AUTOMAKE_OPTIONS = foreign
+
 SUBDIRS = tools support utils linux-nfs
 
 MAINTAINERCLEANFILES = Makefile.in
