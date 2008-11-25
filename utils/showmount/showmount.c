@@ -37,6 +37,8 @@
 #include <mount.h>
 #include <unistd.h>
 
+#include "nfsrpc.h"
+
 #define TIMEOUT_UDP	3
 #define TIMEOUT_TCP	10
 #define TOTAL_TIMEOUT	20
@@ -352,9 +354,9 @@ int main(int argc, char **argv)
 	mclient = NULL;
 	msock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (msock != -1) {
-		server_addr.sin_port = getport(&server_addr,
-					 MOUNTPROG, MOUNTVERS, IPPROTO_TCP);
-		if (server_addr.sin_port) {
+		if (nfs_getport_ping((struct sockaddr *)&server_addr,
+					sizeof(server_addr), MOUNTPROG,
+					MOUNTVERS, IPPROTO_TCP)) {
 			ret = connect_nb(msock, &server_addr, 0);
 			if (ret == 0) /* success */
 				mclient = clnttcp_create(&server_addr,
@@ -367,9 +369,9 @@ int main(int argc, char **argv)
 	}
 
 	if (!mclient) {
-		server_addr.sin_port = getport(&server_addr,
-					 MOUNTPROG, MOUNTVERS, IPPROTO_UDP);
-		if (!server_addr.sin_port) {
+		if (nfs_getport_ping((struct sockaddr *)&server_addr,
+					sizeof(server_addr), MOUNTPROG,
+					MOUNTVERS, IPPROTO_UDP)) {
 			clnt_pcreateerror("showmount");
 			exit(1);
 		}
