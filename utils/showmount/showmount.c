@@ -50,6 +50,13 @@ static int	aflag = 0;
 static int	dflag = 0;
 static int	eflag = 0;
 
+static const char *nfs_sm_pgmtbl[] = {
+	"showmount",
+	"mount",
+	"mountd",
+	NULL,
+};
+
 static struct option longopts[] =
 {
 	{ "all", 0, 0, 'a' },
@@ -77,6 +84,33 @@ static void usage(FILE *fp, int n)
 	fprintf(fp, "       [--no-headers] [--help] [--version] [host]\n");
 	exit(n);
 }
+
+#ifdef HAVE_CLNT_CREATE
+
+/*
+ * Generate an RPC client handle connected to the mountd service
+ * at @hostname, or die trying.
+ *
+ * Supports both AF_INET and AF_INET6 server addresses.
+ */
+static CLIENT *nfs_get_mount_client(const char *hostname)
+{
+	rpcprog_t program = nfs_getrpcbyname(MOUNTPROG, nfs_sm_pgmtbl);
+	CLIENT *client;
+
+	client = clnt_create(hostname, program, MOUNTVERS, "tcp");
+	if (client)
+		return client;
+
+	client = clnt_create(hostname, program, MOUNTVERS, "udp");
+	if (client)
+		return client;
+
+	clnt_pcreateerror("clnt_create");
+	exit(1);
+}
+
+#else	/* HAVE_CLNT_CREATE */
 
 /*
  *  Perform a non-blocking connect on the socket fd.
@@ -212,6 +246,8 @@ static CLIENT *nfs_get_mount_client(const char *hostname)
 
 	return mclient;
 }
+
+#endif	/* HAVE_CLNT_CREATE */
 
 int main(int argc, char **argv)
 {
