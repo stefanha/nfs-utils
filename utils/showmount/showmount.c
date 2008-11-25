@@ -150,16 +150,75 @@ done:
 	return ret;
 }
 
+/*
+ * Generate an RPC client handle connected to the mountd service
+ * at @hostname, or die trying.
+ *
+ * Supports only AF_INET server addresses.
+ */
+static CLIENT *nfs_get_mount_client(const char *hostname)
+{
+	struct hostent *hp;
+	struct sockaddr_in server_addr;
+	struct timeval pertry_timeout;
+	CLIENT *mclient = NULL;
+	int ret, msock;
+
+	if (inet_aton(hostname, &server_addr.sin_addr)) {
+		server_addr.sin_family = AF_INET;
+	}
+	else {
+		if ((hp = gethostbyname(hostname)) == NULL) {
+			fprintf(stderr, "%s: can't get address for %s\n",
+				program_name, hostname);
+			exit(1);
+		}
+		server_addr.sin_family = AF_INET;
+		memcpy(&server_addr.sin_addr, hp->h_addr, hp->h_length);
+	}
+
+	msock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (msock != -1) {
+		if (nfs_getport_ping((struct sockaddr *)&server_addr,
+					sizeof(server_addr), MOUNTPROG,
+					MOUNTVERS, IPPROTO_TCP)) {
+			ret = connect_nb(msock, &server_addr, 0);
+			if (ret == 0)
+				mclient = clnttcp_create(&server_addr,
+						MOUNTPROG, MOUNTVERS, &msock,
+						0, 0);
+			else
+				close(msock);
+		} else
+			close(msock);
+	}
+
+	if (!mclient) {
+		if (nfs_getport_ping((struct sockaddr *)&server_addr,
+					sizeof(server_addr), MOUNTPROG,
+					MOUNTVERS, IPPROTO_UDP)) {
+			clnt_pcreateerror("showmount");
+			exit(1);
+		}
+		msock = RPC_ANYSOCK;
+		pertry_timeout.tv_sec = TIMEOUT_UDP;
+		pertry_timeout.tv_usec = 0;
+		if ((mclient = clntudp_create(&server_addr,
+		    MOUNTPROG, MOUNTVERS, pertry_timeout, &msock)) == NULL) {
+			clnt_pcreateerror("mount clntudp_create");
+			exit(1);
+		}
+	}
+
+	return mclient;
+}
+
 int main(int argc, char **argv)
 {
 	char hostname_buf[MAXHOSTLEN];
 	char *hostname;
 	enum clnt_stat clnt_stat;
-	struct hostent *hp;
-	struct sockaddr_in server_addr;
-	int ret, msock;
 	struct timeval total_timeout;
-	struct timeval pertry_timeout;
 	int c;
 	CLIENT *mclient;
 	groups grouplist;
@@ -231,54 +290,7 @@ int main(int argc, char **argv)
 		break;
 	}
 
-	if (inet_aton(hostname, &server_addr.sin_addr)) {
-		server_addr.sin_family = AF_INET;
-	}
-	else {
-		if ((hp = gethostbyname(hostname)) == NULL) {
-			fprintf(stderr, "%s: can't get address for %s\n",
-				program_name, hostname);
-			exit(1);
-		}
-		server_addr.sin_family = AF_INET;
-		memcpy(&server_addr.sin_addr, hp->h_addr, hp->h_length);
-	}
-
-	/* create mount deamon client */
-
-	mclient = NULL;
-	msock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (msock != -1) {
-		if (nfs_getport_ping((struct sockaddr *)&server_addr,
-					sizeof(server_addr), MOUNTPROG,
-					MOUNTVERS, IPPROTO_TCP)) {
-			ret = connect_nb(msock, &server_addr, 0);
-			if (ret == 0) /* success */
-				mclient = clnttcp_create(&server_addr,
-						MOUNTPROG, MOUNTVERS, &msock,
-						0, 0);
-			else
-				close(msock);
-		} else
-			close(msock);
-	}
-
-	if (!mclient) {
-		if (nfs_getport_ping((struct sockaddr *)&server_addr,
-					sizeof(server_addr), MOUNTPROG,
-					MOUNTVERS, IPPROTO_UDP)) {
-			clnt_pcreateerror("showmount");
-			exit(1);
-		}
-		msock = RPC_ANYSOCK;
-		pertry_timeout.tv_sec = TIMEOUT_UDP;
-		pertry_timeout.tv_usec = 0;
-		if ((mclient = clntudp_create(&server_addr,
-		    MOUNTPROG, MOUNTVERS, pertry_timeout, &msock)) == NULL) {
-			clnt_pcreateerror("mount clntudp_create");
-			exit(1);
-		}
-	}
+	mclient = nfs_get_mount_client(hostname);
 	mclient->cl_auth = authunix_create_default();
 	total_timeout.tv_sec = TOTAL_TIMEOUT;
 	total_timeout.tv_usec = 0;
