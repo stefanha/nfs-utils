@@ -36,6 +36,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
@@ -705,7 +706,18 @@ int start_statd(void)
 #ifdef START_STATD
 	if (stat(START_STATD, &stb) == 0) {
 		if (S_ISREG(stb.st_mode) && (stb.st_mode & S_IXUSR)) {
-			system(START_STATD);
+			pid_t pid = fork();
+			switch (pid) {
+			case 0: /* child */
+				execl(START_STATD, START_STATD, NULL);
+				exit(1);
+			case -1: /* error */
+				perror("Fork failed");
+				break;
+			default: /* parent */
+				waitpid(pid, NULL,0);
+				break;
+			}
 			if (probe_statd())
 				return 1;
 		}
