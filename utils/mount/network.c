@@ -710,7 +710,8 @@ int start_statd(void)
 				execl(START_STATD, START_STATD, NULL);
 				exit(1);
 			case -1: /* error */
-				perror("Fork failed");
+				nfs_error(_("fork failed: %s"),
+							strerror(errno));
 				break;
 			default: /* parent */
 				waitpid(pid, NULL,0);
