@@ -47,6 +47,7 @@
 #include "nls.h"
 #include "nfs_mount.h"
 #include "mount_constants.h"
+#include "nfsrpc.h"
 #include "network.h"
 
 /*
@@ -78,6 +79,11 @@
 extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
+
+static const char *nfs_ns_pgmtbl[] = {
+	"status",
+	NULL,
+};
 
 static const unsigned long nfs_to_mnt[] = {
 	0,
@@ -669,24 +675,16 @@ version_fixed:
 	return probe_mntport(mnt_server);
 }
 
-static int probe_statd(void)
+static int nfs_probe_statd(void)
 {
-	struct sockaddr_in addr;
-	unsigned short port;
+	struct sockaddr_in addr = {
+		.sin_family		= AF_INET,
+		.sin_addr.s_addr	= htonl(INADDR_LOOPBACK),
+	};
+	rpcprog_t program = nfs_getrpcbyname(NSMPROG, nfs_ns_pgmtbl);
 
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	port = getport(&addr, 100024, 1, IPPROTO_UDP);
-
-	if (port == 0)
-		return 0;
-	addr.sin_port = htons(port);
-
-	if (clnt_ping(&addr, 100024, 1, IPPROTO_UDP, NULL) <= 0)
-		return 0;
-
-	return 1;
+	return nfs_getport_ping((struct sockaddr *)&addr, sizeof(addr),
+				program, (rpcvers_t)1, IPPROTO_UDP);
 }
 
 /**
@@ -700,7 +698,7 @@ int start_statd(void)
 	struct stat stb;
 #endif
 
-	if (probe_statd())
+	if (nfs_probe_statd())
 		return 1;
 
 #ifdef START_STATD
@@ -718,7 +716,7 @@ int start_statd(void)
 				waitpid(pid, NULL,0);
 				break;
 			}
-			if (probe_statd())
+			if (nfs_probe_statd())
 				return 1;
 		}
 	}
