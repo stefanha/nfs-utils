@@ -193,10 +193,11 @@ usage:		fprintf(stderr,
 	openlog("sm-notify", LOG_PID, LOG_DAEMON);
 
 	if (strcmp(_SM_BASE_PATH, BASEDIR) == 0) {
-		if (record_pid() == 0 && force == 0 && opt_update_state == 1)
+		if (record_pid() == 0 && force == 0 && opt_update_state == 1) {
 			/* already run, don't try again */
 			nsm_log(LOG_NOTICE, "Already notifying clients; Exiting!");
 			exit(0);
+		}
 	}
 
 	if (opt_srcaddr) {
