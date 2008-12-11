@@ -762,7 +762,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 		goto out_return_error;
 	}
 
-	if (serialize_context_for_kernel(pd.pd_ctx, &token, &krb5oid)) {
+	if (serialize_context_for_kernel(pd.pd_ctx, &token, &krb5oid, NULL)) {
 		printerr(0, "WARNING: Failed to serialize krb5 context for "
 			    "user with uid %d for server %s\n",
 			 uid, clp->servername);
@@ -824,7 +824,7 @@ handle_spkm3_upcall(struct clnt_info *clp)
 		goto out_return_error;
 	}
 
-	if (serialize_context_for_kernel(pd.pd_ctx, &token, &spkm3oid)) {
+	if (serialize_context_for_kernel(pd.pd_ctx, &token, &spkm3oid, NULL)) {
 		printerr(0, "WARNING: Failed to serialize spkm3 context for "
 			    "user with uid %d for server\n",
 			 uid, clp->servername);

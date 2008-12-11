@@ -66,7 +66,7 @@ write_lucid_keyblock(char **p, char *end, gss_krb5_lucid_key_t *key)
 
 static int
 prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
-	gss_buffer_desc *buf)
+	gss_buffer_desc *buf, int32_t *endtime)
 {
 	char *p, *end;
 	static int constant_zero = 0;
@@ -101,6 +101,8 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	if (WRITE_BYTES(&p, end, lctx->rfc1964_kd.sign_alg)) goto out_err;
 	if (WRITE_BYTES(&p, end, lctx->rfc1964_kd.seal_alg)) goto out_err;
 	if (WRITE_BYTES(&p, end, lctx->endtime)) goto out_err;
+	if (endtime)
+		*endtime = lctx->endtime;
 	word_send_seq = lctx->send_seq;	/* XXX send_seq is 64-bit */
 	if (WRITE_BYTES(&p, end, word_send_seq)) goto out_err;
 	if (write_oid(&p, end, &krb5oid)) goto out_err;
@@ -154,7 +156,7 @@ out_err:
 
 static int
 prepare_krb5_rfc_cfx_buffer(gss_krb5_lucid_context_v1_t *lctx,
-	gss_buffer_desc *buf)
+	gss_buffer_desc *buf, int32_t *endtime)
 {
 	printerr(0, "ERROR: prepare_krb5_rfc_cfx_buffer: not implemented\n");
 	return -1;
@@ -162,7 +164,7 @@ prepare_krb5_rfc_cfx_buffer(gss_krb5_lucid_context_v1_t *lctx,
 
 
 int
-serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
+serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf, int32_t *endtime)
 {
 	OM_uint32 maj_stat, min_stat;
 	void *return_ctx = 0;
@@ -194,9 +196,9 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 
 	/* Now lctx points to a lucid context that we can send down to kernel */
 	if (lctx->protocol == 0)
-		retcode = prepare_krb5_rfc1964_buffer(lctx, buf);
+		retcode = prepare_krb5_rfc1964_buffer(lctx, buf, endtime);
 	else
-		retcode = prepare_krb5_rfc_cfx_buffer(lctx, buf);
+		retcode = prepare_krb5_rfc_cfx_buffer(lctx, buf, endtime);
 
 	maj_stat = gss_free_lucid_sec_context(&min_stat, ctx, return_ctx);
 	if (maj_stat != GSS_S_COMPLETE) {

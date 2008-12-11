@@ -139,7 +139,7 @@ out_err:
  * and only export those fields to the kernel.
  */
 int
-serialize_spkm3_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
+serialize_spkm3_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf, int32_t *endtime)
 {
 	OM_uint32 vers, ret, maj_stat, min_stat;
 	void *ret_ctx = 0;
@@ -161,6 +161,9 @@ serialize_spkm3_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf)
 		goto out_err;
 	}
 	ret = prepare_spkm3_ctx_buffer(lctx, buf);
+
+	if (endtime)
+		*endtime = lctx->endtime;
 
 	maj_stat = gss_free_lucid_sec_context(&min_stat, ctx, ret_ctx);
 
