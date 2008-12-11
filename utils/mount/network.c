@@ -615,24 +615,49 @@ static int nfs_probe_mntport(const struct sockaddr *sap, const socklen_t salen,
 					probe_mnt1_first, probe_udp_only);
 }
 
-/**
- * probe_bothports - discover the RPC endpoints of mountd and NFS server
- * @mnt_server: pointer to address and pmap argument for mountd results
- * @nfs_server: pointer to address and pmap argument for NFS server
+/*
+ * Probe a server's mountd service to determine which versions and
+ * transport protocols are supported.  Invoked when the protocol
+ * version is already known for both the NFS and mountd service.
  *
- * Returns 1 if successful, otherwise zero if some error occurred.
- * Note that the arguments are both input and output arguments.
- *
- * A side effect of calling this function is that rpccreateerr is set.
+ * Returns 1 and fills in both @pmap structs if the requested service
+ * ports are unambiguous and pingable.  Otherwise zero is returned;
+ * rpccreateerr.cf_stat is set to reflect the nature of the error.
  */
-int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
+static int nfs_probe_version_fixed(const struct sockaddr *mnt_saddr,
+			const socklen_t mnt_salen,
+			struct pmap *mnt_pmap,
+			const struct sockaddr *nfs_saddr,
+			const socklen_t nfs_salen,
+			struct pmap *nfs_pmap)
 {
-	struct sockaddr *nfs_saddr = (struct sockaddr *)&nfs_server->saddr;
-	socklen_t nfs_salen = sizeof(nfs_server->saddr);
-	struct sockaddr *mnt_saddr = (struct sockaddr *)&mnt_server->saddr;
-	socklen_t mnt_salen = sizeof(mnt_server->saddr);
-	struct pmap *nfs_pmap = &nfs_server->pmap;
-	struct pmap *mnt_pmap = &mnt_server->pmap;
+	if (!nfs_probe_nfsport(nfs_saddr, nfs_salen, nfs_pmap))
+		return 0;
+	return nfs_probe_mntport(mnt_saddr, mnt_salen, mnt_pmap);
+}
+
+/**
+ * nfs_probe_bothports - discover the RPC endpoints of mountd and NFS server
+ * @mnt_saddr:	pointer to socket address of mountd server
+ * @mnt_salen:	length of mountd server's address
+ * @mnt_pmap:	IN: partially filled-in mountd RPC service tuple;
+ *		OUT: fully filled-in mountd RPC service tuple
+ * @nfs_saddr:	pointer to socket address of NFS server
+ * @nfs_salen:	length of NFS server's address
+ * @nfs_pmap:	IN: partially filled-in NFS RPC service tuple;
+ *		OUT: fully filled-in NFS RPC service tuple
+ *
+ * Returns 1 and fills in both @pmap structs if the requested service
+ * ports are unambiguous and pingable.  Otherwise zero is returned;
+ * rpccreateerr.cf_stat is set to reflect the nature of the error.
+ */
+int nfs_probe_bothports(const struct sockaddr *mnt_saddr,
+			const socklen_t mnt_salen,
+			struct pmap *mnt_pmap,
+			const struct sockaddr *nfs_saddr,
+			const socklen_t nfs_salen,
+			struct pmap *nfs_pmap)
+{
 	struct pmap save_nfs, save_mnt;
 	const unsigned long *probe_vers;
 
@@ -640,8 +665,10 @@ int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 		nfs_pmap->pm_vers = mntvers_to_nfs(mnt_pmap->pm_vers);
 	else if (nfs_pmap->pm_vers && !mnt_pmap->pm_vers)
 		mnt_pmap->pm_vers = nfsvers_to_mnt(nfs_pmap->pm_vers);
+
 	if (nfs_pmap->pm_vers)
-		goto version_fixed;
+		return nfs_probe_version_fixed(mnt_saddr, mnt_salen, mnt_pmap,
+					       nfs_saddr, nfs_salen, nfs_pmap);
 
 	memcpy(&save_nfs, nfs_pmap, sizeof(save_nfs));
 	memcpy(&save_mnt, mnt_pmap, sizeof(save_mnt));
@@ -661,18 +688,35 @@ int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 		case RPC_PROGNOTREGISTERED:
 			break;
 		default:
-			goto out_bad;
+			return 0;
 		}
 		memcpy(nfs_pmap, &save_nfs, sizeof(*nfs_pmap));
 	}
 
-out_bad:
 	return 0;
+}
 
-version_fixed:
-	if (!nfs_probe_nfsport(nfs_saddr, nfs_salen, nfs_pmap))
-		goto out_bad;
-	return nfs_probe_mntport(mnt_saddr, mnt_salen, mnt_pmap);
+/**
+ * probe_bothports - discover the RPC endpoints of mountd and NFS server
+ * @mnt_server: pointer to address and pmap argument for mountd results
+ * @nfs_server: pointer to address and pmap argument for NFS server
+ *
+ * This is the legacy API that takes "clnt_addr_t" for both servers,
+ * but supports only AF_INET addresses.
+ *
+ * Returns 1 and fills in the pmap field in both clnt_addr_t structs
+ * if the requested service ports are unambiguous and pingable.
+ * Otherwise zero is returned; rpccreateerr.cf_stat is set to reflect
+ * the nature of the error.
+ */
+int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
+{
+	return nfs_probe_bothports((struct sockaddr *)&mnt_server->saddr,
+					sizeof(mnt_server->saddr),
+					&mnt_server->pmap,
+					(struct sockaddr *)&nfs_server->saddr,
+					sizeof(nfs_server->saddr),
+					&nfs_server->pmap);
 }
 
 static int nfs_probe_statd(void)
