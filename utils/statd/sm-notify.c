@@ -131,6 +131,17 @@ static struct addrinfo *smn_lookup(const sa_family_t family, const char *name)
 	return ai;
 }
 
+static void smn_forget_host(struct nsm_host *host)
+{
+	unlink(host->path);
+	free(host->path);
+	free(host->name);
+	if (host->ai)
+		freeaddrinfo(host->ai);
+
+	free(host);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -340,13 +351,8 @@ notify(void)
 			hp = hosts;
 			hosts = hp->next;
 
-			if (notify_host(sock, hp)){
-				unlink(hp->path);
-				free(hp->name);
-				free(hp->path);
-				free(hp);
+			if (notify_host(sock, hp))
 				continue;
-			}
 
 			/* Set the timeout for this call, using an
 			   exponential timeout strategy */
@@ -401,6 +407,7 @@ notify_host(int sock, struct nsm_host *host)
 			nsm_log(LOG_WARNING,
 				"%s doesn't seem to be a valid address,"
 				" skipped", host->name);
+			smn_forget_host(host);
 			return 1;
 		}
 	}
@@ -545,11 +552,7 @@ recv_reply(int sock)
 		if (p <= end) {
 			nsm_log(LOG_DEBUG, "Host %s notified successfully",
 					hp->name);
-			unlink(hp->path);
-			free(hp->name);
-			free(hp->path);
-			free(hp);
-			freeaddrinfo(hp->ai);
+			smn_forget_host(hp);
 			return;
 		}
 	}
