@@ -36,6 +36,10 @@
  */
 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <ctype.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -364,6 +368,57 @@ char *po_get(struct mount_options *options, char *keyword)
 
 	return NULL;
 }
+
+/**
+ * po_get_numeric - return numeric value of rightmost instance of keyword option
+ * @options: pointer to mount options
+ * @keyword: pointer to a C string containing option keyword for which to search
+ * @value: OUT: set to the value of the keyword
+ *
+ * This is specifically for parsing keyword options that take only a numeric
+ * value.  If multiple instances of the same option are present in a mount
+ * option list, the rightmost instance is always the effective one.
+ *
+ * Returns:
+ *	* PO_FOUND if the keyword was found and the value is numeric; @value is
+ *	  set to the keyword's value
+ *	* PO_NOT_FOUND if the keyword was not found
+ *	* PO_BAD_VALUE if the keyword was found, but the value is not numeric
+ *
+ * These last two are separate in case the caller wants to warn about bad mount
+ * options instead of silently using a default.
+ */
+#ifdef HAVE_STRTOL
+po_found_t po_get_numeric(struct mount_options *options, char *keyword, long *value)
+{
+	char *option, *endptr;
+	long tmp;
+
+	option = po_get(options, keyword);
+	if (option == NULL)
+		return PO_NOT_FOUND;
+
+	errno = 0;
+	tmp = strtol(option, &endptr, 10);
+	if (errno == 0 && endptr != option) {
+		*value = tmp;
+		return PO_FOUND;
+	}
+	return PO_BAD_VALUE;
+}
+#else	/* HAVE_STRTOL */
+po_found_t po_get_numeric(struct mount_options *options, char *keyword, long *value)
+{
+	char *option;
+
+	option = po_get(options, keyword);
+	if (option == NULL)
+		return PO_NOT_FOUND;
+
+	*value = atoi(option);
+	return PO_FOUND;
+}
+#endif	/* HAVE_STRTOL */
 
 /**
  * po_rightmost - determine the relative position of two options

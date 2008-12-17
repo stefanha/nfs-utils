@@ -32,6 +32,7 @@ typedef enum {
 typedef enum {
 	PO_NOT_FOUND = 0,
 	PO_FOUND = 1,
+	PO_BAD_VALUE = 2,
 } po_found_t;
 
 typedef enum {
@@ -50,6 +51,8 @@ po_return_t		po_join(struct mount_options *, char **);
 po_return_t		po_append(struct mount_options *, char *);
 po_found_t		po_contains(struct mount_options *, char *);
 char *			po_get(struct mount_options *, char *);
+po_found_t		po_get_numeric(struct mount_options *,
+					char *, long *);
 po_rightmost_t		po_rightmost(struct mount_options *, char *, char *);
 po_found_t		po_remove_all(struct mount_options *, char *);
 void			po_destroy(struct mount_options *);
