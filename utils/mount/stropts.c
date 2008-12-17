@@ -99,19 +99,21 @@ struct nfsmount_info {
 static time_t nfs_parse_retry_option(struct mount_options *options,
 				     unsigned int timeout_minutes)
 {
-	char *retry_option, *endptr;
+	long tmp;
 
-	retry_option = po_get(options, "retry");
-	if (retry_option) {
-		long tmp;
-
-		errno = 0;
-		tmp = strtol(retry_option, &endptr, 10);
-		if (errno == 0 && endptr != retry_option && tmp >= 0)
+	switch (po_get_numeric(options, "retry", &tmp)) {
+	case PO_NOT_FOUND:
+		break;
+	case PO_FOUND:
+		if (tmp >= 0) {
 			timeout_minutes = tmp;
-		else if (verbose)
+			break;
+		}
+	case PO_BAD_VALUE:
+		if (verbose)
 			nfs_error(_("%s: invalid retry timeout was specified; "
 					"using default timeout"), progname);
+		break;
 	}
 
 	return time(NULL) + (time_t)(timeout_minutes * 60);
