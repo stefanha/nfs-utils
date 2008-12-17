@@ -53,23 +53,25 @@ xstrdup (const char *string)
 
 
 /*
- * Call with check=1 to verify that this host is not still on the rtnl
- * before unlinking file.
+ * Unlinking a file.
  */
 void
-xunlink (char *path, char *host, short int check)
+xunlink (char *path, char *host)
 {
-  char *tozap;
+	char *tozap;
 
-  tozap=alloca (strlen(path)+strlen(host)+2);
-  sprintf (tozap, "%s/%s", path, host);
+	tozap = malloc(strlen(path)+strlen(host)+2);
+	if (tozap == NULL) {
+		note(N_ERROR, "xunlink: malloc failed: errno %d (%s)", 
+			errno, strerror(errno));
+		return;
+	}
+	sprintf (tozap, "%s/%s", path, host);
 
-  if (!check || !nlist_gethost(rtnl, host, 0)) {
-    if (unlink (tozap) == -1)
-      note (N_ERROR, "unlink (%s): %s", tozap, strerror (errno));
-    else
-      dprintf (N_DEBUG, "Unlinked %s", tozap);
-  }
-  else
-    dprintf (N_DEBUG, "Not unlinking %s--host still monitored.", tozap);
+	if (unlink (tozap) == -1)
+		note(N_ERROR, "unlink (%s): %s", tozap, strerror (errno));
+	else
+		dprintf (N_DEBUG, "Unlinked %s", tozap);
+
+	free(tozap);
 }
