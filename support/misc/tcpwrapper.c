@@ -86,6 +86,9 @@ int hosts_ctl(char *daemon, char *name, char *addr, char *user)
 #define log_client(addr, proc, prog) \
   logit(allow_severity, addr, proc, prog, "")
 
+#define ALLOW 1
+#define DENY 0
+
 int
 good_client(daemon, addr)
 char *daemon;
@@ -95,47 +98,44 @@ struct sockaddr_in *addr;
     char **sp;
     char *tmpname;
 
-    /* Check the IP address first. */
-    if (hosts_ctl(daemon, "", inet_ntoa(addr->sin_addr), ""))
-	return 1;
+	/* First check the address. */
+	if (hosts_ctl(daemon, "", inet_ntoa(addr->sin_addr), "") == DENY)
+		return DENY;
 
-    /* Check the hostname. */
-    hp = gethostbyaddr ((const char *) &(addr->sin_addr),
-			sizeof (addr->sin_addr), AF_INET);
+	/* Now do the hostname lookup */
+	hp = gethostbyaddr ((const char *) &(addr->sin_addr),
+		sizeof (addr->sin_addr), AF_INET);
+	if (!hp)
+		return DENY; /* never heard of it. misconfigured DNS? */
 
-    if (!hp)
-	return 0;
+	/* Make sure the hostent is authorative. */
+	tmpname = strdup(hp->h_name);
+	if (!tmpname)
+		return DENY;
+	hp = gethostbyname(tmpname);
+	free(tmpname);
+	if (!hp)
+		return DENY; /* never heard of it. misconfigured DNS? */
 
-    /* must make sure the hostent is authorative. */
-    tmpname = alloca (strlen (hp->h_name) + 1);
-    strcpy (tmpname, hp->h_name);
-    hp = gethostbyname(tmpname);
-    if (hp) {
-	/* now make sure the "addr->sin_addr" is on the list */
+	/* Now make sure the address is on the list */
 	for (sp = hp->h_addr_list ; *sp ; sp++) {
-	    if (memcmp(*sp, &(addr->sin_addr), hp->h_length)==0)
-		break;
+	    if (memcmp(*sp, &(addr->sin_addr), hp->h_length) == 0)
+			break;
 	}
 	if (!*sp)
-	    /* it was a FAKE. */
-	    return 0;
-    }
-    else
-	   /* never heard of it. misconfigured DNS? */
-	   return 0;
+	    return DENY; /* it was a FAKE. */
 
-   /* Check the official name first. */
-   if (hosts_ctl(daemon, hp->h_name, "", ""))
-	return 1;
+	/* Check the official name and address. */
+	if (hosts_ctl(daemon, hp->h_name, inet_ntoa(addr->sin_addr), "") == DENY)
+		return DENY;
 
-   /* Check aliases. */
-   for (sp = hp->h_aliases; *sp ; sp++) {
-	if (hosts_ctl(daemon, *sp, "", ""))
-	    return 1;
-   }
+	/* Now check aliases. */
+	for (sp = hp->h_aliases; *sp ; sp++) {
+		if (hosts_ctl(daemon, *sp, inet_ntoa(addr->sin_addr), "") == DENY)
+	    	return DENY;
+	}
 
-   /* No match */
-   return 0;
+   return ALLOW;
 }
 
 /* check_startup - additional startup code */
@@ -184,12 +184,13 @@ struct sockaddr_in *addr;
 u_long  proc;
 u_long  prog;
 {
-    if (!(from_local(addr) || good_client(daemon, addr))) {
-	log_bad_host(addr, proc, prog);
-	return (FALSE);
-    }
-    if (verboselog)
-	log_client(addr, proc, prog);
+	if (!(from_local(addr) || good_client(daemon, addr))) {
+		log_bad_host(addr, proc, prog);
+		return (FALSE);
+	}
+	if (verboselog)
+		log_client(addr, proc, prog);
+
     return (TRUE);
 }
 
