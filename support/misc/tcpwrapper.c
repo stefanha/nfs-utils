@@ -44,6 +44,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/signal.h>
+#include <sys/queue.h>
 #ifdef SYSV40
 #include <netinet/in.h>
 #include <rpc/rpcent.h>
@@ -88,6 +89,76 @@ int hosts_ctl(char *daemon, char *name, char *addr, char *user)
 
 #define ALLOW 1
 #define DENY 0
+
+typedef struct _haccess_t {
+	TAILQ_ENTRY(_haccess_t) list;
+	int access;
+    struct in_addr addr;
+} haccess_t;
+
+#define HASH_TABLE_SIZE 1021
+typedef struct _hash_head {
+	TAILQ_HEAD(host_list, _haccess_t) h_head;
+} hash_head;
+hash_head haccess_tbl[HASH_TABLE_SIZE];
+static haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long, u_long);
+static void haccess_add(struct sockaddr_in *addr, u_long, u_long, int);
+
+inline unsigned int strtoint(char *str)
+{
+	unsigned int n = 0;
+	int len = strlen(str);
+	int i;
+
+	for (i=0; i < len; i++)
+		n+=((int)str[i])*i;
+
+	return n;
+}
+inline int hashint(unsigned int num)
+{
+	return num % HASH_TABLE_SIZE;
+}
+#define HASH(_addr, _proc, _prog) \
+	hashint((strtoint((_addr))+(_proc)+(_prog)))
+
+void haccess_add(struct sockaddr_in *addr, u_long proc, 
+	u_long prog, int access)
+{
+	hash_head *head;
+ 	haccess_t *hptr;
+	int hash;
+
+	hptr = (haccess_t *)malloc(sizeof(haccess_t));
+	if (hptr == NULL)
+		return;
+
+	hash = HASH(inet_ntoa(addr->sin_addr), proc, prog);
+	head = &(haccess_tbl[hash]);
+
+	hptr->access = access;
+	hptr->addr.s_addr = addr->sin_addr.s_addr;
+
+	if (TAILQ_EMPTY(&head->h_head))
+		TAILQ_INSERT_HEAD(&head->h_head, hptr, list);
+	else
+		TAILQ_INSERT_TAIL(&head->h_head, hptr, list);
+}
+haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long proc, u_long prog)
+{
+	hash_head *head;
+ 	haccess_t *hptr;
+	int hash;
+
+	hash = HASH(inet_ntoa(addr->sin_addr), proc, prog);
+	head = &(haccess_tbl[hash]);
+
+	TAILQ_FOREACH(hptr, &head->h_head, list) {
+		if (hptr->addr.s_addr == addr->sin_addr.s_addr)
+			return hptr;
+	}
+	return NULL;
+}
 
 int
 good_client(daemon, addr)
@@ -184,13 +255,21 @@ struct sockaddr_in *addr;
 u_long  proc;
 u_long  prog;
 {
+	haccess_t *acc = NULL;
+
+	acc = haccess_lookup(addr, proc, prog);
+	if (acc)
+		return (acc->access);
+
 	if (!(from_local(addr) || good_client(daemon, addr))) {
 		log_bad_host(addr, proc, prog);
+		haccess_add(addr, proc, prog, FALSE);
 		return (FALSE);
 	}
 	if (verboselog)
 		log_client(addr, proc, prog);
 
+	haccess_add(addr, proc, prog, TRUE);
     return (TRUE);
 }
 
