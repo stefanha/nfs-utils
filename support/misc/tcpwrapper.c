@@ -45,6 +45,9 @@
 #include <sys/types.h>
 #include <sys/signal.h>
 #include <sys/queue.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #ifdef SYSV40
 #include <netinet/in.h>
 #include <rpc/rpcent.h>
@@ -53,6 +56,8 @@
 static void logit(int severity, struct sockaddr_in *addr,
 		  u_long procnum, u_long prognum, char *text);
 static void toggle_verboselog(int sig);
+static int check_files(void);
+
 int     verboselog = 0;
 int     allow_severity = LOG_INFO;
 int     deny_severity = LOG_WARNING;
@@ -246,6 +251,33 @@ void    check_startup(void)
     (void) signal(SIGINT, toggle_verboselog);
 }
 
+/* check_files - check to see if either access files have changed */
+
+static int check_files()
+{
+	static time_t allow_mtime, deny_mtime;
+	struct stat astat, dstat;
+	int changed = 0;
+
+	if (stat("/etc/hosts.allow", &astat) < 0)
+		astat.st_mtime = 0;
+	if (stat("/etc/hosts.deny", &dstat) < 0)
+		dstat.st_mtime = 0;
+
+	if(!astat.st_mtime || !dstat.st_mtime)
+		return changed;
+
+	if (astat.st_mtime != allow_mtime)
+		changed = 1;
+	else if (dstat.st_mtime != deny_mtime)
+		changed = 1;
+
+	allow_mtime = astat.st_mtime;
+	deny_mtime = dstat.st_mtime;
+
+	return changed;
+}
+
 /* check_default - additional checks for NULL, DUMP, GETPORT and unknown */
 
 int
@@ -256,20 +288,27 @@ u_long  proc;
 u_long  prog;
 {
 	haccess_t *acc = NULL;
+	int changed = check_files();
 
 	acc = haccess_lookup(addr, proc, prog);
-	if (acc)
+	if (acc && changed == 0)
 		return (acc->access);
 
 	if (!(from_local(addr) || good_client(daemon, addr))) {
 		log_bad_host(addr, proc, prog);
-		haccess_add(addr, proc, prog, FALSE);
+		if (acc)
+			acc->access = FALSE;
+		else 
+			haccess_add(addr, proc, prog, FALSE);
 		return (FALSE);
 	}
 	if (verboselog)
 		log_client(addr, proc, prog);
 
-	haccess_add(addr, proc, prog, TRUE);
+	if (acc)
+		acc->access = TRUE;
+	else 
+		haccess_add(addr, proc, prog, TRUE);
     return (TRUE);
 }
 
