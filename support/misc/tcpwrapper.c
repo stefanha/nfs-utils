@@ -48,6 +48,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "xlog.h"
+
 #ifdef SYSV40
 #include <netinet/in.h>
 #include <rpc/rpcent.h>
@@ -181,17 +183,27 @@ struct sockaddr_in *addr;
 	/* Now do the hostname lookup */
 	hp = gethostbyaddr ((const char *) &(addr->sin_addr),
 		sizeof (addr->sin_addr), AF_INET);
-	if (!hp)
+	if (!hp) {
+		xlog(L_WARNING, 
+			"Warning: Client IP address '%s' not found in host lookup",
+			inet_ntoa(addr->sin_addr));
 		return DENY; /* never heard of it. misconfigured DNS? */
+	}
 
 	/* Make sure the hostent is authorative. */
 	tmpname = strdup(hp->h_name);
-	if (!tmpname)
+	if (!tmpname) {
+		xlog(L_WARNING, "Warning: No memory for Host access check");
 		return DENY;
+	}
 	hp = gethostbyname(tmpname);
-	free(tmpname);
-	if (!hp)
+	if (!hp) {
+		xlog(L_WARNING, 
+			"Warning: Client hostname '%s' not found in host lookup", tmpname);
+		free(tmpname);
 		return DENY; /* never heard of it. misconfigured DNS? */
+	}
+	free(tmpname);
 
 	/* Now make sure the address is on the list */
 	for (sp = hp->h_addr_list ; *sp ; sp++) {
