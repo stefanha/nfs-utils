@@ -399,7 +399,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 		goto out;
 	}
 	if (krb5_get_init_creds_opt_set_addressless(context, init_opts, 1))
-		printerr(0, "WARNING: Unable to set option for addressless "
+		printerr(1, "WARNING: Unable to set option for addressless "
 			 "tickets.  May have problems behind a NAT.\n");
 #ifdef TEST_SHORT_LIFETIME
 	/* set a short lifetime (for debugging only!) */
@@ -422,7 +422,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 
 	if ((code = krb5_get_init_creds_keytab(context, &my_creds, ple->princ,
 					       kt, 0, NULL, opts))) {
-		printerr(0, "WARNING: %s while getting initial ticket for "
+		printerr(1, "WARNING: %s while getting initial ticket for "
 			 "principal '%s' using keytab '%s'\n",
 			 gssd_k5_err_msg(context, code),
 			 pname ? pname : "<unparsable>", kt_name);
@@ -632,7 +632,7 @@ get_full_hostname(const char *inhost, char *outhost, int outhostlen)
 	/* Get full target hostname */
 	retval = getaddrinfo(inhost, NULL, &hints, &addrs);
 	if (retval) {
-		printerr(0, "%s while getting full hostname for '%s'\n",
+		printerr(1, "%s while getting full hostname for '%s'\n",
 			 gai_strerror(retval), inhost);
 		goto out;
 	}

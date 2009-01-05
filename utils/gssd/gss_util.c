@@ -216,7 +216,7 @@ gssd_acquire_cred(char *server_name)
 		ignore_maj_stat = gss_display_name(&ignore_min_stat,
 				target_name, &pbuf, NULL);
 		if (ignore_maj_stat == GSS_S_COMPLETE) {
-			printerr(0, "Unable to obtain credentials for '%.*s'\n",
+			printerr(1, "Unable to obtain credentials for '%.*s'\n",
 				 pbuf.length, pbuf.value);
 			ignore_maj_stat = gss_release_buffer(&ignore_min_stat,
 							     &pbuf);

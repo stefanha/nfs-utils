@@ -448,7 +448,7 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	return 0;
 out_err:
 	if (buf) free(buf);
-	printerr(0, "Failed to write downcall!\n");
+	printerr(1, "Failed to write downcall!\n");
 	return -1;
 }
 
@@ -741,14 +741,14 @@ handle_krb5_upcall(struct clnt_info *clp)
 			}
 			gssd_free_krb5_machine_cred_list(credlist);
 			if (!success) {
-				printerr(0, "WARNING: Failed to create krb5 context "
+				printerr(1, "WARNING: Failed to create krb5 context "
 					 "for user with uid %d with any "
 					 "credentials cache for server %s\n",
 					 uid, clp->servername);
 				goto out_return_error;
 			}
 		} else {
-			printerr(0, "WARNING: Failed to create krb5 context "
+			printerr(1, "WARNING: Failed to create krb5 context "
 				 "for user with uid %d for server %s\n",
 				 uid, clp->servername);
 			goto out_return_error;
@@ -756,7 +756,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 	}
 
 	if (!authgss_get_private_data(auth, &pd)) {
-		printerr(0, "WARNING: Failed to obtain authentication "
+		printerr(1, "WARNING: Failed to obtain authentication "
 			    "data for user with uid %d for server %s\n",
 			 uid, clp->servername);
 		goto out_return_error;

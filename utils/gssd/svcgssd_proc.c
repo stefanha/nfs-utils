@@ -108,7 +108,7 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 	fclose(f);
 	return err;
 out_err:
-	printerr(0, "WARNING: downcall failed\n");
+	printerr(1, "WARNING: downcall failed\n");
 	return -1;
 }
 
@@ -247,7 +247,7 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 			res = 0;
 			goto out_free;
 		}
-		printerr(0, "WARNING: get_ids: failed to map name '%s' "
+		printerr(1, "WARNING: get_ids: failed to map name '%s' "
 			"to uid/gid: %s\n", sname, strerror(-res));
 		goto out_free;
 	}
@@ -380,7 +380,7 @@ handle_nullreq(FILE *f) {
 		goto continue_needed;
 	}
 	else if (maj_stat != GSS_S_COMPLETE) {
-		printerr(0, "WARNING: gss_accept_sec_context failed\n");
+		printerr(1, "WARNING: gss_accept_sec_context failed\n");
 		pgsserr("handle_nullreq: gss_accept_sec_context",
 			maj_stat, min_stat, mech);
 		goto out_err;
