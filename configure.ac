@@ -259,7 +259,7 @@ if test "$enable_ipv6" = yes; then
   AC_CHECK_LIB(tirpc, clnt_tli_create, ,
                AC_MSG_ERROR([libtirpc needed for IPv6 support]))
   AC_CHECK_HEADERS(tirpc/netconfig.h, ,
-               AC_MSG_ERROR([libtirpc-devel needed for IPv6 support]))
+               AC_MSG_ERROR([libtirpc headers needed for IPv6 support]))
   AC_CHECK_DECL([AI_ADDRCONFIG], ,
                AC_MSG_ERROR([full getaddrinfo(3) implementation needed for IPv6 support]),
                [ #include <netdb.h> ] )

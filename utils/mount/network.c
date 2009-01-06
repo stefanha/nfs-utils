@@ -161,6 +161,7 @@ static void nfs_set_port(struct sockaddr *sap, const unsigned short port)
 /**
  * nfs_name_to_address - resolve hostname to an IPv4 or IPv6 socket address
  * @hostname: pointer to C string containing DNS hostname to resolve
+ * @af_hint: hint to restrict resolution to one address family
  * @sap: pointer to buffer to fill with socket address
  * @len: IN: size of buffer to fill; OUT: size of socket address
  *
@@ -270,7 +271,7 @@ int nfs_name_to_address(const char *hostname,
 /**
  * nfs_gethostbyname - resolve a hostname to an IPv4 address
  * @hostname: pointer to a C string containing a DNS hostname
- * @saddr: returns an IPv4 address 
+ * @sin: returns an IPv4 address 
  *
  * Returns 1 if successful, otherwise zero.
  */
