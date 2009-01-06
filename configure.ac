@@ -246,6 +246,11 @@ if test "$enable_gss" = yes; then
 
 fi
 
+AC_CHECK_DECL([AI_ADDRCONFIG],
+              AC_DEFINE([HAVE_DECL_AI_ADDRCONFIG], 1,
+                         [Define this to 1 if AI_ADDRCONFIG macro is defined]), ,
+              [ #include <netdb.h> ] )
+
 if test "$enable_ipv6" = yes; then
   AC_CHECK_FUNC(inet_ntop, , ,
                AC_MSG_ERROR(Function 'inet_ntop' not found.))
@@ -255,6 +260,9 @@ if test "$enable_ipv6" = yes; then
                AC_MSG_ERROR([libtirpc needed for IPv6 support]))
   AC_CHECK_HEADERS(tirpc/netconfig.h, ,
                AC_MSG_ERROR([libtirpc-devel needed for IPv6 support]))
+  AC_CHECK_DECL([AI_ADDRCONFIG], ,
+               AC_MSG_ERROR([full getaddrinfo(3) implementation needed for IPv6 support]),
+               [ #include <netdb.h> ] )
 fi
 
 dnl *************************************************************

@@ -157,6 +157,7 @@ static void nfs_set_port(struct sockaddr *sap, const unsigned short port)
 	}
 }
 
+#ifdef HAVE_DECL_AI_ADDRCONFIG
 /**
  * nfs_name_to_address - resolve hostname to an IPv4 or IPv6 socket address
  * @hostname: pointer to C string containing DNS hostname to resolve
@@ -210,6 +211,61 @@ int nfs_name_to_address(const char *hostname,
 	freeaddrinfo(gai_results);
 	return ret;
 }
+#else	/* HAVE_DECL_AI_ADDRCONFIG */
+/**
+ * nfs_name_to_address - resolve hostname to an IPv4 socket address
+ * @hostname: pointer to C string containing DNS hostname to resolve
+ * @af_hint: hint to restrict resolution to one address family
+ * @sap: pointer to buffer to fill with socket address
+ * @len: IN: size of buffer to fill; OUT: size of socket address
+ *
+ * Returns 1 and places a socket address at @sap if successful;
+ * otherwise zero.
+ *
+ * Some older getaddrinfo(3) implementations don't support
+ * AI_ADDRCONFIG or AI_V4MAPPED properly.  For those cases, a DNS
+ * resolver based on the traditional gethostbyname(3) is provided.
+ */
+int nfs_name_to_address(const char *hostname,
+			const sa_family_t af_hint,
+			struct sockaddr *sap, socklen_t *salen)
+{
+	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+	socklen_t len = *salen;
+	struct hostent *hp;
+
+	*salen = 0;
+
+	if (af_hint != AF_INET) {
+		nfs_error(_("%s: address family not supported by DNS resolver\n"),
+				progname, hostname);
+		return 0;
+	}
+
+	sin->sin_family = AF_INET;
+	if (inet_aton(hostname, &sin->sin_addr)) {
+		*salen = sizeof(*sin);
+		return 1;
+	}
+
+	hp = gethostbyname(hostname);
+	if (hp == NULL) {
+		nfs_error(_("%s: DNS resolution failed for %s: %s"),
+				progname, hostname, hstrerror(h_errno));
+		return 0;
+	}
+
+	if (hp->h_length > len) {
+		nfs_error(_("%s: DNS resolution results too long for buffer\n"),
+				progname);
+		return 0;
+	}
+
+	memcpy(&sin->sin_addr, hp->h_addr, hp->h_length);
+	*salen = hp->h_length;
+	return 1;
+}
+#endif	/* HAVE_DECL_AI_ADDRCONFIG */
 
 /**
  * nfs_gethostbyname - resolve a hostname to an IPv4 address
