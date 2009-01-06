@@ -109,7 +109,7 @@ AC_ARG_WITH(rpcgen,
 	AC_SUBST(RPCGEN_PATH)
 	AM_CONDITIONAL(CONFIG_RPCGEN, [test "$RPCGEN_PATH" == ""])
 AC_ARG_ENABLE(uuid,
-	[AC_HELP_STRING([--without-uuid], [Exclude uuid support and so avoid possibly buggy libblkid])],
+	[AC_HELP_STRING([--disable-uuid], [Exclude uuid support to avoid buggy libblkid])],
 	if test "$enableval" = "yes" ; then choose_blkid=yes; else choose_blkid=no; fi,
 	choose_blkid=default)
 AC_ARG_ENABLE(mount,
