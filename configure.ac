@@ -252,8 +252,6 @@ AC_CHECK_DECL([AI_ADDRCONFIG],
               [ #include <netdb.h> ] )
 
 if test "$enable_ipv6" = yes; then
-  AC_CHECK_FUNC(inet_ntop, , ,
-               AC_MSG_ERROR(Function 'inet_ntop' not found.))
   AC_CHECK_FUNC(getnameinfo, , ,
                AC_MSG_ERROR(Function 'getnameinfo' not found.))
   AC_CHECK_LIB(tirpc, clnt_tli_create, ,
@@ -309,7 +307,7 @@ AC_FUNC_STAT
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit dup2 fdatasync ftruncate getcwd \
                gethostbyaddr gethostbyname gethostname getmntent \
-               inet_ntop getnameinfo getrpcbyname \
+               getnameinfo getrpcbyname \
                bindresvport_sa getnetconfig \
                clnt_create clnt_create_timed \
                clnt_tli_create clnt_vc_create clnt_dg_create xdr_rpcb \
