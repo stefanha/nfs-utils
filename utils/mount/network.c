@@ -50,24 +50,6 @@
 #include "nfsrpc.h"
 #include "network.h"
 
-/*
- * Earlier versions of glibc's /usr/include/netdb.h exclude these
- * definitions because it was thought they were not part of a stable
- * POSIX standard.  However, they are defined by RFC 2553 and 3493
- * and in POSIX 1003.1-2001, so these definitions were added in later
- * versions of netdb.h.
- */
-#ifndef AI_V4MAPPED
-#define AI_V4MAPPED     0x0008  /* IPv4-mapped addresses are acceptable.  */
-#endif	/* AI_V4MAPPED */
-#ifndef AI_ALL
-#define AI_ALL          0x0010  /* Return both IPv4 and IPv6 addresses.  */
-#endif	/* AI_ALL */
-#ifndef AI_ADDRCONFIG
-#define AI_ADDRCONFIG   0x0020  /* Use configuration of this host to choose \
-				   returned address type.  */
-#endif	/* AI_ADDRCONFIG */
-
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
 #define MOUNT_TIMEOUT	(30)
@@ -175,9 +157,11 @@ static void nfs_set_port(struct sockaddr *sap, const unsigned short port)
 	}
 }
 
+#ifdef HAVE_DECL_AI_ADDRCONFIG
 /**
  * nfs_name_to_address - resolve hostname to an IPv4 or IPv6 socket address
  * @hostname: pointer to C string containing DNS hostname to resolve
+ * @af_hint: hint to restrict resolution to one address family
  * @sap: pointer to buffer to fill with socket address
  * @len: IN: size of buffer to fill; OUT: size of socket address
  *
@@ -228,11 +212,66 @@ int nfs_name_to_address(const char *hostname,
 	freeaddrinfo(gai_results);
 	return ret;
 }
+#else	/* HAVE_DECL_AI_ADDRCONFIG */
+/**
+ * nfs_name_to_address - resolve hostname to an IPv4 socket address
+ * @hostname: pointer to C string containing DNS hostname to resolve
+ * @af_hint: hint to restrict resolution to one address family
+ * @sap: pointer to buffer to fill with socket address
+ * @len: IN: size of buffer to fill; OUT: size of socket address
+ *
+ * Returns 1 and places a socket address at @sap if successful;
+ * otherwise zero.
+ *
+ * Some older getaddrinfo(3) implementations don't support
+ * AI_ADDRCONFIG or AI_V4MAPPED properly.  For those cases, a DNS
+ * resolver based on the traditional gethostbyname(3) is provided.
+ */
+int nfs_name_to_address(const char *hostname,
+			const sa_family_t af_hint,
+			struct sockaddr *sap, socklen_t *salen)
+{
+	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+	socklen_t len = *salen;
+	struct hostent *hp;
+
+	*salen = 0;
+
+	if (af_hint != AF_INET) {
+		nfs_error(_("%s: address family not supported by DNS resolver\n"),
+				progname, hostname);
+		return 0;
+	}
+
+	sin->sin_family = AF_INET;
+	if (inet_aton(hostname, &sin->sin_addr)) {
+		*salen = sizeof(*sin);
+		return 1;
+	}
+
+	hp = gethostbyname(hostname);
+	if (hp == NULL) {
+		nfs_error(_("%s: DNS resolution failed for %s: %s"),
+				progname, hostname, hstrerror(h_errno));
+		return 0;
+	}
+
+	if (hp->h_length > len) {
+		nfs_error(_("%s: DNS resolution results too long for buffer\n"),
+				progname);
+		return 0;
+	}
+
+	memcpy(&sin->sin_addr, hp->h_addr, hp->h_length);
+	*salen = hp->h_length;
+	return 1;
+}
+#endif	/* HAVE_DECL_AI_ADDRCONFIG */
 
 /**
  * nfs_gethostbyname - resolve a hostname to an IPv4 address
  * @hostname: pointer to a C string containing a DNS hostname
- * @saddr: returns an IPv4 address 
+ * @sin: returns an IPv4 address 
  *
  * Returns 1 if successful, otherwise zero.
  */

@@ -73,6 +73,60 @@ static const char *nfs_gp_rpcb_pgmtbl[] = {
 	NULL,
 };
 
+#ifdef HAVE_DECL_AI_ADDRCONFIG
+/*
+ * getaddrinfo(3) generates a usable loopback address based on how the
+ * local network interfaces are configured.  RFC 3484 requires that the
+ * results are sorted so that the first result has the best likelihood
+ * of working, so we try just that first result.
+ *
+ * Returns TRUE on success.
+ */
+static int nfs_gp_loopback_address(struct sockaddr *sap, socklen_t *salen)
+{
+	struct addrinfo *gai_results;
+	struct addrinfo gai_hint = {
+		.ai_flags	= AI_ADDRCONFIG,
+	};
+	socklen_t len = *salen;
+	int ret = 0;
+
+	if (getaddrinfo(NULL, "sunrpc", &gai_hint, &gai_results))
+		return 0;
+
+	switch (gai_results->ai_addr->sa_family) {
+	case AF_INET:
+	case AF_INET6:
+		if (len >= gai_results->ai_addrlen) {
+			memcpy(sap, gai_results->ai_addr,
+					gai_results->ai_addrlen);
+			*salen = gai_results->ai_addrlen;
+			ret = 1;
+		}
+	}
+
+	freeaddrinfo(gai_results);
+	return ret;
+}
+#else
+/*
+ * Old versions of getaddrinfo(3) don't support AI_ADDRCONFIG, so we
+ * have a fallback for building on legacy systems.
+ */
+static int nfs_gp_loopback_address(struct sockaddr *sap, socklen_t *salen)
+{
+	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+
+	memset(sin, 0, sizeof(*sin));
+
+	sin->sin_family = AF_INET;
+	sin->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	*salen = sizeof(*sin);
+
+	return 1;
+}
+#endif
+
 /*
  * Discover the port number that should be used to contact an
  * rpcbind service.  This will detect if the port has a local
@@ -780,12 +834,10 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
 				const rpcvers_t version,
 				const unsigned short protocol)
 {
-	struct addrinfo *gai_results;
-	struct addrinfo gai_hint = {
-		.ai_flags	= AI_ADDRCONFIG,
-	};
+	struct sockaddr_storage address;
+	struct sockaddr *lb_addr = (struct sockaddr *)&address;
+	socklen_t lb_len = sizeof(lb_addr);
 	unsigned short port = 0;
-	int error;
 
 #ifdef NFS_GP_LOCAL
 	const struct sockaddr_un sun = {
@@ -811,12 +863,9 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
 #endif	/* NFS_GP_LOCAL */
 
 	if (port == 0) {
-		error = getaddrinfo(NULL, "sunrpc", &gai_hint, &gai_results);
-		if (error == 0) {
-			port = nfs_getport(gai_results->ai_addr,
-						gai_results->ai_addrlen,
+		if (nfs_gp_loopback_address(lb_addr, &lb_len)) {
+			port = nfs_getport(lb_addr, lb_len,
 						program, version, protocol);
-			freeaddrinfo(gai_results);
 		} else
 			rpc_createerr.cf_stat = RPC_UNKNOWNADDR;
 	}

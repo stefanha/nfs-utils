@@ -109,7 +109,7 @@ AC_ARG_WITH(rpcgen,
 	AC_SUBST(RPCGEN_PATH)
 	AM_CONDITIONAL(CONFIG_RPCGEN, [test "$RPCGEN_PATH" == ""])
 AC_ARG_ENABLE(uuid,
-	[AC_HELP_STRING([--without-uuid], [Exclude uuid support and so avoid possibly buggy libblkid])],
+	[AC_HELP_STRING([--disable-uuid], [Exclude uuid support to avoid buggy libblkid])],
 	if test "$enableval" = "yes" ; then choose_blkid=yes; else choose_blkid=no; fi,
 	choose_blkid=default)
 AC_ARG_ENABLE(mount,
@@ -246,6 +246,11 @@ if test "$enable_gss" = yes; then
 
 fi
 
+AC_CHECK_DECL([AI_ADDRCONFIG],
+              AC_DEFINE([HAVE_DECL_AI_ADDRCONFIG], 1,
+                         [Define this to 1 if AI_ADDRCONFIG macro is defined]), ,
+              [ #include <netdb.h> ] )
+
 if test "$enable_ipv6" = yes; then
   AC_CHECK_FUNC(inet_ntop, , ,
                AC_MSG_ERROR(Function 'inet_ntop' not found.))
@@ -254,7 +259,10 @@ if test "$enable_ipv6" = yes; then
   AC_CHECK_LIB(tirpc, clnt_tli_create, ,
                AC_MSG_ERROR([libtirpc needed for IPv6 support]))
   AC_CHECK_HEADERS(tirpc/netconfig.h, ,
-               AC_MSG_ERROR([libtirpc-devel needed for IPv6 support]))
+               AC_MSG_ERROR([libtirpc headers needed for IPv6 support]))
+  AC_CHECK_DECL([AI_ADDRCONFIG], ,
+               AC_MSG_ERROR([full getaddrinfo(3) implementation needed for IPv6 support]),
+               [ #include <netdb.h> ] )
 fi
 
 dnl *************************************************************
