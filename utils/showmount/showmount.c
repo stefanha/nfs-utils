@@ -50,13 +50,6 @@ static int	aflag = 0;
 static int	dflag = 0;
 static int	eflag = 0;
 
-static const char *nfs_sm_pgmtbl[] = {
-	"showmount",
-	"mount",
-	"mountd",
-	NULL,
-};
-
 static struct option longopts[] =
 {
 	{ "all", 0, 0, 'a' },
@@ -86,6 +79,13 @@ static void usage(FILE *fp, int n)
 }
 
 #ifdef HAVE_CLNT_CREATE
+
+static const char *nfs_sm_pgmtbl[] = {
+	"showmount",
+	"mount",
+	"mountd",
+	NULL,
+};
 
 /*
  * Generate an RPC client handle connected to the mountd service
