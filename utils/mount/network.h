@@ -57,6 +57,11 @@ int clnt_ping(struct sockaddr_in *, const unsigned long,
 		const unsigned long, const unsigned int,
 		struct sockaddr_in *);
 
+struct mount_options;
+
+void nfs_options2pmap(struct mount_options *,
+		      struct pmap *, struct pmap *);
+
 int start_statd(void);
 
 unsigned long nfsvers_to_mnt(const unsigned long);
