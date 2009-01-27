@@ -224,9 +224,15 @@ static int nfs_fix_mounthost_option(const sa_family_t family,
  * Returns zero if the "lock" option is in effect, but statd
  * can't be started.  Otherwise, returns 1.
  */
+static const char *nfs_lock_opttbl[] = {
+	"nolock",
+	"lock",
+	NULL,
+};
+
 static int nfs_verify_lock_option(struct mount_options *options)
 {
-	if (po_rightmost(options, "nolock", "lock") == PO_KEY1_RIGHTMOST)
+	if (po_rightmost(options, nfs_lock_opttbl) == 1)
 		return 1;
 
 	if (!start_statd()) {
@@ -316,6 +322,12 @@ static int nfs_is_permanent_error(int error)
  * Returns a new group of mount options if successful; otherwise
  * NULL is returned if some failure occurred.
  */
+static const char *nfs_transport_opttbl[] = {
+	"udp",
+	"tcp",
+	NULL,
+};
+
 static struct mount_options *nfs_rewrite_mount_options(char *str)
 {
 	struct mount_options *options;
@@ -395,12 +407,12 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 			po_remove_all(options, "proto");
 		}
 	}
-	p = po_rightmost(options, "tcp", "udp");
+	p = po_rightmost(options, nfs_transport_opttbl);
 	switch (p) {
-	case PO_KEY2_RIGHTMOST:
+	case 1:
 		nfs_server.pmap.pm_prot = IPPROTO_UDP;
 		break;
-	case PO_KEY1_RIGHTMOST:
+	case 2:
 		nfs_server.pmap.pm_prot = IPPROTO_TCP;
 		break;
 	}
@@ -722,12 +734,18 @@ static int nfsmount_bg(struct nfsmount_info *mi)
  *
  * Returns a valid mount command exit code.
  */
+static const char *nfs_background_opttbl[] = {
+	"bg",
+	"fg",
+	NULL,
+};
+
 static int nfsmount_start(struct nfsmount_info *mi)
 {
 	if (!nfs_validate_options(mi))
 		return EX_FAIL;
 
-	if (po_rightmost(mi->options, "bg", "fg") == PO_KEY1_RIGHTMOST)
+	if (po_rightmost(mi->options, nfs_background_opttbl) == 1)
 		return nfsmount_bg(mi);
 	else
 		return nfsmount_fg(mi);

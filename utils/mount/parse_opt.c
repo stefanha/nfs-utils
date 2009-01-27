@@ -421,34 +421,38 @@ po_found_t po_get_numeric(struct mount_options *options, char *keyword, long *va
 #endif	/* HAVE_STRTOL */
 
 /**
- * po_rightmost - determine the relative position of two options
+ * po_rightmost - determine the relative position of several options
  * @options: pointer to mount options
- * @key1: pointer to a C string containing an option keyword
- * @key2: pointer to a C string containing another option keyword
+ * @keys: pointer to an array of C strings containing option keywords
+ *
+ * This function can be used to determine which of several similar
+ * options will be the one to take effect.
  *
  * The kernel parses the mount option string from left to right.
  * If an option is specified more than once (for example, "intr"
  * and "nointr", the rightmost option is the last to be parsed,
  * and it therefore takes precedence over previous similar options.
  *
- * This function can be used to determine which of two similar
- * options will be the one to take effect.
+ * This can also distinguish among multiple synonymous options, such
+ * as "proto=," "udp" and "tcp."
+ *
+ * Returns the index into @keys of the option that is rightmost.
+ * If none of the options are present, returns zero.
  */
-po_rightmost_t po_rightmost(struct mount_options *options,
-			    char *key1, char *key2)
+unsigned int po_rightmost(struct mount_options *options, const char *keys[])
 {
 	struct mount_option *option;
+	unsigned int i;
 
 	if (options) {
 		for (option = options->tail; option; option = option->prev) {
-			if (key2 && strcmp(option->keyword, key2) == 0)
-				return PO_KEY2_RIGHTMOST;
-			if (key1 && strcmp(option->keyword, key1) == 0)
-				return PO_KEY1_RIGHTMOST;
+			for (i = 0; keys[i] != NULL; i++)
+				if (strcmp(option->keyword, keys[i]) == 0)
+					return i;
 		}
 	}
 
-	return PO_NEITHER_FOUND;
+	return 0;
 }
 
 /**

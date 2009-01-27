@@ -35,12 +35,6 @@ typedef enum {
 	PO_BAD_VALUE = 2,
 } po_found_t;
 
-typedef enum {
-	PO_KEY1_RIGHTMOST = -1,
-	PO_NEITHER_FOUND = 0,
-	PO_KEY2_RIGHTMOST = 1,
-} po_rightmost_t;
-
 struct mount_options;
 
 struct mount_options *	po_split(char *);
@@ -53,7 +47,8 @@ po_found_t		po_contains(struct mount_options *, char *);
 char *			po_get(struct mount_options *, char *);
 po_found_t		po_get_numeric(struct mount_options *,
 					char *, long *);
-po_rightmost_t		po_rightmost(struct mount_options *, char *, char *);
+unsigned int		po_rightmost(struct mount_options *,
+					const char *keys[]);
 po_found_t		po_remove_all(struct mount_options *, char *);
 void			po_destroy(struct mount_options *);
 
