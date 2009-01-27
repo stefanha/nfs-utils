@@ -309,6 +309,81 @@ static int nfs_is_permanent_error(int error)
 	}
 }
 
+static int nfs_construct_new_options(struct mount_options *options,
+				     struct pmap *nfs_pmap,
+				     struct pmap *mnt_pmap)
+{
+	char new_option[64];
+
+	po_remove_all(options, "nfsprog");
+	po_remove_all(options, "mountprog");
+
+	po_remove_all(options, "v2");
+	po_remove_all(options, "v3");
+	po_remove_all(options, "vers");
+	po_remove_all(options, "nfsvers");
+	snprintf(new_option, sizeof(new_option) - 1,
+		 "vers=%lu", nfs_pmap->pm_vers);
+	if (po_append(options, new_option) == PO_FAILED)
+		return 0;
+
+	po_remove_all(options, "proto");
+	po_remove_all(options, "udp");
+	po_remove_all(options, "tcp");
+	switch (nfs_pmap->pm_prot) {
+	case IPPROTO_TCP:
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "proto=tcp");
+		if (po_append(options, new_option) == PO_FAILED)
+			return 0;
+		break;
+	case IPPROTO_UDP:
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "proto=udp");
+		if (po_append(options, new_option) == PO_FAILED)
+			return 0;
+		break;
+	}
+
+	po_remove_all(options, "port");
+	if (nfs_pmap->pm_port != NFS_PORT) {
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "port=%lu", nfs_pmap->pm_port);
+		if (po_append(options, new_option) == PO_FAILED)
+			return 0;
+	}
+
+	po_remove_all(options, "mountvers");
+	snprintf(new_option, sizeof(new_option) - 1,
+		 "mountvers=%lu", mnt_pmap->pm_vers);
+	if (po_append(options, new_option) == PO_FAILED)
+		return 0;
+
+	po_remove_all(options, "mountproto");
+	switch (mnt_pmap->pm_prot) {
+	case IPPROTO_TCP:
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "mountproto=tcp");
+		if (po_append(options, new_option) == PO_FAILED)
+			return 0;
+		break;
+	case IPPROTO_UDP:
+		snprintf(new_option, sizeof(new_option) - 1,
+			 "mountproto=udp");
+		if (po_append(options, new_option) == PO_FAILED)
+			return 0;
+		break;
+	}
+
+	po_remove_all(options, "mountport");
+	snprintf(new_option, sizeof(new_option) - 1,
+		 "mountport=%lu", mnt_pmap->pm_port);
+	if (po_append(options, new_option) == PO_FAILED)
+		return 0;
+
+	return 1;
+}
+
 /*
  * Reconstruct the mount option string based on a portmapper probe
  * of the server.  Returns one if the server's portmapper returned
@@ -325,7 +400,7 @@ static int nfs_is_permanent_error(int error)
 static struct mount_options *nfs_rewrite_mount_options(char *str)
 {
 	struct mount_options *options;
-	char *option, new_option[64];
+	char *option;
 	clnt_addr_t mnt_server = { };
 	clnt_addr_t nfs_server = { };
 
@@ -366,41 +441,11 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 		goto err;
 	}
 
-	snprintf(new_option, sizeof(new_option) - 1,
-		 "nfsvers=%lu", nfs_server.pmap.pm_vers);
-	if (po_append(options, new_option) == PO_FAILED)
+	if (!nfs_construct_new_options(options,
+					&nfs_server.pmap, &mnt_server.pmap)) {
+		errno = EINVAL;
 		goto err;
-
-	if (nfs_server.pmap.pm_prot == IPPROTO_TCP)
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "proto=tcp");
-	else
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "proto=udp");
-	if (po_append(options, new_option) == PO_FAILED)
-		goto err;
-
-	if (nfs_server.pmap.pm_port != NFS_PORT) {
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "port=%lu", nfs_server.pmap.pm_port);
-		if (po_append(options, new_option) == PO_FAILED)
-			goto err;
-
 	}
-
-	if (mnt_server.pmap.pm_prot == IPPROTO_TCP)
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "mountproto=tcp");
-	else
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "mountproto=udp");
-	if (po_append(options, new_option) == PO_FAILED)
-		goto err;
-
-	snprintf(new_option, sizeof(new_option) - 1,
-		 "mountport=%lu", mnt_server.pmap.pm_port);
-	if (po_append(options, new_option) == PO_FAILED)
-		goto err;
 
 	errno = 0;
 	return options;
