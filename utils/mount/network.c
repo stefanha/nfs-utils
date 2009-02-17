@@ -838,6 +838,59 @@ int start_statd(void)
 }
 
 /**
+ * nfs_advise_umount - ask the server to remove a share from it's rmtab
+ * @sap: pointer to IP address of server to call
+ * @salen: length of server address
+ * @pmap: partially filled-in mountd RPC service tuple
+ * @argp: directory path of share to "unmount"
+ *
+ * Returns one if the unmount call succeeded; zero if the unmount
+ * failed for any reason;  rpccreateerr.cf_stat is set to reflect
+ * the nature of the error.
+ *
+ * We use a fast timeout since this call is advisory only.
+ */
+int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
+		      const struct pmap *pmap, const dirpath *argp)
+{
+	struct sockaddr_storage address;
+	struct sockaddr *saddr = (struct sockaddr *)&address;
+	struct pmap mnt_pmap = *pmap;
+	struct timeval timeout = {
+		.tv_sec		= MOUNT_TIMEOUT >> 3,
+	};
+	CLIENT *client;
+	enum clnt_stat res = 0;
+
+	if (nfs_probe_mntport(sap, salen, &mnt_pmap) == 0)
+		return 0;
+
+	memcpy(saddr, sap, salen);
+	nfs_set_port(saddr, mnt_pmap.pm_port);
+
+	client = nfs_get_rpcclient(saddr, salen, mnt_pmap.pm_prot,
+					mnt_pmap.pm_prog, mnt_pmap.pm_vers,
+					&timeout);
+	if (client == NULL)
+		return 0;
+
+	client->cl_auth = authunix_create_default();
+
+	res = CLNT_CALL(client, MOUNTPROC_UMNT,
+			(xdrproc_t)xdr_dirpath, (caddr_t)argp,
+			(xdrproc_t)xdr_void, NULL,
+			timeout);
+
+	auth_destroy(client->cl_auth);
+	CLNT_DESTROY(client);
+
+	if (res != RPC_SUCCESS)
+		return 0;
+
+	return 1;
+}
+
+/**
  * nfs_call_umount - ask the server to remove a share from it's rmtab
  * @mnt_server: address of RPC MNT program server
  * @argp: directory path of share to "unmount"
