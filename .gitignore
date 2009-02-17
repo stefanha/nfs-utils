@@ -54,5 +54,7 @@ utils/statd/sm_inter.h
 utils/statd/sm_inter_clnt.c
 utils/statd/sm_inter_svc.c
 utils/statd/sm_inter_xdr.c
+# cscope database files
+cscope.*
 # generic editor backup et al
 *~
