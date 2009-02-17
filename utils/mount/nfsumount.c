@@ -34,6 +34,7 @@
 #include "mount.h"
 #include "error.h"
 #include "network.h"
+#include "parse_opt.h"
 #include "parse_dev.h"
 
 #if !defined(MNT_FORCE)
@@ -131,6 +132,100 @@ static int del_mtab(const char *spec, const char *node)
 	if (umnt_err)
 		umount_error(umnt_err, node);
 	return EX_FILEIO;
+}
+
+/*
+ * Discover mount server's hostname/address by examining mount options
+ *
+ * Returns a pointer to a string that the caller must free, on
+ * success; otherwise NULL is returned.
+ */
+static char *nfs_umount_hostname(struct mount_options *options,
+				 char *hostname)
+{
+	char *option;
+
+	option = po_get(options, "mountaddr");
+	if (option)
+		goto out;
+	option = po_get(options, "mounthost");
+	if (option)
+		goto out;
+	option = po_get(options, "addr");
+	if (option)
+		goto out;
+
+	return hostname;
+
+out:
+	free(hostname);
+	return strdup(option);
+}
+
+/*
+ * Returns EX_SUCCESS if mount options and device name have been
+ * parsed successfully; otherwise EX_FAIL.
+ */
+static int nfs_umount_do_umnt(struct mount_options *options,
+			      char **hostname, char **dirname)
+{
+	struct sockaddr_storage address;
+	struct sockaddr *sap = (struct sockaddr *)&address;
+	socklen_t salen = sizeof(address);
+	struct pmap nfs_pmap, mnt_pmap;
+
+	nfs_options2pmap(options, &nfs_pmap, &mnt_pmap);
+
+	*hostname = nfs_umount_hostname(options, *hostname);
+	if (!*hostname) {
+		nfs_error(_("%s: out of memory"), progname);
+		return EX_FAIL;
+	}
+
+	if (nfs_name_to_address(*hostname, AF_UNSPEC, sap, &salen)) {
+		if (nfs_advise_umount(sap, salen, &mnt_pmap, dirname) != 0)
+			return EX_SUCCESS;
+		else
+			nfs_error(_("%s: Server failed to unmount '%s:%s'"),
+					progname, *hostname, *dirname);
+	}
+	return EX_FAIL;
+}
+
+/*
+ * Pick up certain mount options used during the original mount
+ * from /etc/mtab.  The basics include the server's IP address and
+ * the server pathname of the share to unregister.
+ *
+ * These options might also describe the mount port, mount protocol
+ * version, and transport protocol used to punch through a firewall.
+ * We will need this information to get through the firewall again
+ * to do the umount.
+ *
+ * Note that option parsing failures won't necessarily cause the
+ * umount request to fail.  Those values will be left zero in the
+ * pmap tuple.  If the GETPORT call later fails to disambiguate them,
+ * then we fail.
+ */
+static int nfs_umount23(const char *devname, char *string)
+{
+	char *hostname, *dirname;
+	struct mount_options *options;
+	int result = EX_FAIL;
+
+	if (!nfs_parse_devname(devname, &hostname, &dirname))
+		return EX_USAGE;
+
+	options = po_split(string);
+	if (options) {
+		result = nfs_umount_do_umnt(options, &hostname, &dirname);
+		po_destroy(options);
+	} else
+		nfs_error(_("%s: option parsing error"), progname);
+
+	free(hostname);
+	free(dirname);
+	return result;
 }
 
 /*
@@ -350,16 +445,16 @@ int nfsumount(int argc, char *argv[])
 	ret = 0;
 	if (mc) {
 		if (!lazy && strcmp(mc->m.mnt_type, "nfs4") != 0)
-			/* We ignore the error from do_nfs_umount23.
+			/* We ignore the error from nfs_umount23.
 			 * If the actual umount succeeds (in del_mtab),
 			 * we don't want to signal an error, as that
 			 * could cause /sbin/mount to retry!
 			 */
-			do_nfs_umount23(mc->m.mnt_fsname, mc->m.mnt_opts);
-		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
+			nfs_umount23(mc->m.mnt_fsname, mc->m.mnt_opts);
+		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir) ?: ret;
 	} else if (*spec != '/') {
 		if (!lazy)
-			ret = do_nfs_umount23(spec, "tcp,v3");
+			ret = nfs_umount23(spec, "tcp,v3");
 	} else
 		ret = del_mtab(NULL, spec);
 
