@@ -331,9 +331,10 @@ static int nfs_extract_server_addresses(struct mount_options *options,
 		return 0;
 
 	option = po_get(options, "mountaddr");
-	if (option == NULL)
+	if (option == NULL) {
 		memcpy(mnt_saddr, nfs_saddr, *nfs_salen);
-	else if (!nfs_string_to_sockaddr(option, strlen(option),
+		*mnt_salen = *nfs_salen;
+	} else if (!nfs_string_to_sockaddr(option, strlen(option),
 						mnt_saddr, mnt_salen))
 		return 0;
 
