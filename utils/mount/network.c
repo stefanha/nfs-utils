@@ -1168,16 +1168,16 @@ static rpcvers_t nfs_nfs_version(struct mount_options *options)
 	long tmp;
 
 	switch (po_rightmost(options, nfs_version_opttbl)) {
-	case 1:	/* v2 */
+	case 0:	/* v2 */
 		return 2;
-	case 2: /* v3 */
+	case 1: /* v3 */
 		return 3;
-	case 3:	/* vers */
+	case 2:	/* vers */
 		if (po_get_numeric(options, "vers", &tmp) == PO_FOUND)
 			if (tmp >= 2 && tmp <= 3)
 				return tmp;
 		break;
-	case 4: /* nfsvers */
+	case 3: /* nfsvers */
 		if (po_get_numeric(options, "nfsvers", &tmp) == PO_FOUND)
 			if (tmp >= 2 && tmp <= 3)
 				return tmp;
@@ -1198,11 +1198,9 @@ static unsigned short nfs_nfs_protocol(struct mount_options *options)
 	char *option;
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
-	case 1:	/* udp */
-		return IPPROTO_UDP;
-	case 2: /* tcp */
+	case 1: /* tcp */
 		return IPPROTO_TCP;
-	case 3: /* proto */
+	case 2: /* proto */
 		option = po_get(options, "proto");
 		if (option) {
 			if (strcmp(option, "tcp") == 0)
@@ -1211,6 +1209,7 @@ static unsigned short nfs_nfs_protocol(struct mount_options *options)
 				return IPPROTO_UDP;
 		}
 	}
+
 	return IPPROTO_UDP;
 }
 

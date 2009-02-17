@@ -437,9 +437,10 @@ po_found_t po_get_numeric(struct mount_options *options, char *keyword, long *va
  * as "proto=," "udp" and "tcp."
  *
  * Returns the index into @keys of the option that is rightmost.
- * If none of the options are present, returns zero.
+ * If none of the options listed in @keys is present in @options, or
+ * if @options is NULL, returns -1.
  */
-unsigned int po_rightmost(struct mount_options *options, const char *keys[])
+int po_rightmost(struct mount_options *options, const char *keys[])
 {
 	struct mount_option *option;
 	unsigned int i;
@@ -452,7 +453,7 @@ unsigned int po_rightmost(struct mount_options *options, const char *keys[])
 		}
 	}
 
-	return 0;
+	return -1;
 }
 
 /**

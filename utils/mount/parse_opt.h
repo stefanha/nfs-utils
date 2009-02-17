@@ -47,7 +47,7 @@ po_found_t		po_contains(struct mount_options *, char *);
 char *			po_get(struct mount_options *, char *);
 po_found_t		po_get_numeric(struct mount_options *,
 					char *, long *);
-unsigned int		po_rightmost(struct mount_options *,
+int			po_rightmost(struct mount_options *,
 					const char *keys[]);
 po_found_t		po_remove_all(struct mount_options *, char *);
 void			po_destroy(struct mount_options *);

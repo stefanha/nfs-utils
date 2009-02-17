@@ -232,7 +232,7 @@ static const char *nfs_lock_opttbl[] = {
 
 static int nfs_verify_lock_option(struct mount_options *options)
 {
-	if (po_rightmost(options, nfs_lock_opttbl) == 1)
+	if (po_rightmost(options, nfs_lock_opttbl) == 0)
 		return 1;
 
 	if (!start_statd()) {
@@ -756,7 +756,7 @@ static int nfsmount_start(struct nfsmount_info *mi)
 	if (!nfs_validate_options(mi))
 		return EX_FAIL;
 
-	if (po_rightmost(mi->options, nfs_background_opttbl) == 1)
+	if (po_rightmost(mi->options, nfs_background_opttbl) == 0)
 		return nfsmount_bg(mi);
 	else
 		return nfsmount_fg(mi);
