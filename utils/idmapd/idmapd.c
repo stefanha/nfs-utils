@@ -342,9 +342,11 @@ main(int argc, char **argv)
 			xlog_err("main: fcntl(%s): %s", pipefsdir, strerror(errno));
 
 		if (fcntl(fd, F_NOTIFY,
-			DN_CREATE | DN_DELETE | DN_MODIFY | DN_MULTISHOT) == -1)
+			DN_CREATE | DN_DELETE | DN_MODIFY | DN_MULTISHOT) == -1) {
 			xlog_err("main: fcntl(%s): %s", pipefsdir, strerror(errno));
-
+			if (errno == EINVAL)
+				xlog_err("main: Possibly no Dnotify support in kernel.");
+		}
 		TAILQ_INIT(&icq);
 
 		/* These events are persistent */
