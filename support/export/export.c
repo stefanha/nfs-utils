@@ -19,7 +19,8 @@
 #include "nfslib.h"
 #include "exportfs.h"
 
-nfs_export	*exportlist[MCL_MAXTYPES] = { NULL, };
+exp_hash_table exportlist[MCL_MAXTYPES] = {{NULL, {{NULL,NULL}, }}, }; 
+static int export_hash(char *);
 
 static void	export_init(nfs_export *exp, nfs_client *clp,
 					struct exportent *nep);
@@ -125,22 +126,35 @@ export_dup(nfs_export *exp, struct hostent *hp)
 
 	return new;
 }
-
-void
+/*
+ * Add export entry to hash table
+ */
+void 
 export_add(nfs_export *exp)
 {
-	nfs_export	**epp;
-	int		type = exp->m_client->m_type;
-	int		slen = strlen(exp->m_export.e_path);
+	exp_hash_table *p_tbl;
+	exp_hash_entry *p_hen;
+	nfs_export *p_next;
 
-	if (type < 0 || type >= MCL_MAXTYPES)
-		xlog(L_FATAL, "unknown client type in export_add");
+	int type = exp->m_client->m_type;
+	int pos;
 
-	epp = exportlist + type;
-	while (*epp && slen <= strlen((*epp)->m_export.e_path))
-		epp = &((*epp)->m_next);
-	exp->m_next = *epp;
-	*epp = exp;
+	pos = export_hash(exp->m_export.e_path);
+	p_tbl = &(exportlist[type]); /* pointer to hash table */
+	p_hen = &(p_tbl->entries[pos]); /* pointer to hash table entry */
+
+	if (!(p_hen->p_first)) { /* hash table entry is empty */ 
+ 		p_hen->p_first = exp;
+ 		p_hen->p_last  = exp;
+
+ 		exp->m_next = p_tbl->p_head;
+ 		p_tbl->p_head = exp;
+	} else { /* hash table entry is NOT empty */
+		p_next = p_hen->p_last->m_next;
+		p_hen->p_last->m_next = exp;
+		exp->m_next = p_next;
+		p_hen->p_last = exp;
+	}
 }
 
 nfs_export *
@@ -150,7 +164,7 @@ export_find(struct hostent *hp, char *path)
 	int		i;
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (!export_check(exp, hp, path))
 				continue;
 			if (exp->m_client->m_type == MCL_FQDN)
@@ -169,7 +183,7 @@ export_allowed_internal (struct hostent *hp, char *path)
 	int		i;
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (!exp->m_mayexport ||
 			    !export_check(exp, hp, path))
 				continue;
@@ -207,17 +221,30 @@ export_allowed(struct hostent *hp, char *path)
 	return NULL;
 }
 
+/*
+ * Search hash table for export entry. 
+ */  
 nfs_export *
-export_lookup(char *hname, char *path, int canonical)
+export_lookup(char *hname, char *path, int canonical) 
 {
-	nfs_client	*clp;
-	nfs_export	*exp;
+	nfs_client *clp;
+	nfs_export *exp;
+	exp_hash_entry *p_hen;
 
-	if (!(clp = client_lookup(hname, canonical)))
+	int pos;
+
+	clp = client_lookup(hname, canonical);
+	if(clp == NULL)
 		return NULL;
-	for (exp = exportlist[clp->m_type]; exp; exp = exp->m_next)
-		if (exp->m_client == clp && !strcmp(exp->m_export.e_path, path))
-			return exp;
+
+	pos = export_hash(path);
+	p_hen = &(exportlist[clp->m_type].entries[pos]); 
+	for(exp = p_hen->p_first; exp && (exp != p_hen->p_last->m_next); 
+  			exp = exp->m_next) {
+		if (exp->m_client == clp && !strcmp(exp->m_export.e_path, path)) {
+  			return exp;
+		}
+	}
 	return NULL;
 }
 
@@ -234,10 +261,10 @@ void
 export_freeall(void)
 {
 	nfs_export	*exp, *nxt;
-	int		i;
+	int		i, j;
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = nxt) {
+		for (exp = exportlist[i].p_head; exp; exp = nxt) {
 			nxt = exp->m_next;
 			client_release(exp->m_client);
 			if (exp->m_export.e_squids)
@@ -251,7 +278,40 @@ export_freeall(void)
 			xfree(exp->m_export.e_hostname);
 			xfree(exp);
 		}
-		exportlist[i] = NULL;
+      for(j = 0; j < HASH_TABLE_SIZE; j++) {
+        exportlist[i].entries[j].p_first = NULL;
+        exportlist[i].entries[j].p_last = NULL;
+      }
+      exportlist[i].p_head = NULL;
 	}
 	client_freeall();
+}
+
+/*
+ * Compute and returns integer from string. 
+ * Note: Its understood the smae integers can be same for 
+ *       different strings, but it should not matter.
+ */
+static unsigned int 
+strtoint(char *str)
+{
+	int i = 0;
+	unsigned int n = 0;
+
+	while ( str[i] != '\0') {
+		n+=((int)str[i])*i;
+		i++;
+	}
+	return n;
+}
+
+/*
+ * Hash function
+ */
+static int 
+export_hash(char *str)
+{
+	int num = strtoint(str);
+
+	return num % HASH_TABLE_SIZE;
 }

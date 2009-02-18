@@ -142,7 +142,7 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 
 		exp = NULL;
 		for (i = 0; !exp && i < MCL_MAXTYPES; i++) 
-			for (exp = exportlist[i]; exp; exp = exp->m_next) {
+			for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 				if (strcmp(path, exp->m_export.e_path))
 					continue;
 				if (!use_ipaddr && !client_member(my_client.m_hostname, exp->m_client->m_hostname))

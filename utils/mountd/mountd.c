@@ -521,7 +521,7 @@ get_exportlist(void)
 	elist = NULL;
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			for (e = elist; e != NULL; e = e->ex_next) {
 				if (!strcmp(exp->m_export.e_path, e->ex_dir))
 					break;

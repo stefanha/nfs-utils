@@ -52,8 +52,21 @@ typedef struct mexport {
 						 * matching one client */
 } nfs_export;
 
+#define HASH_TABLE_SIZE 1021
+
+typedef struct _exp_hash_entry {
+	nfs_export * p_first;
+  	nfs_export * p_last;
+} exp_hash_entry;
+
+typedef struct _exp_hash_table {
+	nfs_export * p_head;
+	exp_hash_entry entries[HASH_TABLE_SIZE];
+} exp_hash_table;
+
+extern exp_hash_table exportlist[MCL_MAXTYPES];
+
 extern nfs_client *		clientlist[MCL_MAXTYPES];
-extern nfs_export *		exportlist[MCL_MAXTYPES];
 
 nfs_client *			client_lookup(char *hname, int canonical);
 nfs_client *			client_find(struct hostent *);
@@ -69,7 +82,7 @@ struct hostent *		client_resolve(struct in_addr addr);
 int 				client_member(char *client, char *name);
 
 int				export_read(char *fname);
-void				export_add(nfs_export *);
+void			export_add(nfs_export *);
 void				export_reset(nfs_export *);
 nfs_export *			export_lookup(char *hname, char *path, int caconical);
 nfs_export *			export_find(struct hostent *, char *path);

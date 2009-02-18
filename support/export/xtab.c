@@ -100,7 +100,7 @@ xtab_write(char *xtab, char *xtabtmp, int is_export)
 	setexportent(xtabtmp, "w");
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (is_export && !exp->m_xtabent)
 				continue;
 			if (!is_export && ! exp->m_exported)

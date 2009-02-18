@@ -394,7 +394,7 @@ void nfsd_fh(FILE *f)
 	/* Now determine export point for this fsid/domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		nfs_export *next_exp;
-		for (exp = exportlist[i]; exp; exp = next_exp) {
+		for (exp = exportlist[i].p_head; exp; exp = next_exp) {
 			struct stat stb;
 			char u[16];
 			char *path;
@@ -654,7 +654,7 @@ void nfsd_export(FILE *f)
 
 	/* now find flags for this export point in this domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (!use_ipaddr && !client_member(dom, exp->m_client->m_hostname))
 				continue;
 			if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT) {

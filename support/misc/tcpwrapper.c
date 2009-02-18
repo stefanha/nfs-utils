@@ -122,7 +122,7 @@ inline unsigned int strtoint(char *str)
 
 	return n;
 }
-inline int hashint(unsigned int num)
+static inline int hashint(unsigned int num)
 {
 	return num % HASH_TABLE_SIZE;
 }

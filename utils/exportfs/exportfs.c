@@ -111,7 +111,6 @@ main(int argc, char **argv)
 			return 0;
 		}
 	}
-
 	if (f_export && ! f_ignore)
 		export_read(_PATH_EXPORTS);
 	if (f_export) {
@@ -193,10 +192,10 @@ exports_update(int verbose)
 {
 	nfs_export 	*exp;
 
-	for (exp = exportlist[MCL_FQDN]; exp; exp=exp->m_next) {
+	for (exp = exportlist[MCL_FQDN].p_head; exp; exp=exp->m_next) {
 		exports_update_one(exp, verbose);
 	}
-	for (exp = exportlist[MCL_GSS]; exp; exp=exp->m_next) {
+	for (exp = exportlist[MCL_GSS].p_head; exp; exp=exp->m_next) {
 		exports_update_one(exp, verbose);
 	}
 }
@@ -212,7 +211,7 @@ export_all(int verbose)
 	int		i;
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i]; exp; exp = exp->m_next) {
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (verbose)
 				printf("exporting %s:%s\n",
 				       exp->m_client->m_hostname, 
@@ -308,7 +307,7 @@ unexportfs(char *arg, int verbose)
 		}
 	}
 
-	for (exp = exportlist[htype]; exp; exp = exp->m_next) {
+	for (exp = exportlist[htype].p_head; exp; exp = exp->m_next) {
 		if (path && strcmp(path, exp->m_export.e_path))
 			continue;
 		if (htype != exp->m_client->m_type)
@@ -453,7 +452,7 @@ dump(int verbose)
 	char		*hname, c;
 
 	for (htype = 0; htype < MCL_MAXTYPES; htype++) {
-		for (exp = exportlist[htype]; exp; exp = exp->m_next) {
+		for (exp = exportlist[htype].p_head; exp; exp = exp->m_next) {
 			ep = &exp->m_export;
 			if (!exp->m_xtabent)
 			    continue; /* neilb */
