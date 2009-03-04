@@ -291,7 +291,7 @@ int nfs_name_to_address(const char *hostname,
 	}
 
 	memcpy(&sin->sin_addr, hp->h_addr, hp->h_length);
-	*salen = hp->h_length;
+	*salen = sizeof(struct sockaddr_in);
 	return 1;
 }
 #endif	/* HAVE_DECL_AI_ADDRCONFIG */
