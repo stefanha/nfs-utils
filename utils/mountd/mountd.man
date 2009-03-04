@@ -181,13 +181,15 @@ mountd: .bar.com
 You have to use the daemon name 
 .B mountd
 for the daemon name (even if the binary has a different name).
+.B Note:
+hostnames used in either access file will be ignored when
+they can not be resolved into IP addresses.
 
 For further information please have a look at the
 .BR tcpd (8)
 and
 .BR hosts_access (5)
 manual pages.
-
 .SH SEE ALSO
 .BR rpc.nfsd (8),
 .BR exportfs (8),

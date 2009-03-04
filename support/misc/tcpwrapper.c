@@ -46,7 +46,7 @@
 #include <sys/signal.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
-#include <unistd.h>
+#include <tcpd.h>
 
 #include "xlog.h"
 
@@ -171,58 +171,15 @@ good_client(daemon, addr)
 char *daemon;
 struct sockaddr_in *addr;
 {
-    struct hostent *hp;
-    char **sp;
-    char *tmpname;
+	struct request_info req;
 
-	/* First check the address. */
-	if (hosts_ctl(daemon, "", inet_ntoa(addr->sin_addr), "") == DENY)
-		return DENY;
+	request_init(&req, RQ_DAEMON, daemon, RQ_CLIENT_SIN, addr, 0);
+	sock_methods(&req);
 
-	/* Now do the hostname lookup */
-	hp = gethostbyaddr ((const char *) &(addr->sin_addr),
-		sizeof (addr->sin_addr), AF_INET);
-	if (!hp) {
-		xlog(L_WARNING, 
-			"Warning: Client IP address '%s' not found in host lookup",
-			inet_ntoa(addr->sin_addr));
-		return DENY; /* never heard of it. misconfigured DNS? */
-	}
+	if (hosts_access(&req)) 
+		return ALLOW;
 
-	/* Make sure the hostent is authorative. */
-	tmpname = strdup(hp->h_name);
-	if (!tmpname) {
-		xlog(L_WARNING, "Warning: No memory for Host access check");
-		return DENY;
-	}
-	hp = gethostbyname(tmpname);
-	if (!hp) {
-		xlog(L_WARNING, 
-			"Warning: Client hostname '%s' not found in host lookup", tmpname);
-		free(tmpname);
-		return DENY; /* never heard of it. misconfigured DNS? */
-	}
-	free(tmpname);
-
-	/* Now make sure the address is on the list */
-	for (sp = hp->h_addr_list ; *sp ; sp++) {
-	    if (memcmp(*sp, &(addr->sin_addr), hp->h_length) == 0)
-			break;
-	}
-	if (!*sp)
-	    return DENY; /* it was a FAKE. */
-
-	/* Check the official name and address. */
-	if (hosts_ctl(daemon, hp->h_name, inet_ntoa(addr->sin_addr), "") == DENY)
-		return DENY;
-
-	/* Now check aliases. */
-	for (sp = hp->h_aliases; *sp ; sp++) {
-		if (hosts_ctl(daemon, *sp, inet_ntoa(addr->sin_addr), "") == DENY)
-	    	return DENY;
-	}
-
-   return ALLOW;
+	return DENY;
 }
 
 /* check_startup - additional startup code */
