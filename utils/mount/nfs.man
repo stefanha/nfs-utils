@@ -405,6 +405,23 @@ is legacy caching behavior. This
 is considered a data risk since multiple cached copies
 of the same file on the same client can become out of sync
 following a local update of one of the copies.
+.TP 1.5i
+.BR resvport " / " noresvport
+Specifies whether the NFS client should use a privileged source port
+when communicating with an NFS server for this mount point.
+If this option is not specified, or the
+.B resvport
+option is specified, the NFS client uses a privileged source port.
+If the
+.B noresvport
+option is specified, the NFS client uses a non-privileged source port.
+This option is supported in kernels 2.6.28 and later.
+.IP
+Using non-privileged source ports helps increase the maximum number of
+NFS mount points allowed on a client, but NFS servers must be configured
+to allow clients to connect via non-privileged source ports.
+.IP
+Refer to the SECURITY CONSIDERATIONS section for important details.
 .SS "Valid options for the nfs file system type"
 Use these options, along with the options in the above subsection,
 for mounting the
@@ -1212,6 +1229,55 @@ The Linux client specifies a single security flavor at mount time
 which remains in effect for the lifetime of the mount.
 If the server does not support this flavor,
 the initial mount request is rejected by the server.
+.SS "Using non-privileged source ports"
+NFS clients usually communicate with NFS servers via network sockets.
+Each end of a socket is assigned a port value, which is simply a number
+between 1 and 65535 that distinguishes socket endpoints at the same
+IP address.
+A socket is uniquely defined by a tuple that includes the transport
+protocol (TCP or UDP) and the port values and IP addresses of both
+endpoints.
+.P
+The NFS client can choose any source port value for its sockets,
+but usually chooses a
+.I privileged
+port.
+A privileged port is a port value less than 1024.
+Only a process with root privileges may create a socket
+with a privileged source port.
+.P
+The exact range of privileged source ports that can be chosen is
+set by a pair of sysctls to avoid choosing a well-known port, such as
+the port used by ssh.
+This means the number of source ports available for the NFS client,
+and therefore the number of socket connections that can be used
+at the same time,
+is practically limited to only a few hundred.
+.P
+As described above, the traditional default NFS authentication scheme,
+known as AUTH_SYS, relies on sending local UID and GID numbers to identify
+users making NFS requests.
+An NFS server assumes that if a connection comes from a privileged port,
+the UID and GID numbers in the NFS requests on this connection have been
+verified by the client's kernel or some other local authority.
+This is an easy system to spoof, but on a trusted physical network between
+trusted hosts, it is entirely adequate.
+.P
+Roughly speaking, one socket is used for each NFS mount point.
+If a client could use non-privileged source ports as well,
+the number of sockets allowed,
+and thus the maximum number of concurrent mount points,
+would be much larger.
+.P
+Using non-privileged source ports may compromise server security somewhat,
+since any user on AUTH_SYS mount points can now pretend to be any other
+when making NFS requests.
+Thus NFS servers do not support this by default.
+They explicitly allow it usually via an export option.
+.P
+To retain good security while allowing as many mount points as possible,
+it is best to allow non-privileged client connections only if the server
+and client both require strong authentication, such as Kerberos.
 .SS "Mounting through a firewall"
 A firewall may reside between an NFS client and server,
 or the client or server may block some of its own ports via IP
