@@ -219,9 +219,9 @@ if test "$choose_blkid" != no; then
    AC_BLKID_VERS
    if test $choose_blkid = yes; then
       use_blkid=1
-      test $libblkid_is_recent = no && AC_MSG_WARN([libblkid is old and may cause mountd to leak memory])
+      test $libblkid_cv_is_recent = no && AC_MSG_WARN([libblkid is old and may cause mountd to leak memory])
    else
-      if test $libblkid_is_recent = yes
+      if test $libblkid_cv_is_recent = yes
       then use_blkid=1
       else use_blkid=0
 	   AC_MSG_WARN([uuid support disabled as libblkid is too old])
