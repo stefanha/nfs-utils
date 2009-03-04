@@ -108,8 +108,8 @@ typedef struct _hash_head {
 	TAILQ_HEAD(host_list, _haccess_t) h_head;
 } hash_head;
 hash_head haccess_tbl[HASH_TABLE_SIZE];
-static haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long, u_long);
-static void haccess_add(struct sockaddr_in *addr, u_long, u_long, int);
+static haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long);
+static void haccess_add(struct sockaddr_in *addr, u_long, int);
 
 inline unsigned int strtoint(char *str)
 {
@@ -126,11 +126,10 @@ static inline int hashint(unsigned int num)
 {
 	return num % HASH_TABLE_SIZE;
 }
-#define HASH(_addr, _proc, _prog) \
-	hashint((strtoint((_addr))+(_proc)+(_prog)))
+#define HASH(_addr, _prog) \
+	hashint((strtoint((_addr))+(_prog)))
 
-void haccess_add(struct sockaddr_in *addr, u_long proc, 
-	u_long prog, int access)
+void haccess_add(struct sockaddr_in *addr, u_long prog, int access)
 {
 	hash_head *head;
  	haccess_t *hptr;
@@ -140,7 +139,7 @@ void haccess_add(struct sockaddr_in *addr, u_long proc,
 	if (hptr == NULL)
 		return;
 
-	hash = HASH(inet_ntoa(addr->sin_addr), proc, prog);
+	hash = HASH(inet_ntoa(addr->sin_addr), prog);
 	head = &(haccess_tbl[hash]);
 
 	hptr->access = access;
@@ -151,13 +150,13 @@ void haccess_add(struct sockaddr_in *addr, u_long proc,
 	else
 		TAILQ_INSERT_TAIL(&head->h_head, hptr, list);
 }
-haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long proc, u_long prog)
+haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long prog)
 {
 	hash_head *head;
  	haccess_t *hptr;
 	int hash;
 
-	hash = HASH(inet_ntoa(addr->sin_addr), proc, prog);
+	hash = HASH(inet_ntoa(addr->sin_addr), prog);
 	head = &(haccess_tbl[hash]);
 
 	TAILQ_FOREACH(hptr, &head->h_head, list) {
@@ -302,7 +301,7 @@ u_long  prog;
 	haccess_t *acc = NULL;
 	int changed = check_files();
 
-	acc = haccess_lookup(addr, proc, prog);
+	acc = haccess_lookup(addr, prog);
 	if (acc && changed == 0)
 		return (acc->access);
 
@@ -311,7 +310,7 @@ u_long  prog;
 		if (acc)
 			acc->access = FALSE;
 		else 
-			haccess_add(addr, proc, prog, FALSE);
+			haccess_add(addr, prog, FALSE);
 		return (FALSE);
 	}
 	if (verboselog)
@@ -320,7 +319,7 @@ u_long  prog;
 	if (acc)
 		acc->access = TRUE;
 	else 
-		haccess_add(addr, proc, prog, TRUE);
+		haccess_add(addr, prog, TRUE);
     return (TRUE);
 }
 
