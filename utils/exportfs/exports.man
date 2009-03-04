@@ -456,7 +456,7 @@ is supposedly that of user joe).
 /projects       proj*.local.domain(rw)
 /usr            *.local.domain(ro) @trusted(rw)
 /home/joe       pc001(rw,all_squash,anonuid=150,anongid=100)
-/pub            (ro,insecure,all_squash)
+/pub            *(ro,insecure,all_squash)
 /srv/www        \-sync,rw server @trusted @external(ro)
 '''/pub/private    (noaccess)
 .fi
