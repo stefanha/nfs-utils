@@ -34,6 +34,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#ifdef HAVE_LIBWRAP
 #include <tcpwrapper.h>
 #include <unistd.h>
 #include <string.h>
@@ -57,42 +58,10 @@
 
 static void logit(int severity, struct sockaddr_in *addr,
 		  u_long procnum, u_long prognum, char *text);
-static void toggle_verboselog(int sig);
 static int check_files(void);
 
-int     verboselog = 0;
-int     allow_severity = LOG_INFO;
-int     deny_severity = LOG_WARNING;
-
-/* A handful of macros for "readability". */
-
-#ifdef HAVE_LIBWRAP
-/* coming from libwrap.a (tcp_wrappers) */
-extern int hosts_ctl(char *daemon, char *name, char *addr, char *user);
-#else
-int hosts_ctl(char *daemon, char *name, char *addr, char *user)
-{
-	return 0;
-}
-#endif
-
-#define	legal_port(a,p) \
-  (ntohs((a)->sin_port) < IPPORT_RESERVED || (p) >= IPPORT_RESERVED)
-
-#define log_bad_port(addr, proc, prog) \
-  logit(deny_severity, addr, proc, prog, ": request from unprivileged port")
-
 #define log_bad_host(addr, proc, prog) \
-  logit(deny_severity, addr, proc, prog, ": request from unauthorized host")
-
-#define log_bad_owner(addr, proc, prog) \
-  logit(deny_severity, addr, proc, prog, ": request from non-local host")
-
-#define	log_no_forward(addr, proc, prog) \
-  logit(deny_severity, addr, proc, prog, ": request not forwarded")
-
-#define log_client(addr, proc, prog) \
-  logit(allow_severity, addr, proc, prog, "")
+  logit(LOG_WARNING, addr, proc, prog, "request from unauthorized host")
 
 #define ALLOW 1
 #define DENY 0
@@ -182,43 +151,6 @@ struct sockaddr_in *addr;
 	return DENY;
 }
 
-/* check_startup - additional startup code */
-
-void    check_startup(void)
-{
-
-    /*
-     * Give up root privileges so that we can never allocate a privileged
-     * port when forwarding an rpc request.
-     *
-     * Fix 8/3/00 Philipp Knirsch: First lookup our rpc user. If we find it,
-     * switch to that uid, otherwise simply resue the old bin user and print
-     * out a warning in syslog.
-     */
-
-    struct passwd *pwent;
-
-    pwent = getpwnam("rpc");
-    if (pwent == NULL) {
-        syslog(LOG_WARNING, "user rpc not found, reverting to user bin");
-        if (setuid(1) == -1) {
-            syslog(LOG_ERR, "setuid(1) failed: %m");
-            exit(1);
-        }
-    }
-    else {
-        if (setuid(pwent->pw_uid) == -1) {
-            syslog(LOG_WARNING, "setuid() to rpc user failed: %m");
-            if (setuid(1) == -1) {
-                syslog(LOG_ERR, "setuid(1) failed: %m");
-                exit(1);
-            }
-        }
-    }
-
-    (void) signal(SIGINT, toggle_verboselog);
-}
-
 /* check_files - check to see if either access files have changed */
 
 static int check_files()
@@ -270,36 +202,13 @@ u_long  prog;
 			haccess_add(addr, prog, FALSE);
 		return (FALSE);
 	}
-	if (verboselog)
-		log_client(addr, proc, prog);
 
 	if (acc)
 		acc->access = TRUE;
 	else 
 		haccess_add(addr, prog, TRUE);
+
     return (TRUE);
-}
-
-/* check_privileged_port - additional checks for privileged-port updates */
-int
-check_privileged_port(struct sockaddr_in *addr,	
-		      u_long proc, u_long prog, u_long port)
-{
-#ifdef CHECK_PORT
-    if (!legal_port(addr, port)) {
-	log_bad_port(addr, proc, prog);
-	return (FALSE);
-    }
-#endif
-    return (TRUE);
-}
-
-/* toggle_verboselog - toggle verbose logging flag */
-
-static void toggle_verboselog(int sig)
-{
-    (void) signal(sig, toggle_verboselog);
-    verboselog = !verboselog;
 }
 
 /* logit - report events of interest via the syslog daemon */
@@ -307,41 +216,7 @@ static void toggle_verboselog(int sig)
 static void logit(int severity, struct sockaddr_in *addr,
 		  u_long procnum, u_long prognum, char *text)
 {
-    char   *procname;
-    char    procbuf[16 + 4 * sizeof(u_long)];
-    char   *progname;
-    char    progbuf[16 + 4 * sizeof(u_long)];
-    struct rpcent *rpc;
-
-    /*
-     * Fork off a process or the portmap daemon might hang while
-     * getrpcbynumber() or syslog() does its thing.
-     *
-     * Don't forget to wait for the children, too...
-     */
-
-    if (fork() == 0) {
-
-	/* Try to map program number to name. */
-
-	if (prognum == 0) {
-	    progname = "";
-	} else if ((rpc = getrpcbynumber((int) prognum))) {
-	    progname = rpc->r_name;
-	} else {
-	    snprintf(progname = progbuf, sizeof (progbuf),
-		     "prog (%lu)", prognum);
-	}
-
-	/* Try to map procedure number to name. */
-
-	snprintf(procname = procbuf, sizeof (procbuf),
-		 "proc (%lu)", (u_long) procnum);
-
-	/* Write syslog record. */
-
-	syslog(severity, "connect from %s to %s in %s%s",
-	       inet_ntoa(addr->sin_addr), procname, progname, text);
-	exit(0);
-    }
+	syslog(severity, "connect from %s denied: %s",
+	       inet_ntoa(addr->sin_addr), text);
 }
+#endif
