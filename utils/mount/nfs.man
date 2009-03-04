@@ -612,6 +612,13 @@ Using the
 option is preferred to using the
 .B soft
 option because it is significantly less likely to result in data corruption.
+.IP
+The
+.BR intr " / " nointr
+mount option is deprecated after kernel 2.6.25.
+Only SIGKILL can interrupt a pending NFS operation on these kernels,
+and if specified, this mount option is ignored to provide backwards
+compatibility with older kernels.
 .TP 1.5i
 .BR cto " / " nocto
 Selects whether to use close-to-open cache coherence semantics.
@@ -706,6 +713,13 @@ Using the
 option is preferred to using the
 .B soft
 option because it is significantly less likely to result in data corruption.
+.IP
+The
+.BR intr " / " nointr
+mount option is deprecated after kernel 2.6.25.
+Only SIGKILL can interrupt a pending NFS operation on these kernels,
+and if specified, this mount option is ignored to provide backwards
+compatibility with older kernels.
 .TP 1.5i
 .BR cto " / " nocto
 Selects whether to use close-to-open cache coherence semantics
