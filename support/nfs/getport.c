@@ -833,7 +833,7 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
 {
 	struct sockaddr_storage address;
 	struct sockaddr *lb_addr = (struct sockaddr *)&address;
-	socklen_t lb_len = sizeof(lb_addr);
+	socklen_t lb_len = sizeof(*lb_addr);
 	unsigned short port = 0;
 
 #ifdef NFS_GP_LOCAL
