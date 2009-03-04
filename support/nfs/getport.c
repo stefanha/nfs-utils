@@ -175,9 +175,6 @@ static void nfs_gp_set_port(struct sockaddr *sap, const in_port_t port)
 	case AF_INET6:
 		sin6->sin6_port = port;
 		break;
-	default:
-		fprintf(stderr, "%s: unrecognized address family\n",
-			__func__);
 	}
 }
 
