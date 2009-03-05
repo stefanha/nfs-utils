@@ -9,10 +9,13 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <arpa/inet.h>
+
+#include "rpcmisc.h"
 #include "misc.h"
 #include "statd.h"
 #include "notlist.h"
-#include <arpa/inet.h>
 
 /* Callback notify list. */
 /* notify_list *cbnl = NULL; ... never used */
@@ -29,8 +32,8 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 {
 	notify_list    *lp, *call;
 	static char    *result = NULL;
-	char *ip_addr = xstrdup(inet_ntoa(svc_getcaller(rqstp->rq_xprt)
-					  ->sin_addr));
+	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
+	char *ip_addr = xstrdup(inet_ntoa(sin->sin_addr));
 
 	dprintf(N_DEBUG, "Received SM_NOTIFY from %s, state: %d",
 				argp->mon_name, argp->state);

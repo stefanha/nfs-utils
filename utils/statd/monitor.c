@@ -20,6 +20,8 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <dirent.h>
+
+#include "rpcmisc.h"
 #include "misc.h"
 #include "statd.h"
 #include "notlist.h"
@@ -36,9 +38,10 @@ notify_list *		rtnl = NULL;	/* Run-time notify list. */
 static int
 caller_is_localhost(struct svc_req *rqstp)
 {
+	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
 	struct in_addr	caller;
 
-	caller = svc_getcaller(rqstp->rq_xprt)->sin_addr;
+	caller = sin->sin_addr;
 	if (caller.s_addr != htonl(INADDR_LOOPBACK)) {
 		note(N_WARNING,
 			"Call to statd from non-local host %s",

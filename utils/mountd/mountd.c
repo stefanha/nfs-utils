@@ -202,8 +202,7 @@ mount_mnt_1_svc(struct svc_req *rqstp, dirpath *path, fhstatus *res)
 bool_t
 mount_dump_1_svc(struct svc_req *rqstp, void *argp, mountlist *res)
 {
-	struct sockaddr_in *addr =
-		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
+	struct sockaddr_in *addr = nfs_getrpccaller_in(rqstp->rq_xprt);
 
 	xlog(D_CALL, "dump request from %s.", inet_ntoa(addr->sin_addr));
 	*res = mountlist_list();
@@ -214,8 +213,7 @@ mount_dump_1_svc(struct svc_req *rqstp, void *argp, mountlist *res)
 bool_t
 mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *resp)
 {
-	struct sockaddr_in *sin
-		= (struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
+	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
 	nfs_export	*exp;
 	char		*p = *argp;
 	char		rpath[MAXPATHLEN+1];
@@ -242,15 +240,14 @@ mount_umntall_1_svc(struct svc_req *rqstp, void *argp, void *resp)
 	/* Reload /etc/xtab if necessary */
 	auth_reload();
 
-	mountlist_del_all((struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt));
+	mountlist_del_all(nfs_getrpccaller_in(rqstp->rq_xprt));
 	return 1;
 }
 
 bool_t
 mount_export_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 {
-	struct sockaddr_in *addr =
-		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
+	struct sockaddr_in *addr = nfs_getrpccaller_in(rqstp->rq_xprt);
 
 	xlog(D_CALL, "export request from %s.", inet_ntoa(addr->sin_addr));
 	*resp = get_exportlist();
@@ -261,8 +258,7 @@ mount_export_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 bool_t
 mount_exportall_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 {
-	struct sockaddr_in *addr =
-		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
+	struct sockaddr_in *addr = nfs_getrpccaller_in(rqstp->rq_xprt);
 
 	xlog(D_CALL, "exportall request from %s.", inet_ntoa(addr->sin_addr));
 	*resp = get_exportlist();
@@ -284,8 +280,7 @@ mount_exportall_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 bool_t
 mount_pathconf_2_svc(struct svc_req *rqstp, dirpath *path, ppathcnf *res)
 {
-	struct sockaddr_in *sin
-		= (struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
+	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
 	struct stat	stb;
 	nfs_export	*exp;
 	char		rpath[MAXPATHLEN+1];
@@ -383,8 +378,7 @@ static struct nfs_fh_len *
 get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 		mountstat3 *error, int v3)
 {
-	struct sockaddr_in *sin =
-		(struct sockaddr_in *) svc_getcaller(rqstp->rq_xprt);
+	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
 	struct stat	stb, estb;
 	nfs_export	*exp;
 	struct nfs_fh_len *fh;

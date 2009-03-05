@@ -70,11 +70,12 @@ mount_dispatch(struct svc_req *rqstp, SVCXPRT *transp)
 {
 	union mountd_arguments 	argument;
 	union mountd_results	result;
-
 #ifdef HAVE_TCP_WRAPPER
+	struct sockaddr_in *sin = nfs_getrpccaller_in(transp);
+
 	/* remote host authorization check */
-	if (!check_default("mountd", svc_getcaller(transp),
-			   rqstp->rq_proc, MOUNTPROG)) {
+	if (sin->sin_family == AF_INET &&
+	    !check_default("mountd", sin, rqstp->rq_proc, MOUNTPROG)) {
 		svcerr_auth (transp, AUTH_FAILED);
 		return;
 	}
