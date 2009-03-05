@@ -546,8 +546,9 @@ static void nfs_pp_debug(const struct sockaddr *sap, const socklen_t salen,
 		strcat(buf, "unknown host");
 	}
 
-	fprintf(stderr, _("%s: trying %s prog %ld vers %ld prot %s port %d\n"),
-			progname, buf, program, version,
+	fprintf(stderr, _("%s: trying %s prog %lu vers %lu prot %s port %d\n"),
+			progname, buf, (unsigned long)program,
+			(unsigned long)version,
 			(protocol == IPPROTO_UDP ? _("UDP") : _("TCP")),
 			port);
 }
