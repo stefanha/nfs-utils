@@ -382,7 +382,6 @@ esac
 
 my_am_cflags="-Wall -Wstrict-prototypes $ARCHFLAGS -pipe"
 
-AC_SUBST([AM_CPPFLAGS], ["-I\${top_srcdir}/support/include"])
 AC_SUBST([AM_CFLAGS], ["$my_am_cflags"])
 
 # Make sure that $ACLOCAL_FLAGS are used during a rebuild
