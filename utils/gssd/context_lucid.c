@@ -42,17 +42,17 @@
 #include <stdio.h>
 #include <syslog.h>
 #include <string.h>
+
+#include <gssapi/gssapi_krb5.h>
+
 #include "gss_util.h"
 #include "gss_oids.h"
 #include "err_util.h"
 #include "context.h"
 
-#include <krb5.h>
-#include <gssapi/gssapi.h>
 #ifndef OM_uint64
 typedef uint64_t OM_uint64;
 #endif
-#include <gssapi/gssapi_krb5.h>
 
 static int
 write_lucid_keyblock(char **p, char *end, gss_krb5_lucid_key_t *key)
