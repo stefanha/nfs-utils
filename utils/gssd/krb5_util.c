@@ -91,10 +91,14 @@
 
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif	/* HAVE_CONFIG_H */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include "config.h"
+
 #include <sys/param.h>
 #include <rpc/rpc.h>
 #include <sys/stat.h>

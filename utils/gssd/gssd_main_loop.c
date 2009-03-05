@@ -28,9 +28,14 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif	/* HAVE_CONFIG_H */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/poll.h>
