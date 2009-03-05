@@ -54,12 +54,6 @@
 extern rpcprog_t	nfs_getrpcbyname(const rpcprog_t, const char *table[]);
 
 /*
- * Look up a port number in /etc/services for an RPC program
- */
-extern unsigned short	nfs_getportbynumber(const rpcprog_t program,
-				const unsigned short transport);
-
-/*
  * Acquire an RPC CLIENT *
  */
 extern CLIENT		*nfs_get_rpcclient(const struct sockaddr *,

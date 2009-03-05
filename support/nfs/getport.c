@@ -65,14 +65,6 @@ const static rpcvers_t default_rpcb_version = RPCBVERS_4;
 const static rpcvers_t default_rpcb_version = PMAPVERS;
 #endif
 
-static const char *nfs_gp_rpcb_pgmtbl[] = {
-	"rpcbind",
-	"portmap",
-	"portmapper",
-	"sunrpc",
-	NULL,
-};
-
 #ifdef HAVE_DECL_AI_ADDRCONFIG
 /*
  * getaddrinfo(3) generates a usable loopback address based on how the
@@ -128,39 +120,6 @@ static int nfs_gp_loopback_address(struct sockaddr *sap, socklen_t *salen)
 #endif
 
 /*
- * Discover the port number that should be used to contact an
- * rpcbind service.  This will detect if the port has a local
- * value that may have been set in /etc/services.
- *
- * NB: s_port is already in network byte order.
- *
- * Returns network byte-order port number of rpcbind service
- * on this system.
- */
-static in_port_t nfs_gp_get_rpcb_port(const unsigned short protocol)
-{
-	struct protoent *proto;
-
-	proto = getprotobynumber((int)protocol);
-	if (proto != NULL) {
-		struct servent *entry;
-
-		entry = getservbyname("rpcbind", proto->p_name);
-		if (entry != NULL)
-			return (in_port_t)entry->s_port;
-
-		entry = getservbyname("portmapper", proto->p_name);
-		if (entry != NULL)
-			return (in_port_t)entry->s_port;
-
-		entry = getservbyname("sunrpc", proto->p_name);
-		if (entry != NULL)
-			return (in_port_t)entry->s_port;
-	}
-	return htons((uint16_t)PMAPPORT);
-}
-
-/*
  * Plant port number in @sap.  @port is already in network byte order.
  */
 static void nfs_gp_set_port(struct sockaddr *sap, const in_port_t port)
@@ -179,6 +138,61 @@ static void nfs_gp_set_port(struct sockaddr *sap, const in_port_t port)
 }
 
 /*
+ * Look up a network service in /etc/services and return the
+ * network-order port number of that service.
+ */
+static in_port_t nfs_gp_getservbyname(const char *service,
+				      const unsigned short protocol)
+{
+	const struct addrinfo gai_hint = {
+		.ai_family	= AF_INET,
+		.ai_protocol	= protocol,
+		.ai_flags	= AI_PASSIVE,
+	};
+	struct addrinfo *gai_results;
+	const struct sockaddr_in *sin;
+	in_port_t port;
+
+	if (getaddrinfo(NULL, service, &gai_hint, &gai_results) != 0)
+		return 0;
+
+	sin = (const struct sockaddr_in *)gai_results->ai_addr;
+	port = sin->sin_port;
+	
+	freeaddrinfo(gai_results);
+	return port;
+}
+
+/*
+ * Discover the port number that should be used to contact an
+ * rpcbind service.  This will detect if the port has a local
+ * value that may have been set in /etc/services.
+ *
+ * Returns network byte-order port number of rpcbind service
+ * on this system.
+ */
+static in_port_t nfs_gp_get_rpcb_port(const unsigned short protocol)
+{
+	static const char *rpcb_netnametbl[] = {
+		"rpcbind",
+		"portmapper",
+		"sunrpc",
+		NULL,
+	};
+	unsigned int i;
+
+	for (i = 0; rpcb_netnametbl[i] != NULL; i++) {
+		in_port_t port;
+
+		port = nfs_gp_getservbyname(rpcb_netnametbl[i], protocol);
+		if (port != 0)
+			return port;
+	}
+
+	return (in_port_t)htons((uint16_t)PMAPPORT);
+}
+
+/*
  * Set up an RPC client for communicating with an rpcbind daemon at
  * @sap over @transport with protocol version @version.
  *
@@ -193,9 +207,16 @@ static CLIENT *nfs_gp_get_rpcbclient(const struct sockaddr *sap,
 				     const rpcvers_t version,
 				     struct timeval *timeout)
 {
+	static const char *rpcb_pgmtbl[] = {
+		"rpcbind",
+		"portmap",
+		"portmapper",
+		"sunrpc",
+		NULL,
+	};
 	struct sockaddr_storage address;
 	struct sockaddr *saddr = (struct sockaddr *)&address;
-	rpcprog_t rpcb_prog = nfs_getrpcbyname(RPCBPROG, nfs_gp_rpcb_pgmtbl);
+	rpcprog_t rpcb_prog = nfs_getrpcbyname(RPCBPROG, rpcb_pgmtbl);
 
 	memcpy(saddr, sap, (size_t)salen);
 	nfs_gp_set_port(saddr, nfs_gp_get_rpcb_port(transport));
