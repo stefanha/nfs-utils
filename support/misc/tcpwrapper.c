@@ -60,8 +60,16 @@ static void logit(int severity, struct sockaddr_in *addr,
 		  u_long procnum, u_long prognum, char *text);
 static int check_files(void);
 
+/*
+ * These need to exist since they are externed 
+ * public header files.
+ */
+int     verboselog = 0;
+int     allow_severity = LOG_INFO;
+int     deny_severity = LOG_WARNING;
+
 #define log_bad_host(addr, proc, prog) \
-  logit(LOG_WARNING, addr, proc, prog, "request from unauthorized host")
+  logit(deny_severity, addr, proc, prog, "request from unauthorized host")
 
 #define ALLOW 1
 #define DENY 0
