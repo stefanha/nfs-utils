@@ -50,11 +50,6 @@
 #include "xlog.h"
 
 static void conf_load_defaults (int);
-#if 0
-static int conf_find_trans_xf (int, char *);
-#endif
-
-size_t  strlcpy(char *, const char *, size_t);
 
 struct conf_trans {
 	TAILQ_ENTRY (conf_trans) link;
@@ -219,26 +214,48 @@ conf_parse_line(int trans, char *line, size_t sz)
 	if (*line == '#' || *line == ';')
 		return;
 
+	/* Ignore blank lines */
+	if (*line == '\0')
+		return;
+
+	/* Strip off any leading blanks */
+	while (isblank(*line)) 
+		line++;
+
 	/* '[section]' parsing...  */
 	if (*line == '[') {
-		for (i = 1; i < sz; i++)
-			if (line[i] == ']')
+		line++;
+		/* Strip off any blanks after '[' */
+		while (isblank(*line)) 
+			line++;
+
+		for (i = 0; i < sz; i++) {
+			if (line[i] == ']') {
 				break;
+			}
+		}
 		if (section)
-			free (section);
+			free(section);
 		if (i == sz) {
 			xlog_warn("conf_parse_line: %d:"
  				"non-matched ']', ignoring until next section", ln);
 			section = 0;
 			return;
 		}
+		/* Strip off any blanks before ']' */
+		val = line;
+		while (*val && !isblank(*val)) 
+			val++, j++;
+		if (*val)
+			i = j;
+
 		section = malloc(i);
 		if (!section) {
 			xlog_warn("conf_parse_line: %d: malloc (%lu) failed", ln,
 						(unsigned long)i);
 			return;
 		}
-		strlcpy(section, line + 1, i);
+		strncpy(section, line, i);
 		return;
 	}
 
