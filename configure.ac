@@ -176,23 +176,26 @@ AC_BSD_SIGNALS
 dnl *************************************************************
 dnl * Check for required libraries
 dnl *************************************************************
-AC_CHECK_FUNC(gethostbyname, , [AC_CHECK_LIB(nsl, gethostbyname, [LIBNSL="-lnsl"])])
+
+AC_CHECK_FUNC([gethostbyname], ,
+              [AC_CHECK_LIB([nsl], [gethostbyname], [LIBNSL="-lnsl"])])
 AC_SUBST(LIBNSL)
 
-AC_CHECK_FUNC(connect, ,
-      AC_CHECK_LIB(socket, connect, [LIBSOCKET="-lsocket"],
-                AC_MSG_ERROR(Function 'socket' not found.), $LIBNSL))
+AC_CHECK_FUNC([connect], ,
+              [AC_CHECK_LIB([socket], [connect], [LIBSOCKET="-lsocket"],
+                    [AC_MSG_ERROR([Function 'socket' not found.])], [$LIBNSL])])
 
-AC_CHECK_FUNC(getaddrinfo, , ,
-                AC_MSG_ERROR(Function 'getaddrinfo' not found.))
+AC_CHECK_FUNC([getaddrinfo], , ,
+              [AC_MSG_ERROR([Function 'getaddrinfo' not found.])])
 
-AC_CHECK_FUNC(getrpcbynumber, , ,
-                AC_MSG_ERROR(Function 'getrpcbynumber' not found.))
+AC_CHECK_FUNC([getrpcbynumber], , ,
+              [AC_MSG_ERROR([Function 'getrpcbynumber' not found.])])
 
-AC_CHECK_FUNC(getservbyname, , ,
-                AC_MSG_ERROR(Function 'getservbyname' not found.))
+AC_CHECK_FUNC([getservbyname], , ,
+              [AC_MSG_ERROR([Function 'getservbyname' not found.])])
 
-AC_CHECK_LIB(crypt, crypt, [LIBCRYPT="-lcrypt"])
+AC_CHECK_LIB([crypt], [crypt], [LIBCRYPT="-lcrypt"])
+
 if test "$enable_nfsv4" = yes; then
     AC_CHECK_LIB(event, event_dispatch, [libevent=1], AC_MSG_ERROR([libevent needed for nfsv4 support]))
     AC_CHECK_LIB(nfsidmap, nfs4_init_name_mapping, [libnfsidmap=1], AC_MSG_ERROR([libnfsidmap needed for nfsv4 support]))
