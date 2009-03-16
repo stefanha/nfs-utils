@@ -41,49 +41,8 @@
 #include "nfsrpc.h"
 
 #ifdef HAVE_LIBTIRPC
-
-/*
- * Most of the headers under /usr/include/tirpc are currently
- * unusable for various reasons.  We statically define the bits
- * we need here until the official headers are fixed.
- *
- * The commonly used RPC calls such as CLNT_CALL and CLNT_DESTROY
- * are actually virtual functions in both the legacy and TI-RPC
- * implementations.  The proper _CALL or _DESTROY will be invoked
- * no matter if we used a legacy clnt_create() or clnt_tli_create()
- * from libtirpc.
- */
-
-#include <tirpc/netconfig.h>
-#include <tirpc/rpc/rpcb_prot.h>
-
-/* definitions from tirpc/rpc/types.h */
-
-/*
- * The netbuf structure is used for transport-independent address storage.
- */
-struct netbuf {
-	unsigned int	maxlen;
-	unsigned int	len;
-	void		*buf;
-};
-
-/* definitions from tirpc/rpc/clnt.h */
-
-/*
- * Low level clnt create routine for connectionless transports, e.g. udp.
- */
-extern CLIENT *clnt_dg_create(const int, const struct netbuf *,
-			      const rpcprog_t, const rpcvers_t,
-			      const u_int, const u_int);
-
-/*
- * Low level clnt create routine for connectionful transports, e.g. tcp.
- */
-extern CLIENT *clnt_vc_create(const int, const struct netbuf *,
-			      const rpcprog_t, const rpcvers_t,
-			      u_int, u_int);
-
+#include <netconfig.h>
+#include <rpc/rpcb_prot.h>
 #endif	/* HAVE_LIBTIRPC */
 
 /*

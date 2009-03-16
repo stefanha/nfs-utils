@@ -41,8 +41,8 @@
 #include <rpc/pmap_prot.h>
 
 #ifdef HAVE_LIBTIRPC
-#include <tirpc/netconfig.h>
-#include <tirpc/rpc/rpcb_prot.h>
+#include <netconfig.h>
+#include <rpc/rpcb_prot.h>
 #endif
 
 #include "nfsrpc.h"

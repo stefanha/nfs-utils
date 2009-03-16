@@ -3,6 +3,12 @@
 
 #include <krb5.h>
 
+#ifdef HAVE_LIBTIRPC
+#include <rpc/auth_gss.h>
+#else
+#include "gss_oids.h"
+#endif
+
 /*
  * List of principals from our keytab that we
  * will try to use to obtain credentials

@@ -54,6 +54,10 @@
 #include <errno.h>
 #include <time.h>
 
+#ifdef HAVE_LIBTIRPC
+#include <rpc/rpc_com.h>
+#endif
+
 void cache_set_fds(fd_set *fdset);
 int cache_process_req(fd_set *readfds);
 

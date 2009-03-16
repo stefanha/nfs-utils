@@ -2,6 +2,12 @@ dnl Checks for TI-RPC library and headers
 dnl
 AC_DEFUN([AC_LIBTIRPC], [
 
+  AC_ARG_WITH([tirpcinclude],
+              [AC_HELP_STRING([--with-tirpcinclude=DIR],
+                              [use TI-RPC headers in DIR])],
+              [tirpc_header_dir=$withval],
+              [tirpc_header_dir=/usr/include/tirpc])
+
   dnl if --enable-tirpc was specifed, the following components
   dnl must be present, and we set up HAVE_ macros for them.
 
@@ -12,8 +18,10 @@ AC_DEFUN([AC_LIBTIRPC], [
                  [AC_MSG_ERROR([libtirpc not found.])])
 
     dnl also must have the headers installed where we expect
-    AC_CHECK_HEADERS([tirpc/netconfig.h], ,
+    dnl look for headers; add -I compiler option if found
+    AC_CHECK_HEADERS([${tirpc_header_dir}/netconfig.h], ,
                      [AC_MSG_ERROR([libtirpc headers not found.])])
+    AC_SUBST([AM_CPPFLAGS], ["-I${tirpc_header_dir}"])
 
   fi
 

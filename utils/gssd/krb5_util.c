@@ -124,7 +124,6 @@
 #include "gssd.h"
 #include "err_util.h"
 #include "gss_util.h"
-#include "gss_oids.h"
 #include "krb5_util.h"
 
 /* Global list of principals/cache file names for machine credentials */

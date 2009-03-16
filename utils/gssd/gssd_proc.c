@@ -70,7 +70,6 @@
 #include "gssd.h"
 #include "err_util.h"
 #include "gss_util.h"
-#include "gss_oids.h"
 #include "krb5_util.h"
 #include "context.h"
 
@@ -778,8 +777,10 @@ handle_krb5_upcall(struct clnt_info *clp)
 out:
 	if (token.value)
 		free(token.value);
+#ifndef HAVE_LIBTIRPC
 	if (pd.pd_ctx_hndl.length != 0)
 		authgss_free_private_data(&pd);
+#endif
 	if (auth)
 		AUTH_DESTROY(auth);
 	if (rpc_clnt)
