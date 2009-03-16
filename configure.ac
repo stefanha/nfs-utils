@@ -203,17 +203,13 @@ if test "$enable_nfsv4" = yes; then
   dnl check for nfsidmap libraries and headers
   AC_LIBNFSIDMAP
 
-    dnl librpcsecgss already has a dependency on libgssapi,
-    dnl but we need to make sure we get the right version
-    if test "$enable_gss" = yes; then
-     PKG_CHECK_MODULES(RPCSECGSS, librpcsecgss >= 0.16, ,
-      [AC_MSG_ERROR([Unable to locate information required to use librpcsecgss.  If you have pkgconfig installed, you might try setting environment variable PKG_CONFIG_PATH to /usr/local/lib/pkgconfig])
-      ]
-     )
-    PKG_CHECK_MODULES(GSSGLUE, libgssglue >= 0.1)
-    fi
-
+  dnl librpcsecgss already has a dependency on libgssapi,
+  dnl but we need to make sure we get the right version
+  if test "$enable_gss" = yes; then
+    AC_RPCSEC_VERSION
+  fi
 fi
+
 if test "$knfsd_cv_glibc2" = no; then
     AC_CHECK_LIB(bsd, daemon, [LIBBSD="-lbsd"])
 fi
@@ -249,11 +245,8 @@ if test "$enable_gss" = yes; then
   dnl Check for Kerberos V5
   AC_KERBEROS_V5
 
-  dnl This is not done until here because we need to have KRBLIBS set
-  dnl ("librpcsecgss=1" is so that it doesn't get added to LIBS)
-  AC_CHECK_LIB(rpcsecgss, authgss_create_default, [librpcsecgss=1], AC_MSG_ERROR([librpcsecgss needed for nfsv4 support]), -lgssglue -ldl)
-  AC_CHECK_LIB(rpcsecgss, authgss_set_debug_level,
-  	       AC_DEFINE(HAVE_AUTHGSS_SET_DEBUG_LEVEL, 1, [Define this if the rpcsec_gss library has the function authgss_set_debug_level]),, -lgssglue -ldl)
+  dnl Invoked after AC_KERBEROS_V5; AC_LIBRPCSECGSS needs to have KRBLIBS set
+  AC_LIBRPCSECGSS
 
 fi
 
