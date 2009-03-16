@@ -39,11 +39,11 @@ gssd_SOURCES = \
 	write_bytes.h
 
 gssd_LDADD =	../../support/nfs/libnfs.a \
-		$(RPCSECGSS_LIBS) $(KRBLIBS)
+		$(RPCSECGSS_LIBS) $(GSSGLUE_LIBS) $(KRBLIBS)
 gssd_LDFLAGS = $(KRBLDFLAGS)
 
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
-	      $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
+	      $(RPCSECGSS_CFLAGS) $(GSSGLUE_CFLAGS) $(KRBCFLAGS)
 
 svcgssd_SOURCES = \
 	$(COMMON_SRCS) \
@@ -56,18 +56,18 @@ svcgssd_SOURCES = \
 
 svcgssd_LDADD = \
 	../../support/nfs/libnfs.a \
-	$(RPCSECGSS_LIBS) -lnfsidmap \
+	$(RPCSECGSS_LIBS) $(GSSGLUE_LIBS) -lnfsidmap \
 	$(KRBLIBS)
 
 svcgssd_LDFLAGS = $(KRBLDFLAGS)
 
 svcgssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
-		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
+		 $(RPCSECGSS_CFLAGS) $(GSSGLUE_CFLAGS) $(KRBCFLAGS)
 
 gss_clnt_send_err_SOURCES = gss_clnt_send_err.c
 
 gss_clnt_send_err_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
-		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS)
+		 $(RPCSECGSS_CFLAGS) $(GSSGLUE_CFLAGS) $(KRBCFLAGS)
 
 MAINTAINERCLEANFILES = Makefile.in
 
