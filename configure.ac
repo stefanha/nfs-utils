@@ -118,6 +118,11 @@ AC_ARG_ENABLE(mount,
 	enable_mount=$enableval,
 	enable_mount=yes)
 	AM_CONDITIONAL(CONFIG_MOUNT, [test "$enable_mount" = "yes"])
+AC_ARG_ENABLE(tirpc,
+	[AC_HELP_STRING([--enable-tirpc],
+			[enable use of TI-RPC @<:@default=no@:>@])],
+	enable_tirpc=$enableval,
+	enable_tirpc=no)
 AC_ARG_ENABLE(ipv6,
 	[AC_HELP_STRING([--enable-ipv6],
                         [enable support for IPv6 @<:@default=no@:>@])],
@@ -131,13 +136,8 @@ AC_ARG_ENABLE(ipv6,
 	AC_SUBST(enable_ipv6)
 	AM_CONDITIONAL(CONFIG_IPV6, [test "$enable_ipv6" = "yes"])
 
-AC_ARG_ENABLE(tirpc,
-	[AC_HELP_STRING([--enable-tirpc],
-                        [enable use of TI-RPC @<:@default=no@:>@])],
-	enable_tirpc=$enableval,
-	enable_tirpc=no)
-	AC_SUBST(enable_tirpc)
-	AM_CONDITIONAL(CONFIG_TIRPC, [test "$enable_tirpc" = "yes"])
+dnl Check for TI-RPC library and headers
+AC_LIBTIRPC
 
 # Check whether user wants TCP wrappers support
 AC_TCP_WRAPPERS
@@ -262,22 +262,12 @@ AC_CHECK_DECL([AI_ADDRCONFIG],
                          [Define this to 1 if AI_ADDRCONFIG macro is defined]), ,
               [ #include <netdb.h> ] )
 
-if test "$enable_tirpc" = yes; then
-  AC_CHECK_LIB(tirpc, clnt_tli_create, ,
-           AC_MSG_ERROR([libtirpc not found.]))
-  AC_CHECK_HEADERS(tirpc/netconfig.h, ,
-                   AC_MSG_ERROR([libtirpc headers not found.]))
-  AC_CHECK_FUNCS([bindresvport_sa getnetconfig \
-                  clnt_create clnt_create_timed \
-                  clnt_vc_create clnt_dg_create xdr_rpcb])
-fi
-
 if test "$enable_ipv6" = yes; then
   if test "$enable_tirpc" = no; then
     AC_MSG_ERROR('--enable-ipv6' requires '--enable-tirpc'.)
   fi
-  AC_CHECK_FUNC(getnameinfo, , ,
-               AC_MSG_ERROR(Function 'getnameinfo' not found.))
+  AC_CHECK_FUNCS([getnameinfo bindresvport_sa], , ,
+                 [AC_MSG_ERROR([Missing functions needed for IPv6.])])
   AC_CHECK_DECL([AI_ADDRCONFIG], ,
                AC_MSG_ERROR([full getaddrinfo(3) implementation needed for IPv6 support]),
                [ #include <netdb.h> ] )
