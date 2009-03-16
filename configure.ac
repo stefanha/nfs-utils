@@ -250,21 +250,8 @@ if test "$enable_gss" = yes; then
 
 fi
 
-AC_CHECK_DECL([AI_ADDRCONFIG],
-              AC_DEFINE([HAVE_DECL_AI_ADDRCONFIG], 1,
-                         [Define this to 1 if AI_ADDRCONFIG macro is defined]), ,
-              [ #include <netdb.h> ] )
-
-if test "$enable_ipv6" = yes; then
-  if test "$enable_tirpc" = no; then
-    AC_MSG_ERROR('--enable-ipv6' requires '--enable-tirpc'.)
-  fi
-  AC_CHECK_FUNCS([getnameinfo bindresvport_sa], , ,
-                 [AC_MSG_ERROR([Missing functions needed for IPv6.])])
-  AC_CHECK_DECL([AI_ADDRCONFIG], ,
-               AC_MSG_ERROR([full getaddrinfo(3) implementation needed for IPv6 support]),
-               [ #include <netdb.h> ] )
-fi
+dnl Check for IPv6 support
+AC_IPV6
 
 dnl *************************************************************
 dnl Check for headers

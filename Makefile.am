@@ -44,7 +44,8 @@ EXTRA_DIST = \
 	aclocal/libtirpc.m4 \
 	aclocal/libevent.m4 \
 	aclocal/libnfsidmap.m4 \
-	aclocal/rpcsec_vers.m4
+	aclocal/rpcsec_vers.m4 \
+	aclocal/ipv6.m4
 
 ACLOCAL_AMFLAGS = -I aclocal
 
