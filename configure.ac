@@ -197,10 +197,12 @@ AC_CHECK_FUNC([getservbyname], , ,
 AC_CHECK_LIB([crypt], [crypt], [LIBCRYPT="-lcrypt"])
 
 if test "$enable_nfsv4" = yes; then
-    AC_CHECK_LIB(event, event_dispatch, [libevent=1], AC_MSG_ERROR([libevent needed for nfsv4 support]))
-    AC_CHECK_LIB(nfsidmap, nfs4_init_name_mapping, [libnfsidmap=1], AC_MSG_ERROR([libnfsidmap needed for nfsv4 support]))
-    AC_CHECK_HEADERS(event.h, ,AC_MSG_ERROR([libevent needed for nfsv4 support]))
-    AC_CHECK_HEADERS(nfsidmap.h, ,AC_MSG_ERROR([libnfsidmap needed for nfsv4 support]))
+  dnl check for libevent libraries and headers
+  AC_LIBEVENT
+
+  dnl check for nfsidmap libraries and headers
+  AC_LIBNFSIDMAP
+
     dnl librpcsecgss already has a dependency on libgssapi,
     dnl but we need to make sure we get the right version
     if test "$enable_gss" = yes; then
@@ -239,12 +241,10 @@ AC_SUBST(LIBBLKID)
 
 if test "$enable_gss" = yes; then
   dnl 'gss' also depends on nfsidmap.h - at least for svcgssd_proc.c
-  AC_CHECK_HEADERS(nfsidmap.h, ,AC_MSG_ERROR([libnfsidmap needed for gss support]))
-  AC_CHECK_HEADERS(spkm3.h, ,AC_MSG_WARN([could not locate SPKM3 header; will not have SPKM3 support]))
-  dnl the nfs4_set_debug function doesn't appear in all version of the library
-  AC_CHECK_LIB(nfsidmap, nfs4_set_debug,
-	       AC_DEFINE(HAVE_NFS4_SET_DEBUG,1,
-			 [Whether nfs4_set_debug() is present in libnfsidmap]),)
+  AC_LIBNFSIDMAP
+
+  AC_CHECK_HEADERS([spkm3.h], ,
+                   [AC_MSG_WARN([Could not locate SPKM3 header; will not have SPKM3 support])])
 
   dnl Check for Kerberos V5
   AC_KERBEROS_V5

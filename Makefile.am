@@ -41,7 +41,9 @@ EXTRA_DIST = \
 	aclocal/nfs-utils.m4 \
 	aclocal/kerberos5.m4 \
 	aclocal/tcp-wrappers.m4 \
-	aclocal/libtirpc.m4
+	aclocal/libtirpc.m4 \
+	aclocal/libevent.m4 \
+	aclocal/libnfsidmap.m4
 
 ACLOCAL_AMFLAGS = -I aclocal
 
