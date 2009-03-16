@@ -40,7 +40,7 @@
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 
-#ifdef HAVE_TIRPC_NETCONFIG_H
+#ifdef HAVE_LIBTIRPC
 #include <tirpc/netconfig.h>
 #include <tirpc/rpc/rpcb_prot.h>
 #endif
@@ -53,17 +53,17 @@
  * Rpcbind's local socket service does not seem to be working.
  * Disable this logic for now.
  */
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 #undef NFS_GP_LOCAL
-#else	/* HAVE_XDR_RPCB */
+#else	/* !HAVE_LIBTIRPC */
 #undef NFS_GP_LOCAL
-#endif	/* HAVE_XDR_RPCB */
+#endif	/* !HAVE_LIBTIRPC */
 
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 const static rpcvers_t default_rpcb_version = RPCBVERS_4;
-#else
+#else	/* !HAVE_LIBTIRPC */
 const static rpcvers_t default_rpcb_version = PMAPVERS;
-#endif
+#endif	/* !HAVE_LIBTIRPC */
 
 #ifdef HAVE_DECL_AI_ADDRCONFIG
 /*
@@ -242,7 +242,7 @@ static CLIENT *nfs_gp_get_rpcbclient(const struct sockaddr *sap,
  * Returns a '\0'-terminated string if successful; otherwise NULL.
  * rpc_createerr.cf_stat is set to reflect the error.
  */
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 
 static char *nfs_gp_get_netid(const sa_family_t family,
 			      const unsigned short protocol)
@@ -290,7 +290,7 @@ out:
 	return NULL;
 }
 
-#endif	/* HAVE_XDR_RPCB */
+#endif	/* HAVE_LIBTIRPC */
 
 /*
  * Extract a port number from a universal address, and terminate the
@@ -453,7 +453,7 @@ static int nfs_gp_ping(CLIENT *client, struct timeval timeout)
 	return (int)(status == RPC_SUCCESS);
 }
 
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 
 /*
  * Initialize the rpcb argument for a GETADDR request.
@@ -565,7 +565,7 @@ static unsigned short nfs_gp_rpcb_getaddr(CLIENT *client,
 	return port;
 }
 
-#endif	/* HAVE_XDR_RPCB */
+#endif	/* HAVE_LIBTIRPC */
 
 /*
  * Try GETPORT request via rpcbind version 2.
@@ -595,7 +595,7 @@ static unsigned long nfs_gp_pmap_getport(CLIENT *client,
 	return port;
 }
 
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 
 static unsigned short nfs_gp_getport_rpcb(CLIENT *client,
 					  const struct sockaddr *sap,
@@ -617,7 +617,7 @@ static unsigned short nfs_gp_getport_rpcb(CLIENT *client,
 	return port;
 }
 
-#endif	/* HAVE_XDR_RPCB */
+#endif	/* HAVE_LIBTIRPC */
 
 static unsigned long nfs_gp_getport_pmap(CLIENT *client,
 					 const rpcprog_t program,
@@ -652,11 +652,11 @@ static unsigned short nfs_gp_getport(CLIENT *client,
 				     struct timeval timeout)
 {
 	switch (sap->sa_family) {
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 	case AF_INET6:
 		return nfs_gp_getport_rpcb(client, sap, salen, program,
 						version, protocol, timeout);
-#endif	/* HAVE_XDR_RPCB */
+#endif	/* HAVE_LIBTIRPC */
 	case AF_INET:
 		return nfs_gp_getport_pmap(client, program, version,
 							protocol, timeout);
@@ -922,7 +922,7 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
  * address of the same address family.  In this way an RPC server can
  * advertise via rpcbind that it does not support AF_INET6.
  */
-#ifdef HAVE_XDR_RPCB
+#ifdef HAVE_LIBTIRPC
 
 unsigned short nfs_rpcb_getaddr(const struct sockaddr *sap,
 				const socklen_t salen,
@@ -955,7 +955,7 @@ unsigned short nfs_rpcb_getaddr(const struct sockaddr *sap,
 	return port;
 }
 
-#else	/* HAVE_XDR_RPCB */
+#else	/* !HAVE_LIBTIRPC */
 
 unsigned short nfs_rpcb_getaddr(const struct sockaddr *sap,
 				const socklen_t salen,
@@ -971,7 +971,7 @@ unsigned short nfs_rpcb_getaddr(const struct sockaddr *sap,
 	return 0;
 }
 
-#endif	/* HAVE_XDR_RPCB */
+#endif	/* !HAVE_LIBTIRPC */
 
 /**
  * nfs_pmap_getport - query rpcbind via the portmap protocol (rpcbindv2)

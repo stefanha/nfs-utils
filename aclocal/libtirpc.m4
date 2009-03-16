@@ -15,11 +15,6 @@ AC_DEFUN([AC_LIBTIRPC], [
     AC_CHECK_HEADERS([tirpc/netconfig.h], ,
                      [AC_MSG_ERROR([libtirpc headers not found.])])
 
-    dnl set up HAVE_FOO for various functions
-    AC_CHECK_FUNCS([getnetconfig \
-                    clnt_create clnt_create_timed \
-                    clnt_vc_create clnt_dg_create xdr_rpcb])
-
   fi
 
 ])dnl

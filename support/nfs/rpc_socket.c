@@ -40,7 +40,7 @@
 
 #include "nfsrpc.h"
 
-#ifdef HAVE_TIRPC_NETCONFIG_H
+#ifdef HAVE_LIBTIRPC
 
 /*
  * Most of the headers under /usr/include/tirpc are currently
@@ -84,7 +84,7 @@ extern CLIENT *clnt_vc_create(const int, const struct netbuf *,
 			      const rpcprog_t, const rpcvers_t,
 			      u_int, u_int);
 
-#endif	/* HAVE_TIRPC_NETCONFIG_H */
+#endif	/* HAVE_LIBTIRPC */
 
 /*
  * If "-1" is specified in the tv_sec field, use these defaults instead.
@@ -107,14 +107,14 @@ static CLIENT *nfs_get_localclient(const struct sockaddr *sap,
 				   const rpcvers_t version,
 				   struct timeval *timeout)
 {
-#ifdef HAVE_CLNT_VC_CREATE
+#ifdef HAVE_LIBTIRPC
 	struct sockaddr_storage address;
 	const struct netbuf nbuf = {
 		.maxlen		= sizeof(struct sockaddr_un),
 		.len		= (size_t)salen,
 		.buf		= &address,
 	};
-#endif	/* HAVE_CLNT_VC_CREATE */
+#endif	/* HAVE_LIBTIRPC */
 	CLIENT *client;
 	int sock;
 
@@ -128,13 +128,13 @@ static CLIENT *nfs_get_localclient(const struct sockaddr *sap,
 	if (timeout->tv_sec == -1)
 		timeout->tv_sec = NFSRPC_TIMEOUT_TCP;
 
-#ifdef HAVE_CLNT_VC_CREATE
+#ifdef HAVE_LIBTIRPC
 	memcpy(nbuf.buf, sap, (size_t)salen);
 	client = clnt_vc_create(sock, &nbuf, program, version, 0, 0);
-#else	/* HAVE_CLNT_VC_CREATE */
+#else	/* !HAVE_LIBTIRPC */
 	client = clntunix_create((struct sockaddr_un *)sap,
 					program, version, &sock, 0, 0);
-#endif	/* HAVE_CLNT_VC_CREATE */
+#endif	/* !HAVE_LIBTIRPC */
 	if (client != NULL)
 		CLNT_CONTROL(client, CLSET_FD_CLOSE, NULL);
 	else
@@ -261,23 +261,23 @@ static CLIENT *nfs_get_udpclient(const struct sockaddr *sap,
 				 const rpcvers_t version,
 				 struct timeval *timeout)
 {
-#ifdef HAVE_CLNT_DG_CREATE
+	CLIENT *client;
+	int ret, sock;
+#ifdef HAVE_LIBTIRPC
 	struct sockaddr_storage address;
 	const struct netbuf nbuf = {
 		.maxlen		= salen,
 		.len		= salen,
 		.buf		= &address,
 	};
-#endif	/* HAVE_CLNT_DG_CREATE */
-	CLIENT *client;
-	int ret, sock;
 
-#ifndef HAVE_CLNT_DG_CREATE
+#else	/* !HAVE_LIBTIRPC */
+
 	if (sap->sa_family != AF_INET) {
 		rpc_createerr.cf_stat = RPC_UNKNOWNPROTO;
 		return NULL;
 	}
-#endif	/* !HAVE_CLNT_DG_CREATE */
+#endif	/* !HAVE_LIBTIRPC */
 
 	sock = socket((int)sap->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock == -1) {
@@ -305,13 +305,13 @@ static CLIENT *nfs_get_udpclient(const struct sockaddr *sap,
 		return NULL;
 	}
 
-#ifdef HAVE_CLNT_DG_CREATE
+#ifdef HAVE_LIBTIRPC
 	memcpy(nbuf.buf, sap, (size_t)salen);
 	client = clnt_dg_create(sock, &nbuf, program, version, 0, 0);
-#else	/* HAVE_CLNT_DG_CREATE */
+#else	/* !HAVE_LIBTIRPC */
 	client = clntudp_create((struct sockaddr_in *)sap, program,
 					version, *timeout, &sock);
-#endif	/* HAVE_CLNT_DG_CREATE */
+#endif	/* !HAVE_LIBTIRPC */
 	if (client != NULL) {
 		CLNT_CONTROL(client, CLSET_RETRY_TIMEOUT, (char *)timeout);
 		CLNT_CONTROL(client, CLSET_FD_CLOSE, NULL);
@@ -337,23 +337,23 @@ static CLIENT *nfs_get_tcpclient(const struct sockaddr *sap,
 				 const rpcvers_t version,
 				 struct timeval *timeout)
 {
-#ifdef HAVE_CLNT_VC_CREATE
+	CLIENT *client;
+	int ret, sock;
+#ifdef HAVE_LIBTIRPC
 	struct sockaddr_storage address;
 	const struct netbuf nbuf = {
 		.maxlen		= salen,
 		.len		= salen,
 		.buf		= &address,
 	};
-#endif	/* HAVE_CLNT_VC_CREATE */
-	CLIENT *client;
-	int ret, sock;
 
-#ifndef HAVE_CLNT_VC_CREATE
+#else	/* !HAVE_LIBTIRPC */
+
 	if (sap->sa_family != AF_INET) {
 		rpc_createerr.cf_stat = RPC_UNKNOWNPROTO;
 		return NULL;
 	}
-#endif	/* !HAVE_CLNT_VC_CREATE */
+#endif	/* !HAVE_LIBTIRPC */
 
 	sock = socket((int)sap->sa_family, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == -1) {
@@ -381,13 +381,13 @@ static CLIENT *nfs_get_tcpclient(const struct sockaddr *sap,
 		return NULL;
 	}
 
-#ifdef HAVE_CLNT_VC_CREATE
+#ifdef HAVE_LIBTIRPC
 	memcpy(nbuf.buf, sap, (size_t)salen);
 	client = clnt_vc_create(sock, &nbuf, program, version, 0, 0);
-#else	/* HAVE_CLNT_VC_CREATE */
+#else	/* !HAVE_LIBTIRPC */
 	client = clnttcp_create((struct sockaddr_in *)sap,
 					program, version, &sock, 0, 0);
-#endif	/* HAVE_CLNT_VC_CREATE */
+#endif	/* !HAVE_LIBTIRPC */
 	if (client != NULL)
 		CLNT_CONTROL(client, CLSET_FD_CLOSE, NULL);
 	else
