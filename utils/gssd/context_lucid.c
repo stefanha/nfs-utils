@@ -70,9 +70,10 @@ static int
 prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	gss_buffer_desc *buf, int32_t *endtime)
 {
+#define FAKESEED_SIZE 16
 	char *p, *end;
 	static int constant_zero = 0;
-	unsigned char fakeseed[16];
+	unsigned char fakeseed[FAKESEED_SIZE];
 	uint32_t word_send_seq;
 	gss_krb5_lucid_key_t enc_key;
 	int i;
@@ -88,6 +89,7 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	 */
 	memset(&enc_key, 0, sizeof(enc_key));
 	memset(&fakeoid, 0, sizeof(fakeoid));
+	memset(fakeseed, 0, FAKESEED_SIZE);
 
 	if (!(buf->value = calloc(1, MAX_CTX_LEN)))
 		goto out_err;
@@ -98,7 +100,7 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 
 	/* seed_init and seed not used by kernel anyway */
 	if (WRITE_BYTES(&p, end, constant_zero)) goto out_err;
-	if (write_bytes(&p, end, &fakeseed, 16)) goto out_err;
+	if (write_bytes(&p, end, &fakeseed, FAKESEED_SIZE)) goto out_err;
 
 	if (WRITE_BYTES(&p, end, lctx->rfc1964_kd.sign_alg)) goto out_err;
 	if (WRITE_BYTES(&p, end, lctx->rfc1964_kd.seal_alg)) goto out_err;
