@@ -182,9 +182,10 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 fail:
 	printerr(0, "ERROR: failed to read service info\n");
 	if (fd != -1) close(fd);
-	if (*servername) free(*servername);
-	if (*servicename) free(*servicename);
-	if (*protocol) free(*protocol);
+	free(*servername);
+	free(*servicename);
+	free(*protocol);
+	*servicename = *servername = *protocol = NULL;
 	return -1;
 }
 
@@ -200,10 +201,10 @@ destroy_client(struct clnt_info *clp)
 	if (clp->dir_fd != -1) close(clp->dir_fd);
 	if (clp->krb5_fd != -1) close(clp->krb5_fd);
 	if (clp->spkm3_fd != -1) close(clp->spkm3_fd);
-	if (clp->dirname) free(clp->dirname);
-	if (clp->servicename) free(clp->servicename);
-	if (clp->servername) free(clp->servername);
-	if (clp->protocol) free(clp->protocol);
+	free(clp->dirname);
+	free(clp->servicename);
+	free(clp->servername);
+	free(clp->protocol);
 	free(clp);
 }
 
