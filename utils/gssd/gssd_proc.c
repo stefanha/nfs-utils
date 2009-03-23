@@ -107,7 +107,7 @@ static int
 read_service_info(char *info_file_name, char **servicename, char **servername,
 		  int *prog, int *vers, char **protocol, int *port) {
 #define INFOBUFLEN 256
-	char		buf[INFOBUFLEN];
+	char		buf[INFOBUFLEN + 1];
 	static char	dummy[128];
 	int		nbytes;
 	static char	service[128];
@@ -132,6 +132,7 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	if ((nbytes = read(fd, buf, INFOBUFLEN)) == -1)
 		goto fail;
 	close(fd);
+	buf[nbytes] = '\0';
 
 	numfields = sscanf(buf,"RPC server: %127s\n"
 		   "service: %127s %15s version %15s\n"
