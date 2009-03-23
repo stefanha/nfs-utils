@@ -782,7 +782,10 @@ static int record_pid(void)
 	fd = open("/var/run/sm-notify.pid", O_CREAT|O_EXCL|O_WRONLY, 0600);
 	if (fd < 0)
 		return 0;
-	write(fd, pid, strlen(pid));
+	if (write(fd, pid, strlen(pid)) != strlen(pid))  {
+		nsm_log(LOG_WARNING, "Writing to pid file failed: errno %d(%s)",
+			errno, strerror(errno));
+	}
 	close(fd);
 	return 1;
 }
@@ -818,12 +821,16 @@ static void drop_privs(void)
 static void set_kernel_nsm_state(int state)
 {
 	int fd;
+	const char *file = "/proc/sys/fs/nfs/nsm_local_state";
 
-	fd = open("/proc/sys/fs/nfs/nsm_local_state",O_WRONLY);
+	fd = open(file ,O_WRONLY);
 	if (fd >= 0) {
 		char buf[20];
 		snprintf(buf, sizeof(buf), "%d", state);
-		write(fd, buf, strlen(buf));
+		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
+			nsm_log(LOG_WARNING, "Writing to '%s' failed: errno %d (%s)",
+				file, errno, strerror(errno));
+		}
 		close(fd);
 	}
 }

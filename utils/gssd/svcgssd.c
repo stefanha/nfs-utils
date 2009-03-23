@@ -132,7 +132,11 @@ release_parent(void)
 	int status;
 
 	if (pipefds[1] > 0) {
-		write(pipefds[1], &status, 1);
+		if (write(pipefds[1], &status, 1) != 1) {
+			printerr(1, 
+				"WARN: writing to parent pipe failed: errno %d (%s)\n",
+				errno, strerror(errno));
+		}
 		close(pipefds[1]);
 		pipefds[1] = -1;
 	}

@@ -179,14 +179,20 @@ static void create_pidfile(void)
 		    pidfile, strerror(errno));
 	fprintf(fp, "%d\n", getpid());
 	pidfd = dup(fileno(fp));
-	if (fclose(fp) < 0)
-		note(N_WARNING, "Flushing pid file failed.\n");
+	if (fclose(fp) < 0) {
+		note(N_WARNING, "Flushing pid file failed: errno %d (%s)\n",
+			errno, strerror(errno));
+	}
 }
 
 static void truncate_pidfile(void)
 {
-	if (pidfd >= 0)
-		ftruncate(pidfd, 0);
+	if (pidfd >= 0) {
+		if (ftruncate(pidfd, 0) < 0) {
+			note(N_WARNING, "truncating pid file failed: errno %d (%s)\n",
+				errno, strerror(errno));
+		}
+	}
 }
 
 static void drop_privs(void)
@@ -207,9 +213,12 @@ static void drop_privs(void)
 	/* better chown the pid file before dropping, as if it
 	 * if over nfs we might loose access
 	 */
-	if (pidfd >= 0)
-		fchown(pidfd, st.st_uid, st.st_gid);
-
+	if (pidfd >= 0) {
+		if (fchown(pidfd, st.st_uid, st.st_gid) < 0) {
+			note(N_ERROR, "Unable to change owner of %s: %d (%s)",
+					SM_DIR, strerror (errno));
+		}
+	}
 	setgroups(0, NULL);
 	if (setgid(st.st_gid) == -1
 	    || setuid(st.st_uid) == -1) {
@@ -495,7 +504,10 @@ int main (int argc, char **argv)
 	/* If we got this far, we have successfully started, so notify parent */
 	if (pipefds[1] > 0) {
 		status = 0;
-		write(pipefds[1], &status, 1);
+		if (write(pipefds[1], &status, 1) != 1) {
+			note(N_WARNING, "writing to parent pipe failed: errno %d (%s)\n",
+				errno, strerror(errno));
+		}
 		close(pipefds[1]);
 		pipefds[1] = -1;
 	}
@@ -534,17 +546,23 @@ static void
 load_state_number(void)
 {
 	int fd;
+	const char *file = "/proc/sys/fs/nfs/nsm_local_state";
 
 	if ((fd = open(SM_STAT_PATH, O_RDONLY)) == -1)
 		return;
 
-	read(fd, &MY_STATE, sizeof(MY_STATE));
+	if (read(fd, &MY_STATE, sizeof(MY_STATE)) != sizeof(MY_STATE)) {
+		note(N_WARNING, "Unable to read state from '%s': errno %d (%s)",
+				SM_STAT_PATH, errno, strerror(errno));
+	}
 	close(fd);
-	fd = open("/proc/sys/fs/nfs/nsm_local_state",O_WRONLY);
+	fd = open(file, O_WRONLY);
 	if (fd >= 0) {
 		char buf[20];
 		snprintf(buf, sizeof(buf), "%d", MY_STATE);
-		write(fd, buf, strlen(buf));
+		if (write(fd, buf, strlen(buf)) != strlen(buf))
+			note(N_WARNING, "Writing to '%s' failed: errno %d (%s)",
+				file, errno, strerror(errno));
 		close(fd);
 	}
 

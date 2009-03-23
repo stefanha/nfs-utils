@@ -204,7 +204,10 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 			e += sprintf(e, "%02x", 0xff & (argp->priv[i]));
 		if (e+1-buf != LINELEN) abort();
 		e += sprintf(e, " %s %s\n", mon_name, my_name);
-		write(fd, buf, e-buf);
+		if (write(fd, buf, e-buf) != (e-buf)) {
+			note(N_WARNING, "writing to %s failed: errno %d (%s)",
+				path, errno, strerror(errno));
+		}
 	}
 
 	free(path);

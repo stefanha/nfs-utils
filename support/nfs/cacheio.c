@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <errno.h>
 
 void qword_add(char **bpp, int *lp, char *str)
 {
@@ -125,7 +126,10 @@ void qword_print(FILE *f, char *str)
 	char *bp = qword_buf;
 	int len = sizeof(qword_buf);
 	qword_add(&bp, &len, str);
-	fwrite(qword_buf, bp-qword_buf, 1, f);
+	if (fwrite(qword_buf, bp-qword_buf, 1, f) != 1) {
+		xlog_warn("qword_print: fwrite failed: errno %d (%s)",
+			errno, strerror(errno));
+	}
 }
 
 void qword_printhex(FILE *f, char *str, int slen)
@@ -133,7 +137,10 @@ void qword_printhex(FILE *f, char *str, int slen)
 	char *bp = qword_buf;
 	int len = sizeof(qword_buf);
 	qword_addhex(&bp, &len, str, slen);
-	fwrite(qword_buf, bp-qword_buf, 1, f);
+	if (fwrite(qword_buf, bp-qword_buf, 1, f) != 1) {
+		xlog_warn("qword_printhex: fwrite failed: errno %d (%s)",
+			errno, strerror(errno));
+	}
 }
 
 void qword_printint(FILE *f, int num)
@@ -318,7 +325,10 @@ cache_flush(int force)
 		sprintf(path, "/proc/net/rpc/%s/flush", cachelist[c]);
 		fd = open(path, O_RDWR);
 		if (fd >= 0) {
-			write(fd, stime, strlen(stime));
+			if (write(fd, stime, strlen(stime)) != strlen(stime)) {
+				xlog_warn("Writing to '%s' failed: errno %d (%s)",
+				path, errno, strerror(errno));
+			}
 			close(fd);
 		}
 	}
