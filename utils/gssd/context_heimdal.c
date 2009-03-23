@@ -69,19 +69,19 @@ int write_heimdal_enc_key(char **p, char *end, gss_ctx_id_t ctx)
 	krb5_context context;
 	krb5_error_code ret;
 	int i;
-	char *skd, *dkd;
+	char *skd, *dkd, *k5err = NULL;
 	int code = -1;
 
 	if ((ret = krb5_init_context(&context))) {
-		printerr(0, "ERROR: initializing krb5_context: %s\n",
-			gssd_k5_err_msg(NULL, ret));
+		k5err = gssd_k5_err_msg(NULL, ret);
+		printerr(0, "ERROR: initializing krb5_context: %s\n", k5err);
 		goto out_err;
 	}
 
 	if ((ret = krb5_auth_con_getlocalsubkey(context,
 						ctx->auth_context, &key))){
-		printerr(0, "ERROR: getting auth_context key: %s\n",
-			gssd_k5_err_msg(context, ret));
+		k5err = gssd_k5_err_msg(context, ret);
+		printerr(0, "ERROR: getting auth_context key: %s\n", k5err);
 		goto out_err_free_context;
 	}
 
@@ -97,9 +97,9 @@ int write_heimdal_enc_key(char **p, char *end, gss_ctx_id_t ctx)
 	enc_key.keyvalue.length = key->keyvalue.length;
 	if ((enc_key.keyvalue.data =
 				calloc(1, enc_key.keyvalue.length)) == NULL) {
-
+		k5err = gssd_k5_err_msg(context, ENOMEM);
 		printerr(0, "ERROR: allocating memory for enc key: %s\n",
-			gssd_k5_err_msg(context, ENOMEM));
+			 k5err);
 		goto out_err_free_key;
 	}
 	skd = (char *) key->keyvalue.data;
@@ -119,6 +119,7 @@ int write_heimdal_enc_key(char **p, char *end, gss_ctx_id_t ctx)
     out_err_free_context:
 	krb5_free_context(context);
     out_err:
+	free(k5err);
 	printerr(2, "write_heimdal_enc_key: %s\n", code ? "FAILED" : "SUCCESS");
 	return(code);
 }
@@ -128,18 +129,19 @@ int write_heimdal_seq_key(char **p, char *end, gss_ctx_id_t ctx)
 	krb5_keyblock *key;
 	krb5_context context;
 	krb5_error_code ret;
+	char *k5err = NULL;
 	int code = -1;
 
 	if ((ret = krb5_init_context(&context))) {
-		printerr(0, "ERROR: initializing krb5_context: %s\n",
-			gssd_k5_err_msg(NULL, ret));
+		k5err = gssd_k5_err_msg(NULL, ret);
+		printerr(0, "ERROR: initializing krb5_context: %s\n", k5err);
 		goto out_err;
 	}
 
 	if ((ret = krb5_auth_con_getlocalsubkey(context,
 						ctx->auth_context, &key))){
-		printerr(0, "ERROR: getting auth_context key: %s\n",
-			gssd_k5_err_msg(context, ret));
+		k5err = gssd_k5_err_msg(context, ret);
+		printerr(0, "ERROR: getting auth_context key: %s\n", k5err);
 		goto out_err_free_context;
 	}
 
@@ -162,6 +164,7 @@ int write_heimdal_seq_key(char **p, char *end, gss_ctx_id_t ctx)
     out_err_free_context:
 	krb5_free_context(context);
     out_err:
+	free(k5err);
 	printerr(2, "write_heimdal_seq_key: %s\n", code ? "FAILED" : "SUCCESS");
 	return(code);
 }
