@@ -109,6 +109,10 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 	qword_print(f, fname);
 	qword_printhex(f, context_token->value, context_token->length);
 	err = qword_eol(f);
+	if (err) {
+		printerr(1, "WARNING: error writing to downcall channel "
+			 "%s: %s\n", SVCGSSD_CONTEXT_CHANNEL, strerror(errno));
+	}
 	fclose(f);
 	return err;
 out_err:
