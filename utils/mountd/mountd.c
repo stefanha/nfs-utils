@@ -88,6 +88,14 @@ unregister_services (void)
 		pmap_unset (MOUNTPROG, MOUNTVERS_NFSV3);
 }
 
+static void
+cleanup_lockfiles (void)
+{
+	unlink(_PATH_XTABLCK);
+	unlink(_PATH_ETABLCK);
+	unlink(_PATH_RMTABLCK);
+}
+
 /* Wait for all worker child processes to exit and reap them */
 static void
 wait_for_workers (void)
@@ -154,6 +162,7 @@ fork_workers(void)
 	/* in parent */
 	wait_for_workers();
 	unregister_services();
+	cleanup_lockfiles();
 	xlog(L_NOTICE, "mountd: no more workers, exiting\n");
 	exit(0);
 }
@@ -170,6 +179,7 @@ killer (int sig)
 		kill(0, SIGTERM);
 		wait_for_workers();
 	}
+	cleanup_lockfiles();
 	xlog (L_FATAL, "Caught signal %d, un-registering and exiting.", sig);
 }
 

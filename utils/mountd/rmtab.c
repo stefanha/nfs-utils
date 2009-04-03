@@ -58,7 +58,7 @@ mountlist_add(char *host, const char *path)
 	int		lockid;
 	long		pos;
 
-	if ((lockid = xflock(_PATH_RMTAB, "a")) < 0)
+	if ((lockid = xflock(_PATH_RMTABLCK, "a")) < 0)
 		return;
 	setrmtabent("r+");
 	while ((rep = getrmtabent(1, &pos)) != NULL) {
@@ -98,7 +98,7 @@ mountlist_del(char *hname, const char *path)
 	int		lockid;
 	int		match;
 
-	if ((lockid = xflock(_PATH_RMTAB, "w")) < 0)
+	if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
 		return;
 	if (!setrmtabent("r")) {
 		xfunlock(lockid);
@@ -139,7 +139,7 @@ mountlist_del_all(struct sockaddr_in *sin)
 	FILE		*fp;
 	int		lockid;
 
-	if ((lockid = xflock(_PATH_RMTAB, "w")) < 0)
+	if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
 		return;
 	if (!(hp = gethostbyaddr((char *)&addr, sizeof(addr), AF_INET))) {
 		xlog(L_ERROR, "can't get hostname of %s", inet_ntoa(addr));
@@ -188,7 +188,7 @@ mountlist_list(void)
 	struct in_addr		addr;
 	struct hostent		*he;
 
-	if ((lockid = xflock(_PATH_RMTAB, "r")) < 0)
+	if ((lockid = xflock(_PATH_RMTABLCK, "r")) < 0)
 		return NULL;
 	if (stat(_PATH_RMTAB, &stb) < 0) {
 		xlog(L_ERROR, "can't stat %s", _PATH_RMTAB);

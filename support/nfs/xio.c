@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
 #include "xmalloc.h"
 #include "xlog.h"
 #include "xio.h"
@@ -54,16 +55,16 @@ xflock(char *fname, char *type)
 {
 	struct sigaction sa, oldsa;
 	int		readonly = !strcmp(type, "r");
-	mode_t  mode = (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	struct flock	fl = { readonly? F_RDLCK : F_WRLCK, SEEK_SET, 0, 0, 0 };
 	int		fd;
 
 	if (readonly)
-		fd = open(fname, O_RDONLY);
+		fd = open(fname, (O_RDONLY|O_CREAT), 0600);
 	else
-		fd = open(fname, (O_RDWR|O_CREAT), mode);
+		fd = open(fname, (O_RDWR|O_CREAT), 0600);
 	if (fd < 0) {
-		xlog(L_WARNING, "could not open %s for locking", fname);
+		xlog(L_WARNING, "could not open %s for locking: errno %d (%s)",
+				fname, errno, strerror(errno));
 		return -1;
 	}
 
@@ -74,7 +75,8 @@ xflock(char *fname, char *type)
 	alarm(10);
 	if (fcntl(fd, F_SETLKW, &fl) < 0) {
 		alarm(0);
-		xlog(L_WARNING, "failed to lock %s", fname);
+		xlog(L_WARNING, "failed to lock %s: errno %d (%s)",
+				fname, errno, strerror(errno));
 		close(fd);
 		fd = 0;
 	} else {

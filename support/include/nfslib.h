@@ -34,17 +34,26 @@
 #ifndef _PATH_XTABTMP
 #define _PATH_XTABTMP		NFS_STATEDIR "/xtab.tmp"
 #endif
+#ifndef _PATH_XTABLCK
+#define _PATH_XTABLCK		NFS_STATEDIR "/.xtab.lock"
+#endif
 #ifndef _PATH_ETAB
 #define _PATH_ETAB		NFS_STATEDIR "/etab"
 #endif
 #ifndef _PATH_ETABTMP
 #define _PATH_ETABTMP		NFS_STATEDIR "/etab.tmp"
 #endif
+#ifndef _PATH_ETABLCK
+#define _PATH_ETABLCK		NFS_STATEDIR "/.etab.lock"
+#endif
 #ifndef _PATH_RMTAB
 #define _PATH_RMTAB		NFS_STATEDIR "/rmtab"
 #endif
 #ifndef _PATH_RMTABTMP
 #define _PATH_RMTABTMP		_PATH_RMTAB ".tmp"
+#endif
+#ifndef _PATH_RMTABLCK
+#define _PATH_RMTABLCK		NFS_STATEDIR "/.rmtab.lock"
 #endif
 #ifndef _PATH_PROC_EXPORTS
 #define	_PATH_PROC_EXPORTS	"/proc/fs/nfs/exports"

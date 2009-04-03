@@ -57,7 +57,7 @@ rmtab_read(void)
 		   file. */
 		int	lockid;
 		FILE	*fp;
-		if ((lockid = xflock(_PATH_RMTAB, "w")) < 0)
+		if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
 			return -1;
 		rewindrmtabent();
 		if (!(fp = fsetrmtabent(_PATH_RMTABTMP, "w"))) {
