@@ -154,15 +154,21 @@ int qword_eol(FILE *f)
 
 	fprintf(f,"\n");
 	err = fflush(f);
+	if (err) {
+		xlog_warn("qword_eol: fflush failed: errno %d (%s)",
+			    errno, strerror(errno));
+	}
 	/*
 	 * We must send one line (and one line only) in a single write
 	 * call.  In case of a write error, libc may accumulate the
 	 * unwritten data and try to write it again later, resulting in a
 	 * multi-line write.  So we must explicitly ask it to throw away
-	 * any such cached data:
+	 * any such cached data.  But we return any original error
+	 * indication to the caller.
 	 */
 	__fpurge(f);
-	return fflush(f);
+	fflush(f);
+	return err;
 }
 
 
