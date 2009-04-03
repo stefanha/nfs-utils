@@ -185,13 +185,13 @@ AC_CHECK_FUNC([connect], ,
               [AC_CHECK_LIB([socket], [connect], [LIBSOCKET="-lsocket"],
                     [AC_MSG_ERROR([Function 'socket' not found.])], [$LIBNSL])])
 
-AC_CHECK_FUNC([getaddrinfo], , ,
+AC_CHECK_FUNC([getaddrinfo], ,
               [AC_MSG_ERROR([Function 'getaddrinfo' not found.])])
 
-AC_CHECK_FUNC([getrpcbynumber], , ,
+AC_CHECK_FUNC([getrpcbynumber], ,
               [AC_MSG_ERROR([Function 'getrpcbynumber' not found.])])
 
-AC_CHECK_FUNC([getservbyname], , ,
+AC_CHECK_FUNC([getservbyname], ,
               [AC_MSG_ERROR([Function 'getservbyname' not found.])])
 
 AC_CHECK_LIB([crypt], [crypt], [LIBCRYPT="-lcrypt"])
