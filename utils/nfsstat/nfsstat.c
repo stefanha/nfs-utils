@@ -184,6 +184,7 @@ static int		mounts(const char *);
 static void		get_stats(const char *, struct statinfo *, int *, int,
 					int);
 static int		has_stats(const unsigned int *);
+static int		has_rpcstats(const unsigned int *, int);
 static void 		diff_stats(struct statinfo *, struct statinfo *, int);
 static void 		unpause(int);
 static void 		update_old_counters(struct statinfo *, struct statinfo *);
@@ -256,6 +257,7 @@ static struct option longopts[] =
 	{ "since", 1, 0, 'S' },
 	{ NULL, 0, 0, 0 }
 };
+int opt_sleep;
 
 int
 main(int argc, char **argv)
@@ -264,7 +266,6 @@ main(int argc, char **argv)
 			opt_srv = 0,
 			opt_clt = 0,
 			opt_prt = 0,
-			opt_sleep = 0,
 			sleep_time = 0,
 			opt_since = 0;
 	int		c;
@@ -458,12 +459,14 @@ print_server_stats(int opt_srv, int opt_prt)
 			printf("\n");
 		}
 		if (opt_prt & PRNT_RPC) {
-			print_numbers(
-			LABEL_srvrpc
-			"calls      badcalls   badauth    badclnt    xdrcall\n",
-			srvrpcinfo, 5
-			);
-			printf("\n");
+			if (!opt_sleep && !has_rpcstats(srvrpcinfo, 5)) {
+				print_numbers(
+				LABEL_srvrpc
+				"calls      badcalls   badauth    badclnt    xdrcall\n",
+				srvrpcinfo, 5
+				);
+				printf("\n");
+			}
 		}
 		if (opt_prt & PRNT_RC) {
 			print_numbers(
@@ -536,12 +539,14 @@ print_client_stats(int opt_clt, int opt_prt)
 			printf("\n");
 		}
 		if (opt_prt & PRNT_RPC) {
-			print_numbers(
-			LABEL_cltrpc
-			"calls      retrans    authrefrsh\n",
-			cltrpcinfo, 3
-			);
-			printf("\n");
+			if (!opt_sleep && !has_rpcstats(cltrpcinfo, 3)) {
+				print_numbers(
+				LABEL_cltrpc
+				"calls      retrans    authrefrsh\n",
+				cltrpcinfo, 3
+				);
+				printf("\n");
+			}
 		}
 		if (opt_prt & PRNT_CALLS) {
 			if ((opt_prt & PRNT_V2) || ((opt_prt & PRNT_AUTO) && has_stats(cltproc2info)))
@@ -835,6 +840,15 @@ static int
 has_stats(const unsigned int *info)
 {
 	return (info[0] && info[info[0] + 1] > info[0]);
+}
+static int
+has_rpcstats(const unsigned int *info, int size)
+{
+	int i, cnt;
+
+	for (i=0, cnt=0; i < size; i++)
+		cnt += info[i];
+	return cnt;
 }
 
 /*
