@@ -91,7 +91,7 @@ output
 .I file
 are treated as zeroes.
 .TP
-.B \-Z, \-\-sleep
+.B \-Z[interval], \-\-sleep=[interval]
 Instead of printing current statistics and immediately exiting,
 .B nfsstat
 takes a snapshot of the current statistics and pauses until it receives
@@ -100,6 +100,10 @@ takes a snapshot of the current statistics and pauses until it receives
 .BR Ctrl-C ),
 at which point it takes another snapshot and displays the difference
 between the two.
+If \fIinterval\fR is specified, 
+.B nfsstat
+will print the number of \fBNFS\fR calls made since the previous report.
+Stats will be printed repeatedly every \fIinterval\fR seconds.
 .\" --------------------- EXAMPLES -------------------------------
 .SH EXAMPLES
 .TP
