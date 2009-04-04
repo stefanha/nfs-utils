@@ -72,6 +72,9 @@ Display all of the above facilities.
 .B \-v, \-\-verbose
 This is equivalent to \fB\-o all\fR.
 .TP
+.B \-l, \-\-list
+Print information in list form.
+.TP
 .BI "\-S, \-\-since " file
 Instead of printing current statistics, 
 .B nfsstat
