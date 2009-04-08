@@ -442,7 +442,11 @@ main(int argc, char **argv)
 			}
 			fflush(stdout);
 
-			update_old_counters(clientinfo_tmp, clientinfo);
+			if (opt_srv)
+				update_old_counters(serverinfo_tmp, serverinfo);
+			if (opt_clt)
+				update_old_counters(clientinfo_tmp, clientinfo);
+
 			sleep(sleep_time);
 		}	
 	} else {
