@@ -60,9 +60,9 @@
 #endif	/* !HAVE_LIBTIRPC */
 
 #ifdef HAVE_LIBTIRPC
-const static rpcvers_t default_rpcb_version = RPCBVERS_4;
+static const rpcvers_t default_rpcb_version = RPCBVERS_4;
 #else	/* !HAVE_LIBTIRPC */
-const static rpcvers_t default_rpcb_version = PMAPVERS;
+static const rpcvers_t default_rpcb_version = PMAPVERS;
 #endif	/* !HAVE_LIBTIRPC */
 
 #ifdef HAVE_DECL_AI_ADDRCONFIG
