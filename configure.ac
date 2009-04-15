@@ -236,6 +236,9 @@ AC_SUBST(LIBBSD)
 AC_SUBST(LIBBLKID)
 
 if test "$enable_gss" = yes; then
+  dnl 'gss' requires getnameinfo - at least for gssd_proc.c
+  AC_CHECK_FUNC([getnameinfo], , [AC_MSG_ERROR([GSSAPI support requires 'getnameinfo' function])])
+
   dnl 'gss' also depends on nfsidmap.h - at least for svcgssd_proc.c
   AC_LIBNFSIDMAP
 
