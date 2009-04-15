@@ -102,10 +102,66 @@ struct pollfd * pollarray;
 
 int pollsize;  /* the size of pollaray (in pollfd's) */
 
+/*
+ * convert a presentation address string to a sockaddr_storage struct. Returns
+ * true on success and false on failure.
+ */
+static int
+addrstr_to_sockaddr(struct sockaddr *sa, const char *addr, const int port)
+{
+	struct sockaddr_in	*s4 = (struct sockaddr_in *) sa;
+
+	if (inet_pton(AF_INET, addr, &s4->sin_addr)) {
+		s4->sin_family = AF_INET;
+		s4->sin_port = htons(port);
+	} else {
+		printerr(0, "ERROR: unable to convert %s to address\n", addr);
+		return 0;
+	}
+
+	return 1;
+}
+
+/*
+ * convert a sockaddr to a hostname
+ */
+static char *
+sockaddr_to_hostname(const struct sockaddr *sa, const char *addr)
+{
+	socklen_t		addrlen;
+	int			err;
+	char 			*hostname;
+	char			hbuf[NI_MAXHOST];
+
+	switch (sa->sa_family) {
+	case AF_INET:
+		addrlen = sizeof(struct sockaddr_in);
+		break;
+	default:
+		printerr(0, "ERROR: unrecognized addr family %d\n",
+			 sa->sa_family);
+		return NULL;
+	}
+
+	err = getnameinfo(sa, addrlen, hbuf, sizeof(hbuf), NULL, 0,
+			  NI_NAMEREQD);
+	if (err) {
+		printerr(0, "ERROR: unable to resolve %s to hostname: %s\n",
+			 addr, err == EAI_SYSTEM ? strerror(err) :
+						   gai_strerror(err));
+		return NULL;
+	}
+
+	hostname = strdup(hbuf);
+
+	return hostname;
+}
+
 /* XXX buffer problems: */
 static int
 read_service_info(char *info_file_name, char **servicename, char **servername,
-		  int *prog, int *vers, char **protocol, int *port) {
+		  int *prog, int *vers, char **protocol,
+		  struct sockaddr *addr) {
 #define INFOBUFLEN 256
 	char		buf[INFOBUFLEN + 1];
 	static char	dummy[128];
@@ -117,10 +173,9 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	char		protoname[16];
 	char		cb_port[128];
 	char		*p;
-	in_addr_t	inaddr;
 	int		fd = -1;
-	struct hostent	*ent = NULL;
 	int		numfields;
+	int		port = 0;
 
 	*servicename = *servername = *protocol = NULL;
 
@@ -160,21 +215,26 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	if((*prog != 100003) || ((*vers != 2) && (*vers != 3) && (*vers != 4)))
 		goto fail;
 
-	/* create service name */
-	inaddr = inet_addr(address);
-	if (!(ent = gethostbyaddr(&inaddr, sizeof(inaddr), AF_INET))) {
-		printerr(0, "ERROR: can't resolve server %s name\n", address);
-		goto fail;
+	if (cb_port[0] != '\0') {
+		port = atoi(cb_port);
+		if (port < 0 || port > 65535)
+			goto fail;
 	}
-	if (!(*servername = calloc(strlen(ent->h_name) + 1, 1)))
+
+	if (!addrstr_to_sockaddr(addr, address, port))
 		goto fail;
-	memcpy(*servername, ent->h_name, strlen(ent->h_name));
-	snprintf(buf, INFOBUFLEN, "%s@%s", service, ent->h_name);
+
+	*servername = sockaddr_to_hostname(addr, address);
+	if (*servername == NULL)
+		goto fail;
+
+	nbytes = snprintf(buf, INFOBUFLEN, "%s@%s", service, *servername);
+	if (nbytes > INFOBUFLEN)
+		goto fail;
+
 	if (!(*servicename = calloc(strlen(buf) + 1, 1)))
 		goto fail;
 	memcpy(*servicename, buf, strlen(buf));
-	if (cb_port[0] != '\0')
-		*port = atoi(cb_port);
 
 	if (!(*protocol = strdup(protoname)))
 		goto fail;
@@ -251,7 +311,7 @@ process_clnt_dir_files(struct clnt_info * clp)
 	if ((clp->servicename == NULL) &&
 	     read_service_info(info_file_name, &clp->servicename,
 				&clp->servername, &clp->prog, &clp->vers,
-				&clp->protocol, &clp->port))
+				&clp->protocol, (struct sockaddr *) &clp->addr))
 		return -1;
 	return 0;
 }
@@ -503,6 +563,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	struct addrinfo		ai_hints, *a = NULL;
 	char			service[64];
 	char			*at_sign;
+	struct sockaddr_in	*addr = (struct sockaddr_in *) &clp->addr;
 
 	/* Create the context as the user (not as root) */
 	save_uid = geteuid();
@@ -599,8 +660,10 @@ int create_auth_rpc_client(struct clnt_info *clp,
 			 clp->servername, uid);
 		goto out_fail;
 	}
-	if (clp->port)
-		((struct sockaddr_in *)a->ai_addr)->sin_port = htons(clp->port);
+
+	if (addr->sin_port != 0)
+		((struct sockaddr_in *) a->ai_addr)->sin_port = addr->sin_port;
+
 	if (a->ai_protocol == IPPROTO_TCP) {
 		if ((rpc_clnt = clnttcp_create(
 					(struct sockaddr_in *) a->ai_addr,

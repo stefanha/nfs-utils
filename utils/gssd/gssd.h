@@ -83,7 +83,7 @@ struct clnt_info {
 	int			krb5_poll_index;
 	int			spkm3_fd;
 	int			spkm3_poll_index;
-	int			port;
+	struct sockaddr_storage addr;
 };
 
 void init_client_list(void);
