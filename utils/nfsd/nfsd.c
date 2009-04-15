@@ -86,7 +86,7 @@ main(int argc, char **argv)
 				NFSCTL_VERUNSET(versbits, c);
 				break;
 			default:
-				fprintf(stderr, "%c: Unsupported version\n", c);
+				fprintf(stderr, "%s: Unsupported version\n", optarg);
 				exit(1);
 			}
 			break;
