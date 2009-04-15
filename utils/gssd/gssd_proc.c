@@ -626,9 +626,8 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	int			retval = -1;
 	OM_uint32		min_stat;
 	char			rpc_errmsg[1024];
-	int			sockp = RPC_ANYSOCK;
-	int			sendsz = 32768, recvsz = 32768;
 	int			protocol;
+	struct timeval		timeout = {5, 0};
 	struct sockaddr		*addr = (struct sockaddr *) &clp->addr;
 	socklen_t		salen;
 
@@ -708,33 +707,17 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	if (!populate_port(addr, salen, clp->prog, clp->vers, protocol))
 		goto out_fail;
 
-	if (protocol == IPPROTO_TCP) {
-		if ((rpc_clnt = clnttcp_create(
-					(struct sockaddr_in *) addr,
-					clp->prog, clp->vers, &sockp,
-					sendsz, recvsz)) == NULL) {
-			snprintf(rpc_errmsg, sizeof(rpc_errmsg),
-				 "WARNING: can't create tcp rpc_clnt "
-				 "for server %s for user with uid %d",
-				 clp->servername, uid);
-			printerr(0, "%s\n",
-				 clnt_spcreateerror(rpc_errmsg));
-			goto out_fail;
-		}
-	} else if (protocol == IPPROTO_UDP) {
-		const struct timeval timeout = {5, 0};
-		if ((rpc_clnt = clntudp_bufcreate(
-					(struct sockaddr_in *) addr,
-					clp->prog, clp->vers, timeout,
-					&sockp, sendsz, recvsz)) == NULL) {
-			snprintf(rpc_errmsg, sizeof(rpc_errmsg),
-				 "WARNING: can't create udp rpc_clnt "
-				 "for server %s for user with uid %d",
-				 clp->servername, uid);
-			printerr(0, "%s\n",
-				 clnt_spcreateerror(rpc_errmsg));
-			goto out_fail;
-		}
+	rpc_clnt = nfs_get_rpcclient(addr, salen, protocol, clp->prog,
+				     clp->vers, &timeout);
+	if (!rpc_clnt) {
+		snprintf(rpc_errmsg, sizeof(rpc_errmsg),
+			 "WARNING: can't create %s rpc_clnt to server %s for "
+			 "user with uid %d",
+			 protocol == IPPROTO_TCP ? "tcp" : "udp",
+			 clp->servername, uid);
+		printerr(0, "%s\n",
+			 clnt_spcreateerror(rpc_errmsg));
+		goto out_fail;
 	}
 
 	printerr(2, "creating context with server %s\n", clp->servicename);
