@@ -106,15 +106,32 @@ int pollsize;  /* the size of pollaray (in pollfd's) */
 /*
  * convert a presentation address string to a sockaddr_storage struct. Returns
  * true on success and false on failure.
+ *
+ * Note that we do not populate the sin6_scope_id field here for IPv6 addrs.
+ * gssd nececessarily relies on hostname resolution and DNS AAAA records
+ * do not generally contain scope-id's. This means that GSSAPI auth really
+ * can't work with IPv6 link-local addresses.
+ *
+ * We *could* consider changing this if we did something like adopt the
+ * Microsoft "standard" of using the ipv6-literal.net domainname, but it's
+ * not really feasible at present.
  */
 static int
 addrstr_to_sockaddr(struct sockaddr *sa, const char *addr, const int port)
 {
 	struct sockaddr_in	*s4 = (struct sockaddr_in *) sa;
+#ifdef IPV6_SUPPORTED
+	struct sockaddr_in6	*s6 = (struct sockaddr_in6 *) sa;
+#endif /* IPV6_SUPPORTED */
 
 	if (inet_pton(AF_INET, addr, &s4->sin_addr)) {
 		s4->sin_family = AF_INET;
 		s4->sin_port = htons(port);
+#ifdef IPV6_SUPPORTED
+	} else if (inet_pton(AF_INET6, addr, &s6->sin6_addr)) {
+		s6->sin6_family = AF_INET6;
+		s6->sin6_port = htons(port);
+#endif /* IPV6_SUPPORTED */
 	} else {
 		printerr(0, "ERROR: unable to convert %s to address\n", addr);
 		return 0;
@@ -138,6 +155,11 @@ sockaddr_to_hostname(const struct sockaddr *sa, const char *addr)
 	case AF_INET:
 		addrlen = sizeof(struct sockaddr_in);
 		break;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		addrlen = sizeof(struct sockaddr_in6);
+		break;
+#endif /* IPV6_SUPPORTED */
 	default:
 		printerr(0, "ERROR: unrecognized addr family %d\n",
 			 sa->sa_family);
@@ -556,6 +578,9 @@ populate_port(struct sockaddr *sa, const socklen_t salen,
 	      const unsigned short protocol)
 {
 	struct sockaddr_in	*s4 = (struct sockaddr_in *) sa;
+#ifdef IPV6_SUPPORTED
+	struct sockaddr_in6	*s6 = (struct sockaddr_in6 *) sa;
+#endif /* IPV6_SUPPORTED */
 	unsigned short		port;
 
 	/*
@@ -570,6 +595,15 @@ populate_port(struct sockaddr *sa, const socklen_t salen,
 			return 1;
 		}
 		break;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		if (s6->sin6_port != 0) {
+			printerr(2, "DEBUG: port already set to %d\n",
+				 ntohs(s6->sin6_port));
+			return 1;
+		}
+		break;
+#endif /* IPV6_SUPPORTED */
 	default:
 		printerr(0, "ERROR: unsupported address family %d\n",
 			    sa->sa_family);
@@ -604,6 +638,11 @@ set_port:
 	case AF_INET:
 		s4->sin_port = htons(port);
 		break;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		s6->sin6_port = htons(port);
+		break;
+#endif /* IPV6_SUPPORTED */
 	}
 
 	return 1;
@@ -698,6 +737,11 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	case AF_INET:
 		salen = sizeof(struct sockaddr_in);
 		break;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		salen = sizeof(struct sockaddr_in6);
+		break;
+#endif /* IPV6_SUPPORTED */
 	default:
 		printerr(1, "ERROR: Unknown address family %d\n",
 			 addr->sa_family);
