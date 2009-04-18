@@ -1337,7 +1337,7 @@ static unsigned short nfs_mount_protocol(struct mount_options *options)
 			return IPPROTO_UDP;
 	}
 
-	return nfs_nfs_version(options);
+	return nfs_nfs_protocol(options);
 }
 
 /*
