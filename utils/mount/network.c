@@ -869,7 +869,7 @@ int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
 	memcpy(saddr, sap, salen);
 	nfs_set_port(saddr, mnt_pmap.pm_port);
 
-	client = nfs_get_rpcclient(saddr, salen, mnt_pmap.pm_prot,
+	client = nfs_get_priv_rpcclient(saddr, salen, mnt_pmap.pm_prot,
 					mnt_pmap.pm_prog, mnt_pmap.pm_vers,
 					&timeout);
 	if (client == NULL)
