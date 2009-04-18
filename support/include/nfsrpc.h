@@ -24,6 +24,7 @@
 #define __NFS_UTILS_NFSRPC_H
 
 #include <rpc/types.h>
+#include <rpc/clnt.h>
 
 /*
  * Conventional RPC program numbers
@@ -54,9 +55,17 @@
 extern rpcprog_t	nfs_getrpcbyname(const rpcprog_t, const char *table[]);
 
 /*
- * Acquire an RPC CLIENT *
+ * Acquire an RPC CLIENT * with an ephemeral source port
  */
 extern CLIENT		*nfs_get_rpcclient(const struct sockaddr *,
+				const socklen_t, const unsigned short,
+				const rpcprog_t, const rpcvers_t,
+				struct timeval *);
+
+/*
+ * Acquire an RPC CLIENT * with a privileged source port
+ */
+extern CLIENT		*nfs_get_priv_rpcclient( const struct sockaddr *,
 				const socklen_t, const unsigned short,
 				const rpcprog_t, const rpcvers_t,
 				struct timeval *);

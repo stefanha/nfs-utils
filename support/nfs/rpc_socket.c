@@ -132,6 +132,58 @@ static int nfs_bind(const int sock, const sa_family_t family)
 	return -1;
 }
 
+#ifdef IPV6_SUPPORT
+
+/*
+ * Bind a socket using an unused privileged source port.
+ *
+ * Returns zero on success, or returns -1 on error.  errno is
+ * set to reflect the nature of the error.
+ */
+static int nfs_bindresvport(const int sock, const sa_family_t family)
+{
+	struct sockaddr_in sin = {
+		.sin_family		= AF_INET,
+		.sin_addr.s_addr	= htonl(INADDR_ANY),
+	};
+	struct sockaddr_in6 sin6 = {
+		.sin6_family		= AF_INET6,
+		.sin6_addr		= IN6ADDR_ANY_INIT,
+	};
+
+	switch (family) {
+	case AF_INET:
+		return bindresvport_sa(sock, (struct sockaddr *)&sin,
+					(socklen_t)sizeof(sin));
+	case AF_INET6:
+		return bindresvport_sa(sock, (struct sockaddr *)&sin6,
+					(socklen_t)sizeof(sin6));
+	}
+
+	errno = EAFNOSUPPORT;
+	return -1;
+}
+
+#else	/* !IPV6_SUPPORT */
+
+/*
+ * Bind a socket using an unused privileged source port.
+ *
+ * Returns zero on success, or returns -1 on error.  errno is
+ * set to reflect the nature of the error.
+ */
+static int nfs_bindresvport(const int sock, const sa_family_t family)
+{
+	if (family != AF_INET) {
+		errno = EAFNOSUPPORT;
+		return -1;
+	}
+
+	return bindresvport(sock, NULL);
+}
+
+#endif	/* !IPV6_SUPPORT */
+
 /*
  * Perform a non-blocking connect on the socket fd.
  *
@@ -218,7 +270,8 @@ static CLIENT *nfs_get_udpclient(const struct sockaddr *sap,
 				 const socklen_t salen,
 				 const rpcprog_t program,
 				 const rpcvers_t version,
-				 struct timeval *timeout)
+				 struct timeval *timeout,
+				 const int resvport)
 {
 	CLIENT *client;
 	int ret, sock;
@@ -245,7 +298,10 @@ static CLIENT *nfs_get_udpclient(const struct sockaddr *sap,
 		return NULL;
 	}
 
-	ret = nfs_bind(sock, sap->sa_family);
+	if (resvport)
+		ret = nfs_bindresvport(sock, sap->sa_family);
+	else
+		ret = nfs_bind(sock, sap->sa_family);
 	if (ret < 0) {
 		rpc_createerr.cf_stat = RPC_SYSTEMERROR;
 		rpc_createerr.cf_error.re_errno = errno;
@@ -294,7 +350,8 @@ static CLIENT *nfs_get_tcpclient(const struct sockaddr *sap,
 				 const socklen_t salen,
 				 const rpcprog_t program,
 				 const rpcvers_t version,
-				 struct timeval *timeout)
+				 struct timeval *timeout,
+				 const int resvport)
 {
 	CLIENT *client;
 	int ret, sock;
@@ -321,7 +378,10 @@ static CLIENT *nfs_get_tcpclient(const struct sockaddr *sap,
 		return NULL;
 	}
 
-	ret = nfs_bind(sock, sap->sa_family);
+	if (resvport)
+		ret = nfs_bindresvport(sock, sap->sa_family);
+	else
+		ret = nfs_bind(sock, sap->sa_family);
 	if (ret < 0) {
 		rpc_createerr.cf_stat = RPC_SYSTEMERROR;
 		rpc_createerr.cf_error.re_errno = errno;
@@ -365,7 +425,8 @@ static CLIENT *nfs_get_tcpclient(const struct sockaddr *sap,
  * @timeout: pointer to request timeout (must not be NULL)
  *
  * Set up an RPC client for communicating with an RPC program @program
- * and @version on the server @sap over @transport.
+ * and @version on the server @sap over @transport.  An unprivileged
+ * source port is used.
  *
  * Returns a pointer to a prepared RPC client if successful, and
  * @timeout is initialized; caller must destroy a non-NULL returned RPC
@@ -405,10 +466,75 @@ CLIENT *nfs_get_rpcclient(const struct sockaddr *sap,
 
 	switch (transport) {
 	case IPPROTO_TCP:
-		return nfs_get_tcpclient(sap, salen, program, version, timeout);
+		return nfs_get_tcpclient(sap, salen, program, version,
+						timeout, 0);
 	case 0:
 	case IPPROTO_UDP:
-		return nfs_get_udpclient(sap, salen, program, version, timeout);
+		return nfs_get_udpclient(sap, salen, program, version,
+						timeout, 0);
+	}
+
+	rpc_createerr.cf_stat = RPC_UNKNOWNPROTO;
+	return NULL;
+}
+
+/**
+ * nfs_get_priv_rpcclient - acquire an RPC client
+ * @sap: pointer to socket address of RPC server
+ * @salen: length of socket address
+ * @transport: IPPROTO_ value of transport protocol to use
+ * @program: RPC program number
+ * @version: RPC version number
+ * @timeout: pointer to request timeout (must not be NULL)
+ *
+ * Set up an RPC client for communicating with an RPC program @program
+ * and @version on the server @sap over @transport.  A privileged
+ * source port is used.
+ *
+ * Returns a pointer to a prepared RPC client if successful, and
+ * @timeout is initialized; caller must destroy a non-NULL returned RPC
+ * client.  Otherwise returns NULL, and rpc_createerr.cf_stat is set to
+ * reflect the error.
+ */
+CLIENT *nfs_get_priv_rpcclient(const struct sockaddr *sap,
+			       const socklen_t salen,
+			       const unsigned short transport,
+			       const rpcprog_t program,
+			       const rpcvers_t version,
+			       struct timeval *timeout)
+{
+	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
+
+	switch (sap->sa_family) {
+	case AF_LOCAL:
+		return nfs_get_localclient(sap, salen, program,
+						version, timeout);
+	case AF_INET:
+		if (sin->sin_port == 0) {
+			rpc_createerr.cf_stat = RPC_UNKNOWNADDR;
+			return NULL;
+		}
+		break;
+	case AF_INET6:
+		if (sin6->sin6_port == 0) {
+			rpc_createerr.cf_stat = RPC_UNKNOWNADDR;
+			return NULL;
+		}
+		break;
+	default:
+		rpc_createerr.cf_stat = RPC_UNKNOWNHOST;
+		return NULL;
+	}
+
+	switch (transport) {
+	case IPPROTO_TCP:
+		return nfs_get_tcpclient(sap, salen, program, version,
+						timeout, 1);
+	case 0:
+	case IPPROTO_UDP:
+		return nfs_get_udpclient(sap, salen, program, version,
+						timeout, 1);
 	}
 
 	rpc_createerr.cf_stat = RPC_UNKNOWNPROTO;
