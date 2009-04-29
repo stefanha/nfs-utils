@@ -371,7 +371,7 @@ client_check(nfs_client *clp, struct hostent *hp)
 #ifdef HAVE_INNETGR
 		{
 			char	*dot;
-			int	match;
+			int	match, i;
 			struct hostent *nhp = NULL;
 			struct sockaddr_in addr;
 
@@ -379,6 +379,12 @@ client_check(nfs_client *clp, struct hostent *hp)
 			 * splitting off the domain */
 			if (innetgr(cname+1, hname, NULL, NULL))
 				return 1;
+
+			/* try the aliases as well */
+			for (i = 0; hp->h_aliases[i]; i++) {
+				if (innetgr(cname+1, hp->h_aliases[i], NULL, NULL))
+					return 1;
+			}
 
 			/* If hname is ip address convert to FQDN */
 			if (inet_aton(hname, &addr.sin_addr) &&
