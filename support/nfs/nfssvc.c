@@ -116,7 +116,7 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 	return;
 }
 static void
-nfssvc_versbits(unsigned int ctlbits)
+nfssvc_versbits(unsigned int ctlbits, int minorvers4)
 {
 	int fd, n, off;
 	char buf[BUFSIZ], *ptr;
@@ -133,6 +133,11 @@ nfssvc_versbits(unsigned int ctlbits)
 		else
 		    off += snprintf(ptr+off, BUFSIZ - off, "-%d ", n);
 	}
+	n = minorvers4 >= 0 ? minorvers4 : -minorvers4;
+	if (n >= NFSD_MINMINORVERS4 && n <= NFSD_MAXMINORVERS4)
+		    off += snprintf(ptr+off, BUFSIZ - off, "%c4.%d",
+				    minorvers4 > 0 ? '+' : '-',
+				    n);
 	snprintf(ptr+off, BUFSIZ - off, "\n");
 	if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 		syslog(LOG_ERR, "nfssvc: Setting version failed: errno %d (%s)", 
@@ -143,8 +148,8 @@ nfssvc_versbits(unsigned int ctlbits)
 	return;
 }
 int
-nfssvc(int port, int nrservs, unsigned int versbits, unsigned protobits,
-	char *haddr)
+nfssvc(int port, int nrservs, unsigned int versbits, int minorvers4,
+	unsigned protobits, char *haddr)
 {
 	struct nfsctl_arg	arg;
 	int fd;
@@ -153,7 +158,7 @@ nfssvc(int port, int nrservs, unsigned int versbits, unsigned protobits,
 	 * the ports get registered with portmap against correct
 	 * versions
 	 */
-	nfssvc_versbits(versbits);
+	nfssvc_versbits(versbits, minorvers4);
 	nfssvc_setfds(port, protobits, haddr);
 
 	fd = open(NFSD_THREAD_FILE, O_WRONLY);

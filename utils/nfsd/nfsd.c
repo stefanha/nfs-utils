@@ -41,6 +41,7 @@ static struct option longopts[] =
 };
 unsigned int protobits = NFSCTL_ALLBITS;
 unsigned int versbits = NFSCTL_ALLBITS;
+int minorvers4;				/* nfsv4 minor version */
 char *haddr = NULL;
 
 int
@@ -158,7 +159,7 @@ main(int argc, char **argv)
 	closeall(3);
 
 	openlog("nfsd", LOG_PID, LOG_DAEMON);
-	if ((error = nfssvc(port, count, versbits, protobits, haddr)) < 0) {
+	if ((error = nfssvc(port, count, versbits, minorvers4, protobits, haddr)) < 0) {
 		int e = errno;
 		syslog(LOG_ERR, "nfssvc: %s", strerror(e));
 		closelog();

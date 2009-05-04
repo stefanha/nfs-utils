@@ -13,6 +13,9 @@
 #define NFSD_MINVERS 2
 #define NFSD_MAXVERS 4
 
+#define NFSD_MINMINORVERS4 1
+#define NFSD_MAXMINORVERS4 1
+
 struct nfs_fh_len {
 	int		fh_size;
 	u_int8_t	fh_handle[NFS3_FHSIZE];
