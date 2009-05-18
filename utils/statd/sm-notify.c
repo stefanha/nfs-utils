@@ -118,17 +118,33 @@ static void smn_set_port(struct sockaddr *sap, const unsigned short port)
 	}
 }
 
-static struct addrinfo *smn_lookup(const sa_family_t family, const char *name)
+static struct addrinfo *smn_lookup(const char *name)
 {
 	struct addrinfo	*ai, hint = {
-		.ai_family	= family,
+#if HAVE_DECL_AI_ADDRCONFIG
+		.ai_flags	= AI_ADDRCONFIG,
+#endif	/* HAVE_DECL_AI_ADDRCONFIG */
+		.ai_family	= AF_INET,
 		.ai_protocol	= IPPROTO_UDP,
 	};
+	int error;
 
-	if (getaddrinfo(name, NULL, &hint, &ai) != 0)
-		return NULL;
+	error = getaddrinfo(name, NULL, &hint, &ai);
+	switch (error) {
+	case 0:
+		return ai;
+	case EAI_SYSTEM: 
+		if (opt_debug)
+			nsm_log(LOG_ERR, "getaddrinfo(3): %s",
+					strerror(errno));
+		break;
+	default:
+		if (opt_debug)
+			nsm_log(LOG_ERR, "getaddrinfo(3): %s",
+					gai_strerror(error));
+	}
 
-	return ai;
+	return NULL;
 }
 
 static void smn_forget_host(struct nsm_host *host)
@@ -291,7 +307,7 @@ notify(void)
 
 	/* Bind source IP if provided on command line */
 	if (opt_srcaddr) {
-		struct addrinfo *ai = smn_lookup(AF_INET, opt_srcaddr);
+		struct addrinfo *ai = smn_lookup(opt_srcaddr);
 		if (!ai) {
 			nsm_log(LOG_ERR,
 				"Not a valid hostname or address: \"%s\"",
@@ -402,13 +418,12 @@ notify_host(int sock, struct nsm_host *host)
 		host->xid = xid++;
 
 	if (host->ai == NULL) {
-		host->ai = smn_lookup(AF_UNSPEC, host->name);
+		host->ai = smn_lookup(host->name);
 		if (host->ai == NULL) {
 			nsm_log(LOG_WARNING,
-				"%s doesn't seem to be a valid address,"
-				" skipped", host->name);
-			smn_forget_host(host);
-			return 1;
+				"DNS resolution of %s failed; "
+				"retrying later", host->name);
+			return 0;
 		}
 	}
 
