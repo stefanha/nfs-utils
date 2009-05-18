@@ -41,7 +41,7 @@ static struct option longopts[] =
 };
 unsigned int protobits = NFSCTL_ALLBITS;
 unsigned int versbits = NFSCTL_ALLBITS;
-int minorvers4;				/* nfsv4 minor version */
+int minorvers4 = NFSD_MAXMINORVERS4;		/* nfsv4 minor version */
 char *haddr = NULL;
 
 int
