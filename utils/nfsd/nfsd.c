@@ -50,6 +50,7 @@ main(int argc, char **argv)
 	int	count = 1, c, error, port, fd, found_one;
 	struct servent *ent;
 	struct hostent *hp;
+	char *p;
 
 	ent = getservbyname ("nfs", "udp");
 	if (ent != NULL)
@@ -80,10 +81,14 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'N':
-			switch((c = atoi(optarg))) {
-			case 2:
-			case 3:
+			switch((c = strtol(optarg, &p, 0))) {
 			case 4:
+				if (*p == '.') {
+					minorvers4 = -atoi(p + 1);
+					break;
+				}
+			case 3:
+			case 2:
 				NFSCTL_VERUNSET(versbits, c);
 				break;
 			default:
