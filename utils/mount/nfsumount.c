@@ -182,7 +182,7 @@ static int nfs_umount_do_umnt(struct mount_options *options,
 		return EX_FAIL;
 	}
 
-	if (nfs_name_to_address(*hostname, AF_UNSPEC, sap, &salen)) {
+	if (nfs_name_to_address(*hostname, sap, &salen)) {
 		if (nfs_advise_umount(sap, salen, &mnt_pmap, dirname) != 0)
 			return EX_SUCCESS;
 		else

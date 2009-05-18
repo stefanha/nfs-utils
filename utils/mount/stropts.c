@@ -87,8 +87,6 @@ struct nfsmount_info {
 	int			flags,		/* MS_ flags */
 				fake,		/* actually do the mount? */
 				child;		/* forked bg child? */
-
-	sa_family_t		family;		/* supported address family */
 };
 
 /*
@@ -198,8 +196,7 @@ static int nfs_append_clientaddr_option(const struct sockaddr *sap,
  * Resolve the 'mounthost=' hostname and append a new option using
  * the resulting address.
  */
-static int nfs_fix_mounthost_option(const sa_family_t family,
-				    struct mount_options *options)
+static int nfs_fix_mounthost_option(struct mount_options *options)
 {
 	struct sockaddr_storage dummy;
 	struct sockaddr *sap = (struct sockaddr *)&dummy;
@@ -210,7 +207,7 @@ static int nfs_fix_mounthost_option(const sa_family_t family,
 	if (!mounthost)
 		return 1;
 
-	if (!nfs_name_to_address(mounthost, family, sap, &salen)) {
+	if (!nfs_name_to_address(mounthost, sap, &salen)) {
 		nfs_error(_("%s: unable to determine mount server's address"),
 				progname);
 		return 0;
@@ -270,14 +267,14 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_parse_devname(mi->spec, &mi->hostname, NULL))
 		return 0;
 
-	if (!nfs_name_to_address(mi->hostname, mi->family, sap, &salen))
+	if (!nfs_name_to_address(mi->hostname, sap, &salen))
 		return 0;
 
 	if (strncmp(mi->type, "nfs4", 4) == 0) {
 		if (!nfs_append_clientaddr_option(sap, salen, mi->options))
 			return 0;
 	} else {
-		if (!nfs_fix_mounthost_option(mi->family, mi->options))
+		if (!nfs_fix_mounthost_option(mi->options))
 			return 0;
 		if (!mi->fake && !nfs_verify_lock_option(mi->options))
 			return 0;
@@ -785,11 +782,6 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 		.flags		= flags,
 		.fake		= fake,
 		.child		= child,
-#ifdef IPV6_SUPPORTED
-		.family		= AF_UNSPEC,	/* either IPv4 or v6 */
-#else
-		.family		= AF_INET,	/* only IPv4 */
-#endif
 	};
 	int retval = EX_FAIL;
 
