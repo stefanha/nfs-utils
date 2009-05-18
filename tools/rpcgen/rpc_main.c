@@ -550,7 +550,7 @@ s_output(int argc, char **argv, char *infile, char *define, int extend,
 	  f_print(fout, "#include <sys/ttycom.h>/* TIOCNOTTY */\n");
 #else
 	if( !tirpcflag )
-	  f_print(fout, "#include <sys/ttycom.h>/* TIOCNOTTY */\n");
+	  f_print(fout, "#include <sys/ioctl.h>/* TIOCNOTTY */\n");
 #endif
 	if( Cflag && (inetdflag || pmflag ) ) {
 	  f_print(fout, "#ifdef __cplusplus\n");
