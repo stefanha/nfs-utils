@@ -819,17 +819,24 @@ int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
 	CLIENT *client;
 	enum clnt_stat res = 0;
 
-	if (nfs_probe_mntport(sap, salen, &mnt_pmap) == 0)
-		return 0;
-
 	memcpy(saddr, sap, salen);
+	if (nfs_probe_mntport(saddr, salen, &mnt_pmap) == 0) {
+		if (verbose)
+			nfs_error(_("%s: Failed to discover mountd port%s"),
+				progname, clnt_spcreateerror(""));
+		return 0;
+	}
 	nfs_set_port(saddr, mnt_pmap.pm_port);
 
 	client = nfs_get_priv_rpcclient(saddr, salen, mnt_pmap.pm_prot,
 					mnt_pmap.pm_prog, mnt_pmap.pm_vers,
 					&timeout);
-	if (client == NULL)
+	if (client == NULL) {
+		if (verbose)
+			nfs_error(_("%s: Failed to create RPC client%s"),
+				progname, clnt_spcreateerror(""));
 		return 0;
+	}
 
 	client->cl_auth = authunix_create_default();
 
@@ -837,13 +844,15 @@ int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
 			(xdrproc_t)xdr_dirpath, (caddr_t)argp,
 			(xdrproc_t)xdr_void, NULL,
 			timeout);
+	if (verbose && res != RPC_SUCCESS)
+		nfs_error(_("%s: UMNT call failed: %s"),
+			progname, clnt_sperrno(res));
 
 	auth_destroy(client->cl_auth);
 	CLNT_DESTROY(client);
 
 	if (res != RPC_SUCCESS)
 		return 0;
-
 	return 1;
 }
 

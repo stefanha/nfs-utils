@@ -182,14 +182,15 @@ static int nfs_umount_do_umnt(struct mount_options *options,
 		return EX_FAIL;
 	}
 
-	if (nfs_name_to_address(*hostname, sap, &salen)) {
-		if (nfs_advise_umount(sap, salen, &mnt_pmap, dirname) != 0)
-			return EX_SUCCESS;
-		else
-			nfs_error(_("%s: Server failed to unmount '%s:%s'"),
-					progname, *hostname, *dirname);
-	}
-	return EX_FAIL;
+	if (nfs_name_to_address(*hostname, sap, &salen) == 0)
+		/* nfs_name_to_address reports any errors */
+		return EX_FAIL;
+
+	if (nfs_advise_umount(sap, salen, &mnt_pmap, dirname) == 0)
+		/* nfs_advise_umount reports any errors */
+		return EX_FAIL;
+
+	return EX_SUCCESS;
 }
 
 /*
