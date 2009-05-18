@@ -424,19 +424,27 @@ notify_host(int sock, struct nsm_host *host)
 	 * point.
 	 */
 	if (host->retries >= 4) {
-		struct addrinfo *first = host->ai;
-		struct addrinfo **next = &host->ai;
+		/* don't rotate if there is only one addrinfo */
+		if (host->ai->ai_next == NULL)
+			memcpy(&host->addr, host->ai->ai_addr,
+						host->ai->ai_addrlen);
+		else {
+			struct addrinfo *first = host->ai;
+			struct addrinfo **next = &host->ai;
 
-		/* remove the first entry from the list */
-		host->ai = first->ai_next;
-		first->ai_next = NULL;
-		/* find the end of the list */
-		next = &first->ai_next;
-		while ( *next )
-			next = & (*next)->ai_next;
-		/* put first entry at end */
-		*next = first;
-		memcpy(&host->addr, first->ai_addr, first->ai_addrlen);
+			/* remove the first entry from the list */
+			host->ai = first->ai_next;
+			first->ai_next = NULL;
+			/* find the end of the list */
+			next = &first->ai_next;
+			while ( *next )
+				next = & (*next)->ai_next;
+			/* put first entry at end */
+			*next = first;
+			memcpy(&host->addr, first->ai_addr,
+						first->ai_addrlen);
+		}
+
 		smn_set_port((struct sockaddr *)&host->addr, 0);
 		host->retries = 0;
 	}
