@@ -7,19 +7,24 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <errno.h>
 
 void
 closeall(int min)
 {
+	char *endp;
+	long n;
 	DIR *dir = opendir("/proc/self/fd");
+
 	if (dir != NULL) {
 		int dfd = dirfd(dir);
 		struct dirent *d;
 
 		while ((d = readdir(dir)) != NULL) {
-			char *endp;
-			long n = strtol(d->d_name, &endp, 10);
-			if (*endp != '\0' && n >= min && n != dfd)
+			errno = 0;
+			n = strtol(d->d_name, &endp, 10);
+			if (!errno && *endp == '\0' && endp != d->d_name &&
+			    n >= min && n != dfd)
 				(void) close(n);
 		}
 		closedir(dir);
