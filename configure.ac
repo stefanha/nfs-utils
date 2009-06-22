@@ -120,9 +120,9 @@ AC_ARG_ENABLE(mount,
 	AM_CONDITIONAL(CONFIG_MOUNT, [test "$enable_mount" = "yes"])
 AC_ARG_ENABLE(tirpc,
 	[AC_HELP_STRING([--enable-tirpc],
-			[enable use of TI-RPC @<:@default=no@:>@])],
+			[enable use of TI-RPC @<:@default=yes@:>@])],
 	enable_tirpc=$enableval,
-	enable_tirpc=no)
+	enable_tirpc='yes')
 AC_ARG_ENABLE(ipv6,
 	[AC_HELP_STRING([--enable-ipv6],
                         [enable support for IPv6 @<:@default=no@:>@])],

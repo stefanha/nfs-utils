@@ -11,7 +11,7 @@ AC_DEFUN([AC_IPV6], [
 
     dnl TI-RPC required for IPv6
     if test "$enable_tirpc" = no; then
-      AC_MSG_ERROR(['--enable-ipv6' requires '--enable-tirpc'.])
+      AC_MSG_ERROR(['--enable-ipv6' requires TIRPC support.])
     fi
 
     dnl IPv6-enabled networking functions required for IPv6
