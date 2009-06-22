@@ -208,6 +208,8 @@ main(int argc, char *argv[])
 
 	initerr(progname, verbosity, fg);
 #ifdef HAVE_AUTHGSS_SET_DEBUG_LEVEL
+	if (verbosity && rpc_verbosity == 0)
+		rpc_verbosity = verbosity;
 	authgss_set_debug_level(rpc_verbosity);
 #else
 	if (rpc_verbosity > 0)
@@ -215,6 +217,8 @@ main(int argc, char *argv[])
 			    "support setting debug level\n");
 #endif
 #ifdef HAVE_NFS4_SET_DEBUG
+		if (verbosity && idmap_verbosity == 0)
+			idmap_verbosity = verbosity;
         nfs4_set_debug(idmap_verbosity, NULL);
 #else
 	if (idmap_verbosity > 0)
