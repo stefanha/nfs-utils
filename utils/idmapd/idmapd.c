@@ -978,9 +978,12 @@ mydaemon(int nochdir, int noclose)
 			dup2(tempfd, 0);
 			dup2(tempfd, 1);
 			dup2(tempfd, 2);
-			closeall(3);
-		} else
-			closeall(0);
+			close(tempfd);
+		} else {
+			err(1, "mydaemon: can't open /dev/null: errno %d",
+			       errno);
+			exit(1);
+		}
 	}
 
 	return;

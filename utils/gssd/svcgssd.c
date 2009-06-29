@@ -117,10 +117,16 @@ mydaemon(int nochdir, int noclose)
 
 	if (noclose == 0) {
 		tempfd = open("/dev/null", O_RDWR);
-		dup2(tempfd, 0);
-		dup2(tempfd, 1);
-		dup2(tempfd, 2);
-		closeall(3);
+		if (tempfd >= 0) {
+			dup2(tempfd, 0);
+			dup2(tempfd, 1);
+			dup2(tempfd, 2);
+			close(tempfd);
+		} else {
+			printerr(1, "mydaemon: can't open /dev/null: errno %d "
+				    "(%s)\n", errno, strerror(errno));
+			exit(1);
+		}
 	}
 
 	return;
