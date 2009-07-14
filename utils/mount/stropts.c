@@ -130,12 +130,14 @@ static int nfs_append_generic_address_option(const struct sockaddr *sap,
 {
 	char address[NI_MAXHOST];
 	char new_option[512];
+	int len;
 
 	if (!nfs_present_sockaddr(sap, salen, address, sizeof(address)))
 		goto out_err;
 
-	if (snprintf(new_option, sizeof(new_option), "%s=%s",
-					keyword, address) >= sizeof(new_option))
+	len = snprintf(new_option, sizeof(new_option), "%s=%s",
+						keyword, address);
+	if (len < 0 || (size_t)len >= sizeof(new_option))
 		goto out_err;
 
 	if (po_append(options, new_option) != PO_SUCCEEDED)
