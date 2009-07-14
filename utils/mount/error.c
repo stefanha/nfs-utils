@@ -300,6 +300,8 @@ void umount_error(int err, const char *dev)
 #define EDQUOT	ENOSPC
 #endif
 
+#define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0])) 
+
 static struct {
 	enum nfsstat stat;
 	int errnum;
@@ -329,19 +331,17 @@ static struct {
 #endif
 	/* Throw in some NFSv3 values for even more fun (HP returns these) */
 	{ 71,			EREMOTE		},
-
-	{ -1,			EIO		}
 };
 
-char *nfs_strerror(int stat)
+char *nfs_strerror(unsigned int stat)
 {
-	int i;
+	unsigned int i;
 	static char buf[256];
 
-	for (i = 0; nfs_errtbl[i].stat != -1; i++) {
+	for (i = 0; i < ARRAY_SIZE(nfs_errtbl); i++) {
 		if (nfs_errtbl[i].stat == stat)
 			return strerror(nfs_errtbl[i].errnum);
 	}
-	sprintf(buf, _("unknown nfs status return value: %d"), stat);
+	sprintf(buf, _("unknown nfs status return value: %u"), stat);
 	return buf;
 }

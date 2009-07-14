@@ -24,7 +24,7 @@
 #ifndef _NFS_UTILS_MOUNT_ERROR_H
 #define _NFS_UTILS_MOUNT_ERROR_H
 
-char *nfs_strerror(int);
+char *nfs_strerror(unsigned int);
 
 void mount_error(const char *, const char *, int);
 void rpc_mount_errors(char *, int, int);
