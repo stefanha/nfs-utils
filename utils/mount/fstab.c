@@ -285,7 +285,7 @@ handler (int sig) {
 }
 
 static void
-setlkw_timeout (int sig) {
+setlkw_timeout (__attribute__((unused)) int sig) {
      /* nothing, fcntl will fail anyway */
 }
 

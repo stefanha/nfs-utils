@@ -183,8 +183,9 @@ static int nfs_parse_square_bracket(const char *dev,
  * with the mount request and failing with a cryptic error message
  * later.
  */
-static int nfs_parse_nfs_url(const char *dev,
-			     char **hostname, char **pathname)
+static int nfs_parse_nfs_url(__attribute__((unused)) const char *dev,
+			     __attribute__((unused)) char **hostname,
+			     __attribute__((unused)) char **pathname)
 {
 	nfs_error(_("%s: NFS URLs are not supported"), progname);
 	return 0;
