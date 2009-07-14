@@ -287,26 +287,6 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 }
 
 /*
- * Distinguish between permanent and temporary errors.
- *
- * Returns 0 if the passed-in error is temporary, thus the
- * mount system call should be retried; returns one if the
- * passed-in error is permanent, thus the mount system call
- * should not be retried.
- */
-static int nfs_is_permanent_error(int error)
-{
-	switch (error) {
-	case ESTALE:
-	case ETIMEDOUT:
-	case ECONNREFUSED:
-		return 0;	/* temporary */
-	default:
-		return 1;	/* permanent */
-	}
-}
-
-/*
  * Get NFS/mnt server addresses from mount options
  *
  * Returns 1 and fills in @nfs_saddr, @nfs_salen, @mnt_saddr, and @mnt_salen
@@ -631,6 +611,31 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 		return nfs_try_nfs4mount(mi);
 	else
 		return nfs_try_nfs23mount(mi);
+}
+
+/*
+ * Distinguish between permanent and temporary errors.
+ *
+ * Basically, we retry if communication with the server has
+ * failed so far, but fail immediately if there is a local
+ * error (like a bad mount option).
+ *
+ * ESTALE is also a temporary error because some servers
+ * return ESTALE when a share is temporarily offline.
+ *
+ * Returns 1 if we should fail immediately, or 0 if we
+ * should retry.
+ */
+static int nfs_is_permanent_error(int error)
+{
+	switch (error) {
+	case ESTALE:
+	case ETIMEDOUT:
+	case ECONNREFUSED:
+		return 0;	/* temporary */
+	default:
+		return 1;	/* permanent */
+	}
 }
 
 /*
