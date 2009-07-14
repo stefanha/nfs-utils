@@ -627,6 +627,8 @@ int nfs_rpc_ping(const struct sockaddr *sap, const socklen_t salen,
 	if (timeout != NULL)
 		tout = *timeout;
 
+	nfs_clear_rpc_createerr();
+
 	memcpy(saddr, sap, (size_t)salen);
 	client = nfs_get_rpcclient(saddr, salen, protocol,
 						program, version, &tout);
@@ -690,6 +692,8 @@ unsigned short nfs_getport(const struct sockaddr *sap,
 	unsigned short port = 0;
 	CLIENT *client;
 
+	nfs_clear_rpc_createerr();
+
 	memcpy(saddr, sap, (size_t)salen);
 	client = nfs_gp_get_rpcbclient(saddr, salen, protocol,
 						default_rpcb_version, &timeout);
@@ -729,6 +733,8 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
 	CLIENT *client;
 	int result = 0;
 	
+	nfs_clear_rpc_createerr();
+
 	client = nfs_gp_get_rpcbclient(sap, salen, protocol,
 						default_rpcb_version, &timeout);
 	if (client != NULL) {
@@ -744,6 +750,8 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
 
 		memcpy(saddr, sap, (size_t)salen);
 		nfs_gp_set_port(saddr, htons(port));
+
+		nfs_clear_rpc_createerr();
 
 		client = nfs_get_rpcclient(saddr, salen, protocol,
 						program, version, &timeout);
@@ -803,6 +811,8 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
 	CLIENT *client;
 	struct timeval timeout = { -1, 0 };
 
+	nfs_clear_rpc_createerr();
+
 	client = nfs_gp_get_rpcbclient(sap, salen, 0, RPCBVERS_4, &timeout);
 	if (client != NULL) {
 		struct rpcb parms;
@@ -817,6 +827,8 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
 #endif	/* NFS_GP_LOCAL */
 
 	if (port == 0) {
+		nfs_clear_rpc_createerr();
+
 		if (nfs_gp_loopback_address(lb_addr, &lb_len)) {
 			port = nfs_getport(lb_addr, lb_len,
 						program, version, protocol);
@@ -878,6 +890,8 @@ unsigned short nfs_rpcb_getaddr(const struct sockaddr *sap,
 	if (timeout != NULL)
 		tout = *timeout;
 
+	nfs_clear_rpc_createerr();
+
 	memcpy(saddr, sap, (size_t)salen);
 	client = nfs_gp_get_rpcbclient(saddr, salen, transport,
 							RPCBVERS_4, &tout);
@@ -904,6 +918,8 @@ unsigned short nfs_rpcb_getaddr(__attribute__((unused)) const struct sockaddr *s
 				__attribute__((unused)) const unsigned short protocol,
 				__attribute__((unused)) const struct timeval *timeout)
 {
+	nfs_clear_rpc_createerr();
+
 	rpc_createerr.cf_stat = RPC_UNKNOWNADDR;
 	return 0;
 }
@@ -958,6 +974,8 @@ unsigned long nfs_pmap_getport(const struct sockaddr_in *sin,
 
 	if (timeout != NULL)
 		tout = *timeout;
+
+	nfs_clear_rpc_createerr();
 
 	memcpy(saddr, sin, sizeof(address));
 	client = nfs_gp_get_rpcbclient(saddr, (socklen_t)sizeof(*sin),

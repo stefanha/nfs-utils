@@ -443,6 +443,8 @@ CLIENT *nfs_get_rpcclient(const struct sockaddr *sap,
 	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
 
+	nfs_clear_rpc_createerr();
+
 	switch (sap->sa_family) {
 	case AF_LOCAL:
 		return nfs_get_localclient(sap, salen, program,
@@ -505,6 +507,8 @@ CLIENT *nfs_get_priv_rpcclient(const struct sockaddr *sap,
 {
 	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
+
+	nfs_clear_rpc_createerr();
 
 	switch (sap->sa_family) {
 	case AF_LOCAL:

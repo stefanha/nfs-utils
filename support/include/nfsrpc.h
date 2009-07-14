@@ -49,6 +49,15 @@
 #define NSMPROG		((rpcprog_t)100024)
 #endif
 
+/**
+ * nfs_clear_rpc_createerr - zap all error reporting fields
+ *
+ */
+static inline void nfs_clear_rpc_createerr(void)
+{
+	memset(&rpc_createerr, 0, sizeof(rpc_createerr));
+}
+
 /*
  * Look up an RPC program name in /etc/rpc
  */

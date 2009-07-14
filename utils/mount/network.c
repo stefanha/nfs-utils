@@ -538,7 +538,6 @@ static int nfs_probe_port(const struct sockaddr *sap, const socklen_t salen,
 	memcpy(saddr, sap, salen);
 	p_prot = prot ? &prot : protos;
 	p_vers = vers ? &vers : versions;
-	rpc_createerr.cf_stat = 0;
 
 	for (;;) {
 		p_port = nfs_getport(saddr, salen, prog, *p_vers, *p_prot);
@@ -581,7 +580,7 @@ out_ok:
 		pmap->pm_prot = *p_prot;
 	if (!port)
 		pmap->pm_port = p_port;
-	rpc_createerr.cf_stat = 0;
+	nfs_clear_rpc_createerr();
 	return 1;
 }
 
