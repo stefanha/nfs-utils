@@ -65,59 +65,32 @@ static const rpcvers_t default_rpcb_version = RPCBVERS_4;
 static const rpcvers_t default_rpcb_version = PMAPVERS;
 #endif	/* !HAVE_LIBTIRPC */
 
-#ifdef HAVE_DECL_AI_ADDRCONFIG
 /*
- * getaddrinfo(3) generates a usable loopback address based on how the
- * local network interfaces are configured.  RFC 3484 requires that the
- * results are sorted so that the first result has the best likelihood
- * of working, so we try just that first result.
+ * There's no easy way to tell how the local system's networking
+ * and rpcbind is configured (ie. whether we want to use IPv6 or
+ * IPv4 loopback to contact RPC services on the local host).  We
+ * punt and simply try to look up "localhost".
  *
  * Returns TRUE on success.
  */
 static int nfs_gp_loopback_address(struct sockaddr *sap, socklen_t *salen)
 {
 	struct addrinfo *gai_results;
-	struct addrinfo gai_hint = {
-		.ai_flags	= AI_ADDRCONFIG,
-	};
-	socklen_t len = *salen;
 	int ret = 0;
 
-	if (getaddrinfo(NULL, "sunrpc", &gai_hint, &gai_results))
+	if (getaddrinfo("localhost", NULL, NULL, &gai_results))
 		return 0;
 
-	switch (gai_results->ai_addr->sa_family) {
-	case AF_INET:
-	case AF_INET6:
-		if (len >= gai_results->ai_addrlen) {
-			memcpy(sap, gai_results->ai_addr,
-					gai_results->ai_addrlen);
-			*salen = gai_results->ai_addrlen;
-			ret = 1;
-		}
+	if (*salen >= gai_results->ai_addrlen) {
+		memcpy(sap, gai_results->ai_addr,
+				gai_results->ai_addrlen);
+		*salen = gai_results->ai_addrlen;
+		ret = 1;
 	}
 
 	freeaddrinfo(gai_results);
 	return ret;
 }
-#else
-/*
- * Old versions of getaddrinfo(3) don't support AI_ADDRCONFIG, so we
- * have a fallback for building on legacy systems.
- */
-static int nfs_gp_loopback_address(struct sockaddr *sap, socklen_t *salen)
-{
-	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
-
-	memset(sin, 0, sizeof(*sin));
-
-	sin->sin_family = AF_INET;
-	sin->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	*salen = sizeof(*sin);
-
-	return 1;
-}
-#endif
 
 /*
  * Plant port number in @sap.  @port is already in network byte order.
@@ -839,13 +812,6 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
  * isn't listening on /var/run/rpcbind.sock), send a query via UDP to localhost
  * (UDP doesn't leave a socket in TIME_WAIT, and the timeout is a relatively
  * short 3 seconds).
- *
- * getaddrinfo(3) generates a usable loopback address.  RFC 3484 requires that
- * the results are sorted so that the first result has the best likelihood of
- * working, so we try just that first result.  If IPv6 is all that is
- * available, we are sure to generate an AF_INET6 loopback address and use
- * rpcbindv4/v3 GETADDR.  AF_INET6 requests go via rpcbind v4/3 in order to
- * detect if the requested RPC service supports AF_INET6 or not.
  */
 unsigned short nfs_getlocalport(const rpcprot_t program,
 				const rpcvers_t version,
