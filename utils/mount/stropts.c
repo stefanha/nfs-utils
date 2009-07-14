@@ -283,7 +283,16 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
 
-	return nfs_append_addr_option(sap, salen, mi->options);
+	if (!nfs_append_addr_option(sap, salen, mi->options))
+		return 0;
+
+	/*
+	 * Update option string to be recorded in /etc/mnttab
+	 */
+	if (po_join(mi->options, mi->extra_opts) == PO_FAILED)
+		return 0;
+
+	return 1;
 }
 
 /*
@@ -476,7 +485,7 @@ out:
  */
 static int nfs_try_mount(struct nfsmount_info *mi)
 {
-	char **extra_opts = mi->extra_opts;
+	char *options = NULL;
 	int result;
 
 	if (strncmp(mi->type, "nfs4", 4) != 0) {
@@ -484,20 +493,20 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 			return 0;
 	}
 
-	if (po_join(mi->options, extra_opts) == PO_FAILED) {
+	if (po_join(mi->options, &options) == PO_FAILED) {
 		errno = EIO;
 		return 0;
 	}
 
 	if (verbose)
 		printf(_("%s: trying text-based options '%s'\n"),
-			progname, *extra_opts);
+			progname, options);
 
 	if (mi->fake)
 		return 1;
 
 	result = mount(mi->spec, mi->node, mi->type,
-			mi->flags & ~(MS_USER|MS_USERS), *extra_opts);
+			mi->flags & ~(MS_USER|MS_USERS), options);
 	if (verbose && result) {
 		int save = errno;
 		nfs_error(_("%s: mount(2): %s"), progname, strerror(save));
