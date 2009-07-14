@@ -567,7 +567,8 @@ static int nfs_probe_port(const struct sockaddr *sap, const socklen_t salen,
 				if (nfs_rpc_ping(saddr, salen, prog,
 							*p_vers, *p_prot, NULL))
 					goto out_ok;
-			}
+			} else
+				rpc_createerr.cf_stat = RPC_PROGNOTREGISTERED;
 		}
 		if (rpc_createerr.cf_stat != RPC_PROGNOTREGISTERED &&
 		    rpc_createerr.cf_stat != RPC_TIMEDOUT &&
