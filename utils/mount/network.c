@@ -1176,175 +1176,282 @@ out_failed:
 	if (verbose)
 		nfs_error(_("%s: failed to construct callback address"));
 	return 0;
-
 }
 
 /*
- * "nfsprog" is only supported by the legacy mount command.  The
+ * "nfsprog" is supported only by the legacy mount command.  The
  * kernel mount client does not support this option.
  *
- * Returns the value set by the nfsprog= option, the value of
- * the RPC NFS program specified in /etc/rpc, or a baked-in
- * default program number, if all fails.
+ * Returns TRUE if @program contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static rpcprog_t nfs_nfs_program(struct mount_options *options)
+static int
+nfs_nfs_program(struct mount_options *options, unsigned long *program)
 {
 	long tmp;
 
-	if (po_get_numeric(options, "nfsprog", &tmp) == PO_FOUND)
-		if (tmp >= 0)
-			return tmp;
-	return nfs_getrpcbyname(NFSPROG, nfs_nfs_pgmtbl);
+	switch (po_get_numeric(options, "nfsprog", &tmp)) {
+	case PO_NOT_FOUND:
+		break;
+	case PO_FOUND:
+		if (tmp > 0) {
+			*program = tmp;
+			return 1;
+		}
+	case PO_BAD_VALUE:
+		return 0;
+	}
+
+	/*
+	 * NFS RPC program wasn't specified.  The RPC program
+	 * cannot be determined via an rpcbind query.
+	 */
+	*program = nfs_getrpcbyname(NFSPROG, nfs_nfs_pgmtbl);
+	return 1;
 }
 
-
 /*
- * Returns the RPC version number specified by the given mount
- * options for the NFS service, or zero if all fails.
+ * Returns TRUE if @version contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static rpcvers_t nfs_nfs_version(struct mount_options *options)
+static int
+nfs_nfs_version(struct mount_options *options, unsigned long *version)
 {
 	long tmp;
 
 	switch (po_rightmost(options, nfs_version_opttbl)) {
 	case 0:	/* v2 */
-		return 2;
+		*version = 2;
+		return 1;
 	case 1: /* v3 */
-		return 3;
+		*version = 3;
+		return 1;
 	case 2:	/* vers */
-		if (po_get_numeric(options, "vers", &tmp) == PO_FOUND)
-			if (tmp >= 2 && tmp <= 3)
-				return tmp;
-		break;
+		switch (po_get_numeric(options, "vers", &tmp)) {
+		case PO_FOUND:
+			if (tmp >= 2 && tmp <= 3) {
+				*version = tmp;
+				return 1;
+			}
+			return 0;
+		case PO_NOT_FOUND:
+			nfs_error(_("%s: option parsing error\n"),
+					progname);
+		case PO_BAD_VALUE:
+			return 0;
+		}
 	case 3: /* nfsvers */
-		if (po_get_numeric(options, "nfsvers", &tmp) == PO_FOUND)
-			if (tmp >= 2 && tmp <= 3)
-				return tmp;
-		break;
+		switch (po_get_numeric(options, "nfsvers", &tmp)) {
+		case PO_FOUND:
+			if (tmp >= 2 && tmp <= 3) {
+				*version = tmp;
+				return 1;
+			}
+			return 0;
+		case PO_NOT_FOUND:
+			nfs_error(_("%s: option parsing error\n"),
+					progname);
+		case PO_BAD_VALUE:
+			return 0;
+		}
 	}
 
-	return 0;
+	/*
+	 * NFS version wasn't specified.  The pmap version value
+	 * will be filled in later by an rpcbind query in this case.
+	 */
+	*version = 0;
+	return 1;
 }
 
 /*
- * Returns the NFS transport protocol specified by the given mount options
- *
- * Returns the IPPROTO_ value specified by the given mount options, or
- * zero if all fails.  The protocol value will be filled in by an
- * rpcbind query in this case.
+ * Returns TRUE if @protocol contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static unsigned short nfs_nfs_protocol(struct mount_options *options)
+static int
+nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 {
 	char *option;
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
 	case 0:	/* udp */
-		return IPPROTO_UDP;
+		*protocol = IPPROTO_UDP;
+		return 1;
 	case 1: /* tcp */
-		return IPPROTO_TCP;
+		*protocol = IPPROTO_TCP;
+		return 1;
 	case 2: /* proto */
 		option = po_get(options, "proto");
 		if (option) {
-			if (strcmp(option, "tcp") == 0)
-				return IPPROTO_TCP;
-			if (strcmp(option, "udp") == 0)
-				return IPPROTO_UDP;
+			if (strcmp(option, "tcp") == 0) {
+				*protocol = IPPROTO_TCP;
+				return 1;
+			}
+			if (strcmp(option, "udp") == 0) {
+				*protocol = IPPROTO_UDP;
+				return 1;
+			}
+			return 0;
 		}
 	}
 
-	return 0;
+	/*
+	 * NFS transport protocol wasn't specified.  The pmap
+	 * protocol value will be filled in later by an rpcbind
+	 * query in this case.
+	 */
+	*protocol = 0;
+	return 1;
 }
 
 /*
- * Returns the NFS server's port number specified by the given
- * mount options, or zero if all fails.  Zero results in a portmap
- * query to discover the server's mountd service port.
- *
- * port=0 will guarantee an rpcbind request precedes the first
- * NFS RPC so the client can determine the server's port number.
+ * Returns TRUE if @port contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static unsigned short nfs_nfs_port(struct mount_options *options)
+static int
+nfs_nfs_port(struct mount_options *options, unsigned long *port)
 {
 	long tmp;
 
-	if (po_get_numeric(options, "port", &tmp) == PO_FOUND)
-		if (tmp >= 0 && tmp <= 65535)
-			return tmp;
-	return 0;
+	switch (po_get_numeric(options, "port", &tmp)) {
+	case PO_NOT_FOUND:
+		break;
+	case PO_FOUND:
+		if (tmp >= 1 && tmp <= 65535) {
+			*port = tmp;
+			return 1;
+		}
+	case PO_BAD_VALUE:
+		return 0;
+	}
+
+	/*
+	 * NFS service port wasn't specified.  The pmap port value
+	 * will be filled in later by an rpcbind query in this case.
+	 */
+	*port = 0;
+	return 1;
 }
 
 /*
- * "mountprog" is only supported by the legacy mount command.  The
+ * "mountprog" is supported only by the legacy mount command.  The
  * kernel mount client does not support this option.
  *
- * Returns the value set by the mountprog= option, the value of
- * the RPC mount program specified in /etc/rpc, or a baked-in
- * default program number, if all fails.
+ * Returns TRUE if @program contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static rpcprog_t nfs_mount_program(struct mount_options *options)
+static int
+nfs_mount_program(struct mount_options *options, unsigned long *program)
 {
 	long tmp;
 
-	if (po_get_numeric(options, "mountprog", &tmp) == PO_FOUND)
-		if (tmp >= 0)
-			return tmp;
-	return nfs_getrpcbyname(MOUNTPROG, nfs_mnt_pgmtbl);
+	switch (po_get_numeric(options, "mountprog", &tmp)) {
+	case PO_NOT_FOUND:
+		break;
+	case PO_FOUND:
+		if (tmp > 0) {
+			*program = tmp;
+			return 1;
+		}
+	case PO_BAD_VALUE:
+		return 0;
+	}
+
+	/*
+	 * MNT RPC program wasn't specified.  The RPC program
+	 * cannot be determined via an rpcbind query.
+	 */
+	*program = nfs_getrpcbyname(MOUNTPROG, nfs_mnt_pgmtbl);
+	return 1;
 }
 
 /*
- * Returns the RPC version number specified by the given mount options,
- * or zero if all fails.  The version value will be filled in by an
- * rpcbind query in this case.
+ * Returns TRUE if @version contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static rpcvers_t nfs_mount_version(struct mount_options *options)
+static int
+nfs_mount_version(struct mount_options *options, unsigned long *version)
 {
 	long tmp;
 
-	if (po_get_numeric(options, "mountvers", &tmp) == PO_FOUND)
-		if (tmp >= 1 && tmp <= 4)
-			return tmp;
+	switch (po_get_numeric(options, "mountvers", &tmp)) {
+	case PO_NOT_FOUND:
+		break;
+	case PO_FOUND:
+		if (tmp >= 1 && tmp <= 4) {
+			*version = tmp;
+			return 1;
+		}
+	case PO_BAD_VALUE:
+		return 0;
+	}
 
-	return 0;
+	/*
+	 * MNT version wasn't specified.  The pmap version value
+	 * will be filled in later by an rpcbind query in this case.
+	 */
+	*version = 0;
+	return 1;
 }
 
 /*
- * Returns the transport protocol to use for the mount service
- *
- * Returns the IPPROTO_ value specified by the mountproto option, or
- * copies the NFS protocol setting.  If the protocol value is zero,
- * the value will be filled in by an rpcbind query.
+ * Returns TRUE if @protocol contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static unsigned short nfs_mount_protocol(struct mount_options *options)
+static int
+nfs_mount_protocol(struct mount_options *options, unsigned long *protocol)
 {
 	char *option;
 
 	option = po_get(options, "mountproto");
 	if (option) {
-		if (strcmp(option, "tcp") == 0)
-			return IPPROTO_TCP;
-		if (strcmp(option, "udp") == 0)
-			return IPPROTO_UDP;
+		if (strcmp(option, "tcp") == 0) {
+			*protocol = IPPROTO_TCP;
+			return 1;
+		}
+		if (strcmp(option, "udp") == 0) {
+			*protocol = IPPROTO_UDP;
+			return 1;
+		}
+		return 0;
 	}
 
-	return nfs_nfs_protocol(options);
+	/*
+	 * MNT transport protocol wasn't specified.  If the NFS
+	 * transport protocol was specified, use that; otherwise
+	 * set @protocol to zero.  The pmap protocol value will
+	 * be filled in later by an rpcbind query in this case.
+	 */
+	return nfs_nfs_protocol(options, protocol);
 }
 
 /*
- * Returns the mountd server's port number specified by the given
- * mount options, or zero if all fails.  Zero results in a portmap
- * query to discover the server's mountd service port.
- *
- * mountport=0 will guarantee an rpcbind request precedes the mount
- * RPC so the client can determine the server's port number.
+ * Returns TRUE if @port contains a valid value for this option,
+ * or FALSE if the option was specified with an invalid value.
  */
-static unsigned short nfs_mount_port(struct mount_options *options)
+static int
+nfs_mount_port(struct mount_options *options, unsigned long *port)
 {
 	long tmp;
 
-	if (po_get_numeric(options, "mountport", &tmp) == PO_FOUND)
-		if (tmp >= 0 && tmp <= 65535)
-			return tmp;
-	return 0;
+	switch (po_get_numeric(options, "mountport", &tmp)) {
+	case PO_NOT_FOUND:
+		break;
+	case PO_FOUND:
+		if (tmp >= 1 && tmp <= 65535) {
+			*port = tmp;
+			return 1;
+		}
+	case PO_BAD_VALUE:
+		return 0;
+	}
+
+	/*
+	 * MNT service port wasn't specified.  The pmap port value
+	 * will be filled in later by an rpcbind query in this case.
+	 */
+	*port = 0;
+	return 1;
 }
 
 /**
@@ -1353,17 +1460,29 @@ static unsigned short nfs_mount_port(struct mount_options *options)
  * @nfs_pmap: OUT: pointer to pmap arguments for NFS server
  * @mnt_pmap: OUT: pointer to pmap arguments for mountd server
  *
+ * Returns TRUE if the pmap options specified in @options have valid
+ * values; otherwise FALSE is returned.
  */
-void nfs_options2pmap(struct mount_options *options,
-		      struct pmap *nfs_pmap, struct pmap *mnt_pmap)
+int nfs_options2pmap(struct mount_options *options,
+		     struct pmap *nfs_pmap, struct pmap *mnt_pmap)
 {
-	nfs_pmap->pm_prog = nfs_nfs_program(options);
-	nfs_pmap->pm_vers = nfs_nfs_version(options);
-	nfs_pmap->pm_prot = nfs_nfs_protocol(options);
-	nfs_pmap->pm_port = nfs_nfs_port(options);
+	if (!nfs_nfs_program(options, &nfs_pmap->pm_prog))
+		return 0;
+	if (!nfs_nfs_version(options, &nfs_pmap->pm_vers))
+		return 0;
+	if (!nfs_nfs_protocol(options, &nfs_pmap->pm_prot))
+		return 0;
+	if (!nfs_nfs_port(options, &nfs_pmap->pm_port))
+		return 0;
 
-	mnt_pmap->pm_prog = nfs_mount_program(options);
-	mnt_pmap->pm_vers = nfs_mount_version(options);
-	mnt_pmap->pm_prot = nfs_mount_protocol(options);
-	mnt_pmap->pm_port = nfs_mount_port(options);
+	if (!nfs_mount_program(options, &mnt_pmap->pm_prog))
+		return 0;
+	if (!nfs_mount_version(options, &mnt_pmap->pm_vers))
+		return 0;
+	if (!nfs_mount_protocol(options, &mnt_pmap->pm_prot))
+		return 0;
+	if (!nfs_mount_port(options, &mnt_pmap->pm_port))
+		return 0;
+
+	return 1;
 }

@@ -174,7 +174,10 @@ static int nfs_umount_do_umnt(struct mount_options *options,
 	socklen_t salen = sizeof(address);
 	struct pmap nfs_pmap, mnt_pmap;
 
-	nfs_options2pmap(options, &nfs_pmap, &mnt_pmap);
+	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap)) {
+		nfs_error(_("%s: bad mount options"), progname);
+		return EX_FAIL;
+	}
 
 	*hostname = nfs_umount_hostname(options, *hostname);
 	if (!*hostname) {

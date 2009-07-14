@@ -450,7 +450,10 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 		goto err;
 	}
 
-	nfs_options2pmap(options, &nfs_pmap, &mnt_pmap);
+	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap)) {
+		errno = EINVAL;
+		goto err;
+	}
 
 	/* The kernel NFS client doesn't support changing the RPC program
 	 * number for these services, so reset these fields before probing
