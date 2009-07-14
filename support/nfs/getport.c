@@ -458,10 +458,6 @@ static int nfs_gp_ping(CLIENT *client, struct timeval timeout)
 /*
  * Initialize the rpcb argument for a GETADDR request.
  *
- * The rpcbind daemon ignores the parms.r_owner field in GETADDR
- * requests, but we plant an eye-catcher to help distinguish these
- * requests in network traces.
- *
  * Returns 1 if successful, and caller must free strings pointed
  * to by r_netid and r_addr; otherwise 0.
  */
@@ -489,7 +485,7 @@ static int nfs_gp_init_rpcb_parms(const struct sockaddr *sap,
 	parms->r_vers	= version;
 	parms->r_netid	= netid;
 	parms->r_addr	= addr;
-	parms->r_owner	= "nfs-utils";	/* eye-catcher */
+	parms->r_owner	= "";
 
 	return 1;
 }
