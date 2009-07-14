@@ -417,7 +417,7 @@ static int chk_mountpoint(char *mount_point)
 
 static int try_mount(char *spec, char *mount_point, int flags,
 			char *fs_type, char **extra_opts, char *mount_opts,
-			int fake, int nomtab, int bg)
+			int fake, int bg)
 {
 	int ret;
 
@@ -582,7 +582,7 @@ int main(int argc, char *argv[])
 	}
 
 	mnt_err = try_mount(spec, mount_point, flags, fs_type, &extra_opts,
-				mount_opts, fake, nomtab, FOREGROUND);
+				mount_opts, fake, FOREGROUND);
 	if (mnt_err == EX_BG) {
 		printf(_("%s: backgrounding \"%s\"\n"),
 			progname, spec);
@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
 
 		mnt_err = try_mount(spec, mount_point, flags, fs_type,
 					&extra_opts, mount_opts, fake,
-					nomtab, BACKGROUND);
+					BACKGROUND);
 		if (verbose && mnt_err)
 			printf(_("%s: giving up \"%s\"\n"),
 				progname, spec);
