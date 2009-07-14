@@ -59,6 +59,16 @@ static inline void nfs_clear_rpc_createerr(void)
 }
 
 /*
+ * Extract port value from a socket address
+ */
+extern uint16_t		nfs_get_port(const struct sockaddr *);
+
+/*
+ * Set port value in a socket address
+ */
+extern void		nfs_set_port(struct sockaddr *, const uint16_t);
+
+/*
  * Look up an RPC program name in /etc/rpc
  */
 extern rpcprog_t	nfs_getrpcbyname(const rpcprog_t, const char *table[]);

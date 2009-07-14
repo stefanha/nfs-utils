@@ -113,24 +113,6 @@ static int nfs_gp_loopback_address(struct sockaddr *sap, socklen_t *salen)
 }
 
 /*
- * Plant port number in @sap.  @port is already in network byte order.
- */
-static void nfs_gp_set_port(struct sockaddr *sap, const in_port_t port)
-{
-	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
-	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
-
-	switch (sap->sa_family) {
-	case AF_INET:
-		sin->sin_port = port;
-		break;
-	case AF_INET6:
-		sin6->sin6_port = port;
-		break;
-	}
-}
-
-/*
  * Look up a network service in /etc/services and return the
  * network-order port number of that service.
  */
@@ -210,7 +192,7 @@ static CLIENT *nfs_gp_get_rpcbclient(struct sockaddr *sap,
 	rpcprog_t rpcb_prog = nfs_getrpcbyname(RPCBPROG, rpcb_pgmtbl);
 	CLIENT *clnt;
 
-	nfs_gp_set_port(sap, nfs_gp_get_rpcb_port(transport));
+	nfs_set_port(sap, ntohs(nfs_gp_get_rpcb_port(transport)));
 	clnt = nfs_get_rpcclient(sap, salen, transport, rpcb_prog,
 							version, timeout);
 	nfs_gp_map_tcp_errorcodes(transport);
@@ -773,7 +755,7 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
 		struct sockaddr *saddr = (struct sockaddr *)&address;
 
 		memcpy(saddr, sap, (size_t)salen);
-		nfs_gp_set_port(saddr, htons(port));
+		nfs_set_port(saddr, port);
 
 		nfs_clear_rpc_createerr();
 
@@ -787,7 +769,7 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
 	}
 
 	if (result)
-		nfs_gp_set_port(sap, htons(port));
+		nfs_set_port(sap, port);
 
 	return result;
 }

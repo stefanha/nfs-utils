@@ -170,21 +170,6 @@ static const unsigned long probe_mnt3_first[] = {
 	0,
 };
 
-static void nfs_set_port(struct sockaddr *sap, const unsigned short port)
-{
-	switch (sap->sa_family) {
-	case AF_INET:
-		((struct sockaddr_in *)sap)->sin_port = htons(port);
-		break;
-	case AF_INET6:
-		((struct sockaddr_in6 *)sap)->sin6_port = htons(port);
-		break;
-	default:
-		nfs_error(_("%s: unrecognized address family in %s"),
-			progname, __func__);
-	}
-}
-
 static int nfs_lookup(const char *hostname, const sa_family_t family,
 		      struct sockaddr *sap, socklen_t *salen)
 {
