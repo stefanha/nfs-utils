@@ -66,6 +66,23 @@ static const rpcvers_t default_rpcb_version = PMAPVERS;
 #endif	/* !HAVE_LIBTIRPC */
 
 /*
+ * Historical: Map TCP connect timeouts to timeout
+ * error code used by UDP.
+ */
+static void
+nfs_gp_map_tcp_errorcodes(const unsigned short protocol)
+{
+	if (protocol != IPPROTO_TCP)
+		return;
+
+	switch (rpc_createerr.cf_error.re_errno) {
+	case ETIMEDOUT:
+		rpc_createerr.cf_stat = RPC_TIMEDOUT;
+		break;
+	}
+}
+
+/*
  * There's no easy way to tell how the local system's networking
  * and rpcbind is configured (ie. whether we want to use IPv6 or
  * IPv4 loopback to contact RPC services on the local host).  We
@@ -188,10 +205,13 @@ static CLIENT *nfs_gp_get_rpcbclient(struct sockaddr *sap,
 		NULL,
 	};
 	rpcprog_t rpcb_prog = nfs_getrpcbyname(RPCBPROG, rpcb_pgmtbl);
+	CLIENT *clnt;
 
 	nfs_gp_set_port(sap, nfs_gp_get_rpcb_port(transport));
-	return nfs_get_rpcclient(sap, salen, transport, rpcb_prog,
-					version, timeout);
+	clnt = nfs_get_rpcclient(sap, salen, transport, rpcb_prog,
+							version, timeout);
+	nfs_gp_map_tcp_errorcodes(transport);
+	return clnt;
 }
 
 /*
@@ -634,6 +654,7 @@ int nfs_rpc_ping(const struct sockaddr *sap, const socklen_t salen,
 						program, version, &tout);
 	if (client != NULL) {
 		result = nfs_gp_ping(client, tout);
+		nfs_gp_map_tcp_errorcodes(protocol);
 		CLNT_DESTROY(client);
 	}
 
@@ -757,6 +778,7 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
 						program, version, &timeout);
 		if (client != NULL) {
 			result = nfs_gp_ping(client, timeout);
+			nfs_gp_map_tcp_errorcodes(protocol);
 			CLNT_DESTROY(client);
 		}
 	}
