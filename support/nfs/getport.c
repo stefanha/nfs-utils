@@ -330,80 +330,56 @@ int nfs_universal2port(const char *uaddr)
  * the returned string.  Otherwise NULL is returned and
  * rpc_createerr.cf_stat is set to reflect the error.
  *
+ * inet_ntop(3) is used here, since getnameinfo(3) is not available
+ * in some earlier glibc releases, and we don't require support for
+ * scope IDs for universal addresses.
  */
-#ifdef HAVE_GETNAMEINFO
-
 char *nfs_sockaddr2universal(const struct sockaddr *sap,
 			     const socklen_t salen)
 {
-	struct sockaddr_un *sun = (struct sockaddr_un *)sap;
-	char buf[NI_MAXHOST];
+	const struct sockaddr_in6 *sin6 = (const struct sockaddr_in6 *)sap;
+	const struct sockaddr_un *sun = (const struct sockaddr_un *)sap;
+	const struct sockaddr_in *sin = (const struct sockaddr_in *)sap;
+	char buf[INET6_ADDRSTRLEN + 8 /* for port information */];
 	uint16_t port;
+	size_t count;
+	char *result;
+	int len;
 
 	switch (sap->sa_family) {
 	case AF_LOCAL:
 		return strndup(sun->sun_path, sizeof(sun->sun_path));
 	case AF_INET:
-		if (getnameinfo(sap, salen, buf, (socklen_t)sizeof(buf),
-					NULL, 0, NI_NUMERICHOST) != 0)
+		if (inet_ntop(AF_INET, (const void *)&sin->sin_addr.s_addr,
+					buf, (socklen_t)sizeof(buf)) == NULL)
 			goto out_err;
-		port = ntohs(((struct sockaddr_in *)sap)->sin_port);
+		port = ntohs(sin->sin_port);
 		break;
 	case AF_INET6:
-		if (getnameinfo(sap, salen, buf, (socklen_t)sizeof(buf),
-					NULL, 0, NI_NUMERICHOST) != 0)
+		if (inet_ntop(AF_INET6, (const void *)&sin6->sin6_addr,
+					buf, (socklen_t)sizeof(buf)) == NULL)
 			goto out_err;
-		port = ntohs(((struct sockaddr_in6 *)sap)->sin6_port);
+		port = ntohs(sin6->sin6_port);
 		break;
 	default:
 		goto out_err;
 	}
 
-	(void)snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ".%u.%u",
+	count = sizeof(buf) - strlen(buf);
+	len = snprintf(buf + strlen(buf), count, ".%u.%u",
 			(unsigned)(port >> 8), (unsigned)(port & 0xff));
-
-	return strdup(buf);
-
-out_err:
-	rpc_createerr.cf_stat = RPC_N2AXLATEFAILURE;
-	return NULL;
-}
-
-#else	/* HAVE_GETNAMEINFO */
-
-char *nfs_sockaddr2universal(const struct sockaddr *sap,
-			     const socklen_t salen)
-{
-	struct sockaddr_un *sun = (struct sockaddr_un *)sap;
-	char buf[NI_MAXHOST];
-	uint16_t port;
-	char *addr;
-
-	switch (sap->sa_family) {
-	case AF_LOCAL:
-		return strndup(sun->sun_path, sizeof(sun->sun_path));
-	case AF_INET:
-		addr = inet_ntoa(((struct sockaddr_in *)sap)->sin_addr);
-		if (addr != NULL && strlen(addr) > sizeof(buf))
-			goto out_err;
-		strcpy(buf, addr);
-		port = ntohs(((struct sockaddr_in *)sap)->sin_port);
-		break;
-	default:
+	/* before glibc 2.0.6, snprintf(3) could return -1 */
+	if (len < 0 || (size_t)len > count)
 		goto out_err;
-	}
 
-	(void)snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ".%u.%u",
-			(unsigned)(port >> 8), (unsigned)(port & 0xff));
-
-	return strdup(buf);
+	result = strdup(buf);
+	if (result != NULL)
+		return result;
 
 out_err:
 	rpc_createerr.cf_stat = RPC_N2AXLATEFAILURE;
 	return NULL;
 }
-
-#endif	/* HAVE_GETNAMEINFO */
 
 /*
  * Send a NULL request to the indicated RPC service.
