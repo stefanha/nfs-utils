@@ -336,7 +336,7 @@ int nfsumount(int argc, char *argv[])
 			char *opt = hasmntopt(&mc->m, "user");
 			struct passwd *pw;
 			char *comma;
-			int len;
+			size_t len;
 			if (!opt)
 				goto only_root;
 			if (opt[4] != '=')
