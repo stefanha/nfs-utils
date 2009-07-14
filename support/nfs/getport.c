@@ -469,7 +469,7 @@ static unsigned short nfs_gp_rpcb_getaddr(CLIENT *client,
 		case RPC_SUCCESS:
 			if ((uaddr == NULL) || (uaddr[0] == '\0')) {
 				rpc_createerr.cf_stat = RPC_PROGNOTREGISTERED;
-				continue;
+				return 0;
 			}
 
 			port = nfs_universal2port(uaddr);
