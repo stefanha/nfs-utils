@@ -783,8 +783,8 @@ int start_statd(void)
 				execl(START_STATD, START_STATD, NULL);
 				exit(1);
 			case -1: /* error */
-				nfs_error(_("fork failed: %s"),
-							strerror(errno));
+				nfs_error(_("%s: fork failed: %s"),
+						progname, strerror(errno));
 				break;
 			default: /* parent */
 				waitpid(pid, NULL,0);
@@ -1159,7 +1159,8 @@ int nfs_callback_address(const struct sockaddr *sap, const socklen_t salen,
 out_failed:
 	*buflen = 0;
 	if (verbose)
-		nfs_error(_("%s: failed to construct callback address"));
+		nfs_error(_("%s: failed to construct callback address"),
+				progname);
 	return 0;
 }
 
