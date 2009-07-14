@@ -509,6 +509,21 @@ static void nfs_pp_debug(const struct sockaddr *sap, const socklen_t salen,
 			port);
 }
 
+static void nfs_pp_debug2(const char *str)
+{
+	if (!verbose)
+		return;
+
+	if (rpc_createerr.cf_error.re_status == RPC_CANTRECV ||
+	    rpc_createerr.cf_error.re_status == RPC_CANTSEND)
+		nfs_error(_("%s: portmap query %s%s - %s"),
+				progname, str, clnt_spcreateerror(""),
+				strerror(rpc_createerr.cf_error.re_errno));
+	else
+		nfs_error(_("%s: portmap query %s%s"),
+				progname, str, clnt_spcreateerror(""));
+}
+
 /*
  * Use the portmapper to discover whether or not the service we want is
  * available. The lists 'versions' and 'protos' define ordered sequences
@@ -540,6 +555,9 @@ static int nfs_probe_port(const struct sockaddr *sap, const socklen_t salen,
 	p_vers = vers ? &vers : versions;
 
 	for (;;) {
+		if (verbose)
+			printf(_("%s: prog %lu, trying vers=%lu, prot=%u\n"),
+				progname, prog, *p_vers, *p_prot);
 		p_port = nfs_getport(saddr, salen, prog, *p_vers, *p_prot);
 		if (p_port) {
 			if (!port || port == p_port) {
@@ -555,22 +573,24 @@ static int nfs_probe_port(const struct sockaddr *sap, const socklen_t salen,
 		    rpc_createerr.cf_stat != RPC_TIMEDOUT &&
 		    rpc_createerr.cf_stat != RPC_CANTRECV &&
 		    rpc_createerr.cf_stat != RPC_PROGVERSMISMATCH)
-			goto out_bad;
+			break;
 
 		if (!prot) {
-			if (*++p_prot)
+			if (*++p_prot) {
+				nfs_pp_debug2("retrying");
 				continue;
+			}
 			p_prot = protos;
 		}
 		if (rpc_createerr.cf_stat == RPC_TIMEDOUT ||
 		    rpc_createerr.cf_stat == RPC_CANTRECV)
-			goto out_bad;
+			break;
 
 		if (vers || !*++p_vers)
 			break;
 	}
 
-out_bad:
+	nfs_pp_debug2("failed");
 	return 0;
 
 out_ok:
