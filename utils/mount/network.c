@@ -1230,13 +1230,16 @@ static rpcvers_t nfs_nfs_version(struct mount_options *options)
  * Returns the NFS transport protocol specified by the given mount options
  *
  * Returns the IPPROTO_ value specified by the given mount options, or
- * IPPROTO_UDP if all fails.
+ * zero if all fails.  The protocol value will be filled in by an
+ * rpcbind query in this case.
  */
 static unsigned short nfs_nfs_protocol(struct mount_options *options)
 {
 	char *option;
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
+	case 0:	/* udp */
+		return IPPROTO_UDP;
 	case 1: /* tcp */
 		return IPPROTO_TCP;
 	case 2: /* proto */
@@ -1249,7 +1252,7 @@ static unsigned short nfs_nfs_protocol(struct mount_options *options)
 		}
 	}
 
-	return IPPROTO_UDP;
+	return 0;
 }
 
 /*
@@ -1290,7 +1293,8 @@ static rpcprog_t nfs_mount_program(struct mount_options *options)
 
 /*
  * Returns the RPC version number specified by the given mount options,
- * or the version "3" if all fails.
+ * or zero if all fails.  The version value will be filled in by an
+ * rpcbind query in this case.
  */
 static rpcvers_t nfs_mount_version(struct mount_options *options)
 {
@@ -1300,15 +1304,15 @@ static rpcvers_t nfs_mount_version(struct mount_options *options)
 		if (tmp >= 1 && tmp <= 4)
 			return tmp;
 
-	return nfsvers_to_mnt(nfs_nfs_version(options));
+	return 0;
 }
 
 /*
  * Returns the transport protocol to use for the mount service
  *
  * Returns the IPPROTO_ value specified by the mountproto option, or
- * if that doesn't exist, the IPPROTO_ value specified for NFS
- * itself.
+ * copies the NFS protocol setting.  If the protocol value is zero,
+ * the value will be filled in by an rpcbind query.
  */
 static unsigned short nfs_mount_protocol(struct mount_options *options)
 {
@@ -1330,7 +1334,7 @@ static unsigned short nfs_mount_protocol(struct mount_options *options)
  * mount options, or zero if all fails.  Zero results in a portmap
  * query to discover the server's mountd service port.
  *
- * port=0 will guarantee an rpcbind request precedes the mount
+ * mountport=0 will guarantee an rpcbind request precedes the mount
  * RPC so the client can determine the server's port number.
  */
 static unsigned short nfs_mount_port(struct mount_options *options)
