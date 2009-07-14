@@ -458,7 +458,7 @@ CLIENT *nfs_get_rpcclient(const struct sockaddr *sap,
 		}
 		break;
 	default:
-		rpc_createerr.cf_stat = RPC_UNKNOWNHOST;
+		rpc_createerr.cf_stat = RPC_UNKNOWNADDR;
 		return NULL;
 	}
 
@@ -521,7 +521,7 @@ CLIENT *nfs_get_priv_rpcclient(const struct sockaddr *sap,
 		}
 		break;
 	default:
-		rpc_createerr.cf_stat = RPC_UNKNOWNHOST;
+		rpc_createerr.cf_stat = RPC_UNKNOWNADDR;
 		return NULL;
 	}
 
