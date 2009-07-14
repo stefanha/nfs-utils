@@ -73,8 +73,7 @@ extern CLIENT		*nfs_get_priv_rpcclient( const struct sockaddr *,
 /*
  * Convert a socket address to a universal address
  */
-extern char		*nfs_sockaddr2universal(const struct sockaddr *,
-				const socklen_t);
+extern char		*nfs_sockaddr2universal(const struct sockaddr *);
 
 /*
  * Extract port number from a universal address
@@ -114,7 +113,6 @@ extern unsigned short	nfs_rpcb_getaddr(const struct sockaddr *,
 				const socklen_t,
 				const unsigned short,
 				const struct sockaddr *,
-				const socklen_t,
 				const rpcprog_t,
 				const rpcvers_t,
 				const unsigned short,
