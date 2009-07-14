@@ -156,7 +156,7 @@ static void parse_opts(const char *options, int *flags, char **extra_opts);
  */
 static void discover_nfs_mount_data_version(void)
 {
-	int kernel_version = linux_version_code();
+	unsigned int kernel_version = linux_version_code();
 
 	if (kernel_version) {
 		if (kernel_version < MAKE_VERSION(2, 1, 32))
