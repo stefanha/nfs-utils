@@ -255,7 +255,6 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *sin)
 /**
  * nfs_string_to_sockaddr - convert string address to sockaddr
  * @address:	pointer to presentation format address to convert
- * @addrlen:	length of presentation address
  * @sap:	pointer to socket address buffer to fill in
  * @salen:	IN: length of address buffer
  *		OUT: length of converted socket address
@@ -269,8 +268,8 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *sin)
  * See RFC 4038 section 5.1 or RFC 3513 section 2.2 for more details
  * on presenting IPv6 addresses as text strings.
  */
-int nfs_string_to_sockaddr(const char *address, const size_t addrlen,
-			   struct sockaddr *sap, socklen_t *salen)
+int nfs_string_to_sockaddr(const char *address, struct sockaddr *sap,
+			   socklen_t *salen)
 {
 	struct addrinfo *gai_results;
 	struct addrinfo gai_hint = {

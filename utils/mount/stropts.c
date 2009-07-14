@@ -312,16 +312,14 @@ static int nfs_extract_server_addresses(struct mount_options *options,
 	option = po_get(options, "addr");
 	if (option == NULL)
 		return 0;
-	if (!nfs_string_to_sockaddr(option, strlen(option),
-						nfs_saddr, nfs_salen))
+	if (!nfs_string_to_sockaddr(option, nfs_saddr, nfs_salen))
 		return 0;
 
 	option = po_get(options, "mountaddr");
 	if (option == NULL) {
 		memcpy(mnt_saddr, nfs_saddr, *nfs_salen);
 		*mnt_salen = *nfs_salen;
-	} else if (!nfs_string_to_sockaddr(option, strlen(option),
-						mnt_saddr, mnt_salen))
+	} else if (!nfs_string_to_sockaddr(option, mnt_saddr, mnt_salen))
 		return 0;
 
 	return 1;
