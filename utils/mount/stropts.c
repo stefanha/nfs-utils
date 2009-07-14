@@ -437,6 +437,7 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 	struct sockaddr *mnt_saddr = (struct sockaddr *)&mnt_address;
 	socklen_t mnt_salen;
 	struct pmap mnt_pmap;
+	char *option;
 
 	options = po_split(str);
 	if (!options) {
@@ -444,23 +445,39 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 		return NULL;
 	}
 
+	/*
+	 * Skip option negotiation for proto=rdma mounts.
+	 */
+	option = po_get(options, "proto");
+	if (option && strcmp(option, "rdma") == 0)
+		goto out;
+
+	/*
+	 * Extract just the options needed to contact server.
+	 * Bail now if any of these have bad values.
+	 */
 	if (!nfs_extract_server_addresses(options, nfs_saddr, &nfs_salen,
 						mnt_saddr, &mnt_salen)) {
 		errno = EINVAL;
 		goto err;
 	}
-
 	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap)) {
 		errno = EINVAL;
 		goto err;
 	}
 
-	/* The kernel NFS client doesn't support changing the RPC program
-	 * number for these services, so reset these fields before probing
-	 * the server's ports.  */
+	/*
+	 * The kernel NFS client doesn't support changing the RPC
+	 * program number for these services, so force the value of
+	 * these fields before probing the server's ports.
+	 */
 	nfs_pmap.pm_prog = NFS_PROGRAM;
 	mnt_pmap.pm_prog = MOUNTPROG;
 
+	/*
+	 * If the server's rpcbind service isn't available, we can't
+	 * negotiate.  Bail now if we can't contact it.
+	 */
 	if (!nfs_probe_bothports(mnt_saddr, mnt_salen, &mnt_pmap,
 				 nfs_saddr, nfs_salen, &nfs_pmap)) {
 		errno = ESPIPE;
@@ -472,6 +489,7 @@ static struct mount_options *nfs_rewrite_mount_options(char *str)
 		goto err;
 	}
 
+out:
 	errno = 0;
 	return options;
 
@@ -532,6 +550,9 @@ static int nfs_retry_nfs23mount(struct nfsmount_info *mi)
 		printf(_("%s: text-based options (retry): '%s'\n"),
 			progname, retry_str);
 
+	if (mi->fake)
+		return 1;
+
 	if (!nfs_sys_mount(mi, "nfs", retry_str)) {
 		po_destroy(retry_options);
 		free(retry_str);
@@ -569,19 +590,6 @@ static int nfs_try_nfs23mount(struct nfsmount_info *mi)
 	if (verbose)
 		printf(_("%s: text-based options: '%s'\n"),
 			progname, *extra_opts);
-
-	if (mi->fake)
-		return 1;
-
-	if (nfs_sys_mount(mi, "nfs", *extra_opts))
-		return 1;
-
-	/*
-	 * The kernel returns EOPNOTSUPP if the RPC bind failed,
-	 * and EPROTONOSUPPORT if the version isn't supported.
-	 */
-	if (errno != EOPNOTSUPP && errno != EPROTONOSUPPORT)
-		return 0;
 
 	return nfs_retry_nfs23mount(mi);
 }
