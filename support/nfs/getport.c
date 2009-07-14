@@ -79,6 +79,9 @@ nfs_gp_map_tcp_errorcodes(const unsigned short protocol)
 	case ETIMEDOUT:
 		rpc_createerr.cf_stat = RPC_TIMEDOUT;
 		break;
+	case ECONNREFUSED:
+		rpc_createerr.cf_stat = RPC_CANTRECV;
+		break;
 	}
 }
 
