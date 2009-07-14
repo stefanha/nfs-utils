@@ -1103,7 +1103,7 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
  *
  * Returns 1 and fills in @buf if successful; otherwise, zero.
  */
-static int nfs_ca_gai(const struct sockaddr *sap, const socklen_t salen,
+static int nfs_ca_gai(const struct sockaddr *sap,
 		      struct sockaddr *buf, socklen_t *buflen)
 {
 	struct addrinfo *gai_results;
@@ -1144,7 +1144,7 @@ int nfs_callback_address(const struct sockaddr *sap, const socklen_t salen,
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)buf;
 
 	if (nfs_ca_sockname(sap, salen, buf, buflen) == 0)
-		if (nfs_ca_gai(sap, salen, buf, buflen) == 0)
+		if (nfs_ca_gai(sap, buf, buflen) == 0)
 			goto out_failed;
 
 	/*
