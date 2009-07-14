@@ -132,7 +132,7 @@ static int nfs_bind(const int sock, const sa_family_t family)
 	return -1;
 }
 
-#ifdef IPV6_SUPPORTED
+#ifdef HAVE_LIBTIRPC
 
 /*
  * Bind a socket using an unused privileged source port.
@@ -162,7 +162,7 @@ static int nfs_bindresvport(const int sock, const sa_family_t family)
 	return -1;
 }
 
-#else	/* !IPV6_SUPPORTED */
+#else	/* !HAVE_LIBTIRPC */
 
 /*
  * Bind a socket using an unused privileged source port.
@@ -180,7 +180,7 @@ static int nfs_bindresvport(const int sock, const sa_family_t family)
 	return bindresvport(sock, NULL);
 }
 
-#endif	/* !IPV6_SUPPORTED */
+#endif	/* !HAVE_LIBTIRPC */
 
 /*
  * Perform a non-blocking connect on the socket fd.
