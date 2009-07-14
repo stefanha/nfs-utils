@@ -326,7 +326,9 @@ static CLIENT *nfs_get_udpclient(const struct sockaddr *sap,
 					version, *timeout, &sock);
 #endif	/* !HAVE_LIBTIRPC */
 	if (client != NULL) {
-		CLNT_CONTROL(client, CLSET_RETRY_TIMEOUT, (char *)timeout);
+		struct timeval retry_timeout = { 1, 0 };
+		CLNT_CONTROL(client, CLSET_RETRY_TIMEOUT,
+						(char *)&retry_timeout);
 		CLNT_CONTROL(client, CLSET_FD_CLOSE, NULL);
 	} else
 		(void)close(sock);
