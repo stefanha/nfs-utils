@@ -420,11 +420,11 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 {
 	struct sockaddr_storage nfs_address;
 	struct sockaddr *nfs_saddr = (struct sockaddr *)&nfs_address;
-	socklen_t nfs_salen;
+	socklen_t nfs_salen = sizeof(nfs_address);
 	struct pmap nfs_pmap;
 	struct sockaddr_storage mnt_address;
 	struct sockaddr *mnt_saddr = (struct sockaddr *)&mnt_address;
-	socklen_t mnt_salen;
+	socklen_t mnt_salen = sizeof(mnt_address);
 	struct pmap mnt_pmap;
 	char *option;
 
