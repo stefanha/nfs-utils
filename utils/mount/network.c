@@ -848,10 +848,14 @@ int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
 			(xdrproc_t)xdr_dirpath, (caddr_t)argp,
 			(xdrproc_t)xdr_void, NULL,
 			timeout);
-	if (verbose && res != RPC_SUCCESS)
-		nfs_error(_("%s: UMNT call failed: %s"),
-			progname, clnt_sperrno(res));
+	if (res != RPC_SUCCESS) {
+		rpc_createerr.cf_stat = res;
+		CLNT_GETERR(client, &rpc_createerr.cf_error);
+		if (verbose)
+			nfs_error(_("%s: UMNT call failed: %s"),
+				progname, clnt_sperrno(res));
 
+	}
 	auth_destroy(client->cl_auth);
 	CLNT_DESTROY(client);
 
