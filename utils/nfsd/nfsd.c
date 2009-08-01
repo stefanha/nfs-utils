@@ -98,11 +98,11 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'T':
-				NFSCTL_TCPUNSET(protobits);
-				break;
+			NFSCTL_TCPUNSET(protobits);
+			break;
 		case 'U':
-				NFSCTL_UDPUNSET(protobits);
-				break;
+			NFSCTL_UDPUNSET(protobits);
+			break;
 		default:
 			fprintf(stderr, "Invalid argument: '%c'\n", c);
 		case 'h':
