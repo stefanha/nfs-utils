@@ -16,10 +16,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <syslog.h>
-
 
 #include "nfslib.h"
+#include "xlog.h"
 
 #define NFSD_PORTS_FILE     "/proc/fs/nfsd/portlist"
 #define NFSD_VERS_FILE    "/proc/fs/nfsd/versions"
@@ -57,13 +56,13 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 	if (NFSCTL_UDPISSET(ctlbits)) {
 		udpfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if (udpfd < 0) {
-			syslog(LOG_ERR, "nfssvc: unable to create UPD socket: "
-				"errno %d (%s)\n", errno, strerror(errno));
+			xlog(L_ERROR, "unable to create UDP socket: "
+				"errno %d (%m)", errno);
 			exit(1);
 		}
 		if (bind(udpfd, (struct  sockaddr  *)&sin, sizeof(sin)) < 0){
-			syslog(LOG_ERR, "nfssvc: unable to bind UPD socket: "
-				"errno %d (%s)\n", errno, strerror(errno));
+			xlog(L_ERROR, "unable to bind UDP socket: "
+				"errno %d (%m)", errno);
 			exit(1);
 		}
 	}
@@ -71,32 +70,32 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 	if (NFSCTL_TCPISSET(ctlbits)) {
 		tcpfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (tcpfd < 0) {
-			syslog(LOG_ERR, "nfssvc: unable to createt tcp socket: "
-				"errno %d (%s)\n", errno, strerror(errno));
+			xlog(L_ERROR, "unable to create TCP socket: "
+				"errno %d (%m)", errno);
 			exit(1);
 		}
 		if (setsockopt(tcpfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-			syslog(LOG_ERR, "nfssvc: unable to set SO_REUSEADDR: "
-				"errno %d (%s)\n", errno, strerror(errno));
+			xlog(L_ERROR, "unable to set SO_REUSEADDR: "
+				"errno %d (%m)", errno);
 			exit(1);
 		}
 		if (bind(tcpfd, (struct  sockaddr  *)&sin, sizeof(sin)) < 0){
-			syslog(LOG_ERR, "nfssvc: unable to bind TCP socket: "
-				"errno %d (%s)\n", errno, strerror(errno));
+			xlog(L_ERROR, "unable to bind TCP socket: "
+				"errno %d (%m)", errno);
 			exit(1);
 		}
 		if (listen(tcpfd, 64) < 0){
-			syslog(LOG_ERR, "nfssvc: unable to create listening socket: "
-				"errno %d (%s)\n", errno, strerror(errno));
+			xlog(L_ERROR, "unable to create listening socket: "
+				"errno %d (%m)", errno);
 			exit(1);
 		}
 	}
 	if (udpfd >= 0) {
 		snprintf(buf, BUFSIZ,"%d\n", udpfd); 
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
-			syslog(LOG_ERR, 
-			       "nfssvc: writing fds to kernel failed: errno %d (%s)", 
-			       errno, strerror(errno));
+			xlog(L_ERROR, 
+			       "writing fds to kernel failed: errno %d (%m)", 
+			       errno);
 		}
 		close(fd);
 		fd = -1;
@@ -106,9 +105,9 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 			fd = open(NFSD_PORTS_FILE, O_WRONLY);
 		snprintf(buf, BUFSIZ,"%d\n", tcpfd); 
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
-			syslog(LOG_ERR, 
-			       "nfssvc: writing fds to kernel failed: errno %d (%s)", 
-			       errno, strerror(errno));
+			xlog(L_ERROR, 
+			       "writing fds to kernel failed: errno %d (%m)", 
+			       errno);
 		}
 	}
 	close(fd);
@@ -138,11 +137,11 @@ nfssvc_versbits(unsigned int ctlbits, int minorvers4)
 		    off += snprintf(ptr+off, BUFSIZ - off, "%c4.%d",
 				    minorvers4 > 0 ? '+' : '-',
 				    n);
+	xlog(D_GENERAL, "Writing version string to kernel: %s", buf);
 	snprintf(ptr+off, BUFSIZ - off, "\n");
-	if (write(fd, buf, strlen(buf)) != strlen(buf)) {
-		syslog(LOG_ERR, "nfssvc: Setting version failed: errno %d (%s)", 
-			errno, strerror(errno));
-	}
+	if (write(fd, buf, strlen(buf)) != strlen(buf))
+		xlog(L_ERROR, "Setting version failed: errno %d (%m)", errno);
+
 	close(fd);
 
 	return;
