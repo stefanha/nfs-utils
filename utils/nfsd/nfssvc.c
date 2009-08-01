@@ -24,18 +24,25 @@
 #define NFSD_VERS_FILE    "/proc/fs/nfsd/versions"
 #define NFSD_THREAD_FILE  "/proc/fs/nfsd/threads"
 
+/*
+ * declaring a common static scratch buffer here keeps us from having to
+ * continually thrash the stack. The value of 128 bytes here is really just a
+ * SWAG and can be increased if necessary. It ought to be enough for the
+ * routines below however.
+ */
+char buf[128];
+
 static void
 nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 {
 	int fd, n, on=1;
-	char buf[BUFSIZ];
 	int udpfd = -1, tcpfd = -1;
 	struct sockaddr_in sin;
 
 	fd = open(NFSD_PORTS_FILE, O_RDONLY);
 	if (fd < 0)
 		return;
-	n = read(fd, buf, BUFSIZ);
+	n = read(fd, buf, sizeof(buf));
 	close(fd);
 	if (n != 0)
 		return;
@@ -91,7 +98,7 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 		}
 	}
 	if (udpfd >= 0) {
-		snprintf(buf, BUFSIZ,"%d\n", udpfd); 
+		snprintf(buf, sizeof(buf), "%d\n", udpfd); 
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 			xlog(L_ERROR, 
 			       "writing fds to kernel failed: errno %d (%m)", 
@@ -103,7 +110,7 @@ nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
 	if (tcpfd >= 0) {
 		if (fd < 0)
 			fd = open(NFSD_PORTS_FILE, O_WRONLY);
-		snprintf(buf, BUFSIZ,"%d\n", tcpfd); 
+		snprintf(buf, sizeof(buf), "%d\n", tcpfd); 
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 			xlog(L_ERROR, 
 			       "writing fds to kernel failed: errno %d (%m)", 
@@ -118,7 +125,7 @@ static void
 nfssvc_versbits(unsigned int ctlbits, int minorvers4)
 {
 	int fd, n, off;
-	char buf[BUFSIZ], *ptr;
+	char *ptr;
 
 	ptr = buf;
 	off = 0;
@@ -128,17 +135,17 @@ nfssvc_versbits(unsigned int ctlbits, int minorvers4)
 
 	for (n = NFSD_MINVERS; n <= NFSD_MAXVERS; n++) {
 		if (NFSCTL_VERISSET(ctlbits, n))
-		    off += snprintf(ptr+off, BUFSIZ - off, "+%d ", n);
+		    off += snprintf(ptr+off, sizeof(buf) - off, "+%d ", n);
 		else
-		    off += snprintf(ptr+off, BUFSIZ - off, "-%d ", n);
+		    off += snprintf(ptr+off, sizeof(buf) - off, "-%d ", n);
 	}
 	n = minorvers4 >= 0 ? minorvers4 : -minorvers4;
 	if (n >= NFSD_MINMINORVERS4 && n <= NFSD_MAXMINORVERS4)
-		    off += snprintf(ptr+off, BUFSIZ - off, "%c4.%d",
+		    off += snprintf(ptr+off, sizeof(buf) - off, "%c4.%d",
 				    minorvers4 > 0 ? '+' : '-',
 				    n);
 	xlog(D_GENERAL, "Writing version string to kernel: %s", buf);
-	snprintf(ptr+off, BUFSIZ - off, "\n");
+	snprintf(ptr+off, sizeof(buf) - off, "\n");
 	if (write(fd, buf, strlen(buf)) != strlen(buf))
 		xlog(L_ERROR, "Setting version failed: errno %d (%m)", errno);
 
@@ -168,9 +175,8 @@ nfssvc(int port, int nrservs, unsigned int versbits, int minorvers4,
 		 * Just write the number in.
 		 * Cannot handle port number yet, but does anyone care?
 		 */
-		char buf[20];
 		int n;
-		snprintf(buf, 20,"%d\n", nrservs);
+		snprintf(buf, sizeof(buf), "%d\n", nrservs);
 		n = write(fd, buf, strlen(buf));
 		close(fd);
 		if (n != strlen(buf))
