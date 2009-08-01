@@ -7,10 +7,8 @@ RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PROGRAMS	= nfsd
 
-nfsd_SOURCES = nfsd.c
-nfsd_LDADD = ../../support/export/libexport.a \
-	     ../../support/nfs/libnfs.a \
-	     ../../support/misc/libmisc.a
+nfsd_SOURCES = nfsd.c nfssvc.c
+nfsd_LDADD = ../../support/nfs/libnfs.a
 
 MAINTAINERCLEANFILES = Makefile.in
 

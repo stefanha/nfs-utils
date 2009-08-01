@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 
 #include "nfslib.h"
+#include "nfssvc.h"
 
 static void	usage(const char *);
 

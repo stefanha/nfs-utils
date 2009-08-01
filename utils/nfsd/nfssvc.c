@@ -1,5 +1,5 @@
 /*
- * support/nfs/nfssvc.c
+ * utils/nfsd/nfssvc.c
  *
  * Run an NFS daemon.
  *
