@@ -21,6 +21,7 @@ mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c \
 if MOUNT_CONFIG
 mount_nfs_SOURCES += configfile.c
 man5_MANS += nfsmount.conf.man
+EXTRA_DIST += nfsmount.conf
 endif
 
 mount_nfs_LDADD = ../../support/nfs/libnfs.a \
