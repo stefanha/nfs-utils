@@ -17,6 +17,10 @@ mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c \
 		    parse_opt.h parse_dev.h \
 		    nfs4_mount.h nfs_mount4.h stropts.h version.h
 
+if MOUNT_CONFIG
+mount_nfs_SOURCES += configfile.c
+endif
+
 mount_nfs_LDADD = ../../support/nfs/libnfs.a \
 		  ../../support/export/libexport.a
 
