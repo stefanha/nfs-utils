@@ -14,7 +14,6 @@ EXTRA_DIST = \
 
 idmapd_SOURCES = \
 	atomicio.c \
-	cfg.c \
 	idmapd.c \
 	strlcat.c \
 	strlcpy.c \

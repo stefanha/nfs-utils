@@ -30,10 +30,10 @@
  * This code was written under funding by Ericsson Radio Systems.
  */
 
-#ifndef _CONF_H_
-#define _CONF_H_
+#ifndef _CONFFILE_H_
+#define _CONFFILE_H_
 
-#include "queue.h"
+#include <sys/queue.h>
 
 struct conf_list_node {
 	TAILQ_ENTRY(conf_list_node) link;
@@ -64,4 +64,4 @@ extern int      conf_remove_section(int, char *);
 extern int      conf_set(int, char *, char *, char *, int, int);
 extern void     conf_report(void);
 
-#endif				/* _CONF_H_ */
+#endif				/* _CONFFILE_H_ */

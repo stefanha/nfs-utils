@@ -66,7 +66,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "xlog.h"
-#include "cfg.h"
+#include "conffile.h"
 #include "queue.h"
 #include "nfslib.h"
 
@@ -156,7 +156,7 @@ static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
 static gid_t nobodygid;
 
-/* Used by cfg.c */
+/* Used by conffile.c in libnfs.a */
 char *conf_path;
 
 static int

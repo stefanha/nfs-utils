@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	xio.h \
 	xlog.h \
 	xmalloc.h \
-	xcommon.h
+	xcommon.h \
+	conffile.h
 
 MAINTAINERCLEANFILES = Makefile.in
