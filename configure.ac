@@ -136,6 +136,31 @@ AC_ARG_ENABLE(ipv6,
 	AC_SUBST(enable_ipv6)
 	AM_CONDITIONAL(CONFIG_IPV6, [test "$enable_ipv6" = "yes"])
 
+if test "$enable_mount" = yes; then
+	AC_ARG_ENABLE(mountconfig,
+	[AC_HELP_STRING([--enable-mountconfig],
+                        [enable mount to use a configuration file])],
+	mountconfig=$enableval,
+	mountconfig=no)
+	if test "$enable_mountconfig" = yes; then
+		AC_DEFINE(MOUNT_CONFIG, 1, 
+			[Define this if you want mount to read a configuration file])
+		AC_ARG_WITH(mountfile,
+			[AC_HELP_STRING([--with-mountfile=filename],
+			[Using filename as the NFS mount options file [/etc/nfsmounts.conf]]
+			)],
+		mountfile=$withval,
+		mountfile=/etc/nfsmount.conf)
+		AC_SUBST(mountfile)
+		AC_DEFINE_UNQUOTED(MOUNTOPTS_CONFFILE, "$mountfile", 
+			[This defines the location of the NFS mount configuration file])
+	else
+		enable_mountconfig=
+	fi
+	AC_SUBST(enable_mountconfig)
+	AM_CONDITIONAL(MOUNT_CONFIG, [test "$enable_mountconfig" = "yes"])
+fi
+
 dnl Check for TI-RPC library and headers
 AC_LIBTIRPC
 
