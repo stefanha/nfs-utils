@@ -56,12 +56,12 @@ extern struct conf_list *conf_get_list(char *, char *);
 extern struct conf_list *conf_get_tag_list(char *);
 extern int      conf_get_num(char *, char *, int);
 extern char    *conf_get_str(char *, char *);
+extern char    *conf_get_section(char *, char *, char *);
 extern void     conf_init(void);
 extern int      conf_match_num(char *, char *, int);
 extern void     conf_reinit(void);
 extern int      conf_remove(int, char *, char *);
 extern int      conf_remove_section(int, char *);
-extern int      conf_set(int, char *, char *, char *, int, int);
 extern void     conf_report(void);
 
 #endif				/* _CONFFILE_H_ */
