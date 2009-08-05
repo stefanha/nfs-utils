@@ -116,6 +116,18 @@ conf_hash(char *s)
 }
 
 /*
+ * Convert letter from upper case to lower case
+ */
+static inline void upper2lower(char *str)
+{
+	char *ptr = str;
+
+	while (*ptr) 
+		*ptr++ = tolower(*ptr);
+}
+
+
+/*
  * Insert a tag-value combination from LINE (the equal sign is at POS)
  */
 static int
@@ -654,6 +666,9 @@ conf_set(int transaction, char *section, char *tag,
 		xlog_warn("conf_set: strdup(\"%s\") failed", section);
 		goto fail;
 	}
+	/* Make Section names case-insensitive */
+	upper2lower(node->section);
+
 	node->tag = strdup(tag);
 	if (!node->tag) {
 		xlog_warn("conf_set: strdup(\"%s\") failed", tag);
