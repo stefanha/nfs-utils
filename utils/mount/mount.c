@@ -37,6 +37,7 @@
 #include "xcommon.h"
 #include "nls.h"
 #include "mount_constants.h"
+#include "mount_config.h"
 #include "nfs_paths.h"
 #include "nfs_mntent.h"
 
@@ -474,6 +475,8 @@ int main(int argc, char *argv[])
 	spec = argv[1];
 	mount_point = argv[2];
 
+	mount_config_init();
+
 	argv[2] = argv[0]; /* so that getopt error messages are correct */
 	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hs",
 				longopts, NULL)) != -1) {
@@ -559,6 +562,10 @@ int main(int argc, char *argv[])
 		mnt_err = EX_USAGE;
 		goto out;
 	}
+	/*
+	 * Concatenate mount options from the configuration file
+	 */
+	mount_opts = mount_config_opts(spec, mount_point, mount_opts);
 
 	parse_opts(mount_opts, &flags, &extra_opts);
 

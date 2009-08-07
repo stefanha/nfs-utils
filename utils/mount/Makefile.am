@@ -15,7 +15,8 @@ mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c \
 		    nfsumount.c \
 		    mount_constants.h error.h network.h fstab.h token.h \
 		    parse_opt.h parse_dev.h \
-		    nfs4_mount.h nfs_mount4.h stropts.h version.h
+		    nfs4_mount.h nfs_mount4.h stropts.h version.h \
+			mount_config.h
 
 if MOUNT_CONFIG
 mount_nfs_SOURCES += configfile.c
