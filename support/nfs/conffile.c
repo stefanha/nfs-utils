@@ -120,18 +120,6 @@ conf_hash(char *s)
 }
 
 /*
- * Convert letter from upper case to lower case
- */
-static inline void upper2lower(char *str)
-{
-	char *ptr = str;
-
-	while (*ptr) 
-		*ptr++ = tolower(*ptr);
-}
-
-
-/*
  * Insert a tag-value combination from LINE (the equal sign is at POS)
  */
 static int

@@ -37,11 +37,11 @@
 #define NFSMOUNT_GLOBAL_OPTS "NFSMount_Global_Options"
 #endif
 
-#ifndef NFSMOUNT_MOUNTPOINT  "MountPoint"
+#ifndef NFSMOUNT_MOUNTPOINT
 #define NFSMOUNT_MOUNTPOINT "MountPoint"
 #endif
 
-#ifndef NFSMOUNT_SERVER "Server"
+#ifndef NFSMOUNT_SERVER
 #define NFSMOUNT_SERVER "Server"
 #endif
 
@@ -83,6 +83,9 @@ char *mountopts_alias(char *opt, int *argtype)
 		*argtype = mnt_alias_tab[i].argtype;
 		return mnt_alias_tab[i].opt;
 	}
+	/* Make option names case-insensitive */
+	upper2lower(opt);
+
 	return opt;
 }
 /*
@@ -202,7 +205,7 @@ conf_parse_mntopts(char *section, char *arg, char *opts)
 		 * Do not overwrite options if already exists 
 		 */
 		snprintf(buf, BUFSIZ, "%s=", node->field);
-		if (opts && strstr(opts, buf) != NULL)
+		if (opts && strcasestr(opts, buf) != NULL)
 			continue;
 		if (lookup_entry(node->field) != NULL)
 			continue;

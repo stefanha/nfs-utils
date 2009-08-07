@@ -64,4 +64,14 @@ extern int      conf_remove(int, char *, char *);
 extern int      conf_remove_section(int, char *);
 extern void     conf_report(void);
 
+/*
+ * Convert letter from upper case to lower case
+ */
+static inline void upper2lower(char *str)
+{
+	char c;
+
+	while ((c = tolower(*str)))
+		*str++ = c;
+}
 #endif				/* _CONFFILE_H_ */
