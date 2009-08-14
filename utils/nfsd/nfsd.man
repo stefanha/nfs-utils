@@ -13,14 +13,18 @@ The
 program implements the user level part of the NFS service. The
 main functionality is handled by the
 .B nfsd
-kernel module; the user space program merely starts the specified
-number of kernel threads.
+kernel module. The user space program merely specifies what sort of sockets
+the kernel service should listen on, what NFS versions it should support, and
+how many kernel threads it should use.
 .P
 The
 .B rpc.mountd
 server provides an ancillary service needed to satisfy mount requests
 by NFS clients.
 .SH OPTIONS
+.TP
+.B \-d " or " \-\-debug
+enable logging of debugging messages
 .TP
 .B \-H " or " \-\-host  hostname
 specify a particular hostname (or address) that NFS requests will
@@ -44,6 +48,14 @@ This option can be used to request that
 does not offer certain versions of NFS. The current version of
 .B rpc.nfsd
 can support both NFS version 2,3 and the newer version 4.
+.TP
+.B \-s " or " \-\-syslog
+By default,
+.B rpc.nfsd
+logs error messages (and debug messages, if enabled) to stderr. This option makes 
+.B rpc.nfsd
+log these messages to syslog instead. Note that errors encountered during
+option processing will still be logged to stderr regardless of this option.
 .TP
 .B \-T " or " \-\-no-tcp
 Disable 
@@ -75,12 +87,19 @@ In particular
 .B rpc.nfsd 0
 will stop all threads and thus close any open connections.
 
+.SH NOTES
+If the program is built with TI-RPC support, it will enable any protocol and
+address family combinations that are marked visible in the
+.B netconfig
+database.
+
 .SH SEE ALSO
 .BR rpc.mountd (8),
 .BR exports (5),
 .BR exportfs (8),
 .BR rpc.rquotad (8),
-.BR nfsstat (8).
+.BR nfsstat (8),
+.BR netconfig(5).
 .SH AUTHOR
 Olaf Kirch, Bill Hawes, H. J. Lu, G. Allan Morris III,
 and a host of others.
