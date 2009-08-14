@@ -45,25 +45,24 @@ static struct option longopts[] =
 unsigned int protobits = NFSCTL_ALLBITS;
 unsigned int versbits = NFSCTL_ALLBITS;
 int minorvers4 = NFSD_MAXMINORVERS4;		/* nfsv4 minor version */
-char *haddr = NULL;
 
 int
 main(int argc, char **argv)
 {
-	int	count = 1, c, error, port, fd, found_one;
-	struct servent *ent;
-	struct hostent *hp;
-	char *p, *progname;
-
-	ent = getservbyname ("nfs", "udp");
-	if (ent != NULL)
-		port = ntohs (ent->s_port);
-	else
-		port = 2049;
+	int	count = 1, c, error, portnum = 0, fd, found_one;
+	char *p, *progname, *port;
+	char *haddr = NULL;
+	int	socket_up = 0;
 
 	progname = strdup(basename(argv[0]));
 	if (!progname) {
 		fprintf(stderr, "%s: unable to allocate memory.\n", argv[0]);
+		exit(1);
+	}
+
+	port = strdup("nfs");
+	if (!port) {
+		fprintf(stderr, "%s: unable to allocate memory.\n", progname);
 		exit(1);
 	}
 
@@ -76,23 +75,33 @@ main(int argc, char **argv)
 			xlog_config(D_ALL, 1);
 			break;
 		case 'H':
-			if (inet_addr(optarg) != INADDR_NONE) {
-				haddr = strdup(optarg);
-			} else if ((hp = gethostbyname(optarg)) != NULL) {
-				haddr = inet_ntoa((*(struct in_addr*)(hp->h_addr_list[0])));
-			} else {
-				fprintf(stderr, "%s: Unknown hostname: %s\n",
-					progname, optarg);
-				usage(progname);
+			/*
+			 * for now, this only handles one -H option. Use the
+			 * last one specified.
+			 */
+			free(haddr);
+			haddr = strdup(optarg);
+			if (!haddr) {
+				fprintf(stderr, "%s: unable to allocate "
+					"memory.\n", progname);
+				exit(1);
 			}
 			break;
 		case 'P':	/* XXX for nfs-server compatibility */
 		case 'p':
-			port = atoi(optarg);
-			if (port <= 0 || port > 65535) {
+			/* only the last -p option has any effect */
+			portnum = atoi(optarg);
+			if (portnum <= 0 || portnum > 65535) {
 				fprintf(stderr, "%s: bad port number: %s\n",
 					progname, optarg);
 				usage(progname);
+			}
+			free(port);
+			port = strdup(optarg);
+			if (!port) {
+				fprintf(stderr, "%s: unable to allocate "
+						"memory.\n", progname);
+				exit(1);
 			}
 			break;
 		case 'N':
@@ -169,10 +178,38 @@ main(int argc, char **argv)
 			count = 1;
 		}
 	}
-	/* KLUDGE ALERT:
-	   Some kernels let nfsd kernel threads inherit open files
-	   from the program that spawns them (i.e. us).  So close
-	   everything before spawning kernel threads.  --Chip */
+
+	/* can only change number of threads if nfsd is already up */
+	if (nfssvc_inuse()) {
+		socket_up = 1;
+		goto set_threads;
+	}
+
+	/*
+	 * must set versions before the fd's so that the right versions get
+	 * registered with rpcbind. Note that on older kernels w/o the right
+	 * interfaces, these are a no-op.
+	 */
+	nfssvc_setvers(versbits, minorvers4);
+
+	error = nfssvc_set_sockets(AF_INET, protobits, haddr, port);
+	if (!error)
+		socket_up = 1;
+
+set_threads:
+	/* don't start any threads if unable to hand off any sockets */
+	if (!socket_up) {
+		xlog(L_ERROR, "unable to set any sockets for nfsd");
+		goto out;
+	}
+	error = 0;
+
+	/*
+	 * KLUDGE ALERT:
+	 * Some kernels let nfsd kernel threads inherit open files
+	 * from the program that spawns them (i.e. us).  So close
+	 * everything before spawning kernel threads.  --Chip
+	 */
 	fd = open("/dev/null", O_RDWR);
 	if (fd == -1)
 		xlog(L_ERROR, "Unable to open /dev/null: %m");
@@ -186,9 +223,11 @@ main(int argc, char **argv)
 	}
 	closeall(3);
 
-	if ((error = nfssvc(port, count, versbits, minorvers4, protobits, haddr)) < 0)
-		xlog(L_ERROR, "nfssvc: errno %d (%m)", errno);
-
+	if ((error = nfssvc_threads(portnum, count)) < 0)
+		xlog(L_ERROR, "error starting threads: errno %d (%m)", errno);
+out:
+	free(port);
+	free(haddr);
 	free(progname);
 	return (error != 0);
 }

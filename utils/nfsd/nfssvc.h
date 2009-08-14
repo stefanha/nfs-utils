@@ -20,5 +20,8 @@
  *
  */
 
-int	nfssvc(int port, int nrservs, unsigned int versbits, int minorvers4,
-	       unsigned int portbits, char *haddr);
+int	nfssvc_inuse(void);
+int	nfssvc_set_sockets(const int family, const unsigned int protobits,
+			   const char *host, const char *port);
+void	nfssvc_setvers(unsigned int ctlbits, int minorvers4);
+int	nfssvc_threads(unsigned short port, int nrservs);

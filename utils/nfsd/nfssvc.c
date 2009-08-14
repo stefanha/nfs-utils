@@ -10,7 +10,9 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -59,86 +61,150 @@ nfssvc_inuse(void)
 	return (n > 0);
 }
 
-static void
-nfssvc_setfds(int port, unsigned int ctlbits, char *haddr)
+static int
+nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 {
-	int fd, on=1;
-	int udpfd = -1, tcpfd = -1;
-	struct sockaddr_in sin;
+	int fd, on = 1, fac = L_ERROR;
+	int sockfd = -1, rc = 0;
+	struct addrinfo *addrhead = NULL, *addr;
+	char *proto, *family;
 
-	if (nfssvc_inuse())
-		return;
-
+	/*
+	 * if file can't be opened, then assume that it's not available and
+	 * that the caller should just fall back to the old nfsctl interface
+ 	 */
 	fd = open(NFSD_PORTS_FILE, O_WRONLY);
 	if (fd < 0)
-		return;
-	sin.sin_family = AF_INET;
-	sin.sin_port   = htons(port);
-	sin.sin_addr.s_addr =  inet_addr(haddr);
+		return 0;
 
-	if (NFSCTL_UDPISSET(ctlbits)) {
-		udpfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (udpfd < 0) {
-			xlog(L_ERROR, "unable to create UDP socket: "
-				"errno %d (%m)", errno);
-			exit(1);
-		}
-		if (bind(udpfd, (struct  sockaddr  *)&sin, sizeof(sin)) < 0){
-			xlog(L_ERROR, "unable to bind UDP socket: "
-				"errno %d (%m)", errno);
-			exit(1);
-		}
+	switch(hints->ai_family) {
+	case AF_INET:
+		family = "inet";
+		break;
+	default:
+		xlog(L_ERROR, "Unknown address family specified: %d\n",
+				hints->ai_family);
+		rc = EAFNOSUPPORT;
+		goto error;
 	}
 
-	if (NFSCTL_TCPISSET(ctlbits)) {
-		tcpfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (tcpfd < 0) {
-			xlog(L_ERROR, "unable to create TCP socket: "
-				"errno %d (%m)", errno);
-			exit(1);
+	rc = getaddrinfo(node, port, hints, &addrhead);
+	if (rc == EAI_NONAME && !strcmp(port, "nfs")) {
+		snprintf(buf, sizeof(buf), "%d", NFS_PORT);
+		rc = getaddrinfo(node, buf, hints, &addrhead);
+	}
+
+	if (rc != 0) {
+		xlog(L_ERROR, "unable to resolve %s:%s to %s address: "
+				"%s", node ? node : "ANYADDR", port, family,
+				rc == EAI_SYSTEM ? strerror(errno) :
+					gai_strerror(rc));
+		goto error;
+	}
+
+	addr = addrhead;
+	while(addr) {
+		/* skip non-TCP / non-UDP sockets */
+		switch(addr->ai_protocol) {
+		case IPPROTO_UDP:
+			proto = "UDP";
+			break;
+		case IPPROTO_TCP:
+			proto = "TCP";
+			break;
+		default:
+			addr = addr->ai_next;
+			continue;
 		}
-		if (setsockopt(tcpfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-			xlog(L_ERROR, "unable to set SO_REUSEADDR: "
-				"errno %d (%m)", errno);
-			exit(1);
+
+		xlog(D_GENERAL, "Creating %s %s socket.", family, proto);
+
+		/* open socket and prepare to hand it off to kernel */
+		sockfd = socket(addr->ai_family, addr->ai_socktype,
+				addr->ai_protocol);
+		if (sockfd < 0) {
+			xlog(L_ERROR, "unable to create %s %s socket: "
+				"errno %d (%m)", family, proto, errno);
+			rc = errno;
+			goto error;
 		}
-		if (bind(tcpfd, (struct  sockaddr  *)&sin, sizeof(sin)) < 0){
-			xlog(L_ERROR, "unable to bind TCP socket: "
-				"errno %d (%m)", errno);
-			exit(1);
+		if (addr->ai_protocol == IPPROTO_TCP &&
+		    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
+			xlog(L_ERROR, "unable to set SO_REUSEADDR on %s "
+				"socket: errno %d (%m)", family, errno);
+			rc = errno;
+			goto error;
 		}
-		if (listen(tcpfd, 64) < 0){
+		if (bind(sockfd, addr->ai_addr, addr->ai_addrlen)) {
+			xlog(L_ERROR, "unable to bind %s %s socket: "
+				"errno %d (%m)", family, proto, errno);
+			rc = errno;
+			goto error;
+		}
+		if (addr->ai_protocol == IPPROTO_TCP && listen(sockfd, 64)) {
 			xlog(L_ERROR, "unable to create listening socket: "
 				"errno %d (%m)", errno);
-			exit(1);
+			rc = errno;
+			goto error;
 		}
-	}
-	if (udpfd >= 0) {
-		snprintf(buf, sizeof(buf), "%d\n", udpfd); 
-		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
-			xlog(L_ERROR, 
-			       "writing fds to kernel failed: errno %d (%m)", 
-			       errno);
-		}
-		close(fd);
-		fd = -1;
-	}
-	if (tcpfd >= 0) {
+
 		if (fd < 0)
 			fd = open(NFSD_PORTS_FILE, O_WRONLY);
-		snprintf(buf, sizeof(buf), "%d\n", tcpfd); 
-		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
-			xlog(L_ERROR, 
-			       "writing fds to kernel failed: errno %d (%m)", 
-			       errno);
-		}
-	}
-	close(fd);
 
-	return;
+		if (fd < 0) {
+			xlog(L_ERROR, "couldn't open ports file: errno "
+				      "%d (%m)", errno);
+			goto error;
+		}
+
+		snprintf(buf, sizeof(buf), "%d\n", sockfd); 
+		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
+			/*
+			 * this error may be common on older kernels that don't
+			 * support IPv6, so turn into a debug message.
+			 */
+			if (errno == EAFNOSUPPORT)
+				fac = D_ALL;
+			xlog(fac, "writing fd to kernel failed: errno %d (%m)",
+				  errno);
+			rc = errno;
+			goto error;
+		}
+		close(fd);
+		close(sockfd);
+		sockfd = fd = -1;
+		addr = addr->ai_next;
+	}
+error:
+	if (fd >= 0)
+		close(fd);
+	if (sockfd >= 0)
+		close(sockfd);
+	if (addrhead)
+		freeaddrinfo(addrhead);
+	return rc;
 }
-static void
-nfssvc_versbits(unsigned int ctlbits, int minorvers4)
+
+int
+nfssvc_set_sockets(const int family, const unsigned int protobits,
+		   const char *host, const char *port)
+{
+	struct addrinfo hints = { .ai_flags = AI_PASSIVE | AI_ADDRCONFIG };
+
+	hints.ai_family = family;
+
+	if (!NFSCTL_ANYPROTO(protobits))
+		return EPROTOTYPE;
+	else if (!NFSCTL_UDPISSET(protobits))
+		hints.ai_protocol = IPPROTO_TCP;
+	else if (!NFSCTL_TCPISSET(protobits))
+		hints.ai_protocol = IPPROTO_UDP;
+
+	return nfssvc_setfds(&hints, host, port);
+}
+
+void
+nfssvc_setvers(unsigned int ctlbits, int minorvers4)
 {
 	int fd, n, off;
 	char *ptr;
@@ -169,29 +235,22 @@ nfssvc_versbits(unsigned int ctlbits, int minorvers4)
 
 	return;
 }
+
 int
-nfssvc(int port, int nrservs, unsigned int versbits, int minorvers4,
-	unsigned protobits, char *haddr)
+nfssvc_threads(unsigned short port, const int nrservs)
 {
 	struct nfsctl_arg	arg;
+	struct servent *ent;
+	ssize_t n;
 	int fd;
-
-	/* Note: must set versions before fds so that
-	 * the ports get registered with portmap against correct
-	 * versions
-	 */
-	nfssvc_versbits(versbits, minorvers4);
-	nfssvc_setfds(port, protobits, haddr);
 
 	fd = open(NFSD_THREAD_FILE, O_WRONLY);
 	if (fd < 0)
 		fd = open("/proc/fs/nfs/threads", O_WRONLY);
 	if (fd >= 0) {
 		/* 2.5+ kernel with nfsd filesystem mounted.
-		 * Just write the number in.
-		 * Cannot handle port number yet, but does anyone care?
+		 * Just write the number of threads.
 		 */
-		int n;
 		snprintf(buf, sizeof(buf), "%d\n", nrservs);
 		n = write(fd, buf, strlen(buf));
 		close(fd);
@@ -199,6 +258,14 @@ nfssvc(int port, int nrservs, unsigned int versbits, int minorvers4,
 			return -1;
 		else
 			return 0;
+	}
+
+	if (!port) {
+		ent = getservbyname("nfs", "udp");
+		if (ent != NULL)
+			port = ntohs(ent->s_port);
+		else
+			port = NFS_PORT;
 	}
 
 	arg.ca_version = NFSCTL_VERSION;
