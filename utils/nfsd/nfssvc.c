@@ -81,6 +81,11 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 	case AF_INET:
 		family = "inet";
 		break;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		family = "inet6";
+		break;
+#endif /* IPV6_SUPPORTED */
 	default:
 		xlog(L_ERROR, "Unknown address family specified: %d\n",
 				hints->ai_family);
@@ -128,6 +133,15 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 			rc = errno;
 			goto error;
 		}
+#ifdef IPV6_SUPPORTED
+		if (addr->ai_family == AF_INET6 &&
+		    setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on))) {
+			xlog(L_ERROR, "unable to set IPV6_V6ONLY: "
+				"errno %d (%m)\n", errno);
+			rc = errno;
+			goto error;
+		}
+#endif /* IPV6_SUPPORTED */
 		if (addr->ai_protocol == IPPROTO_TCP &&
 		    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
 			xlog(L_ERROR, "unable to set SO_REUSEADDR on %s "
