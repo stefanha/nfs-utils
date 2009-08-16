@@ -794,6 +794,13 @@ In the presence of multiple client network interfaces,
 special routing policies,
 or atypical network topologies,
 the exact address to use for callbacks may be nontrivial to determine.
+.SH MOUNT CONFIGURATION FILE
+If the mount command is configured to do so, all of the mount options 
+described in the previous section can also be configured in the 
+.I /etc/nfsmount.conf 
+file. See 
+.BR nfsmount.conf(5)
+for details.
 .SH EXAMPLES
 To mount an export using NFS version 2,
 use the
