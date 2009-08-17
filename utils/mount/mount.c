@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 	spec = argv[1];
 	mount_point = argv[2];
 
-	mount_config_init();
+	mount_config_init(progname);
 
 	argv[2] = argv[0]; /* so that getopt error messages are correct */
 	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hs",

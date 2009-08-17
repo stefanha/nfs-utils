@@ -16,14 +16,15 @@
  *
  */
 
-inline void mount_config_init(void);
+inline void mount_config_init(char *);
 
 #ifdef MOUNT_CONFIG
 #include "conffile.h"
 extern char *conf_get_mntopts(char *, char *, char *);
 
-inline void mount_config_init()
+inline void mount_config_init(char *program)
 {
+	xlog_open(program);
 	/*
 	 * Read the the default mount options
 	 */
@@ -36,7 +37,7 @@ inline char *mount_config_opts(char *spec,
 }
 #else /* MOUNT_CONFIG */
 
-inline void mount_config_init() { }
+inline void mount_config_init(char *program) { }
 
 inline char *mount_config_opts(char *spec, 
 		char *mount_point, char *mount_opts)

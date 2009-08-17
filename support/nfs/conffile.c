@@ -244,7 +244,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 		if (section)
 			free(section);
 		if (i == sz) {
-			xlog_warn("conf_parse_line: %d:"
+			xlog_warn("config file error: line %d: "
  				"non-matched ']', ignoring until next section", ln);
 			section = 0;
 			return;
@@ -274,7 +274,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 		while (*ptr && *ptr != '"')
 			ptr++;
 		if (*ptr == '\0') {
-			xlog_warn("conf_parse_line: line %d:"
+			xlog_warn("config file error: line %d: "
  				"non-matched '\"', ignoring until next section", ln);
 		}  else {
 			*ptr = '\0';
@@ -290,8 +290,8 @@ conf_parse_line(int trans, char *line, size_t sz)
 		if (line[i] == '=') {
 			/* If no section, we are ignoring the lines.  */
 			if (!section) {
-				xlog_warn("conf_parse_line: %d: ignoring line due to no section", 
-					ln);
+			xlog_warn("config file error: line %d: "
+				"ignoring line due to no section", ln);
 				return;
 			}
 			line[strcspn (line, " \t=")] = '\0';
@@ -321,7 +321,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 	/* Other non-empty lines are weird.  */
 	i = strspn(line, " \t");
 	if (line[i])
-		xlog_warn("conf_parse_line: %d: syntax error", ln);
+		xlog_warn("config file error: line %d:", ln);
 
 	return;
 }
