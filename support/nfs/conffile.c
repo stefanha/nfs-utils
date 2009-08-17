@@ -219,9 +219,6 @@ conf_parse_line(int trans, char *line, size_t sz)
 
 	/* Lines starting with '#' or ';' are comments.  */
 	ln++;
-	if (*line == '#' || *line == ';')
-		return;
-
 	/* Ignore blank lines */
 	if (*line == '\0')
 		return;
@@ -229,6 +226,9 @@ conf_parse_line(int trans, char *line, size_t sz)
 	/* Strip off any leading blanks */
 	while (isblank(*line)) 
 		line++;
+
+	if (*line == '#' || *line == ';')
+		return;
 
 	/* '[section]' parsing...  */
 	if (*line == '[') {
@@ -296,9 +296,23 @@ conf_parse_line(int trans, char *line, size_t sz)
 			}
 			line[strcspn (line, " \t=")] = '\0';
 			val = line + i + 1 + strspn (line + i + 1, " \t");
+
+			/* Skip trailing comments, if any */
+			for (j = 0; j < sz - (val - line); j++) {
+				if (val[j] == '#' || val[j] == ';') {
+					val[j] = '\0';
+					break;
+				}
+			}
+
 			/* Skip trailing whitespace, if any */
-			for (j = sz - (val - line) - 1; j > 0 && isspace(val[j]); j--)
-				val[j] = '\0';
+			for (j--; j > 0; j--) {
+				if (isspace(val[j]))
+					val[j] = '\0';
+				else 
+					break;
+			}
+
 			/* XXX Perhaps should we not ignore errors?  */
 			conf_set(trans, section, arg, line, val, 0, 0);
 			return;
