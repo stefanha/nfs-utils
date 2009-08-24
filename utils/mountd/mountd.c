@@ -359,6 +359,11 @@ static void set_authflavors(struct mountres3_ok *ok, nfs_export *exp)
 		flavors[i] = s->flav->fnum;
 		i++;
 	}
+	if (i == 0) {
+		/* default when there is no sec= option: */
+		i = 1;
+		flavors[0] = AUTH_UNIX;
+	}
 	ok->auth_flavors.auth_flavors_val = flavors;
 	ok->auth_flavors.auth_flavors_len = i;
 }
