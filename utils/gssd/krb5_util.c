@@ -137,7 +137,7 @@ static int select_krb5_ccache(const struct dirent *d);
 static int gssd_find_existing_krb5_ccache(uid_t uid, char *dirname,
 		struct dirent **d);
 static int gssd_get_single_krb5_cred(krb5_context context,
-		krb5_keytab kt, struct gssd_k5_kt_princ *ple);
+		krb5_keytab kt, struct gssd_k5_kt_princ *ple, int nocache);
 static int query_krb5_ccache(const char* cred_cache, char **ret_princname,
 		char **ret_realm);
 
@@ -359,7 +359,8 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
 static int
 gssd_get_single_krb5_cred(krb5_context context,
 			  krb5_keytab kt,
-			  struct gssd_k5_kt_princ *ple)
+			  struct gssd_k5_kt_princ *ple,
+			  int nocache)
 {
 #if HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS
 	krb5_get_init_creds_opt *init_opts = NULL;
@@ -379,7 +380,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 
 	memset(&my_creds, 0, sizeof(my_creds));
 
-	if (ple->ccname && ple->endtime > now) {
+	if (ple->ccname && ple->endtime > now && !nocache) {
 		printerr(2, "INFO: Credentials in CC '%s' are good until %d\n",
 			 ple->ccname, ple->endtime);
 		code = 0;
@@ -1095,7 +1096,7 @@ gssd_get_krb5_machine_cred_list(char ***list)
 	for (ple = gssd_k5_kt_princ_list; ple; ple = ple->next) {
 		if (ple->ccname) {
 			/* Make sure cred is up-to-date before returning it */
-			retval = gssd_refresh_krb5_machine_credential(NULL, ple);
+			retval = gssd_refresh_krb5_machine_credential(NULL, ple, 0);
 			if (retval)
 				continue;
 			if (i + 1 > listsize) {
@@ -1185,7 +1186,7 @@ gssd_destroy_krb5_machine_creds(void)
  */
 int
 gssd_refresh_krb5_machine_credential(char *hostname,
-				     struct gssd_k5_kt_princ *ple)
+				     struct gssd_k5_kt_princ *ple, int nocache)
 {
 	krb5_error_code code = 0;
 	krb5_context context;
@@ -1240,7 +1241,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 			goto out;
 		}
 	}
-	retval = gssd_get_single_krb5_cred(context, kt, ple);
+	retval = gssd_get_single_krb5_cred(context, kt, ple, nocache);
 out:
 	if (kt)
 		krb5_kt_close(context, kt);
