@@ -34,6 +34,7 @@
 #define _CONFFILE_H_
 
 #include <sys/queue.h>
+#include <ctype.h>
 
 struct conf_list_node {
 	TAILQ_ENTRY(conf_list_node) link;

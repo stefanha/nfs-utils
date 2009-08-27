@@ -20,6 +20,8 @@ inline void mount_config_init(char *);
 
 #ifdef MOUNT_CONFIG
 #include "conffile.h"
+#include "xlog.h"
+
 extern char *conf_get_mntopts(char *, char *, char *);
 
 inline void mount_config_init(char *program)
