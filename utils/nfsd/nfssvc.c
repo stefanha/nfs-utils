@@ -22,6 +22,15 @@
 #include "nfslib.h"
 #include "xlog.h"
 
+/*
+ * IPv6 support for nfsd was finished before some of the other daemons (mountd
+ * and statd in particular). That could be a problem in the future if someone
+ * were to boot a kernel that supports IPv6 serving with an older nfs-utils. For
+ * now, hardcode the IPv6 switch into the off position until the other daemons
+ * are functional.
+ */
+#undef IPV6_SUPPORTED
+
 #define NFSD_PORTS_FILE     "/proc/fs/nfsd/portlist"
 #define NFSD_VERS_FILE    "/proc/fs/nfsd/versions"
 #define NFSD_THREAD_FILE  "/proc/fs/nfsd/threads"
