@@ -139,6 +139,7 @@ static void nametoidres(struct idmap_msg *);
 
 static int nfsdopen(void);
 static int nfsdopenone(struct idmap_client *);
+static void nfsdreopen_one(struct idmap_client *);
 static void nfsdreopen(void);
 
 size_t  strlcat(char *, const char *, size_t);
@@ -502,7 +503,8 @@ nfsdcb(int fd, short which, void *data)
 		xlog_warn("nfsdcb: read(%s) failed: errno %d (%s)",
 			     ic->ic_path, len?errno:0, 
 			     len?strerror(errno):"End of File");
-		goto out;
+		nfsdreopen_one(ic);
+		return;
 	}
 
 	/* Get rid of newline and terminate buffer*/
@@ -514,11 +516,11 @@ nfsdcb(int fd, short which, void *data)
 	/* Authentication name -- ignored for now*/
 	if (getfield(&bp, authbuf, sizeof(authbuf)) == -1) {
 		xlog_warn("nfsdcb: bad authentication name in upcall\n");
-		return;
+		goto out;
 	}
 	if (getfield(&bp, typebuf, sizeof(typebuf)) == -1) {
 		xlog_warn("nfsdcb: bad type in upcall\n");
-		return;
+		goto out;
 	}
 	if (verbose > 0)
 		xlog_warn("nfsdcb: authbuf=%s authtype=%s",
@@ -532,26 +534,26 @@ nfsdcb(int fd, short which, void *data)
 		im.im_conv = IDMAP_CONV_NAMETOID;
 		if (getfield(&bp, im.im_name, sizeof(im.im_name)) == -1) {
 			xlog_warn("nfsdcb: bad name in upcall\n");
-			return;
+			goto out;
 		}
 		break;
 	case IC_IDNAME:
 		im.im_conv = IDMAP_CONV_IDTONAME;
 		if (getfield(&bp, buf1, sizeof(buf1)) == -1) {
 			xlog_warn("nfsdcb: bad id in upcall\n");
-			return;
+			goto out;
 		}
 		tmp = strtoul(buf1, (char **)NULL, 10);
 		im.im_id = (u_int32_t)tmp;
 		if ((tmp == ULONG_MAX && errno == ERANGE)
 				|| (unsigned long)im.im_id != tmp) {
 			xlog_warn("nfsdcb: id '%s' too big!\n", buf1);
-			return;
+			goto out;
 		}
 		break;
 	default:
 		xlog_warn("nfsdcb: Unknown which type %d", ic->ic_which);
-		return;
+		goto out;
 	}
 
 	imconv(ic, &im);
@@ -612,7 +614,7 @@ nfsdcb(int fd, short which, void *data)
 		break;
 	default:
 		xlog_warn("nfsdcb: Unknown which type %d", ic->ic_which);
-		return;
+		goto out;
 	}
 
 	bsiz = sizeof(buf) - bsiz;
