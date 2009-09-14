@@ -179,6 +179,10 @@ static int nfs_umount_do_umnt(struct mount_options *options,
 		return EX_FAIL;
 	}
 
+	/* Skip UMNT call for vers=4 mounts */
+	if (nfs_pmap.pm_vers == 4)
+		return EX_SUCCESS;
+
 	*hostname = nfs_umount_hostname(options, *hostname);
 	if (!*hostname) {
 		nfs_error(_("%s: out of memory"), progname);

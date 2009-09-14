@@ -90,6 +90,7 @@ static const char *nfs_transport_opttbl[] = {
 static const char *nfs_version_opttbl[] = {
 	"v2",
 	"v3",
+	"v4",
 	"vers",
 	"nfsvers",
 	NULL,
@@ -1203,7 +1204,7 @@ nfs_nfs_program(struct mount_options *options, unsigned long *program)
  * Returns TRUE if @version contains a valid value for this option,
  * or FALSE if the option was specified with an invalid value.
  */
-static int
+int
 nfs_nfs_version(struct mount_options *options, unsigned long *version)
 {
 	long tmp;
@@ -1215,10 +1216,13 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 	case 1: /* v3 */
 		*version = 3;
 		return 1;
-	case 2:	/* vers */
+	case 2: /* v4 */
+		*version = 4;
+		return 1;
+	case 3:	/* vers */
 		switch (po_get_numeric(options, "vers", &tmp)) {
 		case PO_FOUND:
-			if (tmp >= 2 && tmp <= 3) {
+			if (tmp >= 2 && tmp <= 4) {
 				*version = tmp;
 				return 1;
 			}
@@ -1229,10 +1233,10 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 		case PO_BAD_VALUE:
 			return 0;
 		}
-	case 3: /* nfsvers */
+	case 4: /* nfsvers */
 		switch (po_get_numeric(options, "nfsvers", &tmp)) {
 		case PO_FOUND:
-			if (tmp >= 2 && tmp <= 3) {
+			if (tmp >= 2 && tmp <= 4) {
 				*version = tmp;
 				return 1;
 			}

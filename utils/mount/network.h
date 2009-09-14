@@ -56,6 +56,7 @@ int clnt_ping(struct sockaddr_in *, const unsigned long,
 
 struct mount_options;
 
+int nfs_nfs_version(struct mount_options *options, unsigned long *version);
 int nfs_options2pmap(struct mount_options *,
 		      struct pmap *, struct pmap *);
 

@@ -84,6 +84,7 @@ struct nfsmount_info {
 	struct mount_options	*options;	/* parsed mount options */
 	char			**extra_opts;	/* string for /etc/mtab */
 
+	unsigned long		version;	/* NFS version */
 	int			flags,		/* MS_ flags */
 				fake,		/* actually do the mount? */
 				child;		/* forked bg child? */
@@ -272,7 +273,12 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_name_to_address(mi->hostname, sap, &salen))
 		return 0;
 
-	if (strncmp(mi->type, "nfs4", 4) == 0) {
+	if (!nfs_nfs_version(mi->options, &mi->version))
+		return 0;
+	if (strncmp(mi->type, "nfs4", 4) == 0)
+		mi->version = 4;
+
+	if (mi->version == 4) {
 		if (!nfs_append_clientaddr_option(sap, salen, mi->options))
 			return 0;
 	} else {
@@ -488,7 +494,7 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 	char *options = NULL;
 	int result;
 
-	if (strncmp(mi->type, "nfs4", 4) != 0) {
+	if (mi->version != 4) {
 		if (!nfs_rewrite_pmap_mount_options(mi->options))
 			return 0;
 	}
