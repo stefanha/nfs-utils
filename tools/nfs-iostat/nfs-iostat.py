@@ -447,7 +447,14 @@ def parse_stats_file(filename):
     return ms_dict
 
 def print_iostat_summary(old, new, devices, time, ac):
-    for device in devices:
+    if old:
+        # Trim device list to only include intersection of old and new data,
+        # this addresses umounts due to autofs mountpoints
+        devicelist = filter(lambda x:x in devices,old)
+    else:
+        devicelist = devices
+
+    for device in devicelist:
         stats = DeviceData()
         stats.parse_stats(new[device])
         if not old:
@@ -458,11 +465,32 @@ def print_iostat_summary(old, new, devices, time, ac):
             diff_stats = stats.compare_iostats(old_stats)
             diff_stats.display_iostats(time, ac)
 
+def list_nfs_mounts(givenlist, mountstats):
+    """return a list of NFS mounts given a list to validate or
+       return a full list if the given list is empty -
+       may return an empty list if none found
+    """
+    list = []
+    if len(givenlist) > 0:
+        for device in givenlist:
+            stats = DeviceData()
+            stats.parse_stats(mountstats[device])
+            if stats.is_nfs_mountpoint():
+                list += [device]
+    else:
+        for device, descr in mountstats.iteritems():
+            stats = DeviceData()
+            stats.parse_stats(descr)
+            if stats.is_nfs_mountpoint():
+                list += [device]
+    return list
+
 def iostat_command(name):
     """iostat-like command for NFS mount points
     """
     mountstats = parse_stats_file('/proc/self/mountstats')
     devices = []
+    origdevices = []
     which = 0
     interval_seen = False
     count_seen = False
@@ -492,7 +520,7 @@ def iostat_command(name):
             continue
 
         if arg in mountstats:
-            devices += [arg]
+            origdevices += [arg]
         elif not interval_seen:
             interval = int(arg)
             if interval > 0:
@@ -509,23 +537,11 @@ def iostat_command(name):
                 return
 
     # make certain devices contains only NFS mount points
-    if len(devices) > 0:
-        check = []
-        for device in devices:
-            stats = DeviceData()
-            stats.parse_stats(mountstats[device])
-            if stats.is_nfs_mountpoint():
-                check += [device]
-        devices = check
-    else:
-        for device, descr in mountstats.iteritems():
-            stats = DeviceData()
-            stats.parse_stats(descr)
-            if stats.is_nfs_mountpoint():
-                devices += [device]
+    devices = list_nfs_mounts(origdevices, mountstats)
     if len(devices) == 0:
         print 'No NFS mount points were found'
         return
+
 
     old_mountstats = None
     sample_time = 0.0
@@ -541,6 +557,12 @@ def iostat_command(name):
             time.sleep(interval)
             sample_time = interval
             mountstats = parse_stats_file('/proc/self/mountstats')
+            # automount mountpoints add and drop, if automount is involved
+            # we need to recheck the devices list when reparsing
+            devices = list_nfs_mounts(origdevices,mountstats)
+            if len(devices) == 0:
+                print 'No NFS mount points were found'
+                return
             count -= 1
     else: 
         while True:
@@ -549,6 +571,12 @@ def iostat_command(name):
             time.sleep(interval)
             sample_time = interval
             mountstats = parse_stats_file('/proc/self/mountstats')
+            # automount mountpoints add and drop, if automount is involved
+            # we need to recheck the devices list when reparsing
+            devices = list_nfs_mounts(origdevices,mountstats)
+            if len(devices) == 0:
+                print 'No NFS mount points were found'
+                return
 
 #
 # Main
