@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- python-mode -*-
 """Emulate iostat for NFS mount points using /proc/self/mountstats
 """
