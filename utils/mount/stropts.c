@@ -259,7 +259,7 @@ static int nfs_append_sloppy_option(struct mount_options *options)
 }
 
 /*
- * Set up mandatory NFS mount options.
+ * Set up mandatory non-version specific NFS mount options.
  *
  * Returns 1 if successful; otherwise zero.
  */
@@ -279,26 +279,10 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (strncmp(mi->type, "nfs4", 4) == 0)
 		mi->version = 4;
 
-	if (mi->version == 4) {
-		if (!nfs_append_clientaddr_option(sap, mi->salen, mi->options))
-			return 0;
-	} else {
-		if (!nfs_fix_mounthost_option(mi->options))
-			return 0;
-		if (!mi->fake && !nfs_verify_lock_option(mi->options))
-			return 0;
-	}
-
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
 
 	if (!nfs_append_addr_option(sap, mi->salen, mi->options))
-		return 0;
-
-	/*
-	 * Update option string to be recorded in /etc/mnttab
-	 */
-	if (po_join(mi->options, mi->extra_opts) == PO_FAILED)
 		return 0;
 
 	return 1;
@@ -490,17 +474,12 @@ out:
  * Returns TRUE if successful, otherwise FALSE.
  * "errno" is set to reflect the individual error.
  */
-static int nfs_try_mount(struct nfsmount_info *mi)
+static int nfs_sys_mount(struct nfsmount_info *mi, struct mount_options *opts)
 {
 	char *options = NULL;
 	int result;
 
-	if (mi->version != 4) {
-		if (!nfs_rewrite_pmap_mount_options(mi->options))
-			return 0;
-	}
-
-	if (po_join(mi->options, &options) == PO_FAILED) {
+	if (po_join(opts, &options) == PO_FAILED) {
 		errno = EIO;
 		return 0;
 	}
@@ -520,6 +499,109 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 		errno = save;
 	}
 	return !result;
+}
+
+/*
+ * For "-t nfs vers=2" or "-t nfs vers=3" mounts.
+ */
+static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
+{
+	struct mount_options *options = po_dup(mi->options);
+	int result = 0;
+
+	if (!options) {
+		errno = ENOMEM;
+		return result;
+	}
+
+	if (!nfs_fix_mounthost_option(options)) {
+		errno = EINVAL;
+		goto out_fail;
+	}
+	if (!mi->fake && !nfs_verify_lock_option(options)) {
+		errno = EINVAL;
+		goto out_fail;
+	}
+
+	/*
+	 * Options we negotiate below may be stale by the time this
+	 * file system is unmounted.  In order to force umount.nfs
+	 * to renegotiate with the server, only write the user-
+	 * specified options, and not negotiated options, to /etc/mtab.
+	 */
+	if (po_join(options, mi->extra_opts) == PO_FAILED) {
+		errno = ENOMEM;
+		goto out_fail;
+	}
+
+	if (!nfs_rewrite_pmap_mount_options(options))
+		goto out_fail;
+
+	result = nfs_sys_mount(mi, options);
+
+out_fail:
+	po_destroy(options);
+	return result;
+}
+
+/*
+ * For "-t nfs -o vers=4" or "-t nfs4" mounts.
+ */
+static int nfs_try_mount_v4(struct nfsmount_info *mi)
+{
+	struct sockaddr *sap = (struct sockaddr *)&mi->address;
+	struct mount_options *options = po_dup(mi->options);
+	int result = 0;
+
+	if (!options) {
+		errno = ENOMEM;
+		return result;
+	}
+
+	if (!nfs_append_clientaddr_option(sap, mi->salen, options)) {
+		errno = EINVAL;
+		goto out_fail;
+	}
+
+	/*
+	 * Update option string to be recorded in /etc/mtab.
+	 */
+	if (po_join(options, mi->extra_opts) == PO_FAILED) {
+		errno = ENOMEM;
+		return 0;
+	}
+
+	result = nfs_sys_mount(mi, options);
+
+out_fail:
+	po_destroy(options);
+	return result;
+}
+
+/*
+ * This is a single pass through the fg/bg loop.
+ *
+ * Returns TRUE if successful, otherwise FALSE.
+ * "errno" is set to reflect the individual error.
+ */
+static int nfs_try_mount(struct nfsmount_info *mi)
+{
+	int result = 0;
+
+	switch (mi->version) {
+	case 0:
+	case 2:
+	case 3:
+		result = nfs_try_mount_v3v2(mi);
+		break;
+	case 4:
+		result = nfs_try_mount_v4(mi);
+		break;
+	default:
+		errno = EIO;
+	}
+
+	return result;
 }
 
 /*
