@@ -80,6 +80,8 @@ struct nfsmount_info {
 				*node,		/* mounted-on dir */
 				*type;		/* "nfs" or "nfs4" */
 	char			*hostname;	/* server's hostname */
+	struct sockaddr_storage	address;	/* server's address */
+	socklen_t		salen;		/* size of server's address */
 
 	struct mount_options	*options;	/* parsed mount options */
 	char			**extra_opts;	/* string for /etc/mtab */
@@ -263,14 +265,13 @@ static int nfs_append_sloppy_option(struct mount_options *options)
  */
 static int nfs_validate_options(struct nfsmount_info *mi)
 {
-	struct sockaddr_storage dummy;
-	struct sockaddr *sap = (struct sockaddr *)&dummy;
-	socklen_t salen = sizeof(dummy);
+	struct sockaddr *sap = (struct sockaddr *)&mi->address;
 
 	if (!nfs_parse_devname(mi->spec, &mi->hostname, NULL))
 		return 0;
 
-	if (!nfs_name_to_address(mi->hostname, sap, &salen))
+	mi->salen = sizeof(mi->address);
+	if (!nfs_name_to_address(mi->hostname, sap, &mi->salen))
 		return 0;
 
 	if (!nfs_nfs_version(mi->options, &mi->version))
@@ -279,7 +280,7 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 		mi->version = 4;
 
 	if (mi->version == 4) {
-		if (!nfs_append_clientaddr_option(sap, salen, mi->options))
+		if (!nfs_append_clientaddr_option(sap, mi->salen, mi->options))
 			return 0;
 	} else {
 		if (!nfs_fix_mounthost_option(mi->options))
@@ -291,7 +292,7 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
 
-	if (!nfs_append_addr_option(sap, salen, mi->options))
+	if (!nfs_append_addr_option(sap, mi->salen, mi->options))
 		return 0;
 
 	/*
