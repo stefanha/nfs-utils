@@ -38,6 +38,7 @@ typedef enum {
 struct mount_options;
 
 struct mount_options *	po_split(char *);
+struct mount_options *	po_dup(struct mount_options *);
 void			po_replace(struct mount_options *,
 				   struct mount_options *);
 po_return_t		po_join(struct mount_options *, char **);

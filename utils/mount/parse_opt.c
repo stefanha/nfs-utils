@@ -101,6 +101,37 @@ fail:
 	return NULL;
 }
 
+static struct mount_option *option_dup(const struct mount_option *option)
+{
+	struct mount_option *new;
+
+	new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	
+	new->next = NULL;
+	new->prev = NULL;
+
+	new->keyword = strdup(option->keyword);
+	if (!new->keyword)
+		goto fail;
+
+	new->value = NULL;
+	if (option->value) {
+		new->value = strdup(option->value);
+		if (!new->value) {
+			free(new->keyword);
+			goto fail;
+		}
+	}
+
+	return new;
+
+fail:
+	free(new);
+	return NULL;
+}
+
 static void option_destroy(struct mount_option *option)
 {
 	free(option->keyword);
@@ -226,6 +257,40 @@ fail:
 	end_tokenizer(tstate);
 	po_destroy(options);
 	return NULL;
+}
+
+/**
+ * po_dup - duplicate an existing list of options
+ * @options: pointer to mount options
+ *
+ */
+struct mount_options *po_dup(struct mount_options *source)
+{
+	struct mount_options *target;
+	struct mount_option *current;
+
+	if (!source)
+		return NULL;
+
+	target = options_create();
+	if (options_empty(source) || target == NULL)
+		return target;
+
+	current = source->head;
+	while (target->count < source->count) {
+		struct mount_option *option;
+
+		option = option_dup(current);
+		if (!option) {
+			po_destroy(target);
+			return NULL;
+		}
+
+		options_tail_insert(target, option);
+		current = current->next;
+	}
+
+	return target;
 }
 
 /**
