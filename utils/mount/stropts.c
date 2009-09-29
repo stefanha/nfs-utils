@@ -278,6 +278,11 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 		return 0;
 	if (strncmp(mi->type, "nfs4", 4) == 0)
 		mi->version = 4;
+	else {
+		char *option = po_get(mi->options, "proto");
+		if (option && strcmp(option, "rdma") == 0)
+			mi->version = 3;
+	}
 
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
@@ -558,11 +563,17 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		return result;
 	}
 
+	if (mi->version == 0) {
+		if (po_append(options, "vers=4") == PO_FAILED) {
+			errno = EINVAL;
+			goto out_fail;
+		}
+	}
+
 	if (!nfs_append_clientaddr_option(sap, mi->salen, options)) {
 		errno = EINVAL;
 		goto out_fail;
 	}
-
 	/*
 	 * Update option string to be recorded in /etc/mtab.
 	 */
@@ -590,6 +601,12 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 
 	switch (mi->version) {
 	case 0:
+		if (linux_version_code() > MAKE_VERSION(2, 6, 31)) {
+			errno = 0;
+			result = nfs_try_mount_v4(mi);
+			if (errno != EPROTONOSUPPORT)
+				break;
+		}
 	case 2:
 	case 3:
 		result = nfs_try_mount_v3v2(mi);
