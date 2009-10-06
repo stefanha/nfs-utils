@@ -28,6 +28,22 @@ static int	export_check(nfs_export *, struct hostent *, char *);
 static nfs_export *
 		export_allowed_internal(struct hostent *hp, char *path);
 
+static void warn_duplicated_exports(nfs_export *exp, struct exportent *eep)
+{
+	if (exp->m_export.e_flags != eep->e_flags) {
+		xlog(L_ERROR, "incompatible duplicated export entries:");
+		xlog(L_ERROR, "\t%s:%s (0x%x) [IGNORED]", eep->e_hostname,
+				eep->e_path, eep->e_flags);
+		xlog(L_ERROR, "\t%s:%s (0x%x)", exp->m_export.e_hostname,
+				exp->m_export.e_path, exp->m_export.e_flags);
+	} else {
+		xlog(L_ERROR, "duplicated export entries:");
+		xlog(L_ERROR, "\t%s:%s", eep->e_hostname, eep->e_path);
+		xlog(L_ERROR, "\t%s:%s", exp->m_export.e_hostname,
+				exp->m_export.e_path);
+	}
+}
+
 int
 export_read(char *fname)
 {
@@ -36,27 +52,13 @@ export_read(char *fname)
 
 	setexportent(fname, "r");
 	while ((eep = getexportent(0,1)) != NULL) {
-	  exp = export_lookup(eep->e_hostname, eep->e_path, 0);
-	  if (!exp)
-	    export_create(eep,0);
-	  else {
-	    if (exp->m_export.e_flags != eep->e_flags) {
-	      xlog(L_ERROR, "incompatible duplicated export entries:");
-	      xlog(L_ERROR, "\t%s:%s (0x%x) [IGNORED]", eep->e_hostname,
-		   eep->e_path, eep->e_flags);
-	      xlog(L_ERROR, "\t%s:%s (0x%x)", exp->m_export.e_hostname,
-		   exp->m_export.e_path, exp->m_export.e_flags);
-	    }
-	    else {
-	      xlog(L_ERROR, "duplicated export entries:");
-	      xlog(L_ERROR, "\t%s:%s", eep->e_hostname, eep->e_path);
-	      xlog(L_ERROR, "\t%s:%s", exp->m_export.e_hostname,
-		   exp->m_export.e_path);
-	    }
-	  }
+		exp = export_lookup(eep->e_hostname, eep->e_path, 0);
+		if (!exp)
+			export_create(eep, 0);
+		else
+			warn_duplicated_exports(exp, eep);
 	}
 	endexportent();
-
 	return 0;
 }
 
