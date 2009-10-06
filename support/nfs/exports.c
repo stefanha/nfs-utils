@@ -84,6 +84,31 @@ setexportent(char *fname, char *type)
 	first = 1;
 }
 
+static void init_exportent (struct exportent *ee, int fromkernel)
+{
+	ee->e_flags = EXPORT_DEFAULT_FLAGS;
+	/* some kernels assume the default is sync rather than
+	 * async.  More recent kernels always report one or other,
+	 * but this test makes sure we assume same as kernel
+	 * Ditto for wgather
+	 */
+	if (fromkernel) {
+		ee->e_flags &= ~NFSEXP_ASYNC;
+		ee->e_flags &= ~NFSEXP_GATHERED_WRITES;
+	}
+	ee->e_anonuid = 65534;
+	ee->e_anongid = 65534;
+	ee->e_squids = NULL;
+	ee->e_sqgids = NULL;
+	ee->e_mountpoint = NULL;
+	ee->e_fslocmethod = FSLOC_NONE;
+	ee->e_fslocdata = NULL;
+	ee->e_secinfo[0].flav = NULL;
+	ee->e_nsquids = 0;
+	ee->e_nsqgids = 0;
+	ee->e_uuid = NULL;
+}
+
 struct exportent *
 getexportent(int fromkernel, int fromexports)
 {
@@ -102,26 +127,7 @@ getexportent(int fromkernel, int fromexports)
 		has_default_opts = 0;
 		has_default_subtree_opts = 0;
 	
-		def_ee.e_flags = EXPORT_DEFAULT_FLAGS;
-		/* some kernels assume the default is sync rather than
-		 * async.  More recent kernels always report one or other,
-		 * but this test makes sure we assume same as kernel
-		 * Ditto for wgather
-		 */
-		if (fromkernel) {
-			def_ee.e_flags &= ~NFSEXP_ASYNC;
-			def_ee.e_flags &= ~NFSEXP_GATHERED_WRITES;
-		}
-		def_ee.e_anonuid = 65534;
-		def_ee.e_anongid = 65534;
-		def_ee.e_squids = NULL;
-		def_ee.e_sqgids = NULL;
-		def_ee.e_mountpoint = NULL;
-		def_ee.e_fslocmethod = FSLOC_NONE;
-		def_ee.e_fslocdata = NULL;
-		def_ee.e_secinfo[0].flav = NULL;
-		def_ee.e_nsquids = 0;
-		def_ee.e_nsqgids = 0;
+		init_exportent(&def_ee, fromkernel);
 
 		ok = getpath(def_ee.e_path, sizeof(def_ee.e_path));
 		if (ok <= 0)
@@ -334,18 +340,7 @@ mkexportent(char *hname, char *path, char *options)
 {
 	static struct exportent	ee;
 
-	ee.e_flags = EXPORT_DEFAULT_FLAGS;
-	ee.e_anonuid = 65534;
-	ee.e_anongid = 65534;
-	ee.e_squids = NULL;
-	ee.e_sqgids = NULL;
-	ee.e_mountpoint = NULL;
-	ee.e_fslocmethod = FSLOC_NONE;
-	ee.e_fslocdata = NULL;
-	ee.e_secinfo[0].flav = NULL;
-	ee.e_nsquids = 0;
-	ee.e_nsqgids = 0;
-	ee.e_uuid = NULL;
+	init_exportent(&ee, 0);
 
 	xfree(ee.e_hostname);
 	ee.e_hostname = xstrdup(hname);
