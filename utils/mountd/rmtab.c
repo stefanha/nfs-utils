@@ -143,23 +143,16 @@ mountlist_del_all(struct sockaddr_in *sin)
 		return;
 	if (!(hp = gethostbyaddr((char *)&addr, sizeof(addr), AF_INET))) {
 		xlog(L_ERROR, "can't get hostname of %s", inet_ntoa(addr));
-		xfunlock(lockid);
-		return;
+		goto out_unlock;
 	}
-	else
-		hp = hostent_dup (hp);
+	hp = hostent_dup (hp);
 
-	if (!setrmtabent("r")) {
-		xfunlock(lockid);
-		free (hp);
-		return;
-	}
-	if (!(fp = fsetrmtabent(_PATH_RMTABTMP, "w"))) {
-		endrmtabent();
-		xfunlock(lockid);
-		free (hp);
-		return;
-	}
+	if (!setrmtabent("r"))
+		goto out_free;
+
+	if (!(fp = fsetrmtabent(_PATH_RMTABTMP, "w")))
+		goto out_close;
+
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		if (strcmp(rep->r_client, hp->h_name) == 0 &&
 		    (exp = auth_authenticate("umountall", sin, rep->r_path)))
@@ -170,10 +163,13 @@ mountlist_del_all(struct sockaddr_in *sin)
 		xlog(L_ERROR, "couldn't rename %s to %s",
 				_PATH_RMTABTMP, _PATH_RMTAB);
 	}
-	endrmtabent();	/* close & unlink */
 	fendrmtabent(fp);
-	xfunlock(lockid);
+out_close:
+	endrmtabent();	/* close & unlink */
+out_free:
 	free (hp);
+out_unlock:
+	xfunlock(lockid);
 }
 
 mountlist
