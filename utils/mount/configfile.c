@@ -185,6 +185,20 @@ void free_all(void)
 		free(entry);
 	}
 }
+static char *versions[] = {"v2", "v3", "v4", "vers", "nfsvers", NULL};
+int inline check_vers(char *mopt, char *field)
+{
+	int i;
+
+	if (strncmp("mountvers", field, strlen("mountvers") != 0 &&
+			(strcasecmp(field, "nfsvers") == 0 || 
+				strcasecmp(field, "vers") == 0))) {
+		for (i=0; versions[i]; i++) 
+			if (strcasestr(mopt, versions[i]) != NULL)
+				return 1;
+	}
+	return 0;
+}
 /*
  * Parse the given section of the configuration 
  * file to if there are any mount options set.
@@ -207,6 +221,12 @@ conf_parse_mntopts(char *section, char *arg, char *opts)
 		snprintf(buf, BUFSIZ, "%s=", node->field);
 		if (opts && strcasestr(opts, buf) != NULL)
 			continue;
+		/* 
+		 * Protocol verions can be set in a number of ways
+		 */
+		if (opts && check_vers(opts, node->field))
+			continue;
+
 		if (lookup_entry(node->field) != NULL)
 			continue;
 		buf[0] = '\0';
