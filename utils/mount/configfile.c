@@ -190,9 +190,7 @@ int inline check_vers(char *mopt, char *field)
 {
 	int i;
 
-	if (strncmp("mountvers", field, strlen("mountvers") != 0 &&
-			(strcasecmp(field, "nfsvers") == 0 || 
-				strcasecmp(field, "vers") == 0))) {
+	if (strncmp("mountvers", field, strlen("mountvers")) != 0) {
 		for (i=0; versions[i]; i++) 
 			if (strcasestr(mopt, versions[i]) != NULL)
 				return 1;
