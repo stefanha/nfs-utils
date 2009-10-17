@@ -20,13 +20,19 @@
 #include <config.h>
 #endif
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "xlog.h"
+#include "mount.h"
+#include "parse_opt.h"
+#include "network.h"
 #include "conffile.h"
 
 #define KBYTES(x)     ((x) * (1024))
@@ -197,6 +203,51 @@ int inline check_vers(char *mopt, char *field)
 	}
 	return 0;
 }
+
+unsigned long config_default_vers;
+unsigned long config_default_proto;
+/*
+ * Check to see if a default value is being set.
+ * If so, set the appropriate global value which will 
+ * be used as the initial value in the server negation.
+ */
+int inline default_value(char *mopt)
+{
+	struct mount_options *options = NULL;
+	int dftlen = strlen("default");
+	char *field;
+
+	if (strncasecmp(mopt, "default", dftlen) != 0)
+		return 0;
+
+	field = mopt + dftlen;
+	if (strncasecmp(field, "proto", strlen("proto")) == 0) {
+		if ((options = po_split(field)) != NULL) {
+			if (!nfs_nfs_protocol(options, &config_default_proto)) {
+				xlog_warn("Unable to set default protocol : %s", 
+					strerror(errno));
+			}
+		} else {
+			xlog_warn("Unable to alloc memory for default protocol");
+		}
+	} else if (strncasecmp(field, "vers", strlen("vers")) == 0) {
+		if ((options = po_split(field)) != NULL) {
+			if (!nfs_nfs_version(options, &config_default_vers)) {
+				xlog_warn("Unable to set default version: %s", 
+					strerror(errno));
+				
+			}
+		} else {
+			xlog_warn("Unable to alloc memory for default version");
+		}
+	} else 
+		xlog_warn("Invalid default setting: '%s'", mopt);
+
+	if (options)
+		po_destroy(options);
+
+	return 1;
+}
 /*
  * Parse the given section of the configuration 
  * file to if there are any mount options set.
@@ -320,15 +371,19 @@ char *conf_get_mntopts(char *spec, char *mount_point,
 		free_all();
 		return mount_opts;
 	}
+
 	if (mount_opts) {
 		strcpy(config_opts, mount_opts);
 		strcat(config_opts, ",");
 	}
 	SLIST_FOREACH(entry, &head, entries) {
+		if (default_value(entry->opt))
+			continue;
 		strcat(config_opts, entry->opt);
 		strcat(config_opts, ",");
 	}
-	*(strrchr(config_opts, ',')) = '\0';
+	if ((ptr = strrchr(config_opts, ',')) != NULL)
+		*ptr = '\0';
 
 	free_all();
 	if (mount_opts)

@@ -1261,7 +1261,7 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
  * Returns TRUE if @protocol contains a valid value for this option,
  * or FALSE if the option was specified with an invalid value.
  */
-static int
+int
 nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 {
 	char *option;
