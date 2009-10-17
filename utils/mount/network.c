@@ -50,6 +50,7 @@
 #include "nfsrpc.h"
 #include "parse_opt.h"
 #include "network.h"
+#include "conffile.h"
 
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
@@ -609,10 +610,19 @@ static int nfs_probe_nfsport(const struct sockaddr *sap, const socklen_t salen,
 	if (pmap->pm_vers && pmap->pm_prot && pmap->pm_port)
 		return 1;
 
-	if (nfs_mount_data_version >= 4)
+	if (nfs_mount_data_version >= 4) {
+		const unsigned int *probe_proto = probe_tcp_first;
+
+		/*
+		 * If the default proto has been set and 
+		 * its not TCP, start with UDP
+		 */
+		if (config_default_proto && config_default_proto != IPPROTO_TCP)
+			probe_proto =  probe_udp_first;
+
 		return nfs_probe_port(sap, salen, pmap,
-					probe_nfs3_first, probe_tcp_first);
-	else
+					probe_nfs3_first, probe_proto);
+	} else
 		return nfs_probe_port(sap, salen, pmap,
 					probe_nfs2_only, probe_udp_only);
 }

@@ -45,6 +45,7 @@
 #include "parse_opt.h"
 #include "version.h"
 #include "parse_dev.h"
+#include "conffile.h"
 
 #ifndef NFS_PROGRAM
 #define NFS_PROGRAM	(100003)
@@ -282,6 +283,14 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 		char *option = po_get(mi->options, "proto");
 		if (option && strcmp(option, "rdma") == 0)
 			mi->version = 3;
+	}
+	/*
+	 * Use the default value set in the config file when
+	 * the version has not been explicitly set.
+	 */
+	if (mi->version == 0 && config_default_vers) {
+		if (config_default_vers < 4)
+			mi->version = config_default_vers;
 	}
 
 	if (!nfs_append_sloppy_option(mi->options))
