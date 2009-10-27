@@ -93,6 +93,24 @@ struct nfsmount_info {
 				child;		/* forked bg child? */
 };
 
+inline void set_default_version(struct nfsmount_info *mi);
+#ifdef MOUNT_CONFIG
+inline void set_default_version(struct nfsmount_info *mi)
+{
+	extern unsigned long config_default_vers;
+	/*
+	 * Use the default value set in the config file when
+	 * the version has not been explicitly set.
+	 */
+	if (mi->version == 0 && config_default_vers) {
+		if (config_default_vers < 4)
+			mi->version = config_default_vers;
+	}
+}
+#else
+inline void set_default_version(struct nfsmount_info *mi) {}
+#endif /* MOUNT_CONFIG */
+
 /*
  * Obtain a retry timeout value based on the value of the "retry=" option.
  *
@@ -258,7 +276,6 @@ static int nfs_append_sloppy_option(struct mount_options *options)
 		return 0;
 	return 1;
 }
-
 /*
  * Set up mandatory non-version specific NFS mount options.
  *
@@ -284,14 +301,12 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 		if (option && strcmp(option, "rdma") == 0)
 			mi->version = 3;
 	}
+
 	/*
-	 * Use the default value set in the config file when
-	 * the version has not been explicitly set.
+	 * If enabled, see if the default version was
+	 * set in the config file
 	 */
-	if (mi->version == 0 && config_default_vers) {
-		if (config_default_vers < 4)
-			mi->version = config_default_vers;
-	}
+	set_default_version(mi);
 
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;

@@ -172,6 +172,27 @@ static const unsigned long probe_mnt3_first[] = {
 	0,
 };
 
+inline const unsigned int *set_default_proto(void);
+#ifdef MOUNT_CONFIG
+inline const unsigned int *set_default_proto()
+{
+	extern unsigned long config_default_proto;
+	/*
+	 * If the default proto has been set and 
+	 * its not TCP, start with UDP
+	 */
+	if (config_default_proto && config_default_proto != IPPROTO_TCP)
+		return probe_udp_first;
+
+	return probe_tcp_first; 
+}
+#else
+inline const unsigned int *set_default_proto() 
+{
+	return probe_tcp_first; 
+}
+#endif /* MOUNT_CONFIG */
+
 static int nfs_lookup(const char *hostname, const sa_family_t family,
 		      struct sockaddr *sap, socklen_t *salen)
 {
@@ -590,7 +611,6 @@ out_ok:
 	nfs_clear_rpc_createerr();
 	return 1;
 }
-
 /*
  * Probe a server's NFS service to determine which versions and
  * transport protocols are supported.
@@ -611,14 +631,9 @@ static int nfs_probe_nfsport(const struct sockaddr *sap, const socklen_t salen,
 		return 1;
 
 	if (nfs_mount_data_version >= 4) {
-		const unsigned int *probe_proto = probe_tcp_first;
+		const unsigned int *probe_proto;
 
-		/*
-		 * If the default proto has been set and 
-		 * its not TCP, start with UDP
-		 */
-		if (config_default_proto && config_default_proto != IPPROTO_TCP)
-			probe_proto =  probe_udp_first;
+		probe_proto = set_default_proto();
 
 		return nfs_probe_port(sap, salen, pmap,
 					probe_nfs3_first, probe_proto);

@@ -76,10 +76,5 @@ static inline void upper2lower(char *str)
 		*str++ = c;
 }
 
-/*
- * Default Mount options
- */
-extern unsigned long config_default_vers;
-extern unsigned long config_default_proto;
 
 #endif				/* _CONFFILE_H_ */
