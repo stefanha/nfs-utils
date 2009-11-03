@@ -628,8 +628,15 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 		if (linux_version_code() > MAKE_VERSION(2, 6, 31)) {
 			errno = 0;
 			result = nfs_try_mount_v4(mi);
-			if (errno != EPROTONOSUPPORT)
-				break;
+			if (errno != EPROTONOSUPPORT) {
+				/* 
+				 * To deal with legacy Linux servers that don't
+				 * automatically export a pseudo root, retry
+				 * ENOENT errors using version 3
+				 */
+				if (errno != ENOENT)
+					break;
+			}
 		}
 	case 2:
 	case 3:
