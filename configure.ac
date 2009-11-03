@@ -159,6 +159,8 @@ if test "$enable_mount" = yes; then
 	fi
 	AC_SUBST(enable_mountconfig)
 	AM_CONDITIONAL(MOUNT_CONFIG, [test "$enable_mountconfig" = "yes"])
+else
+	AM_CONDITIONAL(MOUNT_CONFIG, [test "$enable_mount" = "yes"])
 fi
 
 dnl Check for TI-RPC library and headers
