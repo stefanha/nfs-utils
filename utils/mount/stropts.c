@@ -278,6 +278,40 @@ static int nfs_append_sloppy_option(struct mount_options *options)
 	return 1;
 }
 
+static int nfs_set_version(struct nfsmount_info *mi)
+{
+	if (!nfs_nfs_version(mi->options, &mi->version))
+		return 0;
+
+	if (strncmp(mi->type, "nfs4", 4) == 0)
+		mi->version = 4;
+	else {
+		char *option = po_get(mi->options, "proto");
+		if (option && strcmp(option, "rdma") == 0)
+			mi->version = 3;
+	}
+
+	/*
+	 * If we still don't know, check for version-specific
+	 * mount options.
+	 */
+	if (mi->version == 0) {
+		if (po_contains(mi->options, "mounthost") ||
+		    po_contains(mi->options, "mountaddr") ||
+		    po_contains(mi->options, "mountvers") ||
+		    po_contains(mi->options, "mountproto"))
+			mi->version = 3;
+	}
+
+	/*
+	 * If enabled, see if the default version was
+	 * set in the config file
+	 */
+	nfs_default_version(mi);
+	
+	return 1;
+}
+
 /*
  * Set up mandatory non-version specific NFS mount options.
  *
@@ -294,21 +328,8 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_name_to_address(mi->hostname, sap, &mi->salen))
 		return 0;
 
-	if (!nfs_nfs_version(mi->options, &mi->version))
+	if (!nfs_set_version(mi))
 		return 0;
-	if (strncmp(mi->type, "nfs4", 4) == 0)
-		mi->version = 4;
-	else {
-		char *option = po_get(mi->options, "proto");
-		if (option && strcmp(option, "rdma") == 0)
-			mi->version = 3;
-	}
-
-	/*
-	 * If enabled, see if the default version was
-	 * set in the config file
-	 */
-	nfs_default_version(mi);
 
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
