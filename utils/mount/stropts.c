@@ -621,12 +621,13 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		errno = EINVAL;
 		goto out_fail;
 	}
+
 	/*
 	 * Update option string to be recorded in /etc/mtab.
 	 */
 	if (po_join(options, mi->extra_opts) == PO_FAILED) {
 		errno = ENOMEM;
-		return 0;
+		goto out_fail;
 	}
 
 	result = nfs_sys_mount(mi, options);
