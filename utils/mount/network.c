@@ -172,9 +172,9 @@ static const unsigned long probe_mnt3_first[] = {
 	0,
 };
 
-inline const unsigned int *set_default_proto(void);
+static const unsigned int *nfs_default_proto(void);
 #ifdef MOUNT_CONFIG
-inline const unsigned int *set_default_proto()
+static const unsigned int *nfs_default_proto()
 {
 	extern unsigned long config_default_proto;
 	/*
@@ -187,7 +187,7 @@ inline const unsigned int *set_default_proto()
 	return probe_tcp_first; 
 }
 #else
-inline const unsigned int *set_default_proto() 
+static const unsigned int *nfs_default_proto() 
 {
 	return probe_tcp_first; 
 }
@@ -633,7 +633,7 @@ static int nfs_probe_nfsport(const struct sockaddr *sap, const socklen_t salen,
 	if (nfs_mount_data_version >= 4) {
 		const unsigned int *probe_proto;
 
-		probe_proto = set_default_proto();
+		probe_proto = nfs_default_proto();
 
 		return nfs_probe_port(sap, salen, pmap,
 					probe_nfs3_first, probe_proto);

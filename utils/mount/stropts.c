@@ -93,9 +93,10 @@ struct nfsmount_info {
 				child;		/* forked bg child? */
 };
 
-inline void set_default_version(struct nfsmount_info *mi);
 #ifdef MOUNT_CONFIG
-inline void set_default_version(struct nfsmount_info *mi)
+static void nfs_default_version(struct nfsmount_info *mi);
+
+static void nfs_default_version(struct nfsmount_info *mi)
 {
 	extern unsigned long config_default_vers;
 	/*
@@ -108,7 +109,7 @@ inline void set_default_version(struct nfsmount_info *mi)
 	}
 }
 #else
-inline void set_default_version(struct nfsmount_info *mi) {}
+inline void nfs_default_version(struct nfsmount_info *mi) {}
 #endif /* MOUNT_CONFIG */
 
 /*
@@ -276,6 +277,7 @@ static int nfs_append_sloppy_option(struct mount_options *options)
 		return 0;
 	return 1;
 }
+
 /*
  * Set up mandatory non-version specific NFS mount options.
  *
@@ -306,7 +308,7 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	 * If enabled, see if the default version was
 	 * set in the config file
 	 */
-	set_default_version(mi);
+	nfs_default_version(mi);
 
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
