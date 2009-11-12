@@ -212,7 +212,7 @@ int
 nfssvc_set_sockets(const int family, const unsigned int protobits,
 		   const char *host, const char *port)
 {
-	struct addrinfo hints = { .ai_flags = AI_PASSIVE | AI_ADDRCONFIG };
+	struct addrinfo hints = { .ai_flags = AI_PASSIVE };
 
 	hints.ai_family = family;
 
