@@ -797,10 +797,9 @@ gssd_search_krb5_keytab(krb5_context context, krb5_keytab kt,
  */
 static int
 find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
-		  krb5_keytab_entry *kte)
+		  krb5_keytab_entry *kte, const char **svcnames)
 {
 	krb5_error_code code;
-	const char *svcnames[] = { "root", "nfs", "host", NULL };
 	char **realmnames = NULL;
 	char myhostname[NI_MAXHOST], targethostname[NI_MAXHOST];
 	int i, j, retval;
@@ -1096,7 +1095,8 @@ gssd_get_krb5_machine_cred_list(char ***list)
 	for (ple = gssd_k5_kt_princ_list; ple; ple = ple->next) {
 		if (ple->ccname) {
 			/* Make sure cred is up-to-date before returning it */
-			retval = gssd_refresh_krb5_machine_credential(NULL, ple, 0);
+			retval = gssd_refresh_krb5_machine_credential(NULL, ple,
+				NULL);
 			if (retval)
 				continue;
 			if (i + 1 > listsize) {
@@ -1186,14 +1186,24 @@ gssd_destroy_krb5_machine_creds(void)
  */
 int
 gssd_refresh_krb5_machine_credential(char *hostname,
-				     struct gssd_k5_kt_princ *ple, int nocache)
+				     struct gssd_k5_kt_princ *ple, 
+					 char *service)
 {
 	krb5_error_code code = 0;
 	krb5_context context;
 	krb5_keytab kt = NULL;;
 	int retval = 0;
 	char *k5err = NULL;
+	const char *svcnames[4] = { "root", "nfs", "host", NULL };
 
+	/*
+	 * If a specific service name was specified, use it.
+	 * Otherwise, use the default list.
+	 */
+	if (service != NULL && strcmp(service, "*") != 0) {
+		svcnames[0] = service;
+		svcnames[1] = NULL;
+	}
 	if (hostname == NULL && ple == NULL)
 		return EINVAL;
 
@@ -1216,7 +1226,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 	if (ple == NULL) {
 		krb5_keytab_entry kte;
 
-		code = find_keytab_entry(context, kt, hostname, &kte);
+		code = find_keytab_entry(context, kt, hostname, &kte, svcnames);
 		if (code) {
 			printerr(0, "ERROR: %s: no usable keytab entry found "
 				 "in keytab %s for connection with host %s\n",
@@ -1241,7 +1251,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 			goto out;
 		}
 	}
-	retval = gssd_get_single_krb5_cred(context, kt, ple, nocache);
+	retval = gssd_get_single_krb5_cred(context, kt, ple, 0);
 out:
 	if (kt)
 		krb5_kt_close(context, kt);

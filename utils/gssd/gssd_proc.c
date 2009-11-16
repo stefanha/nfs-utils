@@ -883,7 +883,8 @@ int create_auth_rpc_client(struct clnt_info *clp,
  * context on behalf of the kernel
  */
 static void
-process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname)
+process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
+		    char *service)
 {
 	CLIENT			*rpc_clnt = NULL;
 	AUTH			*auth = NULL;
@@ -906,7 +907,31 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname)
 	token.value = NULL;
 	memset(&pd, 0, sizeof(struct authgss_private_data));
 
-	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0)) {
+	/*
+	 * If "service" is specified, then the kernel is indicating that
+	 * we must use machine credentials for this request.  (Regardless
+	 * of the uid value or the setting of root_uses_machine_creds.)
+	 * If the service value is "*", then any service name can be used.
+	 * Otherwise, it specifies the service name that should be used.
+	 * (For now, the values of service will only be "*" or "nfs".)
+	 *
+	 * Restricting gssd to use "nfs" service name is needed for when
+	 * the NFS server is doing a callback to the NFS client.  In this
+	 * case, the NFS server has to authenticate itself as "nfs" --
+	 * even if there are other service keys such as "host" or "root"
+	 * in the keytab.
+	 *
+	 * Another case when the kernel may specify the service attribute
+	 * is when gssd is being asked to create the context for a
+	 * SETCLIENT_ID operation.  In this case, machine credentials
+	 * must be used for the authentication.  However, the service name
+	 * used for this case is not important.
+	 *
+	 */
+	printerr(2, "%s: service is '%s'\n", __func__,
+		 service ? service : "<null>");
+	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0 &&
+				service == NULL)) {
 		/* Tell krb5 gss which credentials cache to use */
 		for (dirname = ccachesearch; *dirname != NULL; dirname++) {
 			if (gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname) == 0)
@@ -917,12 +942,13 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname)
 		}
 	}
 	if (create_resp != 0) {
-		if (uid == 0 && root_uses_machine_creds == 1) {
+		if (uid == 0 && (root_uses_machine_creds == 1 ||
+				service != NULL)) {
 			int nocache = 0;
 			int success = 0;
 			do {
 				gssd_refresh_krb5_machine_credential(clp->servername,
-								     NULL, nocache);
+								     NULL, service);
 				/*
 				 * Get a list of credential cache names and try each
 				 * of them until one works or we've tried them all
@@ -1066,7 +1092,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 		return;
 	}
 
-	return process_krb5_upcall(clp, uid, clp->krb5_fd, NULL);
+	return process_krb5_upcall(clp, uid, clp->krb5_fd, NULL, NULL);
 }
 
 void
@@ -1092,6 +1118,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 	char			*p;
 	char			*mech = NULL;
 	char			*target = NULL;
+	char			*service = NULL;
 
 	printerr(1, "handling gssd upcall (%s)\n", clp->dirname);
 
@@ -1148,8 +1175,30 @@ handle_gssd_upcall(struct clnt_info *clp)
 		}
 	}
 
+	/*
+	 * read the service name
+	 *
+	 * The presence of attribute "service=" indicates that machine
+	 * credentials should be used for this request.  If the value
+	 * is "*", then any machine credentials available can be used.
+	 * If the value is anything else, then machine credentials for
+	 * the specified service name (always "nfs" for now) should be
+	 * used.
+	 */
+	if ((p = strstr(lbuf, "service=")) != NULL) {
+		service = malloc(lbuflen);
+		if (!service)
+			goto out;
+		if (sscanf(p, "service=%s", service) != 1) {
+			printerr(0, "WARNING: handle_gssd_upcall: "
+				    "failed to parse service type "
+				    "in upcall string '%s'\n", lbuf);
+			goto out;
+		}
+	}
+
 	if (strcmp(mech, "krb5") == 0)
-		process_krb5_upcall(clp, uid, clp->gssd_fd, target);
+		process_krb5_upcall(clp, uid, clp->gssd_fd, target, service);
 	else if (strcmp(mech, "spkm3") == 0)
 		process_spkm3_upcall(clp, uid, clp->gssd_fd);
 	else
@@ -1160,6 +1209,7 @@ out:
 	free(lbuf);
 	free(mech);
 	free(target);
+	free(service);
 	return;	
 }
 

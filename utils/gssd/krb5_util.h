@@ -30,7 +30,8 @@ void gssd_free_krb5_machine_cred_list(char **list);
 void gssd_setup_krb5_machine_gss_ccache(char *servername);
 void gssd_destroy_krb5_machine_creds(void);
 int  gssd_refresh_krb5_machine_credential(char *hostname,
-					  struct gssd_k5_kt_princ *ple, int nocache);
+					  struct gssd_k5_kt_princ *ple, 
+					  char *service);
 char *gssd_k5_err_msg(krb5_context context, krb5_error_code code);
 void gssd_k5_get_default_realm(char **def_realm);
 
