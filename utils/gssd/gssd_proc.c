@@ -883,7 +883,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
  * context on behalf of the kernel
  */
 static void
-process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd)
+process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname)
 {
 	CLIENT			*rpc_clnt = NULL;
 	AUTH			*auth = NULL;
@@ -896,6 +896,12 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd)
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
 
+	if (tgtname) {
+		if (clp->servicename) {
+			free(clp->servicename);
+			clp->servicename = strdup(tgtname);
+		}
+	}
 	token.length = 0;
 	token.value = NULL;
 	memset(&pd, 0, sizeof(struct authgss_private_data));
@@ -1060,7 +1066,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 		return;
 	}
 
-	return process_krb5_upcall(clp, uid, clp->krb5_fd);
+	return process_krb5_upcall(clp, uid, clp->krb5_fd, NULL);
 }
 
 void
@@ -1085,6 +1091,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 	int			lbuflen = 0;
 	char			*p;
 	char			*mech = NULL;
+	char			*target = NULL;
 
 	printerr(1, "handling gssd upcall (%s)\n", clp->dirname);
 
@@ -1128,9 +1135,21 @@ handle_gssd_upcall(struct clnt_info *clp)
 		goto out;
 	}
 
+	/* read target name */
+	if ((p = strstr(lbuf, "target=")) != NULL) {
+		target = malloc(lbuflen);
+		if (!target)
+			goto out;
+		if (sscanf(p, "target=%s", target) != 1) {
+			printerr(0, "WARNING: handle_gssd_upcall: "
+				    "failed to parse target name "
+				    "in upcall string '%s'\n", lbuf);
+			goto out;
+		}
+	}
 
 	if (strcmp(mech, "krb5") == 0)
-		process_krb5_upcall(clp, uid, clp->gssd_fd);
+		process_krb5_upcall(clp, uid, clp->gssd_fd, target);
 	else if (strcmp(mech, "spkm3") == 0)
 		process_spkm3_upcall(clp, uid, clp->gssd_fd);
 	else
@@ -1140,6 +1159,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 out:
 	free(lbuf);
 	free(mech);
+	free(target);
 	return;	
 }
 
