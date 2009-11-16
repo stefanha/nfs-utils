@@ -49,6 +49,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include "gssd.h"
 #include "err_util.h"
@@ -98,12 +99,85 @@ scan_poll_results(int ret)
 	}
 };
 
+static int
+topdirs_add_entry(struct dirent *dent)
+{
+	struct topdirs_info *tdi;
+
+	tdi = calloc(sizeof(struct topdirs_info), 1);
+	if (tdi == NULL) {
+		printerr(0, "ERROR: Couldn't allocate struct topdirs_info\n");
+		return -1;
+	}
+	tdi->dirname = malloc(PATH_MAX);
+	if (tdi->dirname == NULL) {
+		printerr(0, "ERROR: Couldn't allocate directory name\n");
+		free(tdi);
+		return -1;
+	}
+	snprintf(tdi->dirname, PATH_MAX, "%s/%s", pipefs_dir, dent->d_name);
+	tdi->fd = open(tdi->dirname, O_RDONLY);
+	if (tdi->fd != -1) {
+		fcntl(tdi->fd, F_SETSIG, DNOTIFY_SIGNAL);
+		fcntl(tdi->fd, F_NOTIFY,
+		      DN_CREATE|DN_DELETE|DN_MODIFY|DN_MULTISHOT);
+	}
+
+	TAILQ_INSERT_HEAD(&topdirs_list, tdi, list);
+	return 0;
+}
+
+static void
+topdirs_free_list(void)
+{
+	struct topdirs_info *tdi;
+
+	TAILQ_FOREACH(tdi, &topdirs_list, list) {
+		free(tdi->dirname);
+		if (tdi->fd != -1)
+			close(tdi->fd);
+		TAILQ_REMOVE(&topdirs_list, tdi, list);
+		free(tdi);
+	}
+}
+
+static int
+topdirs_init_list(void)
+{
+	DIR		*pipedir;
+	struct dirent	*dent;
+	int		ret;
+
+	TAILQ_INIT(&topdirs_list);
+
+	pipedir = opendir(pipefs_dir);
+	if (pipedir == NULL) {
+		printerr(0, "ERROR: could not open rpc_pipefs directory '%s': "
+			 "%s\n", pipefs_dir, strerror(errno));
+		return -1;
+	}
+	for (dent = readdir(pipedir); dent != NULL; dent = readdir(pipedir)) {
+		if (dent->d_type != DT_DIR ||
+		    strcmp(dent->d_name, ".") == 0  ||
+		    strcmp(dent->d_name, "..") == 0) {
+			continue;
+		}
+		ret = topdirs_add_entry(dent);
+		if (ret)
+			goto out_err;
+	}
+	closedir(pipedir);
+	return 0;
+out_err:
+	topdirs_free_list();
+	return -1;
+}
+
 void
 gssd_run()
 {
 	int			ret;
 	struct sigaction	dn_act;
-	int			fd;
 	sigset_t		set;
 
 	/* Taken from linux/Documentation/dnotify.txt: */
@@ -117,13 +191,8 @@ gssd_run()
 	sigaddset(&set, DNOTIFY_SIGNAL);
 	sigprocmask(SIG_UNBLOCK, &set, NULL);
 
-	if ((fd = open(pipefs_nfsdir, O_RDONLY)) == -1) {
-		printerr(0, "ERROR: failed to open %s: %s\n",
-			 pipefs_nfsdir, strerror(errno));
-		exit(1);
-	}
-	fcntl(fd, F_SETSIG, DNOTIFY_SIGNAL);
-	fcntl(fd, F_NOTIFY, DN_CREATE|DN_DELETE|DN_MODIFY|DN_MULTISHOT);
+	if (topdirs_init_list() != 0)
+		return;
 
 	init_client_list();
 
@@ -150,6 +219,7 @@ gssd_run()
 			scan_poll_results(ret);
 		}
 	}
-	close(fd);
+	topdirs_free_list();
+
 	return;
 }

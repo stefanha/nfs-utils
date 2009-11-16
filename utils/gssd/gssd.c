@@ -56,7 +56,6 @@
 #include "krb5_util.h"
 
 char pipefs_dir[PATH_MAX] = GSSD_PIPEFS_DIR;
-char pipefs_nfsdir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
 char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR;
 char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
@@ -158,11 +157,6 @@ main(int argc, char *argv[])
 
 	if (preferred_realm == NULL)
 		gssd_k5_get_default_realm(&preferred_realm);
-
-	snprintf(pipefs_nfsdir, sizeof(pipefs_nfsdir), "%s/%s",
-		 pipefs_dir, GSSD_SERVICE_NAME);
-	if (pipefs_nfsdir[sizeof(pipefs_nfsdir)-1] != '\0')
-		errx(1, "pipefs_nfsdir path name too long");
 
 	if ((progname = strrchr(argv[0], '/')))
 		progname++;

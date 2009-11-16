@@ -60,7 +60,6 @@ enum {AUTHTYPE_KRB5, AUTHTYPE_SPKM3, AUTHTYPE_LIPKEY};
 
 
 extern char			pipefs_dir[PATH_MAX];
-extern char			pipefs_nfsdir[PATH_MAX];
 extern char			keytabfile[PATH_MAX];
 extern char			*ccachesearch[];
 extern int			use_memcache;
@@ -84,6 +83,14 @@ struct clnt_info {
 	int			spkm3_fd;
 	int			spkm3_poll_index;
 	struct sockaddr_storage addr;
+};
+
+TAILQ_HEAD(topdirs_list_head, topdirs_info) topdirs_list;
+
+struct topdirs_info {
+	TAILQ_ENTRY(topdirs_info)   list;
+	char			*dirname;
+	int			fd;
 };
 
 void init_client_list(void);
