@@ -132,8 +132,7 @@ gssd_run()
 		while (dir_changed) {
 			dir_changed = 0;
 			if (update_client_list()) {
-				printerr(0, "ERROR: couldn't update "
-					 "client list\n");
+				/* Error msg is already printed */
 				exit(1);
 			}
 		}

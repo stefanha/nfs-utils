@@ -478,25 +478,25 @@ find_client(char *dirname)
 	return 0;
 }
 
-/* Used to read (and re-read) list of clients, set up poll array. */
-int
-update_client_list(void)
+static int
+process_pipedir(char *pipe_name)
 {
 	struct dirent **namelist;
 	int i, j;
 
-	if (chdir(pipefs_nfsdir) < 0) {
+	if (chdir(pipe_name) < 0) {
 		printerr(0, "ERROR: can't chdir to %s: %s\n",
-			 pipefs_nfsdir, strerror(errno));
+			 pipe_name, strerror(errno));
 		return -1;
 	}
 
-	j = scandir(pipefs_nfsdir, &namelist, NULL, alphasort);
+	j = scandir(pipe_name, &namelist, NULL, alphasort);
 	if (j < 0) {
 		printerr(0, "ERROR: can't scandir %s: %s\n",
-			 pipefs_nfsdir, strerror(errno));
+			 pipe_name, strerror(errno));
 		return -1;
 	}
+
 	update_old_clients(namelist, j);
 	for (i=0; i < j; i++) {
 		if (i < FD_ALLOC_BLOCK
@@ -507,7 +507,21 @@ update_client_list(void)
 	}
 
 	free(namelist);
+
 	return 0;
+}
+
+/* Used to read (and re-read) list of clients, set up poll array. */
+int
+update_client_list(void)
+{
+	int retval = -1;
+
+	retval = process_pipedir(pipefs_nfsdir);
+	if (retval)
+		printerr(0, "ERROR: processing %s\n", pipefs_nfsdir);
+
+	return retval;
 }
 
 static int
