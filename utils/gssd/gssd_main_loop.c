@@ -74,6 +74,17 @@ scan_poll_results(int ret)
 
 	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next)
 	{
+		i = clp->gssd_poll_index;
+		if (i >= 0 && pollarray[i].revents) {
+			if (pollarray[i].revents & POLLHUP)
+				dir_changed = 1;
+			if (pollarray[i].revents & POLLIN)
+				handle_gssd_upcall(clp);
+			pollarray[clp->gssd_poll_index].revents = 0;
+			ret--;
+			if (!ret)
+				break;
+		}
 		i = clp->krb5_poll_index;
 		if (i >= 0 && pollarray[i].revents) {
 			if (pollarray[i].revents & POLLHUP)
