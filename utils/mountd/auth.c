@@ -169,8 +169,7 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 		}
 	}
 	if (!(exp->m_export.e_flags & NFSEXP_INSECURE_PORT) &&
-		    (ntohs(caller->sin_port) <  IPPORT_RESERVED/2 ||
-		     ntohs(caller->sin_port) >= IPPORT_RESERVED)) {
+		     ntohs(caller->sin_port) >= IPPORT_RESERVED) {
 		*error = illegal_port;
 		return NULL;
 	}
