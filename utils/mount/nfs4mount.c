@@ -217,8 +217,11 @@ int nfs4mount(const char *spec, const char *node, int flags,
 				progname);
 		goto fail;
 	}
-	snprintf(new_opts, sizeof(new_opts), "%s%saddr=%s",
-		 old_opts, *old_opts ? "," : "", s);
+	if (running_bg)
+		strncpy(new_opts, old_opts, sizeof(new_opts));
+	else
+		snprintf(new_opts, sizeof(new_opts), "%s%saddr=%s",
+			 old_opts, *old_opts ? "," : "", s);
 	*extra_opts = xstrdup(new_opts);
 
 	/* Set default options.
@@ -434,15 +437,17 @@ int nfs4mount(const char *spec, const char *node, int flags,
 			break;
 		}
 
-		switch(rpc_createerr.cf_stat){
-		case RPC_TIMEDOUT:
-			break;
-		case RPC_SYSTEMERROR:
-			if (errno == ETIMEDOUT)
+		if (!bg) {
+			switch(rpc_createerr.cf_stat) {
+			case RPC_TIMEDOUT:
 				break;
-		default:
-			rpc_mount_errors(hostname, 0, bg);
-			goto fail;
+			case RPC_SYSTEMERROR:
+				if (errno == ETIMEDOUT)
+					break;
+			default:
+				rpc_mount_errors(hostname, 0, bg);
+				goto fail;
+			}
 		}
 
 		if (bg && !running_bg) {
