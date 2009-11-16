@@ -853,7 +853,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 	char			**dirname;
 	int			create_resp = -1;
 
-	printerr(1, "handling krb5 upcall\n");
+	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
 
 	token.length = 0;
 	token.value = NULL;
@@ -974,7 +974,7 @@ handle_spkm3_upcall(struct clnt_info *clp)
 	struct authgss_private_data pd;
 	gss_buffer_desc		token;
 
-	printerr(2, "handling spkm3 upcall\n");
+	printerr(2, "handling spkm3 upcall (%s)\n", clp->dirname);
 
 	token.length = 0;
 	token.value = NULL;
