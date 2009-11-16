@@ -611,6 +611,18 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 	}
 
 	if (mi->version == 0) {
+		if (po_contains(options, "mounthost") ||
+			po_contains(options, "mountaddr") ||
+			po_contains(options, "mountvers") ||
+			po_contains(options, "mountproto")) {
+		/*
+		 * Since these mountd options are set assume version 3
+		 * is wanted so error out with EPROTONOSUPPORT so the
+		 * protocol negation starts with v3.
+		 */
+			errno = EPROTONOSUPPORT;
+			goto out_fail;
+		}
 		if (po_append(options, "vers=4") == PO_FAILED) {
 			errno = EINVAL;
 			goto out_fail;
