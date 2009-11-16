@@ -593,6 +593,9 @@ int main(int argc, char *argv[])
 	if (mnt_err == EX_BG) {
 		printf(_("%s: backgrounding \"%s\"\n"),
 			progname, spec);
+		printf(_("%s: mount options: \"%s\"\n"),
+			progname, extra_opts);
+
 		fflush(stdout);
 
 		/*

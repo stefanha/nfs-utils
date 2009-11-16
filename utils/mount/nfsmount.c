@@ -170,7 +170,7 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 	struct pmap *mnt_pmap = &mnt_server->pmap;
 	struct pmap *nfs_pmap = &nfs_server->pmap;
 	int len;
-	char *opt, *opteq, *p, *opt_b;
+	char *opt, *opteq, *p, *opt_b, *tmp_opts;
 	char *mounthost = NULL;
 	char cbuf[128];
 	int open_quote = 0;
@@ -179,7 +179,8 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 	*bg = 0;
 
 	len = strlen(new_opts);
-	for (p=old_opts, opt_b=NULL; p && *p; p++) {
+	tmp_opts = xstrdup(old_opts);
+	for (p=tmp_opts, opt_b=NULL; p && *p; p++) {
 		if (!opt_b)
 			opt_b = p;		/* begin of the option item */
 		if (*p == '"')
@@ -457,10 +458,12 @@ parse_options(char *old_opts, struct nfs_mount_data *data,
 			goto out_bad;
 		*mnt_server->hostname = mounthost;
 	}
+	free(tmp_opts);
 	return 1;
  bad_parameter:
 	nfs_error(_("%s: Bad nfs mount parameter: %s\n"), progname, opt);
  out_bad:
+	free(tmp_opts);
 	return 0;
 }
 
