@@ -6,7 +6,7 @@
 .SH NAME
 sm-notify \- Send out NSM reboot notifications
 .SH SYNOPSIS
-.BI "/sbin/sm-notify [-dfq] [-m " time "] [-p " port "] [-P " path "] [-v " my_name " ]
+.BI "/sbin/sm-notify [-df] [-m " time "] [-p " port "] [-P " path "] [-v " my_name " ]
 .SH DESCRIPTION
 File locking over NFS (v2 and v3) requires a facility to notify peers in
 case of a reboot, so that clients can reclaim locks after
@@ -100,10 +100,6 @@ to bind to the indicated IP
 .IR port
 number. If this option is not given, it will try to bind to
 a randomly chosen privileged port below 1024.
-.TP
-.B -q
-Be quiet. This suppresses all messages except error
-messages while collecting the list of hosts.
 .TP
 .BI -P " /path/to/state/directory
 If

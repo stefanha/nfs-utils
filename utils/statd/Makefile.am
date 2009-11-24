@@ -24,7 +24,8 @@ statd_LDADD = ../../support/export/libexport.a \
 	      ../../support/nfs/libnfs.a \
 	      ../../support/misc/libmisc.a \
 	      $(LIBWRAP) $(LIBNSL)
-sm_notify_LDADD = $(LIBNSL)
+sm_notify_LDADD = ../../support/nfs/libnfs.a \
+		  $(LIBNSL)
 
 EXTRA_DIST = sim_sm_inter.x sm_inter.x $(man8_MANS) COPYRIGHT simulate.c
 
