@@ -11,7 +11,7 @@
 
 #include "sm_inter.h"
 #include "system.h"
-#include "log.h"
+#include "xlog.h"
 
 /*
  * Paths and filenames.
@@ -84,10 +84,3 @@ extern int run_mode;
  * another host.... */
 #define STATIC_HOSTNAME 8	/* Always use the hostname set by -n */
 #define	MODE_NO_NOTIFY	16	/* Don't notify peers of a reboot */
-/*
- * Program name and version pointers -- See statd.c for the reasoning
- * as to why they're global.
- */
-extern char *name_p;		/* program basename */
-extern const char *version_p;	/* program version */
-

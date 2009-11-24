@@ -35,12 +35,12 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
 	char *ip_addr = xstrdup(inet_ntoa(sin->sin_addr));
 
-	dprintf(N_DEBUG, "Received SM_NOTIFY from %s, state: %d",
+	xlog(D_CALL, "Received SM_NOTIFY from %s, state: %d",
 				argp->mon_name, argp->state);
 
 	/* quick check - don't bother if we're not monitoring anyone */
 	if (rtnl == NULL) {
-		note(N_WARNING, "SM_NOTIFY from %s while not monitoring any hosts.",
+		xlog_warn("SM_NOTIFY from %s while not monitoring any hosts",
 				argp->mon_name);
 		return ((void *) &result);
 	}

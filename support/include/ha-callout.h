@@ -53,11 +53,7 @@ ha_callout(char *event, char *arg1, char *arg2, int arg3)
 		default: pid = waitpid(pid, &ret, 0);
   	}
 	sigaction(SIGCHLD, &oldact, &newact);
-#ifdef dprintf
-	dprintf(N_DEBUG, "ha callout returned %d\n", WEXITSTATUS(ret));
-#else
 	xlog(D_GENERAL, "ha callout returned %d\n", WEXITSTATUS(ret));
-#endif
 }
 
 #endif

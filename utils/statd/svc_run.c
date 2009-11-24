@@ -101,12 +101,12 @@ my_svc_run(void)
 
 			tv.tv_sec  = NL_WHEN(notify) - now;
 			tv.tv_usec = 0;
-			dprintf(N_DEBUG, "Waiting for reply... (timeo %d)",
+			xlog(D_GENERAL, "Waiting for reply... (timeo %d)",
 							tv.tv_sec);
 			selret = select(FD_SETSIZE, &readfds,
 				(void *) 0, (void *) 0, &tv);
 		} else {
-			dprintf(N_DEBUG, "Waiting for client connections.");
+			xlog(D_GENERAL, "Waiting for client connections");
 			selret = select(FD_SETSIZE, &readfds,
 				(void *) 0, (void *) 0, (struct timeval *) 0);
 		}
@@ -116,8 +116,7 @@ my_svc_run(void)
 			if (errno == EINTR || errno == ECONNREFUSED
 			 || errno == ENETUNREACH || errno == EHOSTUNREACH)
 				continue;
-			note(N_ERROR, "my_svc_run() - select: %s",
-				strerror (errno));
+			xlog(L_ERROR, "my_svc_run() - select: %m");
 			return;
 
 		case 0:

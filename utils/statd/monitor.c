@@ -43,8 +43,7 @@ caller_is_localhost(struct svc_req *rqstp)
 
 	caller = sin->sin_addr;
 	if (caller.s_addr != htonl(INADDR_LOOPBACK)) {
-		note(N_WARNING,
-			"Call to statd from non-local host %s",
+		xlog_warn("Call to statd from non-local host %s",
 			inet_ntoa(caller));
 		return 0;
 	}
@@ -69,6 +68,8 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	char		*dnsname;
 	struct hostent	*hostinfo = NULL;
 
+	xlog(D_CALL, "Received SM_MON for %s from %s", mon_name, my_name);
+
 	/* Assume that we'll fail. */
 	result.res_stat = STAT_FAIL;
 	result.state = -1;	/* State is undefined for STAT_FAIL. */
@@ -92,8 +93,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	if (id->my_prog != 100021 ||
 	    (id->my_proc != 16 && id->my_proc != 24))
 	{
-		note(N_WARNING,
-			"Attempt to register callback to %d/%d",
+		xlog_warn("Attempt to register callback to %d/%d",
 			id->my_prog, id->my_proc);
 		goto failure;
 	}
@@ -105,12 +105,12 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 
 	/* must check for /'s in hostname!  See CERT's CA-96.09 for details. */
 	if (strchr(mon_name, '/') || mon_name[0] == '.') {
-		note(N_CRIT, "SM_MON request for hostname containing '/' "
+		xlog(L_ERROR, "SM_MON request for hostname containing '/' "
 		     "or starting '.': %s", mon_name);
-		note(N_CRIT, "POSSIBLE SPOOF/ATTACK ATTEMPT!");
+		xlog(L_ERROR, "POSSIBLE SPOOF/ATTACK ATTEMPT!");
 		goto failure;
 	} else if ((hostinfo = gethostbyname(mon_name)) == NULL) {
-		note(N_WARNING, "gethostbyname error for %s", mon_name);
+		xlog_warn("gethostbyname error for %s", mon_name);
 		goto failure;
 	}
 
@@ -152,7 +152,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		    NL_MY_VERS(clnt) == id->my_vers &&
 		    memcmp(NL_PRIV(clnt), argp->priv, SM_PRIV_SIZE) == 0) {
 			/* Hey!  We already know you guys! */
-			dprintf(N_DEBUG,
+			xlog(D_GENERAL,
 				"Duplicate SM_MON request for %s "
 				"from procedure on %s",
 				mon_name, my_name);
@@ -168,7 +168,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 * doesn't fail.  (I should probably fix this assumption.)
 	 */
 	if (!(clnt = nlist_new(my_name, mon_name, 0))) {
-		note(N_WARNING, "out of memory");
+		xlog_warn("out of memory");
 		goto failure;
 	}
 
@@ -188,7 +188,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT|O_APPEND,
 		       S_IRUSR|S_IWUSR)) < 0) {
 		/* Didn't fly.  We won't monitor. */
-		note(N_ERROR, "creat(%s) failed: %s", path, strerror (errno));
+		xlog(L_ERROR, "creat(%s) failed: %m", path);
 		nlist_free(NULL, clnt);
 		free(path);
 		goto failure;
@@ -205,7 +205,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		if (e+1-buf != LINELEN) abort();
 		e += sprintf(e, " %s %s\n", mon_name, my_name);
 		if (write(fd, buf, e-buf) != (e-buf)) {
-			note(N_WARNING, "writing to %s failed: errno %d (%s)",
+			xlog_warn("writing to %s failed: errno %d (%s)",
 				path, errno, strerror(errno));
 		}
 	}
@@ -215,7 +215,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	ha_callout("add-client", mon_name, my_name, -1);
 	nlist_insert(&rtnl, clnt);
 	close(fd);
-	dprintf(N_DEBUG, "MONITORING %s for %s", mon_name, my_name);
+	xlog(D_GENERAL, "MONITORING %s for %s", mon_name, my_name);
  success:
 	result.res_stat = STAT_SUCC;
 	/* SUN's sm_inter.x says this should be "state number of local site".
@@ -232,7 +232,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	return (&result);
 
 failure:
-	note(N_WARNING, "STAT_FAIL to %s for SM_MON of %s", my_name, mon_name);
+	xlog_warn("STAT_FAIL to %s for SM_MON of %s", my_name, mon_name);
 	return (&result);
 }
 
@@ -320,6 +320,8 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 	struct my_id	*id = &argp->my_id;
 	char		*cp;
 
+	xlog(D_CALL, "Received SM_UNMON for %s from %s", mon_name, my_name);
+
 	result.state = MY_STATE;
 
 	if (!caller_is_localhost(rqstp))
@@ -333,9 +335,8 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 
 	/* Check if we're monitoring anyone. */
 	if (rtnl == NULL) {
-		note(N_WARNING,
-			"Received SM_UNMON request from %s for %s while not "
-			"monitoring any hosts.", my_name, argp->mon_name);
+		xlog_warn("Received SM_UNMON request from %s for %s while not "
+			"monitoring any hosts", my_name, argp->mon_name);
 		return (&result);
 	}
 	clnt = rtnl;
@@ -352,7 +353,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			NL_MY_PROG(clnt) == id->my_prog &&
 			NL_MY_VERS(clnt) == id->my_vers) {
 			/* Match! */
-			dprintf(N_DEBUG, "UNMONITORING %s for %s",
+			xlog(D_GENERAL, "UNMONITORING %s for %s",
 					mon_name, my_name);
 
 			/* PRC: do the HA callout: */
@@ -367,7 +368,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 	}
 
  failure:
-	note(N_WARNING, "Received erroneous SM_UNMON request from %s for %s",
+	xlog_warn("Received erroneous SM_UNMON request from %s for %s",
 		my_name, mon_name);
 	return (&result);
 }
@@ -381,13 +382,15 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 	notify_list	*clnt;
 	char		*my_name = argp->my_name;
 
+	xlog(D_CALL, "Received SM_UNMON_ALL for %s", my_name);
+
 	if (!caller_is_localhost(rqstp))
 		goto failure;
 
 	result.state = MY_STATE;
 
 	if (rtnl == NULL) {
-		note(N_WARNING, "Received SM_UNMON_ALL request from %s "
+		xlog_warn("Received SM_UNMON_ALL request from %s "
 			"while not monitoring any hosts", my_name);
 		return (&result);
 	}
@@ -401,7 +404,7 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 			char            mon_name[SM_MAXSTRLEN + 1];
 			notify_list	*temp;
 
-			dprintf(N_DEBUG,
+			xlog(D_GENERAL,
 				"UNMONITORING (SM_UNMON_ALL) %s for %s",
 				NL_MON_NAME(clnt), NL_MY_NAME(clnt));
 			strncpy(mon_name, NL_MON_NAME(clnt),
@@ -419,8 +422,8 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 	}
 
 	if (!count) {
-		dprintf(N_DEBUG, "SM_UNMON_ALL request from %s with no "
-			"SM_MON requests from it.", my_name);
+		xlog(D_GENERAL, "SM_UNMON_ALL request from %s with no "
+			"SM_MON requests from it", my_name);
 	}
 
  failure:

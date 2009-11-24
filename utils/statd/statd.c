@@ -26,7 +26,6 @@
 #include <sys/wait.h>
 #include <grp.h>
 #include "statd.h"
-#include "version.h"
 #include "nfslib.h"
 
 /* Socket operations */
@@ -50,8 +49,7 @@ int	run_mode = 0;		/* foreground logging mode */
 /* LH - I had these local to main, but it seemed silly to have 
  * two copies of each - one in main(), one static in log.c... 
  * It also eliminates the 256-char static in log.c */
-char *name_p = NULL;
-const char *version_p = NULL;
+static char *name_p = NULL;
 
 /* PRC: a high-availability callout program can be specified with -H
  * When this is done, the program will receive callouts whenever clients
@@ -109,17 +107,15 @@ sm_prog_1_wrapper (struct svc_req *rqstp, register SVCXPRT *transp)
 static void 
 killer (int sig)
 {
-	note (N_FATAL, "Caught signal %d, un-registering and exiting.", sig);
 	pmap_unset (SM_PROG, SM_VERS);
-
-	exit (0);
+	xlog_err ("Caught signal %d, un-registering and exiting", sig);
 }
 
 static void
 sigusr (int sig)
 {
 	extern void my_svc_exit (void);
-	dprintf (N_DEBUG, "Caught signal %d, re-notifying (state %d).", sig,
+	xlog(D_GENERAL, "Caught signal %d, re-notifying (state %d)", sig,
 								MY_STATE);
 	my_svc_exit();
 }
@@ -141,7 +137,7 @@ static void log_modes(void)
 	if (run_mode & MODE_LOG_STDERR)
 		strcat(buf,"Log-STDERR ");
 
-	note(N_WARNING,buf);
+	xlog_warn(buf);
 }
 
 /*
@@ -175,13 +171,12 @@ static void create_pidfile(void)
 	unlink(pidfile);
 	fp = fopen(pidfile, "w");
 	if (!fp)
-		die("Opening %s failed: %s\n",
-		    pidfile, strerror(errno));
+		xlog_err("Opening %s failed: %m\n", pidfile);
 	fprintf(fp, "%d\n", getpid());
 	pidfd = dup(fileno(fp));
 	if (fclose(fp) < 0) {
-		note(N_WARNING, "Flushing pid file failed: errno %d (%s)\n",
-			errno, strerror(errno));
+		xlog_warn("Flushing pid file failed: errno %d (%m)\n",
+			errno);
 	}
 }
 
@@ -189,8 +184,8 @@ static void truncate_pidfile(void)
 {
 	if (pidfd >= 0) {
 		if (ftruncate(pidfd, 0) < 0) {
-			note(N_WARNING, "truncating pid file failed: errno %d (%s)\n",
-				errno, strerror(errno));
+			xlog_warn("truncating pid file failed: errno %d (%m)\n",
+				errno);
 		}
 	}
 }
@@ -206,8 +201,8 @@ static void drop_privs(void)
 	}
 
 	if (st.st_uid == 0) {
-		note(N_WARNING, "statd running as root. chown %s to choose different user\n",
-		    SM_DIR);
+		xlog_warn("Running as 'root'.  "
+			"chown %s to choose different user\n", SM_DIR);
 		return;
 	}
 	/* better chown the pid file before dropping, as if it
@@ -215,14 +210,14 @@ static void drop_privs(void)
 	 */
 	if (pidfd >= 0) {
 		if (fchown(pidfd, st.st_uid, st.st_gid) < 0) {
-			note(N_ERROR, "Unable to change owner of %s: %d (%s)",
+			xlog(L_ERROR, "Unable to change owner of %s: %d (%s)",
 					SM_DIR, strerror (errno));
 		}
 	}
 	setgroups(0, NULL);
 	if (setgid(st.st_gid) == -1
 	    || setuid(st.st_uid) == -1) {
-		note(N_ERROR, "Fail to drop privileges");
+		xlog(L_ERROR, "Fail to drop privileges");
 		exit(1);
 	}
 }
@@ -266,6 +261,8 @@ int main (int argc, char **argv)
 
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
+	xlog_stderr(0);
+	xlog_syslog(1);
 
 	/* Set the basename */
 	if ((name_p = strrchr(argv[0],'/')) != NULL) {
@@ -274,13 +271,6 @@ int main (int argc, char **argv)
 		name_p = argv[0];
 	}
 
-	/* Get the version */
-	if ((version_p = strrchr(VERSION,' ')) != NULL) {
-		version_p++;
-	} else {
-		version_p = VERSION;
-	}
-	
 	/* Set hostname */
 	MY_NAME = NULL;
 
@@ -289,7 +279,7 @@ int main (int argc, char **argv)
 		switch (arg) {
 		case 'V':	/* Version */
 		case 'v':
-			printf("%s version %s\n",name_p,version_p);
+			printf("%s version " VERSION "\n",name_p);
 			exit(0);
 		case 'F':	/* Foreground/nodaemon mode */
 			run_mode |= MODE_NODAEMON;
@@ -383,7 +373,6 @@ int main (int argc, char **argv)
 		run_sm_notify(out_port);
 	}
 
-
 	if (!(run_mode & MODE_NODAEMON)) {
 		run_mode &= ~MODE_LOG_STDERR;	/* Never log to console in
 						   daemon mode. */
@@ -455,7 +444,13 @@ int main (int argc, char **argv)
 
 	/* Child. */
 
-	log_init (/*name_p,version_p*/);
+	if (run_mode & MODE_LOG_STDERR) {
+		xlog_syslog(0);
+		xlog_stderr(1);
+		xlog_config(D_ALL, 1);
+	}
+	xlog_open(name_p);
+	xlog(L_NOTICE, "Version " VERSION " starting");
 
 	log_modes();
 
@@ -505,7 +500,7 @@ int main (int argc, char **argv)
 	if (pipefds[1] > 0) {
 		status = 0;
 		if (write(pipefds[1], &status, 1) != 1) {
-			note(N_WARNING, "writing to parent pipe failed: errno %d (%s)\n",
+			xlog_warn("writing to parent pipe failed: errno %d (%s)\n",
 				errno, strerror(errno));
 		}
 		close(pipefds[1]);
@@ -552,7 +547,7 @@ load_state_number(void)
 		return;
 
 	if (read(fd, &MY_STATE, sizeof(MY_STATE)) != sizeof(MY_STATE)) {
-		note(N_WARNING, "Unable to read state from '%s': errno %d (%s)",
+		xlog_warn("Unable to read state from '%s': errno %d (%s)",
 				SM_STAT_PATH, errno, strerror(errno));
 	}
 	close(fd);
@@ -561,7 +556,7 @@ load_state_number(void)
 		char buf[20];
 		snprintf(buf, sizeof(buf), "%d", MY_STATE);
 		if (write(fd, buf, strlen(buf)) != strlen(buf))
-			note(N_WARNING, "Writing to '%s' failed: errno %d (%s)",
+			xlog_warn("Writing to '%s' failed: errno %d (%s)",
 				file, errno, strerror(errno));
 		close(fd);
 	}

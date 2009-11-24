@@ -38,7 +38,9 @@ extern void svc_exit (void);
 void
 simulator (int argc, char **argv)
 {
-  log_enable (1);
+  xlog_stderr (1);
+  xlog_syslog (0);
+  xlog_open ("statd simulator");
 
   if (argc == 2)
     if (!strcasecmp (*argv, "crash"))
@@ -61,7 +63,7 @@ simulator (int argc, char **argv)
       simulate_mon (*(&argv[1]), *(&argv[2]), *(&argv[3]), *(&argv[4]),
 		    *(&argv[5]));
   }
-  die ("WTF?  Give me something I can use!");
+  xlog_err ("WTF?  Give me something I can use!");
 }
 
 static void
@@ -72,11 +74,11 @@ simulate_mon (char *calling, char *monitoring, char *as, char *proggy,
   sm_stat_res *result;
   mon mon;
 
-  dprintf (N_DEBUG, "Calling %s (as %s) to monitor %s", calling, as,
+  xlog (D_GENERAL, "Calling %s (as %s) to monitor %s", calling, as,
 	   monitoring);
 
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
-    die ("%s", clnt_spcreateerror ("clnt_create"));
+    xlog_err ("%s", clnt_spcreateerror ("clnt_create"));
 
   memcpy (mon.priv, fool, SM_PRIV_SIZE);
   mon.mon_id.my_id.my_name = xstrdup (as);
@@ -87,16 +89,15 @@ simulate_mon (char *calling, char *monitoring, char *as, char *proggy,
   mon.mon_id.mon_name = monitoring;
 
   if (!(result = sm_mon_1 (&mon, client)))
-    die ("%s", clnt_sperror (client, "sm_mon_1"));
+    xlog_err ("%s", clnt_sperror (client, "sm_mon_1"));
 
   free (mon.mon_id.my_id.my_name);
 
   if (result->res_stat != STAT_SUCC) {
-    note (N_FATAL, "SM_MON request failed, state: %d", result->state);
-    exit (0);
+    xlog_err ("SM_MON request failed, state: %d", result->state);
   } else {
-    dprintf (N_DEBUG, "SM_MON result successful, state: %d\n", result->state);
-    dprintf (N_DEBUG, "Waiting for callback.");
+    xlog (D_GENERAL, "SM_MON result successful, state: %d\n", result->state);
+    xlog (D_GENERAL, "Waiting for callback");
     daemon_simulator ();
     exit (0);
   }
@@ -109,11 +110,11 @@ simulate_unmon (char *calling, char *unmonitoring, char *as, char *proggy)
   sm_stat *result;
   mon_id mon_id;
 
-  dprintf (N_DEBUG, "Calling %s (as %s) to unmonitor %s", calling, as,
+  xlog (D_GENERAL, "Calling %s (as %s) to unmonitor %s", calling, as,
 	   unmonitoring);
 
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
-    die ("%s", clnt_spcreateerror ("clnt_create"));
+    xlog_err ("%s", clnt_spcreateerror ("clnt_create"));
 
   mon_id.my_id.my_name = xstrdup (as);
   mon_id.my_id.my_prog = atoi (proggy) * SIM_SM_PROG;
@@ -122,10 +123,10 @@ simulate_unmon (char *calling, char *unmonitoring, char *as, char *proggy)
   mon_id.mon_name = unmonitoring;
 
   if (!(result = sm_unmon_1 (&mon_id, client)))
-    die ("%s", clnt_sperror (client, "sm_unmon_1"));
+    xlog_err ("%s", clnt_sperror (client, "sm_unmon_1"));
 
   free (mon_id.my_id.my_name);
-  dprintf (N_DEBUG, "SM_UNMON request returned state: %d\n", result->state);
+  xlog (D_GENERAL, "SM_UNMON request returned state: %d\n", result->state);
   exit (0);
 }
 
@@ -136,10 +137,10 @@ simulate_unmon_all (char *calling, char *as, char *proggy)
   sm_stat *result;
   my_id my_id;
 
-  dprintf (N_DEBUG, "Calling %s (as %s) to unmonitor all hosts", calling, as);
+  xlog (D_GENERAL, "Calling %s (as %s) to unmonitor all hosts", calling, as);
 
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
-    die ("%s", clnt_spcreateerror ("clnt_create"));
+    xlog_err ("%s", clnt_spcreateerror ("clnt_create"));
 
   my_id.my_name = xstrdup (as);
   my_id.my_prog = atoi (proggy) * SIM_SM_PROG;
@@ -147,10 +148,10 @@ simulate_unmon_all (char *calling, char *as, char *proggy)
   my_id.my_proc = SIM_SM_MON;
 
   if (!(result = sm_unmon_all_1 (&my_id, client)))
-    die ("%s", clnt_sperror (client, "sm_unmon_all_1"));
+    xlog_err ("%s", clnt_sperror (client, "sm_unmon_all_1"));
 
   free (my_id.my_name);
-  dprintf (N_DEBUG, "SM_UNMON_ALL request returned state: %d\n", result->state);
+  xlog (D_GENERAL, "SM_UNMON_ALL request returned state: %d\n", result->state);
   exit (0);
 }
 
@@ -160,10 +161,10 @@ simulate_crash (char *host)
   CLIENT *client;
 
   if ((client = clnt_create (host, SM_PROG, SM_VERS, "udp")) == NULL)
-    die ("%s", clnt_spcreateerror ("clnt_create"));
+    xlog_err ("%s", clnt_spcreateerror ("clnt_create"));
 
   if (!sm_simu_crash_1 (NULL, client))
-    die ("%s", clnt_sperror (client, "sm_simu_crash_1"));
+    xlog_err ("%s", clnt_sperror (client, "sm_simu_crash_1"));
 
   exit (0);
 }
@@ -176,18 +177,18 @@ simulate_stat (char *calling, char *monitoring)
   sm_stat_res *result;
   
   if ((client = clnt_create (calling, SM_PROG, SM_VERS, "udp")) == NULL)
-    die ("%s", clnt_spcreateerror ("clnt_create"));
+    xlog_err ("%s", clnt_spcreateerror ("clnt_create"));
 
   checking.mon_name = monitoring;
 
   if (!(result = sm_stat_1 (&checking, client)))
-    die ("%s", clnt_sperror (client, "sm_stat_1"));
+    xlog_err ("%s", clnt_sperror (client, "sm_stat_1"));
 
   if (result->res_stat == STAT_SUCC)
-    dprintf (N_DEBUG, "STAT_SUCC from %s for %s, state: %d", calling,
+    xlog (D_GENERAL, "STAT_SUCC from %s for %s, state: %d", calling,
 	     monitoring, result->state);
   else
-    dprintf (N_DEBUG, "STAT_FAIL from %s for %s, state: %d", calling,
+    xlog (D_GENERAL, "STAT_FAIL from %s for %s, state: %d", calling,
 	     monitoring, result->state);
 
   exit (0);
@@ -196,9 +197,8 @@ simulate_stat (char *calling, char *monitoring)
 static void
 sim_killer (int sig)
 {
-  note (N_FATAL, "Simulator caught signal %d, un-registering and exiting.", sig);
   pmap_unset (sim_port, SIM_SM_VERS);
-  exit (0);
+  xlog_err ("Simulator caught signal %d, un-registering and exiting", sig);
 }
 
 static void
@@ -219,7 +219,7 @@ sim_sm_mon_1_svc (struct status *argp, struct svc_req *rqstp)
 {
   static char *result;
 
-  dprintf (N_DEBUG, "Recieved state %d for mon_name %s (opaque \"%s\")",
+  xlog (D_GENERAL, "Recieved state %d for mon_name %s (opaque \"%s\")",
 	   argp->state, argp->mon_name, argp->priv);
   svc_exit ();
   return ((void *)&result);

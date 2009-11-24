@@ -27,24 +27,26 @@ sm_simu_crash_1_svc (void *argp, struct svc_req *rqstp)
   static char *result = NULL;
   struct in_addr caller;
 
+  xlog(D_CALL, "Received SM_SIMU_CRASH");
+
   if (sin->sin_family != AF_INET) {
-    note(N_WARNING, "Call to statd from non-AF_INET address");
+    xlog_warn("Call to statd from non-AF_INET address");
     goto failure;
   }
 
   caller = sin->sin_addr;
   if (caller.s_addr != htonl(INADDR_LOOPBACK)) {
-    note(N_WARNING, "Call to statd from non-local host %s",
+    xlog_warn("Call to statd from non-local host %s",
       inet_ntoa(caller));
     goto failure;
   }
 
   if (ntohs(sin->sin_port) >= 1024) {
-    note(N_WARNING, "Call to statd-simu-crash from unprivileged port");
+    xlog_warn("Call to statd-simu-crash from unprivileged port");
     goto failure;
   }
 
-  note (N_WARNING, "*** SIMULATING CRASH! ***");
+  xlog_warn("*** SIMULATING CRASH! ***");
   my_svc_exit ();
 
   if (rtnl)

@@ -42,13 +42,15 @@ sm_stat_1_svc (struct sm_name *argp, struct svc_req *rqstp)
 {
   static sm_stat_res result;
 
+  xlog(D_CALL, "Received SM_STAT from %s", argp->mon_name);
+
   if (gethostbyname (argp->mon_name) == NULL) {
-    note (N_WARNING, "gethostbyname error for %s", argp->mon_name);
+    xlog_warn ("gethostbyname error for %s", argp->mon_name);
     result.res_stat = STAT_FAIL;
-    dprintf (N_DEBUG, "STAT_FAIL for %s", argp->mon_name);
+    xlog (D_GENERAL, "STAT_FAIL for %s", argp->mon_name);
   } else {
     result.res_stat = STAT_SUCC;
-    dprintf (N_DEBUG, "STAT_SUCC for %s", argp->mon_name);
+    xlog (D_GENERAL, "STAT_SUCC for %s", argp->mon_name);
   }
   result.state = MY_STATE;
   return(&result);
