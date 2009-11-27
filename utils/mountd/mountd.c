@@ -509,12 +509,89 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 	return fh;
 }
 
+static void remove_all_clients(exportnode *e)
+{
+	struct groupnode *g, *ng;
+
+	for (g = e->ex_groups; g; g = ng) {
+		ng = g->gr_next;
+		xfree(g->gr_name);
+		xfree(g);
+	}
+	e->ex_groups = NULL;
+}
+
+static void free_exportlist(exports *elist)
+{
+	struct exportnode *e, *ne;
+
+	for (e = *elist; e != NULL; e = ne) {
+		ne = e->ex_next;
+		remove_all_clients(e);
+		xfree(e->ex_dir);
+		xfree(e);
+	}
+	*elist = NULL;
+}
+
+static void prune_clients(nfs_export *exp, struct exportnode *e)
+{
+	struct hostent 	*hp;
+	struct groupnode *c, **cp;
+
+	cp = &e->ex_groups;
+	while ((c = *cp) != NULL) {
+		if (client_gettype(c->gr_name) == MCL_FQDN
+				&& (hp = gethostbyname(c->gr_name))) {
+			hp = hostent_dup(hp);
+			if (client_check(exp->m_client, hp)) {
+				*cp = c->gr_next;
+				xfree(c->gr_name);
+				xfree(c);
+				xfree (hp);
+				continue;
+			}
+			xfree (hp);
+		}
+		cp = &(c->gr_next);
+	}
+}
+
+static exportnode *lookup_or_create_elist_entry(exports *elist, nfs_export *exp)
+{
+	exportnode *e;
+
+	for (e = *elist; e != NULL; e = e->ex_next) {
+		if (!strcmp(exp->m_export.e_path, e->ex_dir))
+			return e;
+	}
+	e = xmalloc(sizeof(*e));
+	e->ex_next = *elist;
+	e->ex_groups = NULL;
+	e->ex_dir = xstrdup(exp->m_export.e_path);
+	*elist = e;
+	return e;
+}
+
+static void insert_group(struct exportnode *e, char *newname)
+{
+	struct groupnode *g;
+
+	for (g = e->ex_groups; g; g = g->gr_next)
+		if (strcmp(g->gr_name, newname))
+			return;
+
+	g = xmalloc(sizeof(*g));
+	g->gr_name = xstrdup(newname);
+	g->gr_next = e->ex_groups;
+	e->ex_groups = g;
+}
+
 static exports
 get_exportlist(void)
 {
 	static exports		elist = NULL;
-	struct exportnode	*e, *ne;
-	struct groupnode	*g, *ng, *c, **cp;
+	struct exportnode	*e;
 	nfs_export		*exp;
 	int			i;
 	static unsigned int	ecounter;
@@ -526,80 +603,28 @@ get_exportlist(void)
 
 	ecounter = acounter;
 
-	for (e = elist; e != NULL; e = ne) {
-		ne = e->ex_next;
-		for (g = e->ex_groups; g != NULL; g = ng) {
-			ng = g->gr_next;
-			xfree(g->gr_name);
-			xfree(g);
-		}
-		xfree(e->ex_dir);
-		xfree(e);
-	}
-	elist = NULL;
+	free_exportlist(&elist);
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			 /* Don't show pseudo exports */
 			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
 				continue;
-
-			for (e = elist; e != NULL; e = e->ex_next) {
-				if (!strcmp(exp->m_export.e_path, e->ex_dir))
-					break;
-			}
-			if (!e) {
-				e = (struct exportnode *) xmalloc(sizeof(*e));
-				e->ex_next = elist;
-				e->ex_groups = NULL;
-				e->ex_dir = xstrdup(exp->m_export.e_path);
-				elist = e;
-			}
+			e = lookup_or_create_elist_entry(&elist, exp);
 
 			/* We need to check if we should remove
 			   previous ones. */
 			if (i == MCL_ANONYMOUS && e->ex_groups) {
-				for (g = e->ex_groups; g; g = ng) {
-					ng = g->gr_next;
-					xfree(g->gr_name);
-					xfree(g);
-				}
-				e->ex_groups = NULL;
+				remove_all_clients(e);
 				continue;
 			}
 
 			if (i != MCL_FQDN && e->ex_groups) {
-			  struct hostent 	*hp;
-
-			  cp = &e->ex_groups;
-			  while ((c = *cp) != NULL) {
-			    if (client_gettype (c->gr_name) == MCL_FQDN
-			        && (hp = gethostbyname(c->gr_name))) {
-			      hp = hostent_dup (hp);
-			      if (client_check(exp->m_client, hp)) {
-				*cp = c->gr_next;
-				xfree(c->gr_name);
-				xfree(c);
-				xfree (hp);
-				continue;
-			      }
-			      xfree (hp);
-			    }
-			    cp = &(c->gr_next);
-			  }
+				prune_clients(exp, e);
 			}
 
 			if (exp->m_export.e_hostname [0] != '\0') {
-				for (g = e->ex_groups; g; g = g->gr_next)
-					if (strcmp (exp->m_export.e_hostname,
-						    g->gr_name) == 0)
-						break;
-				if (g)
-					continue;
-				g = (struct groupnode *) xmalloc(sizeof(*g));
-				g->gr_name = xstrdup(exp->m_export.e_hostname);
-				g->gr_next = e->ex_groups;
-				e->ex_groups = g;
+				insert_group(e, exp->m_export.e_hostname);
 			}
 		}
 	}
