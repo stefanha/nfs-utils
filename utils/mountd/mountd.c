@@ -612,20 +612,17 @@ get_exportlist(void)
 				continue;
 			e = lookup_or_create_elist_entry(&elist, exp);
 
-			/* We need to check if we should remove
-			   previous ones. */
+			/* exports to "*" absorb any others */
 			if (i == MCL_ANONYMOUS && e->ex_groups) {
 				remove_all_clients(e);
 				continue;
 			}
-
-			if (i != MCL_FQDN && e->ex_groups) {
+			/* non-FQDN's absorb FQDN's they contain: */
+			if (i != MCL_FQDN && e->ex_groups)
 				prune_clients(exp, e);
-			}
 
-			if (exp->m_export.e_hostname [0] != '\0') {
+			if (exp->m_export.e_hostname[0] != '\0')
 				insert_group(e, exp->m_export.e_hostname);
-			}
 		}
 	}
 
