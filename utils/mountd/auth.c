@@ -110,6 +110,22 @@ auth_reload()
 	return counter;
 }
 
+static char *get_client_hostname(struct sockaddr_in *caller, struct hostent *hp, enum auth_error *error)
+{
+	char *n;
+
+	if (use_ipaddr)
+		return strdup(inet_ntoa(caller->sin_addr));
+	n = client_compose(hp);
+	*error = unknown_host;
+	if (!n)
+		return NULL;
+	if (*n)
+		return n;
+	free(n);
+	return strdup("DEFAULT");
+}
+
 static nfs_export *
 auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 			   char *path, struct hostent *hp,
@@ -120,23 +136,8 @@ auth_authenticate_internal(char *what, struct sockaddr_in *caller,
 	if (new_cache) {
 		int i;
 		/* return static nfs_export with details filled in */
-		char *n;
 		free(my_client.m_hostname);
-		if (use_ipaddr) {
-			my_client.m_hostname =
-				strdup(inet_ntoa(caller->sin_addr));
-		} else {
-			n = client_compose(hp);
-			*error = unknown_host;
-			if (!n)
-				my_client.m_hostname = NULL;
-			else if (*n)
-				my_client.m_hostname = n;
-			else {
-				free(n);
-				my_client.m_hostname = strdup("DEFAULT");
-			}
-		}
+		my_client.m_hostname = get_client_hostname(caller, hp, error);
 		if (my_client.m_hostname == NULL)
 			return NULL;
 		my_client.m_naddr = 1;
