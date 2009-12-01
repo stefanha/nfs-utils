@@ -19,7 +19,9 @@
 #include "exportfs.h"
 #include "xio.h"
 #include "xlog.h"
+#include "v4root.h"
 
+int v4root_needed;
 static void cond_rename(char *newfile, char *oldfile);
 
 static int
@@ -36,6 +38,8 @@ xtab_read(char *xtab, char *lockfn, int is_export)
 	if ((lockid = xflock(lockfn, "r")) < 0)
 		return 0;
 	setexportent(xtab, "r");
+	if (is_export == 1)
+		v4root_needed = 1;
 	while ((xp = getexportent(is_export==0, 0)) != NULL) {
 		if (!(exp = export_lookup(xp->e_hostname, xp->e_path, is_export != 1)) &&
 		    !(exp = export_create(xp, is_export!=1))) {
@@ -48,6 +52,8 @@ xtab_read(char *xtab, char *lockfn, int is_export)
 		case 1:
 			exp->m_xtabent = 1;
 			exp->m_mayexport = 1;
+			if ((xp->e_flags & NFSEXP_FSID) && xp->e_fsid == 0)
+				v4root_needed = 0;
 			break;
 		case 2:
 			exp->m_exported = -1;/* may be exported */

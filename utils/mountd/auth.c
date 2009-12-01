@@ -20,6 +20,7 @@
 #include "exportfs.h"
 #include "mountd.h"
 #include "xmalloc.h"
+#include "v4root.h"
 
 enum auth_error
 {
@@ -102,6 +103,8 @@ auth_reload()
 	memset(&my_client, 0, sizeof(my_client));
 	xtab_export_read();
 	check_useipaddr();
+	v4root_set();
+
 	++counter;
 
 	return counter;
