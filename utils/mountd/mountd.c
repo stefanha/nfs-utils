@@ -540,6 +540,10 @@ get_exportlist(void)
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
+			 /* Don't show pseudo exports */
+			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
+				continue;
+
 			for (e = elist; e != NULL; e = e->ex_next) {
 				if (!strcmp(exp->m_export.e_path, e->ex_dir))
 					break;
