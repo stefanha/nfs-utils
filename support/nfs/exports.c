@@ -385,7 +385,7 @@ static int valid_uuid(char *uuid)
  * do nothing if it's already there.  Returns the index of flavor
  * in the resulting array in any case.
  */
-static int secinfo_addflavor(struct flav_info *flav, struct exportent *ep)
+int secinfo_addflavor(struct flav_info *flav, struct exportent *ep)
 {
 	struct sec_entry *p;
 
