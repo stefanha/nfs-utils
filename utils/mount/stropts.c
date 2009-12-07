@@ -668,9 +668,10 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 				/* 
 				 * To deal with legacy Linux servers that don't
 				 * automatically export a pseudo root, retry
-				 * ENOENT errors using version 3
+				 * ENOENT errors using version 3. And for
+				 * Linux servers prior to 2.6.25, retry EPERM
 				 */
-				if (errno != ENOENT)
+				if (errno != ENOENT && errno != EPERM)
 					break;
 			}
 		}
