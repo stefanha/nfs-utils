@@ -108,7 +108,7 @@ int pollsize;  /* the size of pollaray (in pollfd's) */
 
 /*
  * convert a presentation address string to a sockaddr_storage struct. Returns
- * true on success and false on failure.
+ * true on success or false on failure.
  *
  * Note that we do not populate the sin6_scope_id field here for IPv6 addrs.
  * gssd nececessarily relies on hostname resolution and DNS AAAA records
@@ -120,26 +120,43 @@ int pollsize;  /* the size of pollaray (in pollfd's) */
  * not really feasible at present.
  */
 static int
-addrstr_to_sockaddr(struct sockaddr *sa, const char *addr, const int port)
+addrstr_to_sockaddr(struct sockaddr *sa, const char *node, const char *port)
 {
-	struct sockaddr_in	*s4 = (struct sockaddr_in *) sa;
-#ifdef IPV6_SUPPORTED
-	struct sockaddr_in6	*s6 = (struct sockaddr_in6 *) sa;
+	int rc;
+	struct addrinfo *res;
+	struct addrinfo hints = { .ai_flags = AI_NUMERICHOST | AI_NUMERICSERV };
+
+#ifndef IPV6_SUPPORTED
+	hints.ai_family = AF_INET;
 #endif /* IPV6_SUPPORTED */
 
-	if (inet_pton(AF_INET, addr, &s4->sin_addr)) {
-		s4->sin_family = AF_INET;
-		s4->sin_port = htons(port);
-#ifdef IPV6_SUPPORTED
-	} else if (inet_pton(AF_INET6, addr, &s6->sin6_addr)) {
-		s6->sin6_family = AF_INET6;
-		s6->sin6_port = htons(port);
-#endif /* IPV6_SUPPORTED */
-	} else {
-		printerr(0, "ERROR: unable to convert %s to address\n", addr);
+	rc = getaddrinfo(node, port, &hints, &res);
+	if (rc) {
+		printerr(0, "ERROR: unable to convert %s|%s to sockaddr: %s\n",
+			 node, port, rc == EAI_SYSTEM ? strerror(errno) :
+						gai_strerror(rc));
 		return 0;
 	}
 
+#ifdef IPV6_SUPPORTED
+	/*
+	 * getnameinfo ignores the scopeid. If the address turns out to have
+	 * a non-zero scopeid, we can't use it -- the resolved host might be
+	 * completely different from the one intended.
+	 */
+	if (res->ai_addr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)res->ai_addr;
+		if (sin6->sin6_scope_id) {
+			printerr(0, "ERROR: address %s has non-zero "
+				    "sin6_scope_id!\n", node);
+			freeaddrinfo(res);
+			return 0;
+		}
+	}
+#endif /* IPV6_SUPPORTED */
+
+	memcpy(sa, res->ai_addr, res->ai_addrlen);
+	freeaddrinfo(res);
 	return 1;
 }
 
@@ -197,11 +214,10 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	char		program[16];
 	char		version[16];
 	char		protoname[16];
-	char		cb_port[128];
+	char		port[128];
 	char		*p;
 	int		fd = -1;
 	int		numfields;
-	int		port = 0;
 
 	*servicename = *servername = *protocol = NULL;
 
@@ -230,9 +246,9 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 		goto fail;
 	}
 
-	cb_port[0] = '\0';
+	port[0] = '\0';
 	if ((p = strstr(buf, "port")) != NULL)
-		sscanf(p, "port: %127s\n", cb_port);
+		sscanf(p, "port: %127s\n", port);
 
 	/* check service, program, and version */
 	if (memcmp(service, "nfs", 3) != 0)
@@ -246,12 +262,6 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 			goto fail;
 	} else if (memcmp(service, "nfs4_cb", 7) == 0) {
 		if (*vers != 1)
-			goto fail;
-	}
-
-	if (cb_port[0] != '\0') {
-		port = atoi(cb_port);
-		if (port < 0 || port > 65535)
 			goto fail;
 	}
 
