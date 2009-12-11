@@ -1289,6 +1289,7 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 int
 nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 {
+	sa_family_t family;
 	char *option;
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
@@ -1300,17 +1301,8 @@ nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 		return 1;
 	case 2: /* proto */
 		option = po_get(options, "proto");
-		if (option) {
-			if (strcmp(option, "tcp") == 0) {
-				*protocol = IPPROTO_TCP;
-				return 1;
-			}
-			if (strcmp(option, "udp") == 0) {
-				*protocol = IPPROTO_UDP;
-				return 1;
-			}
-			return 0;
-		}
+		if (option != NULL)
+			return nfs_get_proto(option, &family, protocol);
 	}
 
 	/*
@@ -1419,20 +1411,12 @@ nfs_mount_version(struct mount_options *options, unsigned long *version)
 static int
 nfs_mount_protocol(struct mount_options *options, unsigned long *protocol)
 {
+	sa_family_t family;
 	char *option;
 
 	option = po_get(options, "mountproto");
-	if (option) {
-		if (strcmp(option, "tcp") == 0) {
-			*protocol = IPPROTO_TCP;
-			return 1;
-		}
-		if (strcmp(option, "udp") == 0) {
-			*protocol = IPPROTO_UDP;
-			return 1;
-		}
-		return 0;
-	}
+	if (option != NULL)
+		return nfs_get_proto(option, &family, protocol);
 
 	/*
 	 * MNT transport protocol wasn't specified.  If the NFS
