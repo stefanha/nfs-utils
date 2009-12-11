@@ -90,6 +90,18 @@ extern CLIENT		*nfs_get_priv_rpcclient( const struct sockaddr *,
 				struct timeval *);
 
 /*
+ * Convert a netid to a protocol number and protocol family
+ */
+extern int		nfs_get_proto(const char *netid, sa_family_t *family,
+				unsigned long *protocol);
+
+/*
+ * Convert a protocol family and protocol name to a netid
+ */
+extern char		*nfs_get_netid(const sa_family_t family,
+				const unsigned long protocol);
+
+/*
  * Convert a socket address to a universal address
  */
 extern char		*nfs_sockaddr2universal(const struct sockaddr *);
