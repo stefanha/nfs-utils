@@ -44,7 +44,6 @@ int nfs_probe_bothports(const struct sockaddr *, const socklen_t,
 			struct pmap *, const struct sockaddr *,
 			const socklen_t, struct pmap *);
 int nfs_gethostbyname(const char *, struct sockaddr_in *);
-int nfs_name_to_address(const char *, struct sockaddr *, socklen_t *);
 int nfs_lookup(const char *hostname, const sa_family_t family,
 		struct sockaddr *sap, socklen_t *salen);
 int nfs_string_to_sockaddr(const char *, struct sockaddr *, socklen_t *);

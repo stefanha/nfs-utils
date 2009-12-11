@@ -253,25 +253,6 @@ int nfs_lookup(const char *hostname, const sa_family_t family,
 }
 
 /**
- * nfs_name_to_address - resolve hostname to an IPv4 or IPv6 socket address
- * @hostname: pointer to C string containing DNS hostname to resolve
- * @sap: pointer to buffer to fill with socket address
- * @len: IN: size of buffer to fill; OUT: size of socket address
- *
- * Returns 1 and places a socket address at @sap if successful;
- * otherwise zero.
- */
-int nfs_name_to_address(const char *hostname,
-			struct sockaddr *sap, socklen_t *salen)
-{
-#ifdef IPV6_SUPPORTED
-	return nfs_lookup(hostname, AF_UNSPEC, sap, salen);
-#else	/* !IPV6_SUPPORTED */
-	return nfs_lookup(hostname, AF_INET, sap, salen);
-#endif	/* !IPV6_SUPPORTED */
-}
-
-/**
  * nfs_gethostbyname - resolve a hostname to an IPv4 address
  * @hostname: pointer to a C string containing a DNS hostname
  * @sin: returns an IPv4 address 
@@ -293,8 +274,8 @@ int nfs_gethostbyname(const char *hostname, struct sockaddr_in *sin)
  *		OUT: length of converted socket address
  *
  * Convert a presentation format address string to a socket address.
- * Similar to nfs_name_to_address(), but the DNS query is squelched,
- * and won't make any noise if the getaddrinfo() call fails.
+ * Similar to nfs_lookup(), but the DNS query is squelched, and it
+ * won't make any noise if the getaddrinfo() call fails.
  *
  * Returns 1 and fills in @sap and @salen if successful; otherwise zero.
  *
