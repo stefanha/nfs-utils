@@ -225,21 +225,33 @@ static int nfs_append_clientaddr_option(const struct sockaddr *sap,
 }
 
 /*
- * Resolve the 'mounthost=' hostname and append a new option using
- * the resulting address.
+ * Determine whether to append a 'mountaddr=' option.  The option is needed if:
+ *
+ *   1. "mounthost=" was specified, or
+ *   2. The address families for proto= and mountproto= are different.
  */
-static int nfs_fix_mounthost_option(struct mount_options *options)
+static int nfs_fix_mounthost_option(struct mount_options *options,
+		const char *nfs_hostname)
 {
 	union nfs_sockaddr address;
 	struct sockaddr *sap = &address.sa;
 	socklen_t salen = sizeof(address);
+	sa_family_t nfs_family, mnt_family;
 	char *mounthost;
 
-	mounthost = po_get(options, "mounthost");
-	if (!mounthost)
-		return 1;
+	if (!nfs_nfs_proto_family(options, &nfs_family))
+		return 0;
+	if (!nfs_mount_proto_family(options, &mnt_family))
+		return 0;
 
-	if (!nfs_name_to_address(mounthost, sap, &salen)) {
+	mounthost = po_get(options, "mounthost");
+	if (mounthost == NULL) {
+		if (nfs_family == mnt_family)
+			return 1;
+		mounthost = (char *)nfs_hostname;
+	}
+
+	if (!nfs_lookup(mounthost, mnt_family, sap, &salen)) {
 		nfs_error(_("%s: unable to determine mount server's address"),
 				progname);
 		return 0;
@@ -327,12 +339,15 @@ static int nfs_set_version(struct nfsmount_info *mi)
 static int nfs_validate_options(struct nfsmount_info *mi)
 {
 	struct sockaddr *sap = &mi->address.sa;
+	sa_family_t family;
 
 	if (!nfs_parse_devname(mi->spec, &mi->hostname, NULL))
 		return 0;
 
+	if (!nfs_nfs_proto_family(mi->options, &family))
+		return 0;
 	mi->salen = sizeof(mi->address);
-	if (!nfs_name_to_address(mi->hostname, sap, &mi->salen))
+	if (!nfs_lookup(mi->hostname, family, sap, &mi->salen))
 		return 0;
 
 	if (!nfs_set_version(mi))
@@ -565,7 +580,7 @@ static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 		return result;
 	}
 
-	if (!nfs_fix_mounthost_option(options)) {
+	if (!nfs_fix_mounthost_option(options, mi->hostname)) {
 		errno = EINVAL;
 		goto out_fail;
 	}
