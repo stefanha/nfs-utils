@@ -38,6 +38,7 @@
 #include "xcommon.h"
 #include "mount.h"
 #include "nls.h"
+#include "nfsrpc.h"
 #include "mount_constants.h"
 #include "stropts.h"
 #include "error.h"
@@ -371,10 +372,13 @@ static int nfs_extract_server_addresses(struct mount_options *options,
 }
 
 static int nfs_construct_new_options(struct mount_options *options,
+				     struct sockaddr *nfs_saddr,
 				     struct pmap *nfs_pmap,
+				     struct sockaddr *mnt_saddr,
 				     struct pmap *mnt_pmap)
 {
 	char new_option[64];
+	char *netid;
 
 	po_remove_all(options, "nfsprog");
 	po_remove_all(options, "mountprog");
@@ -391,20 +395,14 @@ static int nfs_construct_new_options(struct mount_options *options,
 	po_remove_all(options, "proto");
 	po_remove_all(options, "udp");
 	po_remove_all(options, "tcp");
-	switch (nfs_pmap->pm_prot) {
-	case IPPROTO_TCP:
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "proto=tcp");
-		if (po_append(options, new_option) == PO_FAILED)
-			return 0;
-		break;
-	case IPPROTO_UDP:
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "proto=udp");
-		if (po_append(options, new_option) == PO_FAILED)
-			return 0;
-		break;
-	}
+	netid = nfs_get_netid(nfs_saddr->sa_family, nfs_pmap->pm_prot);
+	if (netid == NULL)
+		return 0;
+	snprintf(new_option, sizeof(new_option) - 1,
+			 "proto=%s", netid);
+	free(netid);
+	if (po_append(options, new_option) == PO_FAILED)
+		return 0;
 
 	po_remove_all(options, "port");
 	if (nfs_pmap->pm_port != NFS_PORT) {
@@ -421,20 +419,14 @@ static int nfs_construct_new_options(struct mount_options *options,
 		return 0;
 
 	po_remove_all(options, "mountproto");
-	switch (mnt_pmap->pm_prot) {
-	case IPPROTO_TCP:
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "mountproto=tcp");
-		if (po_append(options, new_option) == PO_FAILED)
-			return 0;
-		break;
-	case IPPROTO_UDP:
-		snprintf(new_option, sizeof(new_option) - 1,
-			 "mountproto=udp");
-		if (po_append(options, new_option) == PO_FAILED)
-			return 0;
-		break;
-	}
+	netid = nfs_get_netid(mnt_saddr->sa_family, mnt_pmap->pm_prot);
+	if (netid == NULL)
+		return 0;
+	snprintf(new_option, sizeof(new_option) - 1,
+			 "mountproto=%s", netid);
+	free(netid);
+	if (po_append(options, new_option) == PO_FAILED)
+		return 0;
 
 	po_remove_all(options, "mountport");
 	snprintf(new_option, sizeof(new_option) - 1,
@@ -510,7 +502,8 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 		return 0;
 	}
 
-	if (!nfs_construct_new_options(options, &nfs_pmap, &mnt_pmap)) {
+	if (!nfs_construct_new_options(options, nfs_saddr, &nfs_pmap,
+					mnt_saddr, &mnt_pmap)) {
 		errno = EINVAL;
 		return 0;
 	}
