@@ -169,10 +169,15 @@ out:
 static int nfs_umount_do_umnt(struct mount_options *options,
 			      char **hostname, char **dirname)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *sap = (struct sockaddr *)&address;
+	union {
+		struct sockaddr		sa;
+		struct sockaddr_in	s4;
+		struct sockaddr_in6	s6;
+	} address;
+	struct sockaddr *sap = &address.sa;
 	socklen_t salen = sizeof(address);
 	struct pmap nfs_pmap, mnt_pmap;
+	sa_family_t family;
 
 	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap)) {
 		nfs_error(_("%s: bad mount options"), progname);
@@ -189,8 +194,10 @@ static int nfs_umount_do_umnt(struct mount_options *options,
 		return EX_FAIL;
 	}
 
-	if (nfs_name_to_address(*hostname, sap, &salen) == 0)
-		/* nfs_name_to_address reports any errors */
+	if (!nfs_mount_proto_family(options, &family))
+		return 0;
+	if (!nfs_lookup(*hostname, family, sap, &salen))
+		/* nfs_lookup reports any errors */
 		return EX_FAIL;
 
 	if (nfs_advise_umount(sap, salen, &mnt_pmap, dirname) == 0)
