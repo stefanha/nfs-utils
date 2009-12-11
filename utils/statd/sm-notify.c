@@ -765,17 +765,21 @@ nsm_get_state(int update)
 static int record_pid(void)
 {
 	char pid[20];
+	ssize_t len;
 	int fd;
 
-	snprintf(pid, 20, "%d\n", getpid());
+	(void)snprintf(pid, sizeof(pid), "%d\n", (int)getpid());
 	fd = open("/var/run/sm-notify.pid", O_CREAT|O_EXCL|O_WRONLY, 0600);
 	if (fd < 0)
 		return 0;
-	if (write(fd, pid, strlen(pid)) != strlen(pid))  {
+
+	len = write(fd, pid, strlen(pid));
+	if ((len < 0) || ((size_t)len != strlen(pid))) {
 		xlog_warn("Writing to pid file failed: errno %d (%m)",
 				errno);
 	}
-	close(fd);
+
+	(void)close(fd);
 	return 1;
 }
 
