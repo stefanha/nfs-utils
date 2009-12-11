@@ -193,8 +193,18 @@ static const unsigned int *nfs_default_proto()
 }
 #endif /* MOUNT_CONFIG */
 
-static int nfs_lookup(const char *hostname, const sa_family_t family,
-		      struct sockaddr *sap, socklen_t *salen)
+/**
+ * nfs_lookup - resolve hostname to an IPv4 or IPv6 socket address
+ * @hostname: pointer to C string containing DNS hostname to resolve
+ * @family: address family hint
+ * @sap: pointer to buffer to fill with socket address
+ * @len: IN: size of buffer to fill; OUT: size of socket address
+ *
+ * Returns 1 and places a socket address at @sap if successful;
+ * otherwise zero.
+ */
+int nfs_lookup(const char *hostname, const sa_family_t family,
+		struct sockaddr *sap, socklen_t *salen)
 {
 	struct addrinfo *gai_results;
 	struct addrinfo gai_hint = {
