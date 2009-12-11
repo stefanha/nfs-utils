@@ -29,6 +29,7 @@
 #include <grp.h>
 
 #include "xlog.h"
+#include "nfsrpc.h"
 
 #ifndef BASEDIR
 # ifdef NFS_STATEDIR
@@ -89,33 +90,6 @@ static void		drop_privs(void);
 static void		set_kernel_nsm_state(int state);
 
 static struct nsm_host *	hosts = NULL;
-
-/*
- * Address handling utilities
- */
-
-static unsigned short smn_get_port(const struct sockaddr *sap)
-{
-	switch (sap->sa_family) {
-	case AF_INET:
-		return ntohs(((struct sockaddr_in *)sap)->sin_port);
-	case AF_INET6:
-		return ntohs(((struct sockaddr_in6 *)sap)->sin6_port);
-	}
-	return 0;
-}
-
-static void smn_set_port(struct sockaddr *sap, const unsigned short port)
-{
-	switch (sap->sa_family) {
-	case AF_INET:
-		((struct sockaddr_in *)sap)->sin_port = htons(port);
-		break;
-	case AF_INET6:
-		((struct sockaddr_in6 *)sap)->sin6_port = htons(port);
-		break;
-	}
-}
 
 static struct addrinfo *smn_lookup(const char *name)
 {
@@ -321,7 +295,7 @@ notify(void)
 	/* Use source port if provided on the command line,
 	 * otherwise use bindresvport */
 	if (opt_srcport) {
-		smn_set_port(local_addr, opt_srcport);
+		nfs_set_port(local_addr, opt_srcport);
 		if (bind(sock, local_addr, sizeof(struct sockaddr_in)) < 0) {
 			xlog(L_ERROR, "Failed to bind RPC socket: %m");
 			exit(1);
@@ -455,16 +429,16 @@ notify_host(int sock, struct nsm_host *host)
 						first->ai_addrlen);
 		}
 
-		smn_set_port((struct sockaddr *)&host->addr, 0);
+		nfs_set_port((struct sockaddr *)&host->addr, 0);
 		host->retries = 0;
 	}
 
 	memcpy(dest, &host->addr, destlen);
-	if (smn_get_port(dest) == 0) {
+	if (nfs_get_port(dest) == 0) {
 		/* Build a PMAP packet */
 		xlog(D_GENERAL, "Sending portmap query to %s", host->name);
 
-		smn_set_port(dest, 111);
+		nfs_set_port(dest, 111);
 		*p++ = htonl(100000);
 		*p++ = htonl(2);
 		*p++ = htonl(3);
@@ -540,7 +514,7 @@ recv_reply(int sock)
 		return;
 	sap = (struct sockaddr *)&hp->addr;
 
-	if (smn_get_port(sap) == 0) {
+	if (nfs_get_port(sap) == 0) {
 		/* This was a portmap request */
 		unsigned int	port;
 
@@ -556,7 +530,7 @@ recv_reply(int sock)
 			hp->timeout = NSM_MAX_TIMEOUT;
 			hp->send_next += NSM_MAX_TIMEOUT;
 		} else {
-			smn_set_port(sap, port);
+			nfs_set_port(sap, port);
 			if (hp->timeout >= NSM_MAX_TIMEOUT / 4)
 				hp->timeout = NSM_MAX_TIMEOUT / 4;
 		}
