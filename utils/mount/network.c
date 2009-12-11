@@ -1354,6 +1354,40 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 }
 
 /*
+ * Returns TRUE and fills in @family if a valid NFS protocol option
+ * is found, or FALSE if the option was specified with an invalid value.
+ */
+int nfs_nfs_proto_family(struct mount_options *options,
+				sa_family_t *family)
+{
+	unsigned long protocol;
+	char *option;
+
+#ifdef HAVE_LIBTIRPC
+	*family = AF_UNSPEC;
+#else
+	*family = AF_INET;
+#endif
+
+	switch (po_rightmost(options, nfs_transport_opttbl)) {
+	case 0:	/* udp */
+		return 1;
+	case 1: /* tcp */
+		return 1;
+	case 2: /* proto */
+		option = po_get(options, "proto");
+		if (option != NULL)
+			return nfs_get_proto(option, family, &protocol);
+	}
+
+	/*
+	 * NFS transport protocol wasn't specified.  Return the
+	 * default address family.
+	 */
+	return 1;
+}
+
+/*
  * "mountprog" is supported only by the legacy mount command.  The
  * kernel mount client does not support this option.
  *
@@ -1464,6 +1498,35 @@ nfs_mount_port(struct mount_options *options, unsigned long *port)
 	 */
 	*port = 0;
 	return 1;
+}
+
+/*
+ * Returns TRUE and fills in @family if a valid MNT protocol option
+ * is found, or FALSE if the option was specified with an invalid value.
+ */
+int nfs_mount_proto_family(struct mount_options *options,
+				sa_family_t *family)
+{
+	unsigned long protocol;
+	char *option;
+
+#ifdef HAVE_LIBTIRPC
+	*family = AF_UNSPEC;
+#else
+	*family = AF_INET;
+#endif
+
+	option = po_get(options, "mountproto");
+	if (option != NULL)
+		return nfs_get_proto(option, family, &protocol);
+
+	/*
+	 * MNT transport protocol wasn't specified.  If the NFS
+	 * transport protocol was specified, derive the family
+	 * from that; otherwise, return the default family for
+	 * NFS.
+	 */
+	return nfs_nfs_proto_family(options, family);
 }
 
 /**

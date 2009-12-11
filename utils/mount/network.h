@@ -58,6 +58,8 @@ int clnt_ping(struct sockaddr_in *, const unsigned long,
 
 struct mount_options;
 
+int nfs_nfs_proto_family(struct mount_options *options, sa_family_t *family);
+int nfs_mount_proto_family(struct mount_options *options, sa_family_t *family);
 int nfs_nfs_version(struct mount_options *options, unsigned long *version);
 int  nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol);
 
