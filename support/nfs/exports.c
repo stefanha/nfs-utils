@@ -470,6 +470,18 @@ static void clearflags(int mask, unsigned int active, struct exportent *ep)
 /* options that can vary per flavor: */
 #define NFSEXP_SECINFO_FLAGS (NFSEXP_READONLY | NFSEXP_ROOTSQUASH \
 					| NFSEXP_ALLSQUASH)
+/*
+ * For those flags which are not allowed to vary by pseudoflavor,
+ * ensure that the export flags agree with the flags on each
+ * pseudoflavor:
+ */
+static void fix_pseudoflavor_flags(struct exportent *ep)
+{
+	struct sec_entry *p;
+
+	for (p = ep->e_secinfo; p->flav; p++)
+		p->flags |= ep->e_flags & ~NFSEXP_SECINFO_FLAGS;
+}
 
 /*
  * Parse option string pointed to by cp and set mount options accordingly.
@@ -477,7 +489,6 @@ static void clearflags(int mask, unsigned int active, struct exportent *ep)
 static int
 parseopts(char *cp, struct exportent *ep, int warn, int *had_subtree_opt_ptr)
 {
-	struct sec_entry *p;
 	int	had_subtree_opt = 0;
 	char 	*flname = efname?efname:"command line";
 	int	flline = efp?efp->x_line:0;
@@ -641,9 +652,7 @@ bad_option:
 	 */
 	if (ep->e_fslocdata)
 		ep->e_flags |= NFSEXP_NOHIDE;
-
-	for (p = ep->e_secinfo; p->flav; p++)
-		p->flags |= ep->e_flags & ~NFSEXP_SECINFO_FLAGS;
+	fix_pseudoflavor_flags(ep);
 	ep->e_squids = squids;
 	ep->e_sqgids = sqgids;
 	ep->e_nsquids = nsquids;
@@ -760,4 +769,3 @@ syntaxerr(char *msg)
 	xlog(L_ERROR, "%s:%d: syntax error: %s",
 			efname, efp?efp->x_line:0, msg);
 }
-
