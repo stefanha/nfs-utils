@@ -103,6 +103,13 @@ int				rmtab_read(void);
 
 struct nfskey *			key_lookup(char *hname);
 
+struct export_features {
+	unsigned int flags;
+	unsigned int secinfo_flags;
+};
+
+struct export_features *get_export_features(void);
+
 /* Record export error.  */
 extern int export_errno;
 

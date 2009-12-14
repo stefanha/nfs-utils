@@ -24,6 +24,16 @@
 #define NFSEXP_FSID		0x2000
 #define	NFSEXP_CROSSMOUNT	0x4000
 #define NFSEXP_NOACL		0x8000 /* reserved for possible ACL related use */
-#define NFSEXP_ALLFLAGS		0xFFFF
+/*
+ * All flags supported by the kernel before addition of the
+ * export_features interface:
+ */
+#define NFSEXP_OLDFLAGS		0x7E3F
+/*
+ * Flags that can vary per flavor, for kernels before addition of the
+ * export_features interface:
+ */
+#define NFSEXP_OLD_SECINFO_FLAGS (NFSEXP_READONLY | NFSEXP_ROOTSQUASH \
+					| NFSEXP_ALLSQUASH)
 
 #endif /* _NSF_EXPORT_H */
