@@ -614,6 +614,34 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 	return qword_eol(f);
 }
 
+static int is_subdirectory(char *subpath, char *path)
+{
+	int l = strlen(path);
+
+	return strcmp(subpath, path) == 0
+		|| (strncmp(subpath, path, l) == 0 && path[l] == '/'
+		    && is_mountpoint(path));
+}
+
+static int path_matches(nfs_export *exp, char *path)
+{
+	if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT)
+		return is_subdirectory(path, exp->m_export.e_path);
+	return strcmp(path, exp->m_export.e_path) == 0;
+}
+
+static int client_matches(nfs_export *exp, char *dom, struct hostent *he)
+{
+	if (use_ipaddr)
+		return client_check(exp->m_client, he);
+	return client_member(dom, exp->m_client->m_hostname);
+}
+
+static int export_matches(nfs_export *exp, char *dom, char *path, struct hostent *he)
+{
+	return path_matches(exp, path) && client_matches(exp, dom, he);
+}
+
 static nfs_export *lookup_export(char *dom, char *path, struct hostent *he)
 {
 	nfs_export *exp;
@@ -621,28 +649,10 @@ static nfs_export *lookup_export(char *dom, char *path, struct hostent *he)
 	int found_type = 0;
 	int i;
 
-	found = lookup_export(dom, path, he);
-	/* now find flags for this export point in this domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
-			if (!use_ipaddr && !client_member(dom, exp->m_client->m_hostname))
+			if (!export_matches(exp, dom, path, he))
 				continue;
-			if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT) {
-				/* if path is a mountpoint below e_path, then OK */
-				int l = strlen(exp->m_export.e_path);
-				if (strcmp(path, exp->m_export.e_path) == 0 ||
-				    (strncmp(path, exp->m_export.e_path, l) == 0 &&
-				     path[l] == '/' &&
-				     is_mountpoint(path)))
-					/* ok */;
-				else
-					continue;
-			} else if (strcmp(path, exp->m_export.e_path) != 0)
-				continue;
-			if (use_ipaddr) {
-				if (!client_check(exp->m_client, he))
-					continue;
-			}
 			if (!found) {
 				found = exp;
 				found_type = i;
