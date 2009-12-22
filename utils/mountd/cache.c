@@ -614,42 +614,14 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 	return qword_eol(f);
 }
 
-void nfsd_export(FILE *f)
+static nfs_export *lookup_export(char *dom, char *path, struct hostent *he)
 {
-	/* requests are:
-	 *  domain path
-	 * determine export options and return:
-	 *  domain path expiry flags anonuid anongid fsid
-	 */
-
-	char *cp;
-	int i;
-	char *dom, *path;
-	nfs_export *exp, *found = NULL;
+	nfs_export *exp;
+	nfs_export *found = NULL;
 	int found_type = 0;
-	struct in_addr addr;
-	struct hostent *he = NULL;
+	int i;
 
-
-	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
-		return;
-
-	xlog(D_CALL, "nfsd_export: inbuf '%s'", lbuf);
-
-	cp = lbuf;
-	dom = malloc(strlen(cp));
-	path = malloc(strlen(cp));
-
-	if (!dom || !path)
-		goto out;
-
-	if (qword_get(&cp, dom, strlen(lbuf)) <= 0)
-		goto out;
-	if (qword_get(&cp, path, strlen(lbuf)) <= 0)
-		goto out;
-
-	auth_reload();
-
+	found = lookup_export(dom, path, he);
 	/* now find flags for this export point in this domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
@@ -668,11 +640,6 @@ void nfsd_export(FILE *f)
 			} else if (strcmp(path, exp->m_export.e_path) != 0)
 				continue;
 			if (use_ipaddr) {
-				if (he == NULL) {
-					if (!inet_aton(dom, &addr))
-						goto out;
-					he = client_resolve(addr);
-				}
 				if (!client_check(exp->m_client, he))
 					continue;
 			}
@@ -703,6 +670,50 @@ void nfsd_export(FILE *f)
 			}
 		}
 	}
+	return found;
+}
+
+void nfsd_export(FILE *f)
+{
+	/* requests are:
+	 *  domain path
+	 * determine export options and return:
+	 *  domain path expiry flags anonuid anongid fsid
+	 */
+
+	char *cp;
+	char *dom, *path;
+	nfs_export *found = NULL;
+	struct in_addr addr;
+	struct hostent *he = NULL;
+
+
+	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
+		return;
+
+	xlog(D_CALL, "nfsd_export: inbuf '%s'", lbuf);
+
+	cp = lbuf;
+	dom = malloc(strlen(cp));
+	path = malloc(strlen(cp));
+
+	if (!dom || !path)
+		goto out;
+
+	if (qword_get(&cp, dom, strlen(lbuf)) <= 0)
+		goto out;
+	if (qword_get(&cp, path, strlen(lbuf)) <= 0)
+		goto out;
+
+	auth_reload();
+
+	if (use_ipaddr) {
+		if (!inet_aton(dom, &addr))
+			goto out;
+		he = client_resolve(addr);
+	}
+
+	found = lookup_export(dom, path, he);
 
 	if (found) {
 		if (dump_to_cache(f, dom, path, &found->m_export) < 0) {
