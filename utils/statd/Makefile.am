@@ -2,32 +2,26 @@
 
 man8_MANS = statd.man sm-notify.man
 
-GENFILES_CLNT	= sm_inter_clnt.c
-GENFILES_SVC	= sm_inter_svc.c
-GENFILES_XDR	= sm_inter_xdr.c
-GENFILES_H	= sm_inter.h
-
-GENFILES	= $(GENFILES_CLNT) $(GENFILES_SVC) $(GENFILES_XDR) $(GENFILES_H)
-
 RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PROGRAMS	= statd sm-notify
 dist_sbin_SCRIPTS	= start-statd
 statd_SOURCES = callback.c notlist.c misc.c monitor.c \
 	        simu.c stat.c statd.c svc_run.c rmtcall.c \
-	        sm_inter_clnt.c sm_inter_svc.c sm_inter_xdr.c \
-	        notlist.h statd.h system.h version.h sm_inter.h
+	        notlist.h statd.h system.h version.h
 sm_notify_SOURCES = sm-notify.c
 
 BUILT_SOURCES = $(GENFILES)
 statd_LDADD = ../../support/export/libexport.a \
+	      ../../support/nsm/libnsm.a \
 	      ../../support/nfs/libnfs.a \
 	      ../../support/misc/libmisc.a \
 	      $(LIBWRAP) $(LIBNSL)
-sm_notify_LDADD = ../../support/nfs/libnfs.a \
+sm_notify_LDADD = ../../support/nsm/libnsm.a \
+		  ../../support/nfs/libnfs.a \
 		  $(LIBNSL)
 
-EXTRA_DIST = sim_sm_inter.x sm_inter.x $(man8_MANS) COPYRIGHT simulate.c
+EXTRA_DIST = sim_sm_inter.x $(man8_MANS) COPYRIGHT simulate.c
 
 if CONFIG_RPCGEN
 RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen

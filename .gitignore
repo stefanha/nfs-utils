@@ -55,10 +55,11 @@ support/export/mount.h
 support/export/mount_clnt.c
 support/export/mount_xdr.c
 support/include/mount.h
-utils/statd/sm_inter.h
-utils/statd/sm_inter_clnt.c
-utils/statd/sm_inter_svc.c
-utils/statd/sm_inter_xdr.c
+support/nsm/sm_inter.h
+support/nsm/sm_inter_clnt.c
+support/nsm/sm_inter_svc.c
+support/nsm/sm_inter_xdr.c
+support/include/sm_inter.h
 # cscope database files
 cscope.*
 # generic editor backup et al

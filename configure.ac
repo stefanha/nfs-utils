@@ -402,6 +402,7 @@ AC_CONFIG_FILES([
 	support/include/Makefile
 	support/misc/Makefile
 	support/nfs/Makefile
+	support/nsm/Makefile
 	tools/Makefile
 	tools/locktest/Makefile
 	tools/nlmtest/Makefile
