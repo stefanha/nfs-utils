@@ -657,6 +657,11 @@ static nfs_export *lookup_export(char *dom, char *path, struct hostent *he)
 				found_type = i;
 				continue;
 			}
+
+			/* Always prefer non-V4ROOT mounts */
+			if (found->m_export.e_flags & NFSEXP_V4ROOT)
+				continue;
+
 			/* If one is a CROSSMOUNT, then prefer the longest path */
 			if (((found->m_export.e_flags & NFSEXP_CROSSMOUNT) ||
 			     (exp->m_export.e_flags & NFSEXP_CROSSMOUNT)) &&
