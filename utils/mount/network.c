@@ -1344,7 +1344,7 @@ int nfs_nfs_proto_family(struct mount_options *options,
 	unsigned long protocol;
 	char *option;
 
-#ifdef HAVE_LIBTIRPC
+#ifdef IPV6_SUPPORTED
 	*family = AF_UNSPEC;
 #else
 	*family = AF_INET;
