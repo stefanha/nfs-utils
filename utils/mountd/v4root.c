@@ -137,6 +137,31 @@ int pseudofs_update(char *hostname, char *path, nfs_export *source)
 	return 0;
 }
 
+static int v4root_add_parents(nfs_export *exp)
+{
+	char *hostname = exp->m_export.e_hostname;
+	char *path;
+	char *ptr;
+
+	path = strdup(exp->m_export.e_path);
+	if (!path)
+		return -ENOMEM;
+	for (ptr = path + 1; ptr; ptr = strchr(ptr, '/')) {
+		int ret;
+		char saved;
+
+		saved = *ptr;
+		*ptr = '\0';
+		ret = pseudofs_update(hostname, path, exp);
+		if (ret)
+			return ret;
+		*ptr = saved;
+		ptr++;
+	}
+	free(path);
+	return 0;
+}
+
 /*
  * Create pseudo exports by running through the real export
  * looking at the components of the path that make up the export.
@@ -148,9 +173,7 @@ void
 v4root_set()
 {
 	nfs_export	*exp;
-	int	i;
-	char *path, *ptr;
-	char *hostname;
+	int	i, ret;
 
 	if (!v4root_needed)
 		return;
@@ -159,8 +182,6 @@ v4root_set()
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
-			hostname = exp->m_export.e_hostname;
-
 			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
 				/*
 				 * We just added this one, so its
@@ -168,19 +189,8 @@ v4root_set()
 				 */
 				continue;
 
-			path = strdup(exp->m_export.e_path);
-			for (ptr = path + 1; ptr; ptr = strchr(ptr, '/')) {
-				int ret;
-				char saved;
-
-				saved = *ptr;
-				*ptr = '\0';
-				ret = pseudofs_update(hostname, path, exp);
-				/* XXX: error handling */
-				*ptr = saved;
-				ptr++;
-			}
-			free(path);
+			ret = v4root_add_parents(exp);
+			/* XXX: error handling! */
 		}
 	}
 }
