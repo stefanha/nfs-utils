@@ -162,6 +162,13 @@ v4root_set()
 			nxt = exp->m_next;
 			hostname = exp->m_export.e_hostname;
 
+			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
+				/*
+				 * We just added this one, so its
+				 * parents are already dealt with!
+				 */
+				continue;
+
 			path = strdup(exp->m_export.e_path);
 			for (ptr = path + 1; ptr; ptr = strchr(ptr, '/')) {
 				int ret;
