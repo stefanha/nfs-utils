@@ -147,7 +147,7 @@ int pseudofs_update(char *hostname, char *path, nfs_export *source)
 void
 v4root_set()
 {
-	nfs_export	*exp, *nxt;
+	nfs_export	*exp;
 	int	i;
 	char *path, *ptr;
 	char *hostname;
@@ -158,8 +158,7 @@ v4root_set()
 		return;
 
 	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i].p_head; exp; exp = nxt) {
-			nxt = exp->m_next;
+		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			hostname = exp->m_export.e_hostname;
 
 			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
