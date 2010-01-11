@@ -78,12 +78,20 @@ static void usage(FILE *fp, int n)
 	exit(n);
 }
 
-static const char *nfs_sm_pgmtbl[] = {
+static const char *mount_pgm_tbl[] = {
 	"showmount",
 	"mount",
 	"mountd",
 	NULL,
 };
+
+static const rpcvers_t mount_vers_tbl[] = {
+	MOUNTVERS_NFSV3,
+	MOUNTVERS_POSIX,
+	MOUNTVERS,
+};
+static const unsigned int max_vers_tblsz = 
+	(sizeof(mount_vers_tbl)/sizeof(mount_vers_tbl[0]));
 
 /*
  * Generate an RPC client handle connected to the mountd service
@@ -91,16 +99,15 @@ static const char *nfs_sm_pgmtbl[] = {
  *
  * Supports both AF_INET and AF_INET6 server addresses.
  */
-static CLIENT *nfs_get_mount_client(const char *hostname)
+static CLIENT *nfs_get_mount_client(const char *hostname, rpcvers_t vers)
 {
-	rpcprog_t program = nfs_getrpcbyname(MOUNTPROG, nfs_sm_pgmtbl);
+	rpcprog_t program = nfs_getrpcbyname(MOUNTPROG, mount_pgm_tbl);
 	CLIENT *client;
 
-	client = clnt_create(hostname, program, MOUNTVERS, "tcp");
+	client = clnt_create(hostname, program, vers, "tcp");
 	if (client)
 		return client;
-
-	client = clnt_create(hostname, program, MOUNTVERS, "udp");
+	client = clnt_create(hostname, program, vers, "udp");
 	if (client)
 		return client;
 
@@ -123,6 +130,7 @@ int main(int argc, char **argv)
 	int i;
 	int n;
 	int maxlen;
+	int unsigned vers=0;
 	char **dumpv;
 
 	program_name = argv[0];
@@ -185,11 +193,12 @@ int main(int argc, char **argv)
 		break;
 	}
 
-	mclient = nfs_get_mount_client(hostname);
+	mclient = nfs_get_mount_client(hostname, mount_vers_tbl[vers]);
 	mclient->cl_auth = authunix_create_default();
 	total_timeout.tv_sec = TOTAL_TIMEOUT;
 	total_timeout.tv_usec = 0;
 
+again:
 	if (eflag) {
 		memset(&exportlist, '\0', sizeof(exportlist));
 
@@ -197,6 +206,13 @@ int main(int argc, char **argv)
 			(xdrproc_t) xdr_void, NULL,
 			(xdrproc_t) xdr_exports, (caddr_t) &exportlist,
 			total_timeout);
+		if (clnt_stat == RPC_PROGVERSMISMATCH) {
+			if (++vers <  max_vers_tblsz) {
+				(void)CLNT_CONTROL(mclient, CLSET_VERS, 
+					(void *)&mount_vers_tbl[vers]);
+				goto again;
+				}
+		}
 		if (clnt_stat != RPC_SUCCESS) {
 			clnt_perror(mclient, "rpc mount export");
 			clnt_destroy(mclient);
@@ -232,6 +248,13 @@ int main(int argc, char **argv)
 		(xdrproc_t) xdr_void, NULL,
 		(xdrproc_t) xdr_mountlist, (caddr_t) &dumplist,
 		total_timeout);
+	if (clnt_stat == RPC_PROGVERSMISMATCH) {
+		if (++vers <  max_vers_tblsz) {
+			(void)CLNT_CONTROL(mclient, CLSET_VERS, 
+				(void *)&mount_vers_tbl[vers]);
+			goto again;
+		}
+	}
 	if (clnt_stat != RPC_SUCCESS) {
 		clnt_perror(mclient, "rpc mount dump");
 		clnt_destroy(mclient);
