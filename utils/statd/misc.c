@@ -49,27 +49,3 @@ xstrdup (const char *string)
 
   return (result);
 }
-
-
-/*
- * Unlinking a file.
- */
-void
-xunlink (char *path, char *host)
-{
-	char *tozap;
-
-	tozap = malloc(strlen(path)+strlen(host)+2);
-	if (tozap == NULL) {
-		xlog(L_ERROR, "xunlink: malloc failed: errno %d (%m)", errno);
-		return;
-	}
-	sprintf (tozap, "%s/%s", path, host);
-
-	if (unlink (tozap) == -1)
-		xlog(L_ERROR, "unlink (%s): %m", tozap);
-	else
-		xlog(D_GENERAL, "Unlinked %s", tozap);
-
-	free(tozap);
-}

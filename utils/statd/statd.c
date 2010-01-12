@@ -25,24 +25,14 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <grp.h>
+
 #include "statd.h"
 #include "nfslib.h"
+#include "nsm.h"
 
 /* Socket operations */
 #include <sys/types.h>
 #include <sys/socket.h>
-
-/* Added to enable specification of state directory path at run-time
- * j_carlos_gomez@yahoo.com
- */
-
-char * DIR_BASE = DEFAULT_DIR_BASE;
-
-char *  SM_DIR = DEFAULT_SM_DIR;
-char *  SM_BAK_DIR =  DEFAULT_SM_BAK_DIR;
-char *  SM_STAT_PATH = DEFAULT_SM_STAT_PATH;
-
-/* ----- end of state directory path stuff ------- */
 
 int	run_mode = 0;		/* foreground logging mode */
 
@@ -73,7 +63,6 @@ static struct option longopts[] =
 };
 
 extern void sm_prog_1 (struct svc_req *, register SVCXPRT *);
-static void load_state_number(void);
 
 #ifdef SIMULATIONS
 extern void simulator (int, char **);
@@ -190,38 +179,6 @@ static void truncate_pidfile(void)
 	}
 }
 
-static void drop_privs(void)
-{
-	struct stat st;
-
-	if (stat(SM_DIR, &st) == -1 &&
-	    stat(DIR_BASE, &st) == -1) {
-		st.st_uid = 0;
-		st.st_gid = 0;
-	}
-
-	if (st.st_uid == 0) {
-		xlog_warn("Running as 'root'.  "
-			"chown %s to choose different user\n", SM_DIR);
-		return;
-	}
-	/* better chown the pid file before dropping, as if it
-	 * if over nfs we might loose access
-	 */
-	if (pidfd >= 0) {
-		if (fchown(pidfd, st.st_uid, st.st_gid) < 0) {
-			xlog(L_ERROR, "Unable to change owner of %s: %d (%s)",
-					SM_DIR, strerror (errno));
-		}
-	}
-	setgroups(0, NULL);
-	if (setgid(st.st_gid) == -1
-	    || setuid(st.st_uid) == -1) {
-		xlog(L_ERROR, "Fail to drop privileges");
-		exit(1);
-	}
-}
-
 static void run_sm_notify(int outport)
 {
 	char op[20];
@@ -316,34 +273,8 @@ int main (int argc, char **argv)
 			MY_NAME = xstrdup(optarg);
 			break;
 		case 'P':
-
-			if ((DIR_BASE = xstrdup(optarg)) == NULL) {
-				fprintf(stderr, "%s: xstrdup(%s) failed!\n",
-					argv[0], optarg);
+			if (!nsm_setup_pathnames(argv[0], optarg))
 				exit(1);
-			}
-
-			SM_DIR = xmalloc(strlen(DIR_BASE) + 1 + sizeof("sm"));
-			SM_BAK_DIR = xmalloc(strlen(DIR_BASE) + 1 + sizeof("sm.bak"));
-			SM_STAT_PATH = xmalloc(strlen(DIR_BASE) + 1 + sizeof("state"));
-
-			if ((SM_DIR == NULL) 
-			    || (SM_BAK_DIR == NULL) 
-			    || (SM_STAT_PATH == NULL)) {
-
-				fprintf(stderr, "%s: xmalloc() failed!\n",
-					argv[0]);
-				exit(1);
-			}
-			if (DIR_BASE[strlen(DIR_BASE)-1] == '/') {
-				sprintf(SM_DIR, "%ssm", DIR_BASE );
-				sprintf(SM_BAK_DIR, "%ssm.bak", DIR_BASE );
-				sprintf(SM_STAT_PATH, "%sstate", DIR_BASE );
-			} else {
-				sprintf(SM_DIR, "%s/sm", DIR_BASE );
-				sprintf(SM_BAK_DIR, "%s/sm.bak", DIR_BASE );
-				sprintf(SM_STAT_PATH, "%s/state", DIR_BASE );
-			}
 			break;
 		case 'H': /* PRC: specify the ha-callout program */
 			if ((ha_callout_prog = xstrdup(optarg)) == NULL) {
@@ -421,10 +352,6 @@ int main (int argc, char **argv)
 		/* Child.	*/
 		close(pipefds[0]);
 		setsid ();
-		if (chdir (DIR_BASE) == -1) {
-			perror("statd: Could not chdir");
-			exit(1);
-		}
 
 		while (pipefds[1] <= 2) {
 			pipefds[1] = dup(pipefds[1]);
@@ -490,7 +417,13 @@ int main (int argc, char **argv)
 	 * pass on any SM_NOTIFY that arrives
 	 */
 	load_state();
-	load_state_number();
+
+	MY_STATE = nsm_get_state(0);
+	if (MY_STATE == 0)
+		exit(1);
+	xlog(D_GENERAL, "Local NSM state number: %d", MY_STATE);
+	nsm_update_kernel_state(MY_STATE);
+
 	pmap_unset (SM_PROG, SM_VERS);
 
 	/* this registers both UDP and TCP services */
@@ -507,7 +440,8 @@ int main (int argc, char **argv)
 		pipefds[1] = -1;
 	}
 
-	drop_privs();
+	if (!nsm_drop_privileges(pidfd))
+		exit(1);
 
 	for (;;) {
 		/*
@@ -535,30 +469,4 @@ int main (int argc, char **argv)
 
 	}
 	return 0;
-}
-
-static void
-load_state_number(void)
-{
-	int fd;
-	const char *file = "/proc/sys/fs/nfs/nsm_local_state";
-
-	if ((fd = open(SM_STAT_PATH, O_RDONLY)) == -1)
-		return;
-
-	if (read(fd, &MY_STATE, sizeof(MY_STATE)) != sizeof(MY_STATE)) {
-		xlog_warn("Unable to read state from '%s': errno %d (%s)",
-				SM_STAT_PATH, errno, strerror(errno));
-	}
-	close(fd);
-	fd = open(file, O_WRONLY);
-	if (fd >= 0) {
-		char buf[20];
-		snprintf(buf, sizeof(buf), "%d", MY_STATE);
-		if (write(fd, buf, strlen(buf)) != strlen(buf))
-			xlog_warn("Writing to '%s' failed: errno %d (%s)",
-				file, errno, strerror(errno));
-		close(fd);
-	}
-
 }

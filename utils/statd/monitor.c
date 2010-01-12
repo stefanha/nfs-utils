@@ -23,13 +23,12 @@
 
 #include "rpcmisc.h"
 #include "misc.h"
+#include "nsm.h"
 #include "statd.h"
 #include "notlist.h"
 #include "ha-callout.h"
 
 notify_list *		rtnl = NULL;	/* Run-time notify list. */
-
-#define LINELEN (4*(8+1)+SM_PRIV_SIZE*2+1)
 
 /*
  * Reject requests from non-loopback addresses in order
@@ -60,11 +59,12 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	char		*mon_name = argp->mon_id.mon_name,
 			*my_name  = argp->mon_id.my_id.my_name;
 	struct my_id	*id = &argp->mon_id.my_id;
-	char            *path;
 	char		*cp;
-	int             fd;
 	notify_list	*clnt;
-	struct in_addr	my_addr;
+	struct sockaddr_in my_addr = {
+		.sin_family		= AF_INET,
+		.sin_addr.s_addr	= htonl(INADDR_LOOPBACK),
+	};
 	char		*dnsname;
 	struct hostent	*hostinfo = NULL;
 
@@ -80,7 +80,6 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 */
 	if (!caller_is_localhost(rqstp))
 		goto failure;
-	my_addr.s_addr = htonl(INADDR_LOOPBACK);
 
 	/* 2.	Reject any registrations for non-lockd services.
 	 *
@@ -172,7 +171,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		goto failure;
 	}
 
-	NL_ADDR(clnt) = my_addr;
+	NL_ADDR(clnt) = my_addr.sin_addr;
 	NL_MY_PROG(clnt) = id->my_prog;
 	NL_MY_VERS(clnt) = id->my_vers;
 	NL_MY_PROC(clnt) = id->my_proc;
@@ -182,39 +181,15 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	/*
 	 * Now, Create file on stable storage for host.
 	 */
-
-	path=xmalloc(strlen(SM_DIR)+strlen(dnsname)+2);
-	sprintf(path, "%s/%s", SM_DIR, dnsname);
-	if ((fd = open(path, O_WRONLY|O_SYNC|O_CREAT|O_APPEND,
-		       S_IRUSR|S_IWUSR)) < 0) {
-		/* Didn't fly.  We won't monitor. */
-		xlog(L_ERROR, "creat(%s) failed: %m", path);
+	if (!nsm_insert_monitored_host(dnsname,
+				(struct sockaddr *)(char *)&my_addr, argp)) {
 		nlist_free(NULL, clnt);
-		free(path);
 		goto failure;
 	}
-	{
-		char buf[LINELEN + 1 + SM_MAXSTRLEN*2 + 4];
-		char *e;
-		int i;
-		e = buf + sprintf(buf, "%08x %08x %08x %08x ",
-				  my_addr.s_addr, id->my_prog,
-				  id->my_vers, id->my_proc);
-		for (i=0; i<SM_PRIV_SIZE; i++)
-			e += sprintf(e, "%02x", 0xff & (argp->priv[i]));
-		if (e+1-buf != LINELEN) abort();
-		e += sprintf(e, " %s %s\n", mon_name, my_name);
-		if (write(fd, buf, e-buf) != (e-buf)) {
-			xlog_warn("writing to %s failed: errno %d (%s)",
-				path, errno, strerror(errno));
-		}
-	}
 
-	free(path);
 	/* PRC: do the HA callout: */
 	ha_callout("add-client", mon_name, my_name, -1);
 	nlist_insert(&rtnl, clnt);
-	close(fd);
 	xlog(D_GENERAL, "MONITORING %s for %s", mon_name, my_name);
  success:
 	result.res_stat = STAT_SUCC;
@@ -236,71 +211,46 @@ failure:
 	return (&result);
 }
 
-void load_state(void)
+static unsigned int
+load_one_host(const char *hostname, const struct sockaddr *sap,
+		const struct mon *m,
+		__attribute__ ((unused)) const time_t timestamp)
 {
-	DIR *d;
-	struct dirent *de;
-	char buf[LINELEN + 1 + SM_MAXSTRLEN + 2];
+	const struct sockaddr_in *sin = (const struct sockaddr_in *)sap;
+	notify_list *clnt;
 
-	d = opendir(SM_DIR);
-	if (!d)
-		return;
-	while ((de = readdir(d))) {
-		char *path;
-		FILE *f;
-		int p;
+	clnt = nlist_new(m->mon_id.my_id.my_name,
+				m->mon_id.mon_name, 0);
+	if (clnt == NULL)
+		return 0;
 
-		if (de->d_name[0] == '.')
-			continue;
-		path = xmalloc(strlen(SM_DIR)+strlen(de->d_name)+2);
-		sprintf(path, "%s/%s", SM_DIR, de->d_name);
-		f = fopen(path, "r");
-		free(path);
-		if (f == NULL)
-			continue;
-		while (fgets(buf, sizeof(buf), f) != NULL) {
-			int addr, proc, prog, vers;
-			char priv[SM_PRIV_SIZE];
-			char *monname, *myname;
-			char *b;
-			int i;
-			notify_list	*clnt;
-
-			buf[sizeof(buf)-1] = 0;
-			b = strchr(buf, '\n');
-			if (b) *b = 0;
-			sscanf(buf, "%x %x %x %x ",
-			       &addr, &prog, &vers, &proc);
-			b = buf+36;
-			for (i=0; i<SM_PRIV_SIZE; i++) {
-				sscanf(b, "%2x", &p);
-				priv[i] = p;
-				b += 2;
-			}
-			b++;
-			monname = b;
-			while (*b && *b != ' ') b++;
-			if (*b) *b++ = '\0';
-			while (*b == ' ') b++;
-			myname = b;
-			clnt = nlist_new(myname, monname, 0);
-			if (!clnt)
-				break;
-			NL_ADDR(clnt).s_addr = addr;
-			NL_MY_PROG(clnt) = prog;
-			NL_MY_VERS(clnt) = vers;
-			NL_MY_PROC(clnt) = proc;
-			clnt->dns_name = xstrdup(de->d_name);
-			memcpy(NL_PRIV(clnt), priv, SM_PRIV_SIZE);
-			nlist_insert(&rtnl, clnt);
-		}
-		fclose(f);
+	clnt->dns_name = strdup(hostname);
+	if (clnt->dns_name == NULL) {
+		nlist_free(NULL, clnt);
+		return 0;
 	}
-	closedir(d);
+
+	xlog(D_GENERAL, "Adding record for %s to the monitor list...",
+			hostname);
+
+	NL_ADDR(clnt) = sin->sin_addr;
+	NL_MY_PROG(clnt) = m->mon_id.my_id.my_prog;
+	NL_MY_VERS(clnt) = m->mon_id.my_id.my_vers;
+	NL_MY_PROC(clnt) = m->mon_id.my_id.my_proc;
+	memcpy(NL_PRIV(clnt), m->priv, SM_PRIV_SIZE);
+
+	nlist_insert(&rtnl, clnt);
+	return 1;
 }
 
+void load_state(void)
+{
+	unsigned int count;
 
-
+	count = nsm_load_monitor_list(load_one_host);
+	if (count)
+		xlog(D_GENERAL, "Loaded %u previously monitored hosts");
+}
 
 /*
  * Services SM_UNMON requests.
@@ -359,7 +309,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
 
-			xunlink(SM_DIR, clnt->dns_name);
+			nsm_delete_monitored_host(clnt->dns_name);
 			nlist_free(&rtnl, clnt);
 
 			return (&result);
@@ -413,7 +363,7 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 			temp = NL_NEXT(clnt);
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
-			xunlink(SM_DIR, clnt->dns_name);
+			nsm_delete_monitored_host(clnt->dns_name);
 			nlist_free(&rtnl, clnt);
 			++count;
 			clnt = temp;

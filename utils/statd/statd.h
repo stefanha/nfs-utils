@@ -14,28 +14,6 @@
 #include "xlog.h"
 
 /*
- * Paths and filenames.
- */
-#if defined(NFS_STATEDIR)
-# define DEFAULT_DIR_BASE	NFS_STATEDIR "/"
-#else
-# define DEFAULT_DIR_BASE	"/var/lib/nfs/"
-#endif
-
-#define DEFAULT_SM_DIR		DEFAULT_DIR_BASE "sm"
-#define DEFAULT_SM_BAK_DIR	DEFAULT_DIR_BASE "sm.bak"
-#define DEFAULT_SM_STAT_PATH	DEFAULT_DIR_BASE "state"
-
-/* Added to support run-time specification of state directory path.
- * j_carlos_gomez@yahoo.com
- */
-
-extern char * DIR_BASE;
-extern char *  SM_DIR;
-extern char *  SM_BAK_DIR;
-extern char *  SM_STAT_PATH;
-
-/*
  * Status definitions.
  */
 #define STAT_FAIL	stat_fail
@@ -53,7 +31,6 @@ extern int	process_notify_list(void);
 extern int	process_reply(FD_SET_TYPE *);
 extern char *	xstrdup(const char *);
 extern void *	xmalloc(size_t);
-extern void	xunlink (char *, char *);
 extern void	load_state(void);
 
 /*
