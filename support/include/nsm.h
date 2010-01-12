@@ -63,4 +63,29 @@ extern void	nsm_delete_notified_host(const char *hostname);
 extern size_t	nsm_priv_to_hex(const char *priv, char *buf,
 				const size_t buflen);
 
+/* rpc.c */
+
+#define NSM_MAXMSGSIZE	(2048u)
+
+extern uint32_t nsm_xmit_getport(const int sock,
+			const struct sockaddr_in *sin,
+			const unsigned long program,
+			const unsigned long version);
+extern uint32_t nsm_xmit_getaddr(const int sock,
+			const struct sockaddr_in6 *sin6,
+			const rpcprog_t program, const rpcvers_t version);
+extern uint32_t nsm_xmit_rpcbind(const int sock, const struct sockaddr *sap,
+			const rpcprog_t program, const rpcvers_t version);
+extern uint32_t nsm_xmit_notify(const int sock, const struct sockaddr *sap,
+			const socklen_t salen, const rpcprog_t program,
+			const char *mon_name, const int state);
+extern uint32_t nsm_xmit_nlmcall(const int sock, const struct sockaddr *sap,
+			const socklen_t salen, const struct mon *m,
+			const int state);
+extern uint32_t nsm_parse_reply(XDR *xdrs);
+extern unsigned long
+		nsm_recv_getport(XDR *xdrs);
+extern uint16_t nsm_recv_getaddr(XDR *xdrs);
+extern uint16_t nsm_recv_rpcbind(const sa_family_t family, XDR *xdrs);
+
 #endif	/* !NFS_UTILS_SUPPORT_NSM_H */
