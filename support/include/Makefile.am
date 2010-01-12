@@ -9,6 +9,8 @@ noinst_HEADERS = \
 	nfs_mntent.h \
 	nfs_paths.h \
 	nfslib.h \
+	nfsrpc.h \
+	nsm.h \
 	rpcmisc.h \
 	tcpwrapper.h \
 	xio.h \

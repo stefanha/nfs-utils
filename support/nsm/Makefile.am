@@ -10,7 +10,7 @@ GENFILES	= $(GENFILES_CLNT) $(GENFILES_SVC) $(GENFILES_XDR) $(GENFILES_H)
 EXTRA_DIST	= sm_inter.x
 
 noinst_LIBRARIES = libnsm.a
-libnsm_a_SOURCES = $(GENFILES)
+libnsm_a_SOURCES = $(GENFILES) file.c
 
 BUILT_SOURCES = $(GENFILES)
 
