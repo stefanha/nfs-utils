@@ -60,5 +60,7 @@ extern _Bool	nsm_insert_monitored_host(const char *hostname,
 			const struct sockaddr *sap, const struct mon *m);
 extern void	nsm_delete_monitored_host(const char *hostname);
 extern void	nsm_delete_notified_host(const char *hostname);
+extern size_t	nsm_priv_to_hex(const char *priv, char *buf,
+				const size_t buflen);
 
 #endif	/* !NFS_UTILS_SUPPORT_NSM_H */
