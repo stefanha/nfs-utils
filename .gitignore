@@ -60,6 +60,10 @@ support/nsm/sm_inter_clnt.c
 support/nsm/sm_inter_svc.c
 support/nsm/sm_inter_xdr.c
 support/include/sm_inter.h
+tests/nsm_client/nlm_sm_inter.h
+tests/nsm_client/nlm_sm_inter_clnt.c
+tests/nsm_client/nlm_sm_inter_svc.c
+tests/nsm_client/nlm_sm_inter_xdr.c
 # cscope database files
 cscope.*
 # generic editor backup et al
