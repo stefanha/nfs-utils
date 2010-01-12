@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = tools support utils linux-nfs
+SUBDIRS = tools support utils linux-nfs tests
 
 MAINTAINERCLEANFILES = Makefile.in
 

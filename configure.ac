@@ -417,6 +417,8 @@ AC_CONFIG_FILES([
 	utils/nfsd/Makefile
 	utils/nfsstat/Makefile
 	utils/showmount/Makefile
-	utils/statd/Makefile])
+	utils/statd/Makefile
+	tests/Makefile
+	tests/nsm_client/Makefile])
 AC_OUTPUT
 
