@@ -9,3 +9,5 @@ statdb_dump_LDADD = ../support/nfs/libnfs.a \
 SUBDIRS = nsm_client
 
 MAINTAINERCLEANFILES = Makefile.in
+
+TESTS = t0001-statd-basic-mon-unmon.sh
