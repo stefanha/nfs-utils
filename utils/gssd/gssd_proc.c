@@ -904,6 +904,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	char			**ccname;
 	char			**dirname;
 	int			create_resp = -1;
+	int			err, downcall_err = -EACCES;
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
 
@@ -944,7 +945,10 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 				service == NULL)) {
 		/* Tell krb5 gss which credentials cache to use */
 		for (dirname = ccachesearch; *dirname != NULL; dirname++) {
-			if (gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname) == 0)
+			err = gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname);
+			if (err == -EKEYEXPIRED)
+				downcall_err = -EKEYEXPIRED;
+			else if (!err)
 				create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
 							     AUTHTYPE_KRB5);
 			if (create_resp == 0)
@@ -1034,7 +1038,7 @@ out:
 	return;
 
 out_return_error:
-	do_error_downcall(fd, uid, -1);
+	do_error_downcall(fd, uid, downcall_err);
 	goto out;
 }
 

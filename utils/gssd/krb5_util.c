@@ -170,9 +170,8 @@ select_krb5_ccache(const struct dirent *d)
  * what we want. Otherwise, return zero and no dirent pointer.
  * The caller is responsible for freeing the dirent if one is returned.
  *
- * Returns:
- *	0 => could not find an existing entry
- *	1 => found an existing entry
+ * Returns 0 if a valid-looking entry was found and a non-zero error
+ * code otherwise.
  */
 static int
 gssd_find_existing_krb5_ccache(uid_t uid, char *dirname, struct dirent **d)
@@ -186,7 +185,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, char *dirname, struct dirent **d)
 	char buf[1030];
 	char *princname = NULL;
 	char *realm = NULL;
-	int score, best_match_score = 0;
+	int score, best_match_score = 0, err = -EACCES;
 
 	memset(&best_match_stat, 0, sizeof(best_match_stat));
 	*d = NULL;
@@ -229,6 +228,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, char *dirname, struct dirent **d)
 				printerr(3, "CC file '%s' is expired or corrupt\n",
 					 statname);
 				free(namelist[i]);
+				err = -EKEYEXPIRED;
 				continue;
 			}
 
@@ -284,11 +284,12 @@ gssd_find_existing_krb5_ccache(uid_t uid, char *dirname, struct dirent **d)
 		}
 		free(namelist);
 	}
-	if (found)
-	{
+	if (found) {
 		*d = best_match_dir;
+		return 0;
 	}
-	return found;
+
+	return err;
 }
 
 
@@ -1024,29 +1025,29 @@ err_cache:
  * given only a UID.  We really need more information, but we
  * do the best we can.
  *
- * Returns:
- *	0 => a ccache was found
- *	1 => no ccache was found
+ * Returns 0 if a ccache was found, and a non-zero error code otherwise.
  */
 int
 gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirname)
 {
 	char			buf[MAX_NETOBJ_SZ];
 	struct dirent		*d;
+	int			err;
 
 	printerr(2, "getting credentials for client with uid %u for "
 		    "server %s\n", uid, servername);
 	memset(buf, 0, sizeof(buf));
-	if (gssd_find_existing_krb5_ccache(uid, dirname, &d)) {
-		snprintf(buf, sizeof(buf), "FILE:%s/%s", dirname, d->d_name);
-		free(d);
-	}
-	else
-		return 1;
+	err = gssd_find_existing_krb5_ccache(uid, dirname, &d);
+	if (err)
+		return err;
+
+	snprintf(buf, sizeof(buf), "FILE:%s/%s", dirname, d->d_name);
+	free(d);
+
 	printerr(2, "using %s as credentials cache for client with "
 		    "uid %u for server %s\n", buf, uid, servername);
 	gssd_set_krb5_ccache_name(buf);
-	return 0;
+	return err;
 }
 
 /*
