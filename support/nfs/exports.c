@@ -641,12 +641,6 @@ bad_option:
 			cp++;
 	}
 
-	/*
-	 * Turn on nohide which will allow this export to cross over
-	 * the 'mount --bind' mount point.
-	 */
-	if (ep->e_fslocdata)
-		setflags(NFSEXP_NOHIDE, active, ep);
 	fix_pseudoflavor_flags(ep);
 	ep->e_squids = squids;
 	ep->e_sqgids = sqgids;
