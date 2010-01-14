@@ -90,13 +90,18 @@ sm_prog_1_wrapper (struct svc_req *rqstp, register SVCXPRT *transp)
 #define sm_prog_1 sm_prog_1_wrapper
 #endif
 
+static void
+statd_unregister(void) {
+	nfs_svc_unregister(SM_PROG, SM_VERS);
+}
+
 /*
  * Signal handler.
  */
 static void 
 killer (int sig)
 {
-	pmap_unset (SM_PROG, SM_VERS);
+	statd_unregister ();
 	xlog_err ("Caught signal %d, un-registering and exiting", sig);
 }
 
@@ -125,6 +130,9 @@ static void log_modes(void)
 		strcat(buf,"No-Daemon ");
 	if (run_mode & MODE_LOG_STDERR)
 		strcat(buf,"Log-STDERR ");
+#ifdef HAVE_LIBTIRPC
+	strcat(buf, "TI-RPC ");
+#endif
 
 	xlog_warn(buf);
 }
@@ -424,10 +432,29 @@ int main (int argc, char **argv)
 	xlog(D_GENERAL, "Local NSM state number: %d", MY_STATE);
 	nsm_update_kernel_state(MY_STATE);
 
-	pmap_unset (SM_PROG, SM_VERS);
+	/*
+	 * ORDER
+	 * Clear old listeners while still root, to override any
+	 * permission checking done by rpcbind.
+	 */
+	statd_unregister();
 
-	/* this registers both UDP and TCP services */
-	rpc_init("statd", SM_PROG, SM_VERS, sm_prog_1, port);
+	/*
+	 * ORDER
+	 */
+	if (!nsm_drop_privileges(pidfd))
+		exit(1);
+
+	/*
+	 * ORDER
+	 * Create RPC listeners after dropping privileges.  This permits
+	 * statd to unregister its own listeners when it exits.
+	 */
+	if (nfs_svc_create("statd", SM_PROG, SM_VERS, sm_prog_1, port) == 0) {
+		xlog(L_ERROR, "failed to create RPC listeners, exiting");
+		exit(1);
+	}
+	atexit(statd_unregister);
 
 	/* If we got this far, we have successfully started, so notify parent */
 	if (pipefds[1] > 0) {
@@ -439,9 +466,6 @@ int main (int argc, char **argv)
 		close(pipefds[1]);
 		pipefds[1] = -1;
 	}
-
-	if (!nsm_drop_privileges(pidfd))
-		exit(1);
 
 	for (;;) {
 		/*
