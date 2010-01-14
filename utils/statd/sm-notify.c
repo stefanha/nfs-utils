@@ -33,6 +33,10 @@
 #include "nsm.h"
 #include "nfsrpc.h"
 
+#ifndef HAVE_DECL_AI_ADDRCONFIG
+#define AI_ADDRCONFIG	0
+#endif
+
 #define NSM_TIMEOUT	2
 #define NSM_MAX_TIMEOUT	120	/* don't make this too big */
 
@@ -65,19 +69,20 @@ static int		record_pid(void);
 
 static struct nsm_host *	hosts = NULL;
 
-static struct addrinfo *smn_lookup(const char *name)
+__attribute_malloc__
+static struct addrinfo *
+smn_lookup(const char *name)
 {
-	struct addrinfo	*ai, hint = {
-#if HAVE_DECL_AI_ADDRCONFIG
+	struct addrinfo	*ai = NULL;
+	struct addrinfo hint = {
 		.ai_flags	= AI_ADDRCONFIG,
-#endif	/* HAVE_DECL_AI_ADDRCONFIG */
-		.ai_family	= AF_INET,
-		.ai_protocol	= IPPROTO_UDP,
+		.ai_family	= (nsm_family == AF_INET ? AF_INET: AF_UNSPEC),
+		.ai_protocol	= (int)IPPROTO_UDP,
 	};
 	int error;
 
 	error = getaddrinfo(name, NULL, &hint, &ai);
-	if (error) {
+	if (error != 0) {
 		xlog(D_GENERAL, "getaddrinfo(3): %s", gai_strerror(error));
 		return NULL;
 	}
