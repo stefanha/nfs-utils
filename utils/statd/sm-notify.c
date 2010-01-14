@@ -44,6 +44,8 @@
 struct nsm_host {
 	struct nsm_host *	next;
 	char *			name;
+	char *			mon_name;
+	char *			my_name;
 	struct addrinfo		*ai;
 	time_t			last_used;
 	time_t			send_next;
@@ -93,7 +95,8 @@ smn_lookup(const char *name)
 
 __attribute_malloc__
 static struct nsm_host *
-smn_alloc_host(const char *hostname, const time_t timestamp)
+smn_alloc_host(const char *hostname, const char *mon_name,
+		const char *my_name, const time_t timestamp)
 {
 	struct nsm_host	*host;
 
@@ -102,7 +105,14 @@ smn_alloc_host(const char *hostname, const time_t timestamp)
 		goto out_nomem;
 
 	host->name = strdup(hostname);
-	if (host->name == NULL) {
+	host->mon_name = strdup(mon_name);
+	host->my_name = strdup(my_name);
+	if (host->name == NULL ||
+	    host->mon_name == NULL ||
+	    host->my_name == NULL) {
+		free(host->my_name);
+		free(host->mon_name);
+		free(host->name);
 		free(host);
 		goto out_nomem;
 	}
@@ -124,6 +134,8 @@ static void smn_forget_host(struct nsm_host *host)
 
 	nsm_delete_notified_host(host->name);
 
+	free(host->my_name);
+	free(host->mon_name);
 	free(host->name);
 	if (host->ai)
 		freeaddrinfo(host->ai);
@@ -134,12 +146,12 @@ static void smn_forget_host(struct nsm_host *host)
 static unsigned int
 smn_get_host(const char *hostname,
 		__attribute__ ((unused)) const struct sockaddr *sap,
-		__attribute__ ((unused)) const struct mon *m,
-		const time_t timestamp)
+		const struct mon *m, const time_t timestamp)
 {
 	struct nsm_host	*host;
 
-	host = smn_alloc_host(hostname, timestamp);
+	host = smn_alloc_host(hostname,
+		m->mon_id.mon_name, m->mon_id.my_id.my_name, timestamp);
 	if (host == NULL)
 		return 0;
 
