@@ -13,14 +13,14 @@
 struct notify_list {
   mon			mon;	/* Big honkin' NSM structure. */
   struct in_addr	addr;	/* IP address for callback. */
-  unsigned short	port;	/* port number for callback */
+  in_port_t		port;	/* port number for callback */
   short int		times;	/* Counter used for various things. */
   int			state;	/* For storing notified state for callbacks. */
   char			*dns_name; /* used for matching incoming
 				    * NOTIFY requests */
   struct notify_list	*next;	/* Linked list forward pointer. */
   struct notify_list	*prev;	/* Linked list backward pointer. */
-  u_int32_t		xid;	/* XID of MS_NOTIFY RPC call */
+  uint32_t		xid;	/* XID of MS_NOTIFY RPC call */
   time_t		when;	/* notify: timeout for re-xmit */
 };
 
