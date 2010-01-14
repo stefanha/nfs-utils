@@ -12,7 +12,7 @@
 #include <netdb.h>
 #include "statd.h"
 
-/* 
+/*
  * Services SM_STAT requests.
  *
  * According the the X/Open spec's on this procedure: "Implementations
@@ -37,20 +37,23 @@
  *      other way to get it.
  *   3/ That's what we always did in the past.
  */
-struct sm_stat_res * 
-sm_stat_1_svc (struct sm_name *argp, struct svc_req *rqstp)
+struct sm_stat_res *
+sm_stat_1_svc(struct sm_name *argp,
+		__attribute__ ((unused)) struct svc_req *rqstp)
 {
   static sm_stat_res result;
+  char *name;
 
   xlog(D_CALL, "Received SM_STAT from %s", argp->mon_name);
 
-  if (gethostbyname (argp->mon_name) == NULL) {
-    xlog_warn ("gethostbyname error for %s", argp->mon_name);
+  name = statd_canonical_name(argp->mon_name);
+  if (name == NULL) {
     result.res_stat = STAT_FAIL;
     xlog (D_GENERAL, "STAT_FAIL for %s", argp->mon_name);
   } else {
     result.res_stat = STAT_SUCC;
     xlog (D_GENERAL, "STAT_SUCC for %s", argp->mon_name);
+    free(name);
   }
   result.state = MY_STATE;
   return(&result);
