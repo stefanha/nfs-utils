@@ -8,8 +8,10 @@
 #include <config.h>
 #endif
 
+#include <netdb.h>
 #include <arpa/inet.h>
 
+#include "sockaddr.h"
 #include "rpcmisc.h"
 #include "statd.h"
 #include "notlist.h"
@@ -19,30 +21,25 @@ extern void my_svc_exit (void);
 
 /*
  * Services SM_SIMU_CRASH requests.
+ *
+ * Although the kernel contacts the statd service via only IPv4
+ * transports, the statd service can receive other requests, such
+ * as SM_NOTIFY, from remote peers via IPv6.
  */
 void *
-sm_simu_crash_1_svc (void *argp, struct svc_req *rqstp)
+sm_simu_crash_1_svc (__attribute__ ((unused)) void *argp, struct svc_req *rqstp)
 {
-  struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
+  struct sockaddr *sap = nfs_getrpccaller(rqstp->rq_xprt);
+  char buf[INET6_ADDRSTRLEN];
   static char *result = NULL;
-  struct in_addr caller;
 
   xlog(D_CALL, "Received SM_SIMU_CRASH");
 
-  if (sin->sin_family != AF_INET) {
-    xlog_warn("Call to statd from non-AF_INET address");
-    goto failure;
-  }
+  if (!nfs_is_v4_loopback(sap))
+    goto out_nonlocal;
 
-  caller = sin->sin_addr;
-  if (caller.s_addr != htonl(INADDR_LOOPBACK)) {
-    xlog_warn("Call to statd from non-local host %s",
-      inet_ntoa(caller));
-    goto failure;
-  }
-
-  if (ntohs(sin->sin_port) >= 1024) {
-    xlog_warn("Call to statd-simu-crash from unprivileged port");
+  if ((int)nfs_get_port(sap) >= IPPORT_RESERVED) {
+    xlog_warn("SM_SIMU_CRASH call from unprivileged port");
     goto failure;
   }
 
@@ -54,4 +51,10 @@ sm_simu_crash_1_svc (void *argp, struct svc_req *rqstp)
 
  failure:
   return ((void *)&result);
+
+ out_nonlocal:
+  if (!statd_present_address(sap, buf, sizeof(buf)))
+    buf[0] = '\0';
+  xlog_warn("SM_SIMU_CRASH call from non-local host %s", buf);
+  goto failure;
 }
