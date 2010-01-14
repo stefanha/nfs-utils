@@ -25,6 +25,8 @@
 extern _Bool	statd_matchhostname(const char *hostname1, const char *hostname2);
 extern _Bool	statd_present_address(const struct sockaddr *sap, char *buf,
 					const size_t buflen);
+__attribute_malloc__
+extern char *	statd_canonical_name(const char *hostname);
 
 extern void	my_svc_run(void);
 extern void	notify_hosts(void);
