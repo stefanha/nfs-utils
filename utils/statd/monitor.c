@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <dirent.h>
 
+#include "sockaddr.h"
 #include "rpcmisc.h"
 #include "nsm.h"
 #include "statd.h"
@@ -32,20 +33,26 @@ notify_list *		rtnl = NULL;	/* Run-time notify list. */
 /*
  * Reject requests from non-loopback addresses in order
  * to prevent attack described in CERT CA-99.05.
+ *
+ * Although the kernel contacts the statd service via only IPv4
+ * transports, the statd service can receive other requests, such
+ * as SM_NOTIFY, from remote peers via IPv6.
  */
-static int
+static _Bool
 caller_is_localhost(struct svc_req *rqstp)
 {
-	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
-	struct in_addr	caller;
+	struct sockaddr *sap = nfs_getrpccaller(rqstp->rq_xprt);
+	char buf[INET6_ADDRSTRLEN];
 
-	caller = sin->sin_addr;
-	if (caller.s_addr != htonl(INADDR_LOOPBACK)) {
-		xlog_warn("Call to statd from non-local host %s",
-			inet_ntoa(caller));
-		return 0;
-	}
-	return 1;
+	if (!nfs_is_v4_loopback(sap))
+		goto out_nonlocal;
+	return true;
+
+out_nonlocal:
+	if (!statd_present_address(sap, buf, sizeof(buf)))
+		buf[0] = '\0';
+	xlog_warn("SM_MON/SM_UNMON call from non-local host %s", buf);
+	return false;
 }
 
 /*
