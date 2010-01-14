@@ -189,7 +189,6 @@ nlist_clone(notify_list *entry)
 	NL_MY_PROG(new) = NL_MY_PROG(entry);
 	NL_MY_VERS(new) = NL_MY_VERS(entry);
 	NL_MY_PROC(new) = NL_MY_PROC(entry);
-	NL_ADDR(new)    = NL_ADDR(entry);
 	memcpy(NL_PRIV(new), NL_PRIV(entry), SM_PRIV_SIZE);
 
 	return new;

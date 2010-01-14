@@ -125,6 +125,15 @@ recv_rply(u_long *portp)
 	xid = nsm_parse_reply(&xdr);
 	if (xid == 0)
 		goto done;
+	if (sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK)) {
+		struct in_addr addr = sin.sin_addr;
+		char buf[INET_ADDRSTRLEN];
+
+		xlog_warn("%s: Unrecognized reply from %s", __func__,
+				inet_ntop(AF_INET, &addr, buf,
+						(socklen_t)sizeof(buf)));
+		goto done;
+	}
 
 	for (lp = notify; lp != NULL; lp = lp->next) {
 		/* LH - this was a bug... it should have been checking
@@ -132,15 +141,6 @@ recv_rply(u_long *portp)
 		 * not the static, internal xid */
 		if (lp->xid != xid)
 			continue;
-		if (lp->addr.s_addr != sin.sin_addr.s_addr) {
-			char addr [18];
-			strncpy (addr, inet_ntoa(lp->addr),
-				 sizeof (addr) - 1);
-			addr [sizeof (addr) - 1] = '\0';
-			xlog_warn("%s: address mismatch: "
-				"expected %s, got %s", __func__,
-				addr, inet_ntoa(sin.sin_addr));
-		}
 		if (lp->port == 0)
 			*portp = nsm_recv_getport(&xdr);
 		break;
@@ -160,8 +160,8 @@ process_entry(notify_list *lp)
 	struct sockaddr_in	sin;
 
 	if (NL_TIMES(lp) == 0) {
-		xlog(D_GENERAL, "%s: Cannot notify %s, giving up",
-				__func__, inet_ntoa(NL_ADDR(lp)));
+		xlog(D_GENERAL, "%s: Cannot notify localhost, giving up",
+				__func__);
 		return 0;
 	}
 
@@ -226,8 +226,8 @@ process_reply(FD_SET_TYPE *rfds)
 			nlist_insert_timer(&notify, lp);
 			return 1;
 		}
-		xlog_warn("%s: [%s] service %d not registered",
-			__func__, inet_ntoa(lp->addr), NL_MY_PROG(lp));
+		xlog_warn("%s: service %d not registered on localhost",
+			__func__, NL_MY_PROG(lp));
 	} else {
 		xlog(D_GENERAL, "%s: Callback to %s (for %d) succeeded",
 			__func__, NL_MY_NAME(lp), NL_MON_NAME(lp));

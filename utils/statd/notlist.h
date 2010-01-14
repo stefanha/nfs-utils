@@ -12,7 +12,6 @@
  */
 struct notify_list {
   mon			mon;	/* Big honkin' NSM structure. */
-  struct in_addr	addr;	/* IP address for callback. */
   in_port_t		port;	/* port number for callback */
   short int		times;	/* Counter used for various things. */
   int			state;	/* For storing notified state for callbacks. */
@@ -53,7 +52,6 @@ extern notify_list *	nlist_gethost(notify_list *, char *, int);
 #define NL_FIRST	NL_NEXT
 #define NL_PREV(L)	((L)->prev)
 #define NL_DATA(L)	((L)->mon)
-#define NL_ADDR(L)	((L)->addr)
 #define NL_STATE(L)	((L)->state)
 #define NL_TIMES(L)	((L)->times)
 #define NL_MON_ID(L)	(NL_DATA((L)).mon_id)

@@ -173,7 +173,6 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		goto failure;
 	}
 
-	NL_ADDR(clnt) = my_addr.sin_addr;
 	NL_MY_PROG(clnt) = id->my_prog;
 	NL_MY_VERS(clnt) = id->my_vers;
 	NL_MY_PROC(clnt) = id->my_proc;
@@ -214,11 +213,11 @@ failure:
 }
 
 static unsigned int
-load_one_host(const char *hostname, const struct sockaddr *sap,
+load_one_host(const char *hostname,
+		__attribute__ ((unused)) const struct sockaddr *sap,
 		const struct mon *m,
 		__attribute__ ((unused)) const time_t timestamp)
 {
-	const struct sockaddr_in *sin = (const struct sockaddr_in *)sap;
 	notify_list *clnt;
 
 	clnt = nlist_new(m->mon_id.my_id.my_name,
@@ -235,7 +234,6 @@ load_one_host(const char *hostname, const struct sockaddr *sap,
 	xlog(D_GENERAL, "Adding record for %s to the monitor list...",
 			hostname);
 
-	NL_ADDR(clnt) = sin->sin_addr;
 	NL_MY_PROG(clnt) = m->mon_id.my_id.my_prog;
 	NL_MY_VERS(clnt) = m->mon_id.my_id.my_vers;
 	NL_MY_PROC(clnt) = m->mon_id.my_id.my_proc;
