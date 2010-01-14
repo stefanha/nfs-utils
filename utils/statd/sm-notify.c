@@ -130,9 +130,10 @@ out_nomem:
 
 static void smn_forget_host(struct nsm_host *host)
 {
-	xlog(D_CALL, "Removing %s from notify list", host->name);
+	xlog(D_CALL, "Removing %s (%s, %s) from notify list",
+			host->name, host->mon_name, host->my_name);
 
-	nsm_delete_notified_host(host->name);
+	nsm_delete_notified_host(host->name, host->mon_name, host->my_name);
 
 	free(host->my_name);
 	free(host->mon_name);

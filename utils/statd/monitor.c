@@ -315,7 +315,8 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
 
-			nsm_delete_monitored_host(clnt->dns_name);
+			nsm_delete_monitored_host(clnt->dns_name,
+							mon_name, my_name);
 			nlist_free(&rtnl, clnt);
 
 			return (&result);
@@ -369,7 +370,8 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 			temp = NL_NEXT(clnt);
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
-			nsm_delete_monitored_host(clnt->dns_name);
+			nsm_delete_monitored_host(clnt->dns_name,
+							mon_name, my_name);
 			nlist_free(&rtnl, clnt);
 			++count;
 			clnt = temp;

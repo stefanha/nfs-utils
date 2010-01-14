@@ -625,6 +625,56 @@ nsm_create_monitor_record(char *buf, const size_t buflen,
 	return buflen - remaining;
 }
 
+static _Bool
+nsm_append_monitored_host(const char *path, const char *line)
+{
+	_Bool result = false;
+	char *buf = NULL;
+	struct stat stb;
+	size_t buflen;
+	ssize_t len;
+	int fd;
+
+	if (stat(path, &stb) == -1) {
+		xlog(L_ERROR, "Failed to insert: "
+			"could not stat original file %s: %m", path);
+		goto out;
+	}
+	buflen = (size_t)stb.st_size + strlen(line);
+
+	buf = malloc(buflen + 1);
+	if (buf == NULL) {
+		xlog(L_ERROR, "Failed to insert: no memory");
+		goto out;
+	}
+	memset(buf, 0, buflen + 1);
+
+	fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		xlog(L_ERROR, "Failed to insert: "
+			"could not open original file %s: %m", path);
+		goto out;
+	}
+
+	len = read(fd, buf, (size_t)stb.st_size);
+	if (exact_error_check(len, (size_t)stb.st_size)) {
+		xlog(L_ERROR, "Failed to insert: "
+			"could not read original file %s: %m", path);
+		(void)close(fd);
+		goto out;
+	}
+	(void)close(fd);
+
+	strcat(buf, line);
+
+	if (nsm_atomic_write(path, buf, buflen))
+		result = true;
+
+out:
+	free(buf);
+	return result;
+}
+
 /**
  * nsm_insert_monitored_host - write callback data for one host to disk
  * @hostname: C string containing a hostname
@@ -657,9 +707,18 @@ nsm_insert_monitored_host(const char *hostname, const struct sockaddr *sap,
 		goto out;
 	}
 
-	fd = open(path, O_WRONLY | O_CREAT | O_SYNC, S_IRUSR | S_IWUSR);
+	/*
+	 * If exclusive create fails, we're adding a new line to an
+	 * existing file.
+	 */
+	fd = open(path, O_WRONLY | O_CREAT | O_EXCL | O_SYNC, S_IRUSR | S_IWUSR);
 	if (fd == -1) {
-		xlog(L_ERROR, "Failed to insert: creating %s: %m", path);
+		if (errno != EEXIST) {
+			xlog(L_ERROR, "Failed to insert: creating %s: %m", path);
+			goto out;
+		}
+
+		result = nsm_append_monitored_host(path, buf);
 		goto out;
 	}
 	result = true;
@@ -848,9 +907,15 @@ nsm_load_notify_list(nsm_populate_t func)
 }
 
 static void
-nsm_delete_host(const char *directory, const char *hostname)
+nsm_delete_host(const char *directory, const char *hostname,
+		const char *mon_name, const char *my_name)
 {
-	char *path;
+	char line[LINELEN + 1 + SM_MAXSTRLEN + 2];
+	char *outbuf = NULL;
+	struct stat stb;
+	char *path, *next;
+	size_t remaining;
+	FILE *f;
 
 	path = nsm_make_record_pathname(directory, hostname);
 	if (path == NULL) {
@@ -858,30 +923,106 @@ nsm_delete_host(const char *directory, const char *hostname)
 		return;
 	}
 
-	if (unlink(path) == -1)
-		xlog(L_ERROR, "Failed to unlink %s: %m", path);
+	if (stat(path, &stb) == -1) {
+		xlog(L_ERROR, "Failed to delete: "
+			"could not stat original file %s: %m", path);
+		goto out;
+	}
+	remaining = (size_t)stb.st_size + 1;
 
+	outbuf = malloc(remaining);
+	if (outbuf == NULL) {
+		xlog(L_ERROR, "Failed to delete: no memory");
+		goto out;
+	}
+
+	f = fopen(path, "r");
+	if (f == NULL) {
+		xlog(L_ERROR, "Failed to delete: "
+			"could not open original file %s: %m", path);
+		goto out;
+	}
+
+	/*
+	 * Walk the records in the file, and copy the non-matching
+	 * ones to our output buffer.
+	 */
+	next = outbuf;
+	while (fgets(line, (int)sizeof(line), f) != NULL) {
+		struct sockaddr_in sin;
+		struct mon m;
+		size_t len;
+
+		if (!nsm_parse_line(line, &sin, &m)) {
+			xlog(L_ERROR, "Failed to delete: "
+				"could not parse original file %s", path);
+			(void)fclose(f);
+			goto out;
+		}
+
+		if (strcmp(mon_name, m.mon_id.mon_name) == 0 &&
+			 strcmp(my_name, m.mon_id.my_id.my_name) == 0)
+			continue;
+
+		/* nsm_parse_line destroys the contents of line[], so
+		 * reconstruct the copy in our output buffer. */
+		len = nsm_create_monitor_record(next, remaining,
+					(struct sockaddr *)(char *)&sin, &m);
+		if (len == 0) {
+			xlog(L_ERROR, "Failed to delete: "
+				"could not construct output record");
+			(void)fclose(f);
+			goto out;
+		}
+		next += len;
+		remaining -= len;
+	}
+
+	(void)fclose(f);
+
+	/*
+	 * If nothing was copied when we're done, then unlink the file.
+	 * Otherwise, atomically update the contents of the file.
+	 */
+	if (next != outbuf) {
+		if (!nsm_atomic_write(path, outbuf, strlen(outbuf)))
+			xlog(L_ERROR, "Failed to delete: "
+				"could not write new file %s: %m", path);
+	} else {
+		if (unlink(path) == -1)
+			xlog(L_ERROR, "Failed to delete: "
+				"could not unlink file %s: %m", path);
+	}
+
+out:
+	free(outbuf);
 	free(path);
 }
 
 /**
  * nsm_delete_monitored_host - delete on-disk record for monitored host
  * @hostname: '\0'-terminated C string containing hostname of record to delete
+ * @mon_name: '\0'-terminated C string containing monname of record to delete
+ * @my_name: '\0'-terminated C string containing myname of record to delete
  *
  */
 void
-nsm_delete_monitored_host(const char *hostname)
+nsm_delete_monitored_host(const char *hostname, const char *mon_name,
+		const char *my_name)
 {
-	nsm_delete_host(NSM_MONITOR_DIR, hostname);
+	nsm_delete_host(NSM_MONITOR_DIR, hostname, mon_name, my_name);
 }
 
 /**
  * nsm_delete_notified_host - delete on-disk host record after notification
  * @hostname: '\0'-terminated C string containing hostname of record to delete
+ * @mon_name: '\0'-terminated C string containing monname of record to delete
+ * @my_name: '\0'-terminated C string containing myname of record to delete
  *
  */
 void
-nsm_delete_notified_host(const char *hostname)
+nsm_delete_notified_host(const char *hostname, const char *mon_name,
+		const char *my_name)
 {
-	nsm_delete_host(NSM_NOTIFY_DIR, hostname);
+	nsm_delete_host(NSM_NOTIFY_DIR, hostname, mon_name, my_name);
 }
