@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <grp.h>
 
+#include "sockaddr.h"
 #include "xlog.h"
 #include "nsm.h"
 #include "nfsrpc.h"

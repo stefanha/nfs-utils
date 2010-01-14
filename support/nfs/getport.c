@@ -45,6 +45,7 @@
 #include <rpc/rpcb_prot.h>
 #endif
 
+#include "sockaddr.h"
 #include "nfsrpc.h"
 
 /*
@@ -705,8 +706,8 @@ int nfs_rpc_ping(const struct sockaddr *sap, const socklen_t salen,
 		 const rpcprog_t program, const rpcvers_t version,
 		 const unsigned short protocol, const struct timeval *timeout)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *saddr = (struct sockaddr *)&address;
+	union nfs_sockaddr address;
+	struct sockaddr *saddr = &address.sa;
 	CLIENT *client;
 	struct timeval tout = { -1, 0 };
 	int result = 0;
@@ -774,8 +775,8 @@ unsigned short nfs_getport(const struct sockaddr *sap,
 			   const rpcvers_t version,
 			   const unsigned short protocol)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *saddr = (struct sockaddr *)&address;
+	union nfs_sockaddr address;
+	struct sockaddr *saddr = &address.sa;
 	struct timeval timeout = { -1, 0 };
 	unsigned short port = 0;
 	CLIENT *client;
@@ -833,8 +834,8 @@ int nfs_getport_ping(struct sockaddr *sap, const socklen_t salen,
 	}
 
 	if (port != 0) {
-		struct sockaddr_storage address;
-		struct sockaddr *saddr = (struct sockaddr *)&address;
+		union nfs_sockaddr address;
+		struct sockaddr *saddr = &address.sa;
 
 		memcpy(saddr, sap, (size_t)salen);
 		nfs_set_port(saddr, port);
@@ -885,8 +886,8 @@ unsigned short nfs_getlocalport(const rpcprot_t program,
 				const rpcvers_t version,
 				const unsigned short protocol)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *lb_addr = (struct sockaddr *)&address;
+	union nfs_sockaddr address;
+	struct sockaddr *lb_addr = &address.sa;
 	socklen_t lb_len = sizeof(*lb_addr);
 	unsigned short port = 0;
 
@@ -969,8 +970,8 @@ unsigned short nfs_rpcb_getaddr(const struct sockaddr *sap,
 				const unsigned short protocol,
 				const struct timeval *timeout)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *saddr = (struct sockaddr *)&address;
+	union nfs_sockaddr address;
+	struct sockaddr *saddr = &address.sa;
 	CLIENT *client;
 	struct rpcb parms;
 	struct timeval tout = { -1, 0 };

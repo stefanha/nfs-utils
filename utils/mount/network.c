@@ -42,6 +42,7 @@
 #include <rpc/pmap_prot.h>
 #include <rpc/pmap_clnt.h>
 
+#include "sockaddr.h"
 #include "xcommon.h"
 #include "mount.h"
 #include "nls.h"
@@ -55,10 +56,6 @@
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
 #define MOUNT_TIMEOUT	(30)
-
-#if SIZEOF_SOCKLEN_T - 0 == 0
-#define socklen_t unsigned int
-#endif
 
 extern int nfs_mount_data_version;
 extern char *progname;
@@ -540,8 +537,8 @@ static int nfs_probe_port(const struct sockaddr *sap, const socklen_t salen,
 			  struct pmap *pmap, const unsigned long *versions,
 			  const unsigned int *protos)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *saddr = (struct sockaddr *)&address;
+	union nfs_sockaddr address;
+	struct sockaddr *saddr = &address.sa;
 	const unsigned long prog = pmap->pm_prog, *p_vers;
 	const unsigned int prot = (u_int)pmap->pm_prot, *p_prot;
 	const u_short port = (u_short) pmap->pm_port;
@@ -831,8 +828,8 @@ int start_statd(void)
 int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
 		      const struct pmap *pmap, const dirpath *argp)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *saddr = (struct sockaddr *)&address;
+	union nfs_sockaddr address;
+	struct sockaddr *saddr = &address.sa;
 	struct pmap mnt_pmap = *pmap;
 	struct timeval timeout = {
 		.tv_sec		= MOUNT_TIMEOUT >> 3,

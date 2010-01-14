@@ -26,6 +26,8 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+
+#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -38,6 +40,7 @@
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 
+#include "sockaddr.h"
 #include "nfsrpc.h"
 
 #ifdef HAVE_LIBTIRPC
@@ -50,6 +53,7 @@
  */
 #define NFSRPC_TIMEOUT_UDP	(3)
 #define NFSRPC_TIMEOUT_TCP	(10)
+
 
 /*
  * Set up an RPC client for communicating via a AF_LOCAL socket.
@@ -121,10 +125,10 @@ static int nfs_bind(const int sock, const sa_family_t family)
 
 	switch (family) {
 	case AF_INET:
-		return bind(sock, (struct sockaddr *)&sin,
+		return bind(sock, (struct sockaddr *)(char *)&sin,
 					(socklen_t)sizeof(sin));
 	case AF_INET6:
-		return bind(sock, (struct sockaddr *)&sin6,
+		return bind(sock, (struct sockaddr *)(char *)&sin6,
 					(socklen_t)sizeof(sin6));
 	}
 
@@ -153,9 +157,9 @@ static int nfs_bindresvport(const int sock, const sa_family_t family)
 
 	switch (family) {
 	case AF_INET:
-		return bindresvport_sa(sock, (struct sockaddr *)&sin);
+		return bindresvport_sa(sock, (struct sockaddr *)(char *)&sin);
 	case AF_INET6:
-		return bindresvport_sa(sock, (struct sockaddr *)&sin6);
+		return bindresvport_sa(sock, (struct sockaddr *)(char *)&sin6);
 	}
 
 	errno = EAFNOSUPPORT;
@@ -413,49 +417,6 @@ static CLIENT *nfs_get_tcpclient(const struct sockaddr *sap,
 		(void)close(sock);
 
 	return client;
-}
-
-/**
- * nfs_get_port - extract port value from a socket address
- * @sap: pointer to socket address
- *
- * Returns port value in host byte order.
- */
-uint16_t
-nfs_get_port(const struct sockaddr *sap)
-{
-       const struct sockaddr_in *sin = (const struct sockaddr_in *)sap;
-       const struct sockaddr_in6 *sin6 = (const struct sockaddr_in6 *)sap;
-
-       switch (sap->sa_family) {
-       case AF_INET:
-               return ntohs(sin->sin_port);
-       case AF_INET6:
-               return ntohs(sin6->sin6_port);
-       }
-       return 0;
-}
-
-/**
- * nfs_set_port - set port value in a socket address
- * @sap: pointer to socket address
- * @port: port value to set
- *
- */
-void
-nfs_set_port(struct sockaddr *sap, const uint16_t port)
-{
-       struct sockaddr_in *sin = (struct sockaddr_in *)sap;
-       struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
-
-       switch (sap->sa_family) {
-       case AF_INET:
-               sin->sin_port = htons(port);
-               break;
-       case AF_INET6:
-               sin6->sin6_port = htons(port);
-               break;
-       }
 }
 
 /**

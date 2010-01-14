@@ -35,6 +35,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "sockaddr.h"
 #include "xcommon.h"
 #include "mount.h"
 #include "nls.h"
@@ -76,12 +77,6 @@ extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
 extern int sloppy;
-
-union nfs_sockaddr {
-	struct sockaddr		sa;
-	struct sockaddr_in	s4;
-	struct sockaddr_in6	s6;
-};
 
 struct nfsmount_info {
 	const char		*spec,		/* server:/path */
