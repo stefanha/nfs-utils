@@ -166,6 +166,9 @@ fi
 dnl Check for TI-RPC library and headers
 AC_LIBTIRPC
 
+dnl Check for -lcap
+AC_LIBCAP
+
 # Check whether user wants TCP wrappers support
 AC_TCP_WRAPPERS
 

@@ -67,6 +67,8 @@
 #endif
 
 #include <sys/types.h>
+#include <sys/capability.h>
+#include <sys/prctl.h>
 #include <sys/stat.h>
 
 #include <ctype.h>
@@ -335,6 +337,34 @@ nsm_is_default_parentdir(void)
 	return strcmp(nsm_base_dirname, NSM_DEFAULT_STATEDIR) == 0;
 }
 
+/*
+ * Clear all capabilities but CAP_NET_BIND_SERVICE.  This permits
+ * callers to acquire privileged source ports, but all other root
+ * capabilities are disallowed.
+ *
+ * Returns true if successful, or false if some error occurred.
+ */
+static _Bool
+nsm_clear_capabilities(void)
+{
+	cap_t caps;
+
+	caps = cap_from_text("cap_net_bind_service=ep");
+	if (caps == NULL) {
+		xlog(L_ERROR, "Failed to allocate capability: %m");
+		return false;
+	}
+
+	if (cap_set_proc(caps) == -1) {
+		xlog(L_ERROR, "Failed to set capability flags: %m");
+		(void)cap_free(caps);
+		return false;
+	}
+
+	(void)cap_free(caps);
+	return true;
+}
+
 /**
  * nsm_drop_privileges - drop root privileges
  * @pidfd: file descriptor of a pid file
@@ -382,6 +412,14 @@ nsm_drop_privileges(const int pidfd)
 		if (fchown(pidfd, st.st_uid, st.st_gid) == -1)
 			xlog_warn("Failed to change owner of pidfile: %m");
 
+	/*
+	 * Don't clear capabilities when dropping root.
+	 */
+        if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == -1) {
+                xlog(L_ERROR, "prctl(PR_SET_KEEPCAPS) failed: %m");
+		return 0;
+	}
+
 	if (setgroups(0, NULL) == -1) {
 		xlog(L_ERROR, "Failed to drop supplementary groups: %m");
 		return false;
@@ -399,7 +437,8 @@ nsm_drop_privileges(const int pidfd)
 	}
 
 	xlog(D_CALL, "Effective UID, GID: %u, %u", st.st_uid, st.st_gid);
-	return true;
+
+	return nsm_clear_capabilities();
 }
 
 /**
