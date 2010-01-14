@@ -215,6 +215,26 @@ static int smn_socket(void)
 }
 #endif	/* !IPV6_SUPPORTED */
 
+#ifdef HAVE_LIBTIRPC
+static int
+smn_bindresvport(int sock, struct sockaddr *sap)
+{
+	return bindresvport_sa(sock, sap);
+}
+
+#else	/* !HAVE_LIBTIRPC */
+static int
+smn_bindresvport(int sock, struct sockaddr *sap)
+{
+	if (sap->sa_family != AF_INET) {
+		errno = EAFNOSUPPORT;
+		return -1;
+	}
+
+	return bindresvport(sock, (struct sockaddr_in *)(char *)sap);
+}
+#endif	/* !HAVE_LIBTIRPC */
+
 /*
  * Prepare a socket for sending RPC requests
  *
@@ -265,7 +285,14 @@ retry:
 	} else {
 		struct servent *se;
 		struct sockaddr_in *sin = (struct sockaddr_in *)local_addr;
-		(void) bindresvport(sock, sin);
+
+		if (smn_bindresvport(sock, local_addr) == -1) {
+			xlog(L_ERROR,
+				"bindresvport on RPC socket failed: %m");
+			(void)close(sock);
+			return -1;
+		}
+
 		/* try to avoid known ports */
 		se = getservbyport(sin->sin_port, "udp");
 		if (se && retry_cnt < 100) {
