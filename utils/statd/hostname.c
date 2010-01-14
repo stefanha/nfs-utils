@@ -30,12 +30,76 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <strings.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
 #include "sockaddr.h"
 #include "statd.h"
 #include "xlog.h"
+
+/**
+ * statd_present_address - convert sockaddr to presentation address
+ * @sap: pointer to socket address to convert
+ * @buf: pointer to buffer to fill in
+ * @buflen: length of buffer
+ *
+ * Convert the passed-in sockaddr-style address to presentation format.
+ * The presentation format address is placed in @buf and is
+ * '\0'-terminated.
+ *
+ * Returns true if successful; otherwise false.
+ *
+ * getnameinfo(3) is preferred, since it can parse IPv6 scope IDs.
+ * An alternate version of statd_present_address() is available to
+ * handle older glibcs that do not have getnameinfo(3).
+ */
+#ifdef HAVE_GETNAMEINFO
+_Bool
+statd_present_address(const struct sockaddr *sap, char *buf, const size_t buflen)
+{
+	socklen_t salen;
+	int error;
+
+	salen = nfs_sockaddr_length(sap);
+	if (salen == 0) {
+		xlog(D_GENERAL, "%s: unsupported address family",
+				__func__);
+		return false;
+	}
+
+	error = getnameinfo(sap, salen, buf, (socklen_t)buflen,
+						NULL, 0, NI_NUMERICHOST);
+	if (error != 0) {
+		xlog(D_GENERAL, "%s: getnameinfo(3): %s",
+				__func__, gai_strerror(error));
+		return false;
+	}
+	return true;
+}
+#else	/* !HAVE_GETNAMEINFO */
+_Bool
+statd_present_address(const struct sockaddr *sap, char *buf, const size_t buflen)
+{
+	const struct sockaddr_in *sin = (const struct sockaddr_in *)sap;
+
+	if (sin->sin_family != AF_INET) {
+		xlog(D_GENERAL, "%s: unsupported address family", __func__);
+		return false;
+	}
+
+	/* ensure '\0' termination */
+	memset(buf, 0, buflen);
+
+	if (inet_ntop(AF_INET, (char *)&sin->sin_addr,
+					buf, (socklen_t)buflen) == NULL) {
+		xlog(D_GENERAL, "%s: inet_ntop(3): %m", __func__);
+		return false;
+	}
+	return true;
+}
+#endif	/* !HAVE_GETNAMEINFO */
 
 /*
  * Look up the hostname; report exceptional errors.  Caller must
