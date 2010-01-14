@@ -17,7 +17,6 @@
 #endif
 
 #include <string.h>
-#include "misc.h"
 #include "statd.h"
 #include "notlist.h"
 
@@ -234,7 +233,8 @@ nlist_gethost(notify_list *list, char *host, int myname)
 	notify_list	*lp;
 
 	for (lp = list; lp; lp = lp->next) {
-		if (matchhostname(host, myname? NL_MY_NAME(lp) : NL_MON_NAME(lp)))
+		if (statd_matchhostname(host,
+				myname? NL_MY_NAME(lp) : NL_MON_NAME(lp)))
 			return lp;
 	}
 

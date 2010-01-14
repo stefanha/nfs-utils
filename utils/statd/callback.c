@@ -13,7 +13,6 @@
 #include <arpa/inet.h>
 
 #include "rpcmisc.h"
-#include "misc.h"
 #include "statd.h"
 #include "notlist.h"
 
@@ -52,8 +51,8 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 	 */
 	for (lp = rtnl ; lp ; lp = lp->next)
 		if (NL_STATE(lp) != argp->state &&
-		    (matchhostname(argp->mon_name, lp->dns_name) ||
-		     matchhostname(ip_addr, lp->dns_name))) {
+		    (statd_matchhostname(argp->mon_name, lp->dns_name) ||
+		     statd_matchhostname(ip_addr, lp->dns_name))) {
 			NL_STATE(lp) = argp->state;
 			call = nlist_clone(lp);
 			nlist_insert(&notify, call);

@@ -6,14 +6,13 @@ RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PROGRAMS	= statd sm-notify
 dist_sbin_SCRIPTS	= start-statd
-statd_SOURCES = callback.c notlist.c misc.c monitor.c \
+statd_SOURCES = callback.c notlist.c misc.c monitor.c hostname.c \
 	        simu.c stat.c statd.c svc_run.c rmtcall.c \
 	        notlist.h statd.h system.h version.h
 sm_notify_SOURCES = sm-notify.c
 
 BUILT_SOURCES = $(GENFILES)
-statd_LDADD = ../../support/export/libexport.a \
-	      ../../support/nsm/libnsm.a \
+statd_LDADD = ../../support/nsm/libnsm.a \
 	      ../../support/nfs/libnfs.a \
 	      ../../support/misc/libmisc.a \
 	      $(LIBWRAP) $(LIBNSL)

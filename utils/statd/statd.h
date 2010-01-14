@@ -22,7 +22,8 @@
 /*
  * Function prototypes.
  */
-extern void	change_state(void);
+extern _Bool	statd_matchhostname(const char *hostname1, const char *hostname2);
+
 extern void	my_svc_run(void);
 extern void	notify_hosts(void);
 extern void	shuffle_dirs(void);

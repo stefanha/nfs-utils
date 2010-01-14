@@ -22,7 +22,6 @@
 #include <dirent.h>
 
 #include "rpcmisc.h"
-#include "misc.h"
 #include "nsm.h"
 #include "statd.h"
 #include "notlist.h"
@@ -145,7 +144,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	clnt = rtnl;
 
 	while ((clnt = nlist_gethost(clnt, mon_name, 0))) {
-		if (matchhostname(NL_MY_NAME(clnt), my_name) &&
+		if (statd_matchhostname(NL_MY_NAME(clnt), my_name) &&
 		    NL_MY_PROC(clnt) == id->my_proc &&
 		    NL_MY_PROG(clnt) == id->my_prog &&
 		    NL_MY_VERS(clnt) == id->my_vers &&
@@ -298,7 +297,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 	 * entry winds up in the list the way I'm currently handling them.)
 	 */
 	while ((clnt = nlist_gethost(clnt, mon_name, 0))) {
-		if (matchhostname(NL_MY_NAME(clnt), my_name) &&
+		if (statd_matchhostname(NL_MY_NAME(clnt), my_name) &&
 			NL_MY_PROC(clnt) == id->my_proc &&
 			NL_MY_PROG(clnt) == id->my_prog &&
 			NL_MY_VERS(clnt) == id->my_vers) {
