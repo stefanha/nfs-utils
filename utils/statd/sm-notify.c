@@ -53,8 +53,8 @@ static int		nsm_family = AF_INET;
 static int		opt_debug = 0;
 static _Bool		opt_update_state = true;
 static unsigned int	opt_max_retry = 15 * 60;
-static char *		opt_srcaddr = 0;
-static uint16_t		opt_srcport = 0;
+static char *		opt_srcaddr = NULL;
+static char *		opt_srcport = NULL;
 
 static void		notify(const int sock);
 static int		notify_host(int, struct nsm_host *);
@@ -215,6 +215,39 @@ static int smn_socket(void)
 }
 #endif	/* !IPV6_SUPPORTED */
 
+/*
+ * If admin specified a source address or srcport, then convert those
+ * to a sockaddr and return it.   Otherwise, return an ANYADDR address.
+ */
+__attribute_malloc__
+static struct addrinfo *
+smn_bind_address(const char *srcaddr, const char *srcport)
+{
+	struct addrinfo *ai = NULL;
+	struct addrinfo hint = {
+		.ai_flags	= AI_NUMERICSERV,
+		.ai_family	= nsm_family,
+		.ai_protocol	= (int)IPPROTO_UDP,
+	};
+	int error;
+
+	if (srcaddr == NULL)
+		hint.ai_flags |= AI_PASSIVE;
+
+	if (srcport == NULL)
+		error = getaddrinfo(srcaddr, "", &hint, &ai);
+	else
+		error = getaddrinfo(srcaddr, srcport, &hint, &ai);
+	if (error != 0) {
+		xlog(L_ERROR,
+			"Invalid bind address or port for RPC socket: %s",
+				gai_strerror(error));
+		return NULL;
+	}
+
+	return ai;
+}
+
 #ifdef HAVE_LIBTIRPC
 static int
 smn_bindresvport(int sock, struct sockaddr *sap)
@@ -242,66 +275,53 @@ smn_bindresvport(int sock, struct sockaddr *sap)
  * an error occurs.
  */
 static int
-smn_create_socket(const char *srcaddr, const uint16_t srcport)
+smn_create_socket(const char *srcaddr, const char *srcport)
 {
-	struct sockaddr_storage address;
-	struct sockaddr *local_addr = (struct sockaddr *)&address;
 	int sock, retry_cnt = 0;
+	struct addrinfo *ai;
 
 retry:
 	sock = smn_socket();
 	if (sock == -1)
 		return -1;
 
-	memset(&address, 0, sizeof(address));
-	local_addr->sa_family = AF_INET;	/* Default to IPv4 */
-
-	/* Bind source IP if provided on command line */
-	if (srcaddr) {
-		struct addrinfo *ai = smn_lookup(srcaddr);
-		if (!ai) {
-			xlog(L_ERROR,
-				"Not a valid hostname or address: \"%s\"",
-				srcaddr);
-			(void)close(sock);
-			return -1;
-		}
-
-		/* We know it's IPv4 at this point */
-		memcpy(local_addr, ai->ai_addr, ai->ai_addrlen);
-
-		freeaddrinfo(ai);
+	ai = smn_bind_address(srcaddr, srcport);
+	if (ai == NULL) {
+		(void)close(sock);
+		return -1;
 	}
 
 	/* Use source port if provided on the command line,
 	 * otherwise use bindresvport */
 	if (srcport) {
-		nfs_set_port(local_addr, srcport);
-		if (bind(sock, local_addr, sizeof(struct sockaddr_in)) < 0) {
+		if (bind(sock, ai->ai_addr, ai->ai_addrlen) == -1) {
 			xlog(L_ERROR, "Failed to bind RPC socket: %m");
+			freeaddrinfo(ai);
 			(void)close(sock);
 			return -1;
 		}
 	} else {
 		struct servent *se;
-		struct sockaddr_in *sin = (struct sockaddr_in *)local_addr;
 
-		if (smn_bindresvport(sock, local_addr) == -1) {
+		if (smn_bindresvport(sock, ai->ai_addr) == -1) {
 			xlog(L_ERROR,
 				"bindresvport on RPC socket failed: %m");
+			freeaddrinfo(ai);
 			(void)close(sock);
 			return -1;
 		}
 
 		/* try to avoid known ports */
-		se = getservbyport(sin->sin_port, "udp");
-		if (se && retry_cnt < 100) {
+		se = getservbyport((int)nfs_get_port(ai->ai_addr), "udp");
+		if (se != NULL && retry_cnt < 100) {
 			retry_cnt++;
-			close(sock);
+			freeaddrinfo(ai);
+			(void)close(sock);
 			goto retry;
 		}
 	}
 
+	freeaddrinfo(ai);
 	return sock;
 }
 
@@ -332,7 +352,7 @@ main(int argc, char **argv)
 			opt_update_state = false;
 			break;
 		case 'p':
-			opt_srcport = atoi(optarg);
+			opt_srcport = optarg;
 			break;
 		case 'v':
 			opt_srcaddr = optarg;
