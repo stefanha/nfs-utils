@@ -15,8 +15,8 @@ AC_DEFUN([AC_IPV6], [
     fi
 
     dnl IPv6-enabled networking functions required for IPv6
-    AC_CHECK_FUNCS([getnameinfo bindresvport_sa], ,
-                   [AC_MSG_ERROR([Missing functions needed for IPv6.])])
+    AC_CHECK_FUNCS([getifaddrs getnameinfo bindresvport_sa], ,
+                   [AC_MSG_ERROR([Missing library functions needed for IPv6.])])
 
     dnl Need to detect presence of IPv6 networking at run time via
     dnl getaddrinfo(3); old versions of glibc do not support ADDRCONFIG

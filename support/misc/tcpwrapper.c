@@ -202,7 +202,7 @@ u_long  prog;
 	if (acc && changed == 0)
 		return (acc->access);
 
-	if (!(from_local(addr) || good_client(daemon, addr))) {
+	if (!(from_local((struct sockaddr *)addr) || good_client(daemon, addr))) {
 		log_bad_host(addr, proc, prog);
 		if (acc)
 			acc->access = FALSE;
