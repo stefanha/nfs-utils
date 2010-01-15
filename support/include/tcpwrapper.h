@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 
 extern int from_local(const struct sockaddr *sap);
-extern int check_default(char *name, struct sockaddr_in *addr, u_long prog);
+extern int check_default(char *name, struct sockaddr *sap,
+			const unsigned long program);
 
 #endif /* TCP_WRAPPER_H */

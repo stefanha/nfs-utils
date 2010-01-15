@@ -274,9 +274,6 @@ listeners using the
 .B tcp_wrapper
 library or
 .BR iptables (8).
-Note that the
-.B tcp_wrapper
-library supports only IPv4 networking.
 To use the
 .B tcp_wrapper
 library, add the hostnames of peers that should be allowed access to

@@ -75,11 +75,8 @@ extern void simulator (int, char **);
 static void 
 sm_prog_1_wrapper (struct svc_req *rqstp, register SVCXPRT *transp)
 {
-	struct sockaddr_in *sin = nfs_getrpccaller_in(transp);
-
 	/* remote host authorization check */
-	if (sin->sin_family == AF_INET &&
-	    !check_default("statd", sin, SM_PROG)) {
+	if (!check_default("statd", nfs_getrpccaller(transp), SM_PROG)) {
 		svcerr_auth (transp, AUTH_FAILED);
 		return;
 	}
