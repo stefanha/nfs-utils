@@ -72,7 +72,7 @@ svc_create_bindaddr(struct netconfig *nconf, const uint16_t port)
 		hint.ai_family = AF_INET6;
 #endif	/* IPV6_SUPPORTED */
 	else {
-		xlog(L_ERROR, "Unrecognized bind address family: %s",
+		xlog(D_GENERAL, "Unrecognized bind address family: %s",
 			nconf->nc_protofmly);
 		return NULL;
 	}
@@ -82,26 +82,20 @@ svc_create_bindaddr(struct netconfig *nconf, const uint16_t port)
 	else if (strcmp(nconf->nc_proto, NC_TCP) == 0)
 		hint.ai_protocol = (int)IPPROTO_TCP;
 	else {
-		xlog(L_ERROR, "Unrecognized bind address protocol: %s",
+		xlog(D_GENERAL, "Unrecognized bind address protocol: %s",
 			nconf->nc_proto);
 		return NULL;
 	}
 
 	(void)snprintf(buf, sizeof(buf), "%u", port);
 	error = getaddrinfo(NULL, buf, &hint, &ai);
-	switch (error != 0) {
-	case 0:
-		return ai;
-	case EAI_SYSTEM:
-		xlog(L_ERROR, "Failed to construct bind address: %m");
-		break;
-	default:
+	if (error != 0) {
 		xlog(L_ERROR, "Failed to construct bind address: %s",
 			gai_strerror(error));
-		break;
+		return NULL;
 	}
 
-	return NULL;
+	return ai;
 }
 
 static unsigned int
