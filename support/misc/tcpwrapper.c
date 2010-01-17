@@ -75,29 +75,35 @@ hash_head haccess_tbl[HASH_TABLE_SIZE];
 static haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long);
 static void haccess_add(struct sockaddr_in *addr, u_long, int);
 
-inline unsigned int strtoint(char *str)
+static unsigned long
+strtoint(const char *str)
 {
-	unsigned int n = 0;
-	int len = strlen(str);
-	int i;
+	unsigned long i, n = 0;
+	size_t len = strlen(str);
 
-	for (i=0; i < len; i++)
-		n+=((int)str[i])*i;
+	for (i = 0; i < len; i++)
+		n += (unsigned char)str[i] * i;
 
 	return n;
 }
-static inline int hashint(unsigned int num)
+
+static unsigned int
+hashint(const unsigned long num)
 {
-	return num % HASH_TABLE_SIZE;
+	return (unsigned int)(num % HASH_TABLE_SIZE);
 }
-#define HASH(_addr, _prog) \
-	hashint((strtoint((_addr))+(_prog)))
+
+static unsigned int
+HASH(const char *addr, const unsigned long program)
+{
+	return hashint(strtoint(addr) + program);
+}
 
 void haccess_add(struct sockaddr_in *addr, u_long prog, int access)
 {
 	hash_head *head;
- 	haccess_t *hptr;
-	int hash;
+	haccess_t *hptr;
+	unsigned int hash;
 
 	hptr = (haccess_t *)malloc(sizeof(haccess_t));
 	if (hptr == NULL)
@@ -117,8 +123,8 @@ void haccess_add(struct sockaddr_in *addr, u_long prog, int access)
 haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long prog)
 {
 	hash_head *head;
- 	haccess_t *hptr;
-	int hash;
+	haccess_t *hptr;
+	unsigned int hash;
 
 	hash = HASH(inet_ntoa(addr->sin_addr), prog);
 	head = &(haccess_tbl[hash]);
