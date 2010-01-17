@@ -62,9 +62,9 @@ static int check_files(void);
 #define DENY 0
 
 typedef struct _haccess_t {
-	TAILQ_ENTRY(_haccess_t) list;
-	int access;
-    struct in_addr addr;
+	TAILQ_ENTRY(_haccess_t)	list;
+	int			allowed;
+	struct in_addr		addr;
 } haccess_t;
 
 #define HASH_TABLE_SIZE 1021
@@ -73,7 +73,6 @@ typedef struct _hash_head {
 } hash_head;
 hash_head haccess_tbl[HASH_TABLE_SIZE];
 static haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long);
-static void haccess_add(struct sockaddr_in *addr, u_long, int);
 
 static unsigned long
 strtoint(const char *str)
@@ -99,7 +98,8 @@ HASH(const char *addr, const unsigned long program)
 	return hashint(strtoint(addr) + program);
 }
 
-void haccess_add(struct sockaddr_in *addr, u_long prog, int access)
+static void
+haccess_add(struct sockaddr_in *addr, u_long prog, int allowed)
 {
 	hash_head *head;
 	haccess_t *hptr;
@@ -112,7 +112,7 @@ void haccess_add(struct sockaddr_in *addr, u_long prog, int access)
 	hash = HASH(inet_ntoa(addr->sin_addr), prog);
 	head = &(haccess_tbl[hash]);
 
-	hptr->access = access;
+	hptr->allowed = allowed;
 	hptr->addr.s_addr = addr->sin_addr.s_addr;
 
 	if (TAILQ_EMPTY(&head->h_head))
@@ -146,14 +146,12 @@ logit(const struct sockaddr_in *sin)
 		
 }
 
-int
-good_client(daemon, addr)
-char *daemon;
-struct sockaddr_in *addr;
+static int
+good_client(char *name, struct sockaddr_in *addr)
 {
 	struct request_info req;
 
-	request_init(&req, RQ_DAEMON, daemon, RQ_CLIENT_SIN, addr, 0);
+	request_init(&req, RQ_DAEMON, name, RQ_CLIENT_SIN, addr, 0);
 	sock_methods(&req);
 
 	if (hosts_access(&req)) 
@@ -191,7 +189,7 @@ static int check_files()
 
 /**
  * check_default - additional checks for NULL, DUMP, GETPORT and unknown
- * @daemon: pointer to '\0'-terminated ASCII string containing name of the
+ * @name: pointer to '\0'-terminated ASCII string containing name of the
  *		daemon requesting the access check
  * @addr: pointer to socket address containing address of caller
  * @prog: RPC program number caller is attempting to access
@@ -199,26 +197,26 @@ static int check_files()
  * Returns TRUE if the caller is allowed access; otherwise FALSE is returned.
  */
 int
-check_default(char *daemon, struct sockaddr_in *addr, u_long prog)
+check_default(char *name, struct sockaddr_in *addr, u_long prog)
 {
 	haccess_t *acc = NULL;
 	int changed = check_files();
 
 	acc = haccess_lookup(addr, prog);
 	if (acc && changed == 0)
-		return (acc->access);
+		return acc->allowed;
 
-	if (!(from_local((struct sockaddr *)addr) || good_client(daemon, addr))) {
+	if (!(from_local((struct sockaddr *)addr) || good_client(name, addr))) {
 		logit(addr);
 		if (acc)
-			acc->access = FALSE;
+			acc->allowed = FALSE;
 		else 
 			haccess_add(addr, prog, FALSE);
 		return (FALSE);
 	}
 
 	if (acc)
-		acc->access = TRUE;
+		acc->allowed = TRUE;
 	else 
 		haccess_add(addr, prog, TRUE);
 

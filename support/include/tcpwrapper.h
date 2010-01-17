@@ -5,8 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-extern int good_client(char *daemon, struct sockaddr_in *addr);
 extern int from_local(const struct sockaddr *sap);
-extern int check_default(char *daemon, struct sockaddr_in *addr, u_long prog);
+extern int check_default(char *name, struct sockaddr_in *addr, u_long prog);
 
 #endif /* TCP_WRAPPER_H */
