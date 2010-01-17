@@ -34,13 +34,12 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 #ifdef HAVE_LIBWRAP
-#include <tcpwrapper.h>
 #include <unistd.h>
 #include <string.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
-#include <syslog.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <sys/types.h>
@@ -49,6 +48,7 @@
 #include <sys/stat.h>
 #include <tcpd.h>
 
+#include "tcpwrapper.h"
 #include "xlog.h"
 
 #ifdef SYSV40
@@ -56,20 +56,7 @@
 #include <rpc/rpcent.h>
 #endif
 
-static void logit(int severity, struct sockaddr_in *addr,
-		  u_long procnum, u_long prognum, char *text);
 static int check_files(void);
-
-/*
- * These need to exist since they are externed 
- * public header files.
- */
-int     verboselog = 0;
-int     allow_severity = LOG_INFO;
-int     deny_severity = LOG_WARNING;
-
-#define log_bad_host(addr, proc, prog) \
-  logit(deny_severity, addr, proc, prog, "request from unauthorized host")
 
 #define ALLOW 1
 #define DENY 0
@@ -143,6 +130,16 @@ haccess_t *haccess_lookup(struct sockaddr_in *addr, u_long prog)
 	return NULL;
 }
 
+static void
+logit(const struct sockaddr_in *sin)
+{
+	char buf[INET_ADDRSTRLEN];
+
+	xlog_warn("connect from %s denied: request from unauthorized host",
+			inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf)));
+		
+}
+
 int
 good_client(daemon, addr)
 char *daemon;
@@ -186,14 +183,17 @@ static int check_files()
 	return changed;
 }
 
-/* check_default - additional checks for NULL, DUMP, GETPORT and unknown */
-
+/**
+ * check_default - additional checks for NULL, DUMP, GETPORT and unknown
+ * @daemon: pointer to '\0'-terminated ASCII string containing name of the
+ *		daemon requesting the access check
+ * @addr: pointer to socket address containing address of caller
+ * @prog: RPC program number caller is attempting to access
+ *
+ * Returns TRUE if the caller is allowed access; otherwise FALSE is returned.
+ */
 int
-check_default(daemon, addr, proc, prog)
-char *daemon;
-struct sockaddr_in *addr;
-u_long  proc;
-u_long  prog;
+check_default(char *daemon, struct sockaddr_in *addr, u_long prog)
 {
 	haccess_t *acc = NULL;
 	int changed = check_files();
@@ -203,7 +203,7 @@ u_long  prog;
 		return (acc->access);
 
 	if (!(from_local((struct sockaddr *)addr) || good_client(daemon, addr))) {
-		log_bad_host(addr, proc, prog);
+		logit(addr);
 		if (acc)
 			acc->access = FALSE;
 		else 
@@ -219,12 +219,4 @@ u_long  prog;
     return (TRUE);
 }
 
-/* logit - report events of interest via the syslog daemon */
-
-static void logit(int severity, struct sockaddr_in *addr,
-		  u_long procnum, u_long prognum, char *text)
-{
-	syslog(severity, "connect from %s denied: %s",
-	       inet_ntoa(addr->sin_addr), text);
-}
-#endif
+#endif	/* HAVE_LIBWRAP */

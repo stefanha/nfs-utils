@@ -75,7 +75,7 @@ mount_dispatch(struct svc_req *rqstp, SVCXPRT *transp)
 
 	/* remote host authorization check */
 	if (sin->sin_family == AF_INET &&
-	    !check_default("mountd", sin, rqstp->rq_proc, MOUNTPROG)) {
+	    !check_default("mountd", sin, MOUNTPROG)) {
 		svcerr_auth (transp, AUTH_FAILED);
 		return;
 	}
