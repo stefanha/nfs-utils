@@ -194,13 +194,29 @@ void free_all(void)
 static char *versions[] = {"v2", "v3", "v4", "vers", "nfsvers", NULL};
 int inline check_vers(char *mopt, char *field)
 {
-	int i;
+	int i, found=0;
 
-	if (strncmp("mountvers", field, strlen("mountvers")) != 0) {
-		for (i=0; versions[i]; i++) 
-			if (strcasestr(mopt, versions[i]) != NULL)
-				return 1;
+	/*
+	 * First check to see if the config setting is one 
+	 * of the many version settings
+	 */
+	for (i=0; versions[i]; i++) { 
+		if (strcasestr(field, versions[i]) != NULL) {
+			found++;
+			break;
+		}
 	}
+	if (!found)
+		return 0;
+	/*
+	 * It appears the version is being set, now see
+	 * if the version appears on the command 
+	 */
+	for (i=0; versions[i]; i++)  {
+		if (strcasestr(mopt, versions[i]) != NULL)
+			return 1;
+	}
+
 	return 0;
 }
 
