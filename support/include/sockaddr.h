@@ -20,6 +20,7 @@
 #ifndef NFS_UTILS_SOCKADDR_H
 #define NFS_UTILS_SOCKADDR_H
 
+#include <libio.h>
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -223,6 +224,9 @@ compare_sockaddr6(__attribute__ ((unused)) const struct sockaddr *sa1,
 static inline _Bool
 nfs_compare_sockaddr(const struct sockaddr *sa1, const struct sockaddr *sa2)
 {
+	if (sa1 == NULL || sa2 == NULL)
+		return false;
+
 	if (sa1->sa_family == sa2->sa_family)
 		switch (sa1->sa_family) {
 		case AF_INET:
