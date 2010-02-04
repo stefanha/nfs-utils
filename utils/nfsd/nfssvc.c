@@ -238,17 +238,17 @@ nfssvc_setvers(unsigned int ctlbits, int minorvers4)
 	if (fd < 0)
 		return;
 
+	n = minorvers4 >= 0 ? minorvers4 : -minorvers4;
+	if (n >= NFSD_MINMINORVERS4 && n <= NFSD_MAXMINORVERS4)
+		    off += snprintf(ptr+off, sizeof(buf) - off, "%c4.%d ",
+				    minorvers4 > 0 ? '+' : '-',
+				    n);
 	for (n = NFSD_MINVERS; n <= NFSD_MAXVERS; n++) {
 		if (NFSCTL_VERISSET(ctlbits, n))
 		    off += snprintf(ptr+off, sizeof(buf) - off, "+%d ", n);
 		else
 		    off += snprintf(ptr+off, sizeof(buf) - off, "-%d ", n);
 	}
-	n = minorvers4 >= 0 ? minorvers4 : -minorvers4;
-	if (n >= NFSD_MINMINORVERS4 && n <= NFSD_MAXMINORVERS4)
-		    off += snprintf(ptr+off, sizeof(buf) - off, "%c4.%d",
-				    minorvers4 > 0 ? '+' : '-',
-				    n);
 	xlog(D_GENERAL, "Writing version string to kernel: %s", buf);
 	snprintf(ptr+off, sizeof(buf) - off, "\n");
 	if (write(fd, buf, strlen(buf)) != strlen(buf))
