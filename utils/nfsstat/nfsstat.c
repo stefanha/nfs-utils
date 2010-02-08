@@ -30,7 +30,7 @@ static unsigned int	cltproc2info[20], cltproc2info_old[20];	/* NFSv2 call counts
 static unsigned int	srvproc3info[24], srvproc3info_old[24];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	cltproc3info[24], cltproc3info_old[24];	/* NFSv3 call counts ([0] == 22) */
 static unsigned int	srvproc4info[4], srvproc4info_old[4];	/* NFSv4 call counts ([0] == 2) */
-static unsigned int	cltproc4info[49], cltproc4info_old[49];	/* NFSv4 call counts ([0] == 35) */
+static unsigned int	cltproc4info[50], cltproc4info_old[50];	/* NFSv4 call counts ([0] == 48) */
 static unsigned int	srvproc4opsinfo[61], srvproc4opsinfo_old[61];	/* NFSv4 call counts ([0] == 40) */
 static unsigned int	srvnetinfo[5], srvnetinfo_old[5];	/* 0  # of received packets
 								 * 1  UDP packets
@@ -93,7 +93,7 @@ static const char *	nfssrvproc4name[2] = {
 	"compound",
 };
 
-static const char *	nfscltproc4name[47] = {
+static const char *	nfscltproc4name[48] = {
 	"null",      "read",      "write",   "commit",      "open",        "open_conf",
 	"open_noat", "open_dgrd", "close",   "setattr",     "fsinfo",      "renew",
 	"setclntid", "confirm",   "lock",
@@ -107,6 +107,7 @@ static const char *	nfscltproc4name[47] = {
 	"destroy_ses",
 	"sequence",
 	"get_lease_t",
+	"reclaim_comp",
 	"layoutget",
 	"layoutcommit",
 	"layoutreturn",
