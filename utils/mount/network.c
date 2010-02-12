@@ -1273,7 +1273,8 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 
 /*
  * Returns TRUE if @protocol contains a valid value for this option,
- * or FALSE if the option was specified with an invalid value.
+ * or FALSE if the option was specified with an invalid value. On
+ * error, errno is set.
  */
 int
 nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
@@ -1290,8 +1291,13 @@ nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 		return 1;
 	case 2: /* proto */
 		option = po_get(options, "proto");
-		if (option != NULL)
-			return nfs_get_proto(option, &family, protocol);
+		if (option != NULL) {
+			if (!nfs_get_proto(option, &family, protocol)) {
+				errno = EPROTONOSUPPORT;
+				return 0;
+			}
+			return 1;
+		}
 	}
 
 	/*
@@ -1449,7 +1455,8 @@ nfs_mount_version(struct mount_options *options, unsigned long *version)
 
 /*
  * Returns TRUE if @protocol contains a valid value for this option,
- * or FALSE if the option was specified with an invalid value.
+ * or FALSE if the option was specified with an invalid value. On
+ * error, errno is set.
  */
 static int
 nfs_mount_protocol(struct mount_options *options, unsigned long *protocol)
@@ -1458,8 +1465,13 @@ nfs_mount_protocol(struct mount_options *options, unsigned long *protocol)
 	char *option;
 
 	option = po_get(options, "mountproto");
-	if (option != NULL)
-		return nfs_get_proto(option, &family, protocol);
+	if (option != NULL) {
+		if (!nfs_get_proto(option, &family, protocol)) {
+			errno = EPROTONOSUPPORT;
+			return 0;
+		}
+		return 1;
+	}
 
 	/*
 	 * MNT transport protocol wasn't specified.  If the NFS
