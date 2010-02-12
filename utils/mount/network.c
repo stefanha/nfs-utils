@@ -1334,21 +1334,36 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 
 #ifdef IPV6_SUPPORTED
 sa_family_t	config_default_family = AF_UNSPEC;
-#else
+
+static int
+nfs_verify_family(sa_family_t family)
+{
+	return 1;
+}
+#else /* IPV6_SUPPORTED */
 sa_family_t	config_default_family = AF_INET;
-#endif
+
+static int
+nfs_verify_family(sa_family_t family)
+{
+	if (family != AF_INET)
+		return 0;
+
+	return 1;
+}
+#endif /* IPV6_SUPPORTED */
 
 /*
  * Returns TRUE and fills in @family if a valid NFS protocol option
- * is found, or FALSE if the option was specified with an invalid value.
+ * is found, or FALSE if the option was specified with an invalid value
+ * or if the protocol family isn't supported. On error, errno is set.
  */
 int nfs_nfs_proto_family(struct mount_options *options,
 				sa_family_t *family)
 {
 	unsigned long protocol;
 	char *option;
-
-	*family = config_default_family;
+	sa_family_t tmp_family = config_default_family;
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
 	case 0:	/* udp */
@@ -1357,15 +1372,18 @@ int nfs_nfs_proto_family(struct mount_options *options,
 		return 1;
 	case 2: /* proto */
 		option = po_get(options, "proto");
-		if (option != NULL)
-			return nfs_get_proto(option, family, &protocol);
+		if (option != NULL &&
+		    !nfs_get_proto(option, &tmp_family, &protocol))
+			goto out_err;
 	}
 
-	/*
-	 * NFS transport protocol wasn't specified.  Return the
-	 * default address family.
-	 */
+	if (!nfs_verify_family(tmp_family))
+		goto out_err;
+	*family = tmp_family;
 	return 1;
+out_err:
+	errno = EAFNOSUPPORT;
+	return 0;
 }
 
 /*
@@ -1483,19 +1501,25 @@ nfs_mount_port(struct mount_options *options, unsigned long *port)
 
 /*
  * Returns TRUE and fills in @family if a valid MNT protocol option
- * is found, or FALSE if the option was specified with an invalid value.
+ * is found, or FALSE if the option was specified with an invalid value
+ * or if the protocol family isn't supported. On error, errno is set.
  */
 int nfs_mount_proto_family(struct mount_options *options,
 				sa_family_t *family)
 {
 	unsigned long protocol;
 	char *option;
-
-	*family = config_default_family;
+	sa_family_t tmp_family = config_default_family;
 
 	option = po_get(options, "mountproto");
-	if (option != NULL)
-		return nfs_get_proto(option, family, &protocol);
+	if (option != NULL) {
+		if (!nfs_get_proto(option, &tmp_family, &protocol))
+			goto out_err;
+		if (!nfs_verify_family(tmp_family))
+			goto out_err;
+		*family = tmp_family;
+		return 1;
+	}
 
 	/*
 	 * MNT transport protocol wasn't specified.  If the NFS
@@ -1504,6 +1528,9 @@ int nfs_mount_proto_family(struct mount_options *options,
 	 * NFS.
 	 */
 	return nfs_nfs_proto_family(options, family);
+out_err:
+	errno = EAFNOSUPPORT;
+	return 0;
 }
 
 /**
