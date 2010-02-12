@@ -285,9 +285,8 @@ int readline(int fd, char **buf, int *lenp)
 int
 check_new_cache(void)
 {
-	struct stat stb;
-	return	(stat("/proc/fs/nfs/filehandle", &stb) == 0) ||
-		(stat("/proc/fs/nfsd/filehandle", &stb) == 0);
+	return	(access("/proc/fs/nfs/filehandle", F_OK) == 0) ||
+		(access("/proc/fs/nfsd/filehandle", F_OK) == 0);
 }	
 
 
