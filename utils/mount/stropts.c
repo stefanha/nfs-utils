@@ -563,10 +563,6 @@ static int nfs_sys_mount(struct nfsmount_info *mi, struct mount_options *opts)
 		return 0;
 	}
 
-	if (verbose)
-		printf(_("%s: trying text-based options '%s'\n"),
-			progname, options);
-
 	if (mi->fake)
 		return 1;
 
@@ -585,12 +581,18 @@ static int nfs_sys_mount(struct nfsmount_info *mi, struct mount_options *opts)
  */
 static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 {
+	struct addrinfo *ai = mi->address;
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
 
 	if (!options) {
 		errno = ENOMEM;
 		return result;
+	}
+
+	if (!nfs_append_addr_option(ai->ai_addr, ai->ai_addrlen, options)) {
+		errno = EINVAL;
+		goto out_fail;
 	}
 
 	if (!nfs_fix_mounthost_option(options, mi->hostname)) {
@@ -612,6 +614,10 @@ static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 		errno = ENOMEM;
 		goto out_fail;
 	}
+
+	if (verbose)
+		printf(_("%s: trying text-based options '%s'\n"),
+			progname, *mi->extra_opts);
 
 	if (!nfs_rewrite_pmap_mount_options(options))
 		goto out_fail;
@@ -656,6 +662,11 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		}
 	}
 
+	if (!nfs_append_addr_option(ai->ai_addr, ai->ai_addrlen, options)) {
+		errno = EINVAL;
+		goto out_fail;
+	}
+
 	if (!nfs_append_clientaddr_option(ai->ai_addr, ai->ai_addrlen, options)) {
 		errno = EINVAL;
 		goto out_fail;
@@ -668,6 +679,10 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		errno = ENOMEM;
 		goto out_fail;
 	}
+
+	if (verbose)
+		printf(_("%s: trying text-based options '%s'\n"),
+			progname, *mi->extra_opts);
 
 	result = nfs_sys_mount(mi, options);
 
