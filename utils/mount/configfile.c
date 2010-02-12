@@ -222,6 +222,8 @@ int inline check_vers(char *mopt, char *field)
 
 unsigned long config_default_vers;
 unsigned long config_default_proto;
+extern sa_family_t config_default_family;
+
 /*
  * Check to see if a default value is being set.
  * If so, set the appropriate global value which will 
@@ -241,6 +243,10 @@ int inline default_value(char *mopt)
 		if ((options = po_split(field)) != NULL) {
 			if (!nfs_nfs_protocol(options, &config_default_proto)) {
 				xlog_warn("Unable to set default protocol : %s", 
+					strerror(errno));
+			}
+			if (!nfs_nfs_proto_family(options, &config_default_family)) {
+				xlog_warn("Unable to set default family : %s", 
 					strerror(errno));
 			}
 		} else {

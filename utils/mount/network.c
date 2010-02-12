@@ -1332,6 +1332,12 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 	return 1;
 }
 
+#ifdef IPV6_SUPPORTED
+sa_family_t	config_default_family = AF_UNSPEC;
+#else
+sa_family_t	config_default_family = AF_INET;
+#endif
+
 /*
  * Returns TRUE and fills in @family if a valid NFS protocol option
  * is found, or FALSE if the option was specified with an invalid value.
@@ -1342,11 +1348,7 @@ int nfs_nfs_proto_family(struct mount_options *options,
 	unsigned long protocol;
 	char *option;
 
-#ifdef IPV6_SUPPORTED
-	*family = AF_UNSPEC;
-#else
-	*family = AF_INET;
-#endif
+	*family = config_default_family;
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
 	case 0:	/* udp */
@@ -1489,11 +1491,7 @@ int nfs_mount_proto_family(struct mount_options *options,
 	unsigned long protocol;
 	char *option;
 
-#ifdef HAVE_LIBTIRPC
-	*family = AF_UNSPEC;
-#else
-	*family = AF_INET;
-#endif
+	*family = config_default_family;
 
 	option = po_get(options, "mountproto");
 	if (option != NULL)
