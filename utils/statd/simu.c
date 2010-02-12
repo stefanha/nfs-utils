@@ -43,7 +43,6 @@ sm_simu_crash_1_svc (__attribute__ ((unused)) void *argp, struct svc_req *rqstp)
     goto failure;
   }
 
-  xlog_warn("*** SIMULATING CRASH! ***");
   my_svc_exit ();
 
   if (rtnl)
