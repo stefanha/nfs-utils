@@ -49,6 +49,10 @@
 #include "parse_dev.h"
 #include "conffile.h"
 
+#ifndef HAVE_DECL_AI_ADDRCONFIG
+#define AI_ADDRCONFIG	0
+#endif
+
 #ifndef NFS_PROGRAM
 #define NFS_PROGRAM	(100003)
 #endif
@@ -83,8 +87,7 @@ struct nfsmount_info {
 				*node,		/* mounted-on dir */
 				*type;		/* "nfs" or "nfs4" */
 	char			*hostname;	/* server's hostname */
-	union nfs_sockaddr	address;
-	socklen_t		salen;		/* size of server's address */
+	struct addrinfo		*address;	/* server's addresses */
 
 	struct mount_options	*options;	/* parsed mount options */
 	char			**extra_opts;	/* string for /etc/mtab */
@@ -333,17 +336,27 @@ static int nfs_set_version(struct nfsmount_info *mi)
  */
 static int nfs_validate_options(struct nfsmount_info *mi)
 {
-	struct sockaddr *sap = &mi->address.sa;
+	struct addrinfo hint = {
+		.ai_protocol	= (int)IPPROTO_UDP,
+		.ai_flags	= AI_ADDRCONFIG,
+	};
 	sa_family_t family;
+	int error;
 
 	if (!nfs_parse_devname(mi->spec, &mi->hostname, NULL))
 		return 0;
 
 	if (!nfs_nfs_proto_family(mi->options, &family))
 		return 0;
-	mi->salen = sizeof(mi->address);
-	if (!nfs_lookup(mi->hostname, family, sap, &mi->salen))
+
+	hint.ai_family = (int)family;
+	error = getaddrinfo(mi->hostname, NULL, &hint, &mi->address);
+	if (error != 0) {
+		nfs_error(_("%s: Failed to resolve server %s: %s"),
+			progname, mi->hostname, gai_strerror(error));
+		mi->address = NULL;
 		return 0;
+	}
 
 	if (!nfs_set_version(mi))
 		return 0;
@@ -351,7 +364,8 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_append_sloppy_option(mi->options))
 		return 0;
 
-	if (!nfs_append_addr_option(sap, mi->salen, mi->options))
+	if (!nfs_append_addr_option(mi->address->ai_addr,
+					mi->address->ai_addrlen, mi->options))
 		return 0;
 
 	return 1;
@@ -614,7 +628,7 @@ out_fail:
  */
 static int nfs_try_mount_v4(struct nfsmount_info *mi)
 {
-	struct sockaddr *sap = &mi->address.sa;
+	struct addrinfo *ai = mi->address;
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
 
@@ -642,7 +656,7 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		}
 	}
 
-	if (!nfs_append_clientaddr_option(sap, mi->salen, options)) {
+	if (!nfs_append_clientaddr_option(ai->ai_addr, ai->ai_addrlen, options)) {
 		errno = EINVAL;
 		goto out_fail;
 	}
@@ -882,6 +896,7 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 	struct nfsmount_info mi = {
 		.spec		= spec,
 		.node		= node,
+		.address	= NULL,
 		.type		= type,
 		.extra_opts	= extra_opts,
 		.flags		= flags,
@@ -897,6 +912,7 @@ int nfsmount_string(const char *spec, const char *node, const char *type,
 	} else
 		nfs_error(_("%s: internal option parsing error"), progname);
 
+	freeaddrinfo(mi.address);
 	free(mi.hostname);
 	return retval;
 }
