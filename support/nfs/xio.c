@@ -44,16 +44,9 @@ xfclose(XFILE *xfp)
 	xfree(xfp);
 }
 
-static void
-doalarm(int sig)
-{
-	return;
-}
-
 int
 xflock(char *fname, char *type)
 {
-	struct sigaction sa, oldsa;
 	int		readonly = !strcmp(type, "r");
 	struct flock	fl = { readonly? F_RDLCK : F_WRLCK, SEEK_SET, 0, 0, 0 };
 	int		fd;
@@ -68,21 +61,12 @@ xflock(char *fname, char *type)
 		return -1;
 	}
 
-	sa.sa_handler = doalarm;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGALRM, &sa, &oldsa);
-	alarm(10);
 	if (fcntl(fd, F_SETLKW, &fl) < 0) {
-		alarm(0);
 		xlog(L_WARNING, "failed to lock %s: errno %d (%s)",
 				fname, errno, strerror(errno));
 		close(fd);
-		fd = 0;
-	} else {
-		alarm(0);
+		fd = -1;
 	}
-	sigaction(SIGALRM, &oldsa, NULL);
 
 	return fd;
 }
