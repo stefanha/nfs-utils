@@ -24,6 +24,7 @@
 #include "ha-callout.h"
 
 #include <limits.h> /* PATH_MAX */
+#include <errno.h>
 
 extern int reverse_resolve;
 
@@ -187,7 +188,9 @@ mountlist_list(void)
 	if ((lockid = xflock(_PATH_RMTABLCK, "r")) < 0)
 		return NULL;
 	if (stat(_PATH_RMTAB, &stb) < 0) {
-		xlog(L_ERROR, "can't stat %s", _PATH_RMTAB);
+		xlog(L_ERROR, "can't stat %s: %s",
+				_PATH_RMTAB, strerror(errno));
+		xfunlock(lockid);
 		return NULL;
 	}
 	if (stb.st_mtime != last_mtime) {
