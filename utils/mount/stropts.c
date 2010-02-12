@@ -515,6 +515,10 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 	if (!nfs_probe_bothports(mnt_saddr, mnt_salen, &mnt_pmap,
 				 nfs_saddr, nfs_salen, &nfs_pmap)) {
 		errno = ESPIPE;
+		if (rpc_createerr.cf_stat == RPC_PROGNOTREGISTERED)
+			errno = EOPNOTSUPP;
+		else if (rpc_createerr.cf_error.re_errno != 0)
+			errno = rpc_createerr.cf_error.re_errno;
 		return 0;
 	}
 

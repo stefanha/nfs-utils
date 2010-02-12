@@ -363,7 +363,11 @@ The number of minutes that the
 command retries an NFS mount operation
 in the foreground or background before giving up.
 If this option is not specified, the default value for foreground mounts
-is 2 minutes, and the default value for background mounts is 10000 minutes (80 minutes shy of one week).
+is 2 minutes, and the default value for background mounts is 10000 minutes
+(80 minutes shy of one week).
+If a value of zero is specified, the
+.BR mount (8)
+command exits immediately after the first failure.
 .TP 1.5i
 .BI sec= mode
 The RPCGSS security flavor to use for accessing files on this mount point.
