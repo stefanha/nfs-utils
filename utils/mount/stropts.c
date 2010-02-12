@@ -576,12 +576,9 @@ static int nfs_sys_mount(struct nfsmount_info *mi, struct mount_options *opts)
 	return !result;
 }
 
-/*
- * For "-t nfs vers=2" or "-t nfs vers=3" mounts.
- */
-static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
+static int nfs_do_mount_v3v2(struct nfsmount_info *mi,
+		struct sockaddr *sap, socklen_t salen)
 {
-	struct addrinfo *ai = mi->address;
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
 
@@ -590,7 +587,7 @@ static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 		return result;
 	}
 
-	if (!nfs_append_addr_option(ai->ai_addr, ai->ai_addrlen, options)) {
+	if (!nfs_append_addr_option(sap, salen, options)) {
 		errno = EINVAL;
 		goto out_fail;
 	}
@@ -630,11 +627,36 @@ out_fail:
 }
 
 /*
- * For "-t nfs -o vers=4" or "-t nfs4" mounts.
+ * Attempt a "-t nfs vers=2" or "-t nfs vers=3" mount.
+ *
+ * Returns TRUE if successful, otherwise FALSE.
+ * "errno" is set to reflect the individual error.
  */
-static int nfs_try_mount_v4(struct nfsmount_info *mi)
+static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 {
-	struct addrinfo *ai = mi->address;
+	struct addrinfo *ai;
+	int ret;
+
+	for (ai = mi->address; ai != NULL; ai = ai->ai_next) {
+		ret = nfs_do_mount_v3v2(mi, ai->ai_addr, ai->ai_addrlen);
+		if (ret != 0)
+			return ret;
+
+		switch (errno) {
+		case ECONNREFUSED:
+		case EOPNOTSUPP:
+		case EHOSTUNREACH:
+			continue;
+		default:
+			break;
+		}
+	}
+	return ret;
+}
+
+static int nfs_do_mount_v4(struct nfsmount_info *mi,
+		struct sockaddr *sap, socklen_t salen)
+{
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
 
@@ -662,12 +684,12 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		}
 	}
 
-	if (!nfs_append_addr_option(ai->ai_addr, ai->ai_addrlen, options)) {
+	if (!nfs_append_addr_option(sap, salen, options)) {
 		errno = EINVAL;
 		goto out_fail;
 	}
 
-	if (!nfs_append_clientaddr_option(ai->ai_addr, ai->ai_addrlen, options)) {
+	if (!nfs_append_clientaddr_option(sap, salen, options)) {
 		errno = EINVAL;
 		goto out_fail;
 	}
@@ -689,6 +711,33 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 out_fail:
 	po_destroy(options);
 	return result;
+}
+
+/*
+ * Attempt a "-t nfs -o vers=4" or "-t nfs4" mount.
+ *
+ * Returns TRUE if successful, otherwise FALSE.
+ * "errno" is set to reflect the individual error.
+ */
+static int nfs_try_mount_v4(struct nfsmount_info *mi)
+{
+	struct addrinfo *ai;
+	int ret;
+
+	for (ai = mi->address; ai != NULL; ai = ai->ai_next) {
+		ret = nfs_do_mount_v4(mi, ai->ai_addr, ai->ai_addrlen);
+		if (ret != 0)
+			return ret;
+
+		switch (errno) {
+		case ECONNREFUSED:
+		case EHOSTUNREACH:
+			continue;
+		default:
+			break;
+		}
+	}
+	return ret;
 }
 
 /*
