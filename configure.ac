@@ -72,6 +72,20 @@ AC_ARG_ENABLE(nfsv4,
 	AC_SUBST(IDMAPD)
 	AC_SUBST(enable_nfsv4)
 	AM_CONDITIONAL(CONFIG_NFSV4, [test "$enable_nfsv4" = "yes"])
+
+AC_ARG_ENABLE(nfsv41,
+	[AC_HELP_STRING([--enable-nfsv41],
+                        [enable support for NFSv41 @<:@default=no@:>@])],
+	enable_nfsv41=$enableval,
+	enable_nfsv41=no)
+	if test "$enable_nfsv41" = yes; then
+		AC_DEFINE(NFS41_SUPPORTED, 1, [Define this if you want NFSv41 support compiled in])
+	else
+		enable_nfsv4=
+	fi
+	AC_SUBST(enable_nfsv41)
+	AM_CONDITIONAL(CONFIG_NFSV41, [test "$enable_nfsv41" = "yes"])
+
 AC_ARG_ENABLE(gss,
 	[AC_HELP_STRING([--enable-gss],
                         [enable support for rpcsec_gss @<:@default=yes@:>@])],
