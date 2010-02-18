@@ -1373,8 +1373,9 @@ int nfs_nfs_proto_family(struct mount_options *options,
 
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
 	case 0:	/* udp */
-		return 1;
 	case 1: /* tcp */
+		/* for compatibility; these are always AF_INET */
+		*family = AF_INET;
 		return 1;
 	case 2: /* proto */
 		option = po_get(options, "proto");
