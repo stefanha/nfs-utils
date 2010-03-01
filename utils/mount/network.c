@@ -857,7 +857,14 @@ int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
 		return 0;
 	}
 
-	client->cl_auth = authunix_create_default();
+	client->cl_auth = nfs_authsys_create();
+	if (client->cl_auth == NULL) {
+		if (verbose)
+			nfs_error(_("%s: Failed to create RPC auth handle"),
+				progname);
+		CLNT_DESTROY(client);
+		return 0;
+	}
 
 	res = CLNT_CALL(client, MOUNTPROC_UMNT,
 			(xdrproc_t)xdr_dirpath, (caddr_t)argp,
@@ -957,8 +964,10 @@ CLIENT *mnt_openclnt(clnt_addr_t *mnt_server, int *msock)
 	}
 	if (clnt) {
 		/* try to mount hostname:dirname */
-		clnt->cl_auth = authunix_create_default();
-		return clnt;
+		clnt->cl_auth = nfs_authsys_create();
+		if (clnt->cl_auth)
+			return clnt;
+		CLNT_DESTROY(clnt);
 	}
 	return NULL;
 }

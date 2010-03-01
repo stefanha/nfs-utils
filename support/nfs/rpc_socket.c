@@ -557,3 +557,24 @@ rpcprog_t nfs_getrpcbyname(const rpcprog_t program, const char *table[])
 
 	return program;
 }
+
+/*
+ * AUTH_SYS doesn't allow more than 16 gids in the supplemental group list.
+ * If there are more than that, trying to determine which ones to include
+ * in the list is problematic. This function creates an auth handle that
+ * only has the primary gid in the supplemental gids list. It's intended to
+ * be used for protocols where credentials really don't matter much (the MNT
+ * protocol, for instance).
+ */
+AUTH *
+nfs_authsys_create(void)
+{
+	char machname[MAXHOSTNAMELEN + 1];
+	uid_t	uid = geteuid();
+	gid_t	gid = getegid();
+
+	if (gethostname(machname, sizeof(machname)) == -1)
+		return NULL;
+
+	return authsys_create(machname, uid, gid, 1, &gid);
+}
