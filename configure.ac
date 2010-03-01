@@ -81,7 +81,7 @@ AC_ARG_ENABLE(nfsv41,
 	if test "$enable_nfsv41" = yes; then
 		AC_DEFINE(NFS41_SUPPORTED, 1, [Define this if you want NFSv41 support compiled in])
 	else
-		enable_nfsv4=
+		enable_nfsv41=
 	fi
 	AC_SUBST(enable_nfsv41)
 	AM_CONDITIONAL(CONFIG_NFSV41, [test "$enable_nfsv41" = "yes"])
