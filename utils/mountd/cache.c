@@ -614,12 +614,12 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 	return qword_eol(f);
 }
 
-static int is_subdirectory(char *subpath, char *path)
+static int is_subdirectory(char *child, char *parent)
 {
-	int l = strlen(path);
+	int l = strlen(parent);
 
-	return strcmp(subpath, path) == 0
-		|| (strncmp(subpath, path, l) == 0 && subpath[l] == '/');
+	return strcmp(child, parent) == 0
+		|| (strncmp(child, parent, l) == 0 && child[l] == '/');
 }
 
 static int path_matches(nfs_export *exp, char *path)
