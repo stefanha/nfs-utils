@@ -576,5 +576,5 @@ nfs_authsys_create(void)
 	if (gethostname(machname, sizeof(machname)) == -1)
 		return NULL;
 
-	return authsys_create(machname, uid, gid, 1, &gid);
+	return authunix_create(machname, uid, gid, 1, &gid);
 }
