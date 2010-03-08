@@ -125,7 +125,7 @@ void auth_unix_gid(FILE *f)
 	 * reply is
 	 *  uid expiry count list of group ids
 	 */
-	int uid;
+	uid_t uid;
 	struct passwd *pw;
 	gid_t glist[100], *groups = glist;
 	int ngroups = 100;
@@ -136,7 +136,7 @@ void auth_unix_gid(FILE *f)
 		return;
 
 	cp = lbuf;
-	if (qword_get_int(&cp, &uid) != 0)
+	if (qword_get_uint(&cp, &uid) != 0)
 		return;
 
 	pw = getpwuid(uid);
@@ -153,14 +153,14 @@ void auth_unix_gid(FILE *f)
 						  groups, &ngroups);
 		}
 	}
-	qword_printint(f, uid);
-	qword_printint(f, time(0)+30*60);
+	qword_printuint(f, uid);
+	qword_printuint(f, time(0)+30*60);
 	if (rv >= 0) {
-		qword_printint(f, ngroups);
+		qword_printuint(f, ngroups);
 		for (i=0; i<ngroups; i++)
-			qword_printint(f, groups[i]);
+			qword_printuint(f, groups[i]);
 	} else
-		qword_printint(f, 0);
+		qword_printuint(f, 0);
 	qword_eol(f);
 
 	if (groups != glist)
