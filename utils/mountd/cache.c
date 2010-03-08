@@ -619,7 +619,7 @@ static int is_subdirectory(char *subpath, char *path)
 	int l = strlen(path);
 
 	return strcmp(subpath, path) == 0
-		|| (strncmp(subpath, path, l) == 0 && path[l] == '/');
+		|| (strncmp(subpath, path, l) == 0 && subpath[l] == '/');
 }
 
 static int path_matches(nfs_export *exp, char *path)
