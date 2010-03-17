@@ -97,11 +97,9 @@ It uses the
 string as the destination.
 To identify which host has rebooted, the
 .B sm-notify
-command normally sends the results of
-.BR gethostname (3)
-as the
+command normally sends
 .I my_name
-string.
+string recorded when that remote was monitored.
 The remote
 .B rpc.statd
 matches incoming SM_NOTIFY requests using this string,
@@ -202,15 +200,22 @@ argument to use when sending SM_NOTIFY requests.
 If this option is not specified,
 .B sm-notify
 uses a wildcard address as the transport bind address,
-and uses the results of
-.BR gethostname (3)
-as the
+and uses the
+.I my_name
+recorded when the remote was monitored as the
 .I mon_name
-argument.
+argument when sending SM_NOTIFY requests.
 .IP
 The
 .I ipaddr
 form can be expressed as either an IPv4 or an IPv6 presentation address.
+If the
+.I ipaddr
+form is used, the
+.B sm-notify
+command converts this address to a hostname for use as the
+.I mon_name
+argument when sending SM_NOTIFY requests.
 .IP
 This option can be useful in multi-homed configurations where
 the remote requires notification from a specific network address.
@@ -252,13 +257,6 @@ consistent
 The hostname the client uses to mount the server should match the server's
 .I mon_name
 in SM_NOTIFY requests it sends
-.IP
-The use of network addresses as a
-.I mon_name
-or a
-.I my_name
-string should be avoided when
-interoperating with non-Linux NFS implementations.
 .PP
 Unmounting an NFS file system does not necessarily stop
 either the NFS client or server from monitoring each other.

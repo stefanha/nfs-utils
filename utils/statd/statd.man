@@ -100,11 +100,9 @@ It uses the
 string as the destination.
 To identify which host has rebooted, the
 .B sm-notify
-command normally sends the results of
-.BR gethostname (3)
-as the
+command sends the
 .I my_name
-string.
+string recorded when that remote was monitored.
 The remote
 .B rpc.statd
 matches incoming SM_NOTIFY requests using this string,
@@ -292,7 +290,6 @@ man pages.
 .SH ADDITIONAL NOTES
 Lock recovery after a reboot is critical to maintaining data integrity
 and preventing unnecessary application hangs.
-.PP
 To help
 .B rpc.statd
 match SM_NOTIFY requests to NLM requests, a number of best practices
@@ -309,13 +306,6 @@ consistent
 The hostname the client uses to mount the server should match the server's
 .I mon_name
 in SM_NOTIFY requests it sends
-.IP
-The use of network addresses as a
-.I mon_name
-or a
-.I my_name
-string should be avoided when
-interoperating with non-Linux NFS implementations.
 .PP
 Unmounting an NFS file system does not necessarily stop
 either the NFS client or server from monitoring each other.
