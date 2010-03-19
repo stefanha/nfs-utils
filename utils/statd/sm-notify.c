@@ -634,15 +634,28 @@ recv_rpcbind_reply(struct sockaddr *sap, struct nsm_host *host, XDR *xdr)
 }
 
 /*
- * Successful NOTIFY call. Server returns void, so nothing
- * we need to do here.
+ * Successful NOTIFY call. Server returns void.
+ *
+ * Try sending another SM_NOTIFY with an unqualified "my_name"
+ * argument.  Reuse the port number.  If "my_name" is already
+ * unqualified, we're done.
  */
 static void
 recv_notify_reply(struct nsm_host *host)
 {
-	xlog(D_GENERAL, "Host %s notified successfully", host->name);
+	char *dot = strchr(host->my_name, '.');
 
-	smn_forget_host(host);
+	if (dot != NULL) {
+		*dot = '\0';
+		host->send_next = time(NULL);
+		host->xid = 0;
+		if (host->timeout >= NSM_MAX_TIMEOUT / 4)
+			host->timeout = NSM_MAX_TIMEOUT / 4;
+		insert_host(host);
+	} else {
+		xlog(D_GENERAL, "Host %s notified successfully", host->name);
+		smn_forget_host(host);
+	}
 }
 
 /*
