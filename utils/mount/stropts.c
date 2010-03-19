@@ -799,6 +799,7 @@ static int nfs_is_permanent_error(int error)
 	case ESTALE:
 	case ETIMEDOUT:
 	case ECONNREFUSED:
+	case EHOSTUNREACH:
 		return 0;	/* temporary */
 	default:
 		return 1;	/* permanent */
