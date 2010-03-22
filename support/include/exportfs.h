@@ -69,12 +69,10 @@ extern exp_hash_table exportlist[MCL_MAXTYPES];
 extern nfs_client *		clientlist[MCL_MAXTYPES];
 
 nfs_client *			client_lookup(char *hname, int canonical);
-nfs_client *			client_find(struct hostent *);
 void				client_add(nfs_client *);
 nfs_client *			client_dup(nfs_client *, struct hostent *);
 int				client_gettype(char *hname);
 int				client_check(nfs_client *, struct hostent *);
-int				client_match(nfs_client *, char *hname);
 void				client_release(nfs_client *);
 void				client_freeall(void);
 char *				client_compose(struct hostent *he);

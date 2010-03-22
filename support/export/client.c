@@ -211,28 +211,6 @@ client_freeall(void)
 	}
 }
 
-nfs_client *
-client_find(struct hostent *hp)
-{
-	nfs_client	*clp;
-	int		i;
-
-	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (clp = clientlist[i]; clp; clp = clp->m_next) {
-			if (!client_check(clp, hp))
-				continue;
-#ifdef notdef
-			if (clp->m_type == MCL_FQDN)
-				return clp;
-			return client_dup(clp, hp);
-#else
-			return clp;
-#endif
-		}
-	}
-	return NULL;
-}
-
 struct hostent *
 client_resolve(struct in_addr addr)
 {
