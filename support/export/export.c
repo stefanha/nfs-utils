@@ -128,6 +128,7 @@ export_dup(nfs_export *exp, struct hostent *hp)
 
 	return new;
 }
+
 /*
  * Add export entry to hash table
  */
@@ -280,11 +281,11 @@ export_freeall(void)
 			xfree(exp->m_export.e_hostname);
 			xfree(exp);
 		}
-      for(j = 0; j < HASH_TABLE_SIZE; j++) {
-        exportlist[i].entries[j].p_first = NULL;
-        exportlist[i].entries[j].p_last = NULL;
-      }
-      exportlist[i].p_head = NULL;
+		for (j = 0; j < HASH_TABLE_SIZE; j++) {
+			exportlist[i].entries[j].p_first = NULL;
+			exportlist[i].entries[j].p_last = NULL;
+		}
+		exportlist[i].p_head = NULL;
 	}
 	client_freeall();
 }
