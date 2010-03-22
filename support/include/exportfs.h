@@ -77,7 +77,8 @@ void				client_release(nfs_client *);
 void				client_freeall(void);
 char *				client_compose(struct hostent *he);
 struct hostent *		client_resolve(struct in_addr addr);
-int 				client_member(char *client, char *name);
+int 				client_member(const char *client,
+						const char *name);
 
 int				export_read(char *fname);
 void			export_add(nfs_export *);
