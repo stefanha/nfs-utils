@@ -371,6 +371,31 @@ check_subnetwork(const nfs_client *clp, const struct hostent *hp)
 }
 
 /*
+ * Check if a wildcard nfs_client record matches the canonical name
+ * or the aliases of a host.  Return 1 if a match is found, otherwise
+ * zero.
+ */
+static int
+check_wildcard(const nfs_client *clp, const struct hostent *hp)
+{
+	char *cname = clp->m_hostname;
+	char *hname = hp->h_name;
+	char **ap;
+
+	if (wildmat(hname, cname))
+		return 1;
+
+	/* See if hname aliases listed in /etc/hosts or nis[+]
+	 * match the requested wildcard */
+	for (ap = hp->h_aliases; *ap; ap++) {
+		if (wildmat(*ap, cname))
+			return 1;
+	}
+
+	return 0;
+}
+
+/*
  * Check if @hp's hostname or aliases fall in a given netgroup.
  * Return 1 if @hp represents a host in the netgroup, otherwise zero.
  */
@@ -433,24 +458,13 @@ check_netgroup(__attribute__((unused)) const nfs_client *clp,
 int
 client_check(nfs_client *clp, struct hostent *hp)
 {
-	char	*hname = (char *) hp->h_name;
-	char	*cname = clp->m_hostname;
-	char	**ap;
-
 	switch (clp->m_type) {
 	case MCL_FQDN:
 		return check_fqdn(clp, hp);
 	case MCL_SUBNETWORK:
 		return check_subnetwork(clp, hp);
 	case MCL_WILDCARD:
-		if (wildmat(hname, cname))
-			return 1;
-		else {
-			for (ap = hp->h_aliases; *ap; ap++)
-				if (wildmat(*ap, cname))
-					return 1;
-		}
-		return 0;
+		return check_wildcard(clp, hp);
 	case MCL_NETGROUP:
 		return check_netgroup(clp, hp);
 	case MCL_ANONYMOUS:
