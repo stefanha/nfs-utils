@@ -32,7 +32,6 @@ extern int	innetgr(char *netgr, char *host, char *, char *);
 static char	*add_name(char *old, const char *add);
 static void	client_init(nfs_client *clp, const char *hname,
 					struct hostent *hp);
-static int	client_checkaddr(nfs_client *clp, struct in_addr addr);
 
 nfs_client	*clientlist[MCL_MAXTYPES] = { NULL, };
 
@@ -445,12 +444,6 @@ client_check(nfs_client *clp, struct hostent *hp)
 		xlog(L_FATAL, "internal: bad client type %d", clp->m_type);
 	}
 
-	return 0;
-}
-
-static int
-client_checkaddr(nfs_client *clp, struct in_addr addr)
-{
 	return 0;
 }
 
