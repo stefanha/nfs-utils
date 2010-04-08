@@ -329,6 +329,28 @@ add_name(char *old, const char *add)
 }
 
 /*
+ * Check each address listed in @hp against each address
+ * stored in @clp.  Return 1 if a match is found, otherwise
+ * zero.
+ */
+static int
+check_fqdn(const nfs_client *clp, const struct hostent *hp)
+{
+	struct in_addr addr;
+	char **ap;
+	int i;
+
+	for (ap = hp->h_addr_list; *ap; ap++) {
+		addr = *(struct in_addr *)*ap;
+
+		for (i = 0; i < clp->m_naddr; i++)
+			if (clp->m_addrlist[i].s_addr == addr.s_addr)
+				return 1;
+	}
+	return 0;
+}
+
+/*
  * Match a host (given its hostent record) to a client record. This
  * is usually called from mountd.
  */
@@ -341,6 +363,7 @@ client_check(nfs_client *clp, struct hostent *hp)
 
 	switch (clp->m_type) {
 	case MCL_FQDN:
+		return check_fqdn(clp, hp);
 	case MCL_SUBNETWORK:
 		for (ap = hp->h_addr_list; *ap; ap++) {
 			if (client_checkaddr(clp, *(struct in_addr *) *ap))
@@ -411,15 +434,7 @@ client_check(nfs_client *clp, struct hostent *hp)
 static int
 client_checkaddr(nfs_client *clp, struct in_addr addr)
 {
-	int	i;
-
 	switch (clp->m_type) {
-	case MCL_FQDN:
-		for (i = 0; i < clp->m_naddr; i++) {
-			if (clp->m_addrlist[i].s_addr == addr.s_addr)
-				return 1;
-		}
-		return 0;
 	case MCL_SUBNETWORK:
 		return !((clp->m_addrlist[0].s_addr ^ addr.s_addr)
 			& clp->m_addrlist[1].s_addr);
