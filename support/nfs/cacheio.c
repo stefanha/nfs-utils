@@ -241,7 +241,7 @@ int qword_get_int(char **bpp, int *anint)
 	return 0;
 }
 
-int qword_get_uint(char *bpp, unsigned int *anint)
+int qword_get_uint(char **bpp, unsigned int *anint)
 {
 	char buf[50];
 	char *ep;

@@ -152,6 +152,8 @@ void qword_addhex(char **bpp, int *lp, char *buf, int blen);
 void qword_addint(char **bpp, int *lp, int n);
 void qword_adduint(char **bpp, int *lp, unsigned int n);
 void qword_addeol(char **bpp, int *lp);
+int qword_get_uint(char **bpp, unsigned int *anint);
+void qword_printuint(FILE *f, unsigned int num);
 
 void closeall(int min);
 
