@@ -451,9 +451,13 @@ check_netgroup(__attribute__((unused)) const nfs_client *clp,
 }
 #endif	/* !HAVE_INNETGR */
 
-/*
- * Match a host (given its hostent record) to a client record. This
- * is usually called from mountd.
+/**
+ * client_check - check if IP address information matches a cached nfs_client
+ * @clp: pointer to a cached nfs_client record
+ * @hp: pointer to hostent containing host IP information
+ *
+ * Returns 1 if the address information matches the cached nfs_client,
+ * otherwise zero.
  */
 int
 client_check(nfs_client *clp, struct hostent *hp)
@@ -472,7 +476,8 @@ client_check(nfs_client *clp, struct hostent *hp)
 	case MCL_GSS:
 		return 0;
 	default:
-		xlog(L_FATAL, "internal: bad client type %d", clp->m_type);
+		xlog(D_GENERAL, "%s: unrecognized client type: %d",
+				__func__, clp->m_type);
 	}
 
 	return 0;
