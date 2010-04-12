@@ -292,61 +292,6 @@ gssd_find_existing_krb5_ccache(uid_t uid, char *dirname, struct dirent **d)
 	return err;
 }
 
-
-#ifdef HAVE_SET_ALLOWABLE_ENCTYPES
-/*
- * this routine obtains a credentials handle via gss_acquire_cred()
- * then calls gss_krb5_set_allowable_enctypes() to limit the encryption
- * types negotiated.
- *
- * XXX Should call some function to determine the enctypes supported
- * by the kernel. (Only need to do that once!)
- *
- * Returns:
- *	0 => all went well
- *     -1 => there was an error
- */
-
-int
-limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
-{
-	u_int maj_stat, min_stat;
-	gss_cred_id_t credh;
-	gss_OID_set_desc  desired_mechs;
-	krb5_enctype enctypes[] = { ENCTYPE_DES_CBC_CRC,
-				    ENCTYPE_DES_CBC_MD5,
-				    ENCTYPE_DES_CBC_MD4 };
-	int num_enctypes = sizeof(enctypes) / sizeof(enctypes[0]);
-
-	/* We only care about getting a krb5 cred */
-	desired_mechs.count = 1;
-	desired_mechs.elements = &krb5oid;
-
-	maj_stat = gss_acquire_cred(&min_stat, NULL, 0,
-				    &desired_mechs, GSS_C_INITIATE,
-				    &credh, NULL, NULL);
-
-	if (maj_stat != GSS_S_COMPLETE) {
-		if (get_verbosity() > 0)
-			pgsserr("gss_acquire_cred",
-				maj_stat, min_stat, &krb5oid);
-		return -1;
-	}
-
-	maj_stat = gss_set_allowable_enctypes(&min_stat, credh, &krb5oid,
-					     num_enctypes, &enctypes);
-	if (maj_stat != GSS_S_COMPLETE) {
-		pgsserr("gss_set_allowable_enctypes",
-			maj_stat, min_stat, &krb5oid);
-		gss_release_cred(&min_stat, &credh);
-		return -1;
-	}
-	sec->cred = credh;
-
-	return 0;
-}
-#endif	/* HAVE_SET_ALLOWABLE_ENCTYPES */
-
 /*
  * Obtain credentials via a key in the keytab given
  * a keytab handle and a gssd_k5_kt_princ structure.
@@ -1304,3 +1249,57 @@ gssd_k5_get_default_realm(char **def_realm)
 
 	krb5_free_context(context);
 }
+
+#ifdef HAVE_SET_ALLOWABLE_ENCTYPES
+/*
+ * this routine obtains a credentials handle via gss_acquire_cred()
+ * then calls gss_krb5_set_allowable_enctypes() to limit the encryption
+ * types negotiated.
+ *
+ * XXX Should call some function to determine the enctypes supported
+ * by the kernel. (Only need to do that once!)
+ *
+ * Returns:
+ *	0 => all went well
+ *     -1 => there was an error
+ */
+
+int
+limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
+{
+	u_int maj_stat, min_stat;
+	gss_cred_id_t credh;
+	gss_OID_set_desc  desired_mechs;
+	krb5_enctype enctypes[] = { ENCTYPE_DES_CBC_CRC,
+				    ENCTYPE_DES_CBC_MD5,
+				    ENCTYPE_DES_CBC_MD4 };
+	int num_enctypes = sizeof(enctypes) / sizeof(enctypes[0]);
+
+	/* We only care about getting a krb5 cred */
+	desired_mechs.count = 1;
+	desired_mechs.elements = &krb5oid;
+
+	maj_stat = gss_acquire_cred(&min_stat, NULL, 0,
+				    &desired_mechs, GSS_C_INITIATE,
+				    &credh, NULL, NULL);
+
+	if (maj_stat != GSS_S_COMPLETE) {
+		if (get_verbosity() > 0)
+			pgsserr("gss_acquire_cred",
+				maj_stat, min_stat, &krb5oid);
+		return -1;
+	}
+
+	maj_stat = gss_set_allowable_enctypes(&min_stat, credh, &krb5oid,
+					     num_enctypes, &enctypes);
+	if (maj_stat != GSS_S_COMPLETE) {
+		pgsserr("gss_set_allowable_enctypes",
+			maj_stat, min_stat, &krb5oid);
+		gss_release_cred(&min_stat, &credh);
+		return -1;
+	}
+	sec->cred = credh;
+
+	return 0;
+}
+#endif	/* HAVE_SET_ALLOWABLE_ENCTYPES */
