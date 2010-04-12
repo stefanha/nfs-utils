@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2004 The Regents of the University of Michigan.
+  Copyright (c) 2004-2006 The Regents of the University of Michigan.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <syslog.h>
 #include <string.h>
+#include <errno.h>
 #include <gssapi/gssapi.h>
 #include <rpc/rpc.h>
 #include <rpc/auth_gss.h>
@@ -52,8 +53,7 @@
 /* XXX argggg, there's gotta be a better way than just duplicating this
  * whole struct.  Unfortunately, this is in a "private" header file,
  * so this is our best choice at this point :-/
- *
- * XXX Does this match the Heimdal definition?  */
+ */
 
 typedef struct _krb5_gss_ctx_id_rec {
    unsigned int initiate : 1;   /* nonzero if initiating, zero if accepting */
@@ -156,50 +156,120 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf, int32_t *endtime)
 {
 	krb5_gss_ctx_id_t kctx = ((gss_union_ctx_id_t)ctx)->internal_ctx_id;
 	char *p, *end;
-	static int constant_one = 1;
 	static int constant_zero = 0;
+	static int constant_one = 1;
+	static int constant_two = 2;
 	uint32_t word_seq_send;
+	u_int64_t seq_send_64bit;
+	uint32_t v2_flags = 0;
 
 	if (!(buf->value = calloc(1, MAX_CTX_LEN)))
 		goto out_err;
 	p = buf->value;
 	end = buf->value + MAX_CTX_LEN;
 
-	if (kctx->initiate) {
-		if (WRITE_BYTES(&p, end, constant_one)) goto out_err;
-	}
-	else {
-		if (WRITE_BYTES(&p, end, constant_zero)) goto out_err;
-	}
-	if (kctx->seed_init) {
-		if (WRITE_BYTES(&p, end, constant_one)) goto out_err;
-	}
-	else {
-		if (WRITE_BYTES(&p, end, constant_zero)) goto out_err;
-	}
-	if (write_bytes(&p, end, &kctx->seed, sizeof(kctx->seed)))
+	switch (kctx->enc->enctype) {
+	case ENCTYPE_DES_CBC_CRC:
+	case ENCTYPE_DES_CBC_MD4:
+	case ENCTYPE_DES_CBC_MD5:
+	case ENCTYPE_DES_CBC_RAW:
+		/* Old format of context to the kernel */
+		if (kctx->initiate) {
+			if (WRITE_BYTES(&p, end, constant_one)) goto out_err;
+		}
+		else {
+			if (WRITE_BYTES(&p, end, constant_zero)) goto out_err;
+		}
+		if (kctx->seed_init) {
+			if (WRITE_BYTES(&p, end, constant_one)) goto out_err;
+		}
+		else {
+			if (WRITE_BYTES(&p, end, constant_zero)) goto out_err;
+		}
+		if (write_bytes(&p, end, &kctx->seed, sizeof(kctx->seed)))
+			goto out_err;
+		if (WRITE_BYTES(&p, end, kctx->signalg)) goto out_err;
+		if (WRITE_BYTES(&p, end, kctx->sealalg)) goto out_err;
+		if (WRITE_BYTES(&p, end, kctx->endtime)) goto out_err;
+		word_seq_send = kctx->seq_send;
+		if (WRITE_BYTES(&p, end, word_seq_send)) goto out_err;
+		if (write_oid(&p, end, kctx->mech_used)) goto out_err;
+
+		printerr(2, "serialize_krb5_ctx: serializing keys with "
+			 "enctype %d and length %d\n",
+			 kctx->enc->enctype, kctx->enc->length);
+
+		if (write_keyblock(&p, end, kctx->enc)) goto out_err;
+		if (write_keyblock(&p, end, kctx->seq)) goto out_err;
+		break;
+	case ENCTYPE_DES3_CBC_RAW:
+	case ENCTYPE_DES3_CBC_SHA1:
+	case ENCTYPE_ARCFOUR_HMAC:
+	case ENCTYPE_ARCFOUR_HMAC_EXP:
+	case ENCTYPE_AES128_CTS_HMAC_SHA1_96:
+	case ENCTYPE_AES256_CTS_HMAC_SHA1_96:
+		/* New format of context to the kernel */
+		/* u32 flags;
+		 * #define KRB5_CTX_FLAG_INITIATOR        0x00000001
+		 * #define KRB5_CTX_FLAG_CFX              0x00000002
+		 * #define KRB5_CTX_FLAG_ACCEPTOR_SUBKEY  0x00000004
+		 * s32 endtime;
+		 * u64 seq_send;
+		 * u32  enctype;
+		 * rawkey data
+		 */
+
+		if (kctx->initiate)
+			v2_flags |= KRB5_CTX_FLAG_INITIATOR;
+		if (kctx->proto == 1)
+			v2_flags |= KRB5_CTX_FLAG_CFX;
+		if (kctx->have_acceptor_subkey)
+			v2_flags |= KRB5_CTX_FLAG_ACCEPTOR_SUBKEY;
+		if (WRITE_BYTES(&p, end, v2_flags)) goto out_err;
+		if (WRITE_BYTES(&p, end, kctx->endtime)) goto out_err;
+
+		seq_send_64bit = kctx->seq_send;
+		if (WRITE_BYTES(&p, end, seq_send_64bit)) goto out_err;
+
+		if (kctx->have_acceptor_subkey) {
+			if (WRITE_BYTES(&p, end, kctx->acceptor_subkey->enctype))
+				goto out_err;
+			printerr(2, "serialize_krb5_ctx: serializing subkey "
+				 "with enctype %d and size %d\n",
+				 kctx->acceptor_subkey->enctype,
+				 kctx->acceptor_subkey->length);
+
+			if (write_bytes(&p, end,
+					kctx->acceptor_subkey->contents,
+					kctx->acceptor_subkey->length))
+				goto out_err;
+		} else {
+			if (WRITE_BYTES(&p, end, kctx->enc->enctype))
+				goto out_err;
+			printerr(2, "serialize_krb5_ctx: serializing key "
+				 "with enctype %d and size %d\n",
+				 kctx->enc->enctype, kctx->enc->length);
+
+			if (write_bytes(&p, end, kctx->enc->contents,
+					kctx->enc->length))
+				goto out_err;
+		}
+		break;
+	default:
+		printerr(0, "ERROR: serialize_krb5_ctx: unsupported encryption "
+			 "algorithm %d\n", kctx->enc->enctype);
 		goto out_err;
-	if (WRITE_BYTES(&p, end, kctx->signalg)) goto out_err;
-	if (WRITE_BYTES(&p, end, kctx->sealalg)) goto out_err;
-	if (WRITE_BYTES(&p, end, kctx->endtime)) goto out_err;
-	if (endtime)
-		*endtime = kctx->endtime;
-	word_seq_send = kctx->seq_send;
-	if (WRITE_BYTES(&p, end, word_seq_send)) goto out_err;
-	if (write_oid(&p, end, kctx->mech_used)) goto out_err;
-
-	printerr(2, "serialize_krb5_ctx: serializing keys with "
-		 "enctype %d and length %d\n",
-		 kctx->enc->enctype, kctx->enc->length);
-
-	if (write_keyblock(&p, end, kctx->enc)) goto out_err;
-	if (write_keyblock(&p, end, kctx->seq)) goto out_err;
+	}
 
 	buf->length = p - (char *)buf->value;
 	return 0;
+
 out_err:
 	printerr(0, "ERROR: failed serializing krb5 context for kernel\n");
-	if (buf->value) free(buf->value);
+	if (buf->value) {
+		free(buf->value);
+	}
+	buf->value = NULL;
 	buf->length = 0;
 	return -1;
 }
