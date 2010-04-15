@@ -137,6 +137,7 @@ client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 
 	clp->m_exported = 0;
 	clp->m_count = 0;
+	clp->m_naddr = 0;
 
 	if (clp->m_type == MCL_SUBNETWORK) {
 		char	*cp = strchr(clp->m_hostname, '/');
@@ -160,10 +161,10 @@ client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 			}
 		}
 		*cp = '/';
-		clp->m_naddr = 0;
-	} else if (!hp) {
-		clp->m_naddr = 0;
-	} else {
+		return;
+	}
+
+	if (hp) {
 		char	**ap = hp->h_addr_list;
 		int	i;
 
