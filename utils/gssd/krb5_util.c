@@ -1274,6 +1274,8 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
 				    ENCTYPE_DES_CBC_MD5,
 				    ENCTYPE_DES_CBC_MD4 };
 	int num_enctypes = sizeof(enctypes) / sizeof(enctypes[0]);
+	extern int num_krb5_enctypes;
+	extern krb5_enctype *krb5_enctypes;
 
 	/* We only care about getting a krb5 cred */
 	desired_mechs.count = 1;
@@ -1290,8 +1292,17 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
 		return -1;
 	}
 
-	maj_stat = gss_set_allowable_enctypes(&min_stat, credh, &krb5oid,
-					     num_enctypes, &enctypes);
+	/*
+	 * If we failed for any reason to produce global
+	 * list of supported enctypes, use local default here.
+	 */
+	if (krb5_enctypes == NULL)
+		maj_stat = gss_set_allowable_enctypes(&min_stat, credh,
+					&krb5oid, num_enctypes, enctypes);
+	else
+		maj_stat = gss_set_allowable_enctypes(&min_stat, credh,
+					&krb5oid, num_krb5_enctypes, krb5_enctypes);
+
 	if (maj_stat != GSS_S_COMPLETE) {
 		pgsserr("gss_set_allowable_enctypes",
 			maj_stat, min_stat, &krb5oid);
