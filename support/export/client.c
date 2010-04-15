@@ -36,6 +36,22 @@ static void	client_init(nfs_client *clp, const char *hname,
 nfs_client	*clientlist[MCL_MAXTYPES] = { NULL, };
 
 
+static void
+init_addrlist(nfs_client *clp, const struct hostent *hp)
+{
+	char **ap;
+	int i;
+
+	if (hp == NULL)
+		return;
+
+	ap = hp->h_addr_list;
+	for (i = 0; *ap != NULL && i < NFSCLNT_ADDRMAX; i++, ap++)
+		clp->m_addrlist[i] = *(struct in_addr *)*ap;
+
+	clp->m_naddr = i;
+}
+
 /* if canonical is set, then we *know* this is already a canonical name
  * so hostname lookup is avoided.
  * This is used when reading /proc/fs/nfs/exports
@@ -96,14 +112,8 @@ client_lookup(char *hname, int canonical)
 		client_add(clp);
 	}
 
-	if (htype == MCL_FQDN && clp->m_naddr == 0 && hp != NULL) {
-		char	**ap = hp->h_addr_list;
-		int	i;
-
-		for (i = 0; *ap && i < NFSCLNT_ADDRMAX; i++, ap++)
-			clp->m_addrlist[i] = *(struct in_addr *)*ap;
-		clp->m_naddr = i;
-	}
+	if (htype == MCL_FQDN && clp->m_naddr == 0)
+		init_addrlist(clp, hp);
 
 	if (hp)
 		free (hp);
@@ -163,16 +173,8 @@ client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 		*cp = '/';
 		return;
 	}
-
-	if (hp) {
-		char	**ap = hp->h_addr_list;
-		int	i;
-
-		for (i = 0; *ap && i < NFSCLNT_ADDRMAX; i++, ap++) {
-			clp->m_addrlist[i] = *(struct in_addr *)*ap;
-		}
-		clp->m_naddr = i;
-	}
+	
+	init_addrlist(clp, hp);
 }
 
 void
