@@ -129,6 +129,10 @@ export_dup(nfs_export *exp, struct hostent *hp)
 	if (exp->m_export.e_hostname)
 		new->m_export.e_hostname = xstrdup(exp->m_export.e_hostname);
 	clp = client_dup(exp->m_client, hp);
+	if (clp == NULL) {
+		export_free(new);
+		return NULL;
+	}
 	clp->m_count++;
 	new->m_client = clp;
 	new->m_mayexport = exp->m_mayexport;
