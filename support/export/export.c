@@ -28,6 +28,18 @@ static int	export_check(nfs_export *, struct hostent *, char *);
 static nfs_export *
 		export_allowed_internal(struct hostent *hp, char *path);
 
+static void
+export_free(nfs_export *exp)
+{
+	xfree(exp->m_export.e_squids);
+	xfree(exp->m_export.e_sqgids);
+	free(exp->m_export.e_mountpoint);
+	free(exp->m_export.e_fslocdata);
+
+	xfree(exp->m_export.e_hostname);
+	xfree(exp);
+}
+
 static void warn_duplicated_exports(nfs_export *exp, struct exportent *eep)
 {
 	if (exp->m_export.e_flags != eep->e_flags) {
@@ -260,6 +272,10 @@ export_check(nfs_export *exp, struct hostent *hp, char *path)
 	return client_check(exp->m_client, hp);
 }
 
+/**
+ * export_freeall - deallocate all nfs_export records
+ *
+ */
 void
 export_freeall(void)
 {
@@ -270,16 +286,7 @@ export_freeall(void)
 		for (exp = exportlist[i].p_head; exp; exp = nxt) {
 			nxt = exp->m_next;
 			client_release(exp->m_client);
-			if (exp->m_export.e_squids)
-				xfree(exp->m_export.e_squids);
-			if (exp->m_export.e_sqgids)
-				xfree(exp->m_export.e_sqgids);
-			if (exp->m_export.e_mountpoint)
-				free(exp->m_export.e_mountpoint);
-			if (exp->m_export.e_fslocdata)
-				free(exp->m_export.e_fslocdata);
-			xfree(exp->m_export.e_hostname);
-			xfree(exp);
+			export_free(exp);
 		}
 		for (j = 0; j < HASH_TABLE_SIZE; j++) {
 			exportlist[i].entries[j].p_first = NULL;
