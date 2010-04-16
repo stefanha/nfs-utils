@@ -425,6 +425,8 @@ AC_CONFIG_FILES([
 	tools/nlmtest/Makefile
 	tools/rpcdebug/Makefile
 	tools/rpcgen/Makefile
+	tools/mountstats/Makefile
+	tools/nfs-iostat/Makefile
 	utils/Makefile
 	utils/exportfs/Makefile
 	utils/gssd/Makefile
