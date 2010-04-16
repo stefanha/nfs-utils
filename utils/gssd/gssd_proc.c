@@ -655,7 +655,7 @@ parse_enctypes(char *enctypes)
 	}
 
 	num_krb5_enctypes = n;
-	if (cached_types = malloc(strlen(enctypes)+1))
+	if ((cached_types = malloc(strlen(enctypes)+1)))
 		strcpy(cached_types, enctypes);
 
 	return 0;
@@ -1189,7 +1189,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
 	char			*lbuf = NULL;
-	int			lbuflen = 0, code;
+	int			lbuflen = 0;
 	char			*p;
 	char			*mech = NULL;
 	char			*target = NULL;
@@ -1251,7 +1251,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 		}
 		if (parse_enctypes(enctypes) != 0) {
 			printerr(0, "WARNING: handle_gssd_upcall: "
-				"parsing encryption types failed: errno %d\n", code);
+				"parsing encryption types failed: errno %d\n", errno);
 		}
 	}
 
