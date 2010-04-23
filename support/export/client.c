@@ -30,7 +30,7 @@ extern int	innetgr(char *netgr, char *host, char *, char *);
 #endif
 
 static char	*add_name(char *old, const char *add);
-static void	client_init(nfs_client *clp, const char *hname,
+static int	client_init(nfs_client *clp, const char *hname,
 					struct hostent *hp);
 
 nfs_client	*clientlist[MCL_MAXTYPES] = { NULL, };
@@ -115,13 +115,18 @@ client_lookup(char *hname, int canonical)
 		clp = (nfs_client *) xmalloc(sizeof(*clp));
 		memset(clp, 0, sizeof(*clp));
 		clp->m_type = htype;
-		client_init(clp, hname, NULL);
+		if (!client_init(clp, hname, NULL)) {
+			client_free(clp);
+			clp = NULL;
+			goto out;
+		}
 		client_add(clp);
 	}
 
 	if (htype == MCL_FQDN && clp->m_naddr == 0)
 		init_addrlist(clp, hp);
 
+out:
 	if (hp)
 		free (hp);
 
@@ -138,12 +143,15 @@ client_dup(nfs_client *clp, struct hostent *hp)
 	new->m_type = MCL_FQDN;
 	new->m_hostname = NULL;
 
-	client_init(new, (char *) hp->h_name, hp);
+	if (!client_init(new, hp->h_name, hp)) {
+		client_free(new);
+		return NULL;
+	}
 	client_add(new);
 	return new;
 }
 
-static void
+static int
 client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 {
 	xfree(clp->m_hostname);
@@ -173,15 +181,17 @@ client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 					htonl ((uint32_t) ~0 << (32 - netmask));
 			}
 			else {
-				xlog(L_FATAL, "invalid netmask `%s' for %s",
-				     cp + 1, clp->m_hostname);
+				xlog(L_ERROR, "invalid netmask `%s' for %s",
+					     cp + 1, clp->m_hostname);
+				return 0;
 			}
 		}
 		*cp = '/';
-		return;
+		return 1;
 	}
 	
 	init_addrlist(clp, hp);
+	return 1;
 }
 
 void
