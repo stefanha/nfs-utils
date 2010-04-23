@@ -52,6 +52,13 @@ init_addrlist(nfs_client *clp, const struct hostent *hp)
 	clp->m_naddr = i;
 }
 
+static void
+client_free(nfs_client *clp)
+{
+	xfree(clp->m_hostname);
+	xfree(clp);
+}
+
 /* if canonical is set, then we *know* this is already a canonical name
  * so hostname lookup is avoided.
  * This is used when reading /proc/fs/nfs/exports
@@ -209,8 +216,7 @@ client_freeall(void)
 		head = clientlist + i;
 		while (*head) {
 			*head = (clp = *head)->m_next;
-			xfree(clp->m_hostname);
-			xfree(clp);
+			client_free(clp);
 		}
 	}
 }
