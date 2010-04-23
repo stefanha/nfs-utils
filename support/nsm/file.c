@@ -67,7 +67,9 @@
 #endif
 
 #include <sys/types.h>
+#ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
+#endif
 #include <sys/prctl.h>
 #include <sys/stat.h>
 
@@ -347,6 +349,7 @@ nsm_is_default_parentdir(void)
 static _Bool
 nsm_clear_capabilities(void)
 {
+#ifdef HAVE_SYS_CAPABILITY_H
 	cap_t caps;
 
 	caps = cap_from_text("cap_net_bind_service=ep");
@@ -362,6 +365,7 @@ nsm_clear_capabilities(void)
 	}
 
 	(void)cap_free(caps);
+#endif
 	return true;
 }
 
