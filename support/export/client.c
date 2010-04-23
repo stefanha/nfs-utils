@@ -55,7 +55,7 @@ init_addrlist(nfs_client *clp, const struct hostent *hp)
 static void
 client_free(nfs_client *clp)
 {
-	xfree(clp->m_hostname);
+	free(clp->m_hostname);
 	xfree(clp);
 }
 
@@ -154,11 +154,9 @@ client_dup(nfs_client *clp, struct hostent *hp)
 static int
 client_init(nfs_client *clp, const char *hname, struct hostent *hp)
 {
-	xfree(clp->m_hostname);
-	if (hp)
-		clp->m_hostname = xstrdup(hp->h_name);
-	else
-		clp->m_hostname = xstrdup(hname);
+	clp->m_hostname = strdup(hname);
+	if (clp->m_hostname == NULL)
+		return 0;
 
 	clp->m_exported = 0;
 	clp->m_count = 0;
