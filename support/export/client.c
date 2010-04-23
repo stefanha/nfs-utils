@@ -17,7 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <netdb.h>
-#include "xmalloc.h"
+
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
@@ -56,7 +56,7 @@ static void
 client_free(nfs_client *clp)
 {
 	free(clp->m_hostname);
-	xfree(clp);
+	free(clp);
 }
 
 /* if canonical is set, then we *know* this is already a canonical name
@@ -111,9 +111,10 @@ client_lookup(char *hname, int canonical)
 		}
 	}
 
-	if (!clp) {
-		clp = (nfs_client *) xmalloc(sizeof(*clp));
-		memset(clp, 0, sizeof(*clp));
+	if (clp == NULL) {
+		clp = calloc(1, sizeof(*clp));
+		if (clp == NULL)
+			goto out;
 		clp->m_type = htype;
 		if (!client_init(clp, hname, NULL)) {
 			client_free(clp);
@@ -138,7 +139,9 @@ client_dup(nfs_client *clp, struct hostent *hp)
 {
 	nfs_client		*new;
 
-	new = (nfs_client *) xmalloc(sizeof(*new));
+	new = (nfs_client *)malloc(sizeof(*new));
+	if (new == NULL)
+		return NULL;
 	memcpy(new, clp, sizeof(*new));
 	new->m_type = MCL_FQDN;
 	new->m_hostname = NULL;
