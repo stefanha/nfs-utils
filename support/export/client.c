@@ -113,6 +113,18 @@ client_init(nfs_client *clp, const char *hname, const struct hostent *hp)
 	return 1;
 }
 
+static void
+client_add(nfs_client *clp)
+{
+	nfs_client **cpp;
+
+	cpp = &clientlist[clp->m_type];
+	while (*cpp != NULL)
+		cpp = &((*cpp)->m_next);
+	clp->m_next = NULL;
+	*cpp = clp;
+}
+
 /* if canonical is set, then we *know* this is already a canonical name
  * so hostname lookup is avoided.
  * This is used when reading /proc/fs/nfs/exports
@@ -206,20 +218,6 @@ client_dup(nfs_client *clp, struct hostent *hp)
 	}
 	client_add(new);
 	return new;
-}
-
-void
-client_add(nfs_client *clp)
-{
-	nfs_client	**cpp;
-
-	if (clp->m_type < 0 || clp->m_type >= MCL_MAXTYPES)
-		xlog(L_FATAL, "unknown client type in client_add");
-	cpp = clientlist + clp->m_type;
-	while (*cpp)
-		cpp = &((*cpp)->m_next);
-	clp->m_next = NULL;
-	*cpp = clp;
 }
 
 void
