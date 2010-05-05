@@ -37,6 +37,9 @@ nfs_client	*clientlist[MCL_MAXTYPES] = { NULL, };
 static void
 init_addrlist(nfs_client *clp, const struct hostent *hp)
 {
+	struct sockaddr_in sin = {
+		.sin_family		= AF_INET,
+	};
 	char **ap;
 	int i;
 
@@ -44,9 +47,10 @@ init_addrlist(nfs_client *clp, const struct hostent *hp)
 		return;
 
 	ap = hp->h_addr_list;
-	for (i = 0; *ap != NULL && i < NFSCLNT_ADDRMAX; i++, ap++)
-		clp->m_addrlist[i] = *(struct in_addr *)*ap;
-
+	for (i = 0; *ap != NULL && i < NFSCLNT_ADDRMAX; i++, ap++) {
+		sin.sin_addr = *(struct in_addr *)*ap;
+		set_addrlist_in(clp, i, &sin);
+	}
 	clp->m_naddr = i;
 }
 
@@ -60,17 +64,22 @@ client_free(nfs_client *clp)
 static int
 init_netmask(nfs_client *clp, const char *slash)
 {
+	struct sockaddr_in sin = {
+		.sin_family		= AF_INET,
+	};
+
 	if (strchr(slash + 1, '.') != NULL)
-		clp->m_addrlist[1].s_addr = inet_addr(slash + 1);
+		sin.sin_addr.s_addr = inet_addr(slash + 1);
 	else {
 		int prefixlen = atoi(slash + 1);
 		if (0 < prefixlen && prefixlen <= 32)
-			clp->m_addrlist[1].s_addr =
+			sin.sin_addr.s_addr =
 					htonl((uint32_t)~0 << (32 - prefixlen));
 		else
 			goto out_badprefix;
 	}
 
+	set_addrlist_in(clp, 1, &sin);
 	return 1;
 
 out_badprefix:
@@ -81,6 +90,9 @@ out_badprefix:
 static int
 init_subnetwork(nfs_client *clp)
 {
+	struct sockaddr_in sin = {
+		.sin_family		= AF_INET,
+	};
 	static char slash32[] = "/32";
 	char *cp;
 
@@ -89,7 +101,8 @@ init_subnetwork(nfs_client *clp)
 		cp = slash32;
 
 	*cp = '\0';
-	clp->m_addrlist[0].s_addr = inet_addr(clp->m_hostname);
+	sin.sin_addr.s_addr = inet_addr(clp->m_hostname);
+	set_addrlist_in(clp, 0, &sin);
 	*cp = '/';
 
 	return init_netmask(clp, cp);
@@ -366,6 +379,7 @@ add_name(char *old, const char *add)
 static int
 check_fqdn(const nfs_client *clp, const struct hostent *hp)
 {
+	const struct sockaddr_in *sin;
 	struct in_addr addr;
 	char **ap;
 	int i;
@@ -373,9 +387,11 @@ check_fqdn(const nfs_client *clp, const struct hostent *hp)
 	for (ap = hp->h_addr_list; *ap; ap++) {
 		addr = *(struct in_addr *)*ap;
 
-		for (i = 0; i < clp->m_naddr; i++)
-			if (clp->m_addrlist[i].s_addr == addr.s_addr)
+		for (i = 0; i < clp->m_naddr; i++) {
+			sin = get_addrlist_in(clp, i);
+			if (sin->sin_addr.s_addr == addr.s_addr)
 				return 1;
+		}
 	}
 	return 0;
 }
@@ -388,14 +404,17 @@ check_fqdn(const nfs_client *clp, const struct hostent *hp)
 static int
 check_subnetwork(const nfs_client *clp, const struct hostent *hp)
 {
+	const struct sockaddr_in *address, *mask;
 	struct in_addr addr;
 	char **ap;
 
 	for (ap = hp->h_addr_list; *ap; ap++) {
+		address = get_addrlist_in(clp, 0);
+		mask = get_addrlist_in(clp, 1);
 		addr = *(struct in_addr *)*ap;
 
-		if (!((clp->m_addrlist[0].s_addr ^ addr.s_addr) &
-		      clp->m_addrlist[1].s_addr))
+		if (!((address->sin_addr.s_addr ^ addr.s_addr) &
+		      mask->sin_addr.s_addr))
 			return 1;
 	}
 	return 0;

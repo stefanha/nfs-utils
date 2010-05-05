@@ -142,7 +142,7 @@ auth_authenticate_newcache(char *what, struct sockaddr_in *caller,
 		return NULL;
 
 	my_client.m_naddr = 1;
-	my_client.m_addrlist[0] = caller->sin_addr;
+	set_addrlist_in(&my_client, 0, caller);
 	my_exp.m_client = &my_client;
 
 	exp = NULL;

@@ -10,6 +10,8 @@
 #define EXPORTFS_H
 
 #include <netdb.h>
+
+#include "sockaddr.h"
 #include "nfslib.h"
 
 enum {
@@ -35,10 +37,55 @@ typedef struct mclient {
 	char *			m_hostname;
 	int			m_type;
 	int			m_naddr;
-	struct in_addr		m_addrlist[NFSCLNT_ADDRMAX];
+	union nfs_sockaddr	m_addrlist[NFSCLNT_ADDRMAX];
 	int			m_exported;	/* exported to nfsd */
 	int			m_count;
 } nfs_client;
+
+static inline const struct sockaddr *
+get_addrlist(const nfs_client *clp, const int i)
+{
+	return &clp->m_addrlist[i].sa;
+}
+
+static inline const struct sockaddr_in *
+get_addrlist_in(const nfs_client *clp, const int i)
+{
+	return &clp->m_addrlist[i].s4;
+}
+
+static inline const struct sockaddr_in6 *
+get_addrlist_in6(const nfs_client *clp, const int i)
+{
+	return &clp->m_addrlist[i].s6;
+}
+
+static inline void
+set_addrlist_in(nfs_client *clp, const int i, const struct sockaddr_in *sin)
+{
+	memcpy(&clp->m_addrlist[i].s4, sin, sizeof(*sin));
+}
+
+static inline void
+set_addrlist_in6(nfs_client *clp, const int i, const struct sockaddr_in6 *sin6)
+{
+	memcpy(&clp->m_addrlist[i].s6, sin6, sizeof(*sin6));
+}
+
+static inline void
+set_addrlist(nfs_client *clp, const int i, const struct sockaddr *sap)
+{
+	switch (sap->sa_family) {
+	case AF_INET:
+		memcpy(&clp->m_addrlist[i].s4, sap, sizeof(struct sockaddr_in));
+		break;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		memcpy(&clp->m_addrlist[i].s6, sap, sizeof(struct sockaddr_in6));
+		break;
+#endif
+	}
+}
 
 typedef struct mexport {
 	struct mexport *	m_next;

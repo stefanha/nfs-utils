@@ -66,7 +66,7 @@ str_tolower(char *s)
 static int
 cltsetup(struct nfsctl_client *cltarg, nfs_client *clp)
 {
-	int	i;
+	int i, j;
 
 	if (clp->m_type != MCL_FQDN) {
 		xlog(L_ERROR, "internal: can't export non-FQDN host");
@@ -76,10 +76,19 @@ cltsetup(struct nfsctl_client *cltarg, nfs_client *clp)
 	strncpy(cltarg->cl_ident, clp->m_hostname,
 		sizeof (cltarg->cl_ident) - 1);
 	str_tolower(cltarg->cl_ident);
-	cltarg->cl_naddr = clp->m_naddr;
-	for (i = 0; i < cltarg->cl_naddr && i < NFSCLNT_ADDRMAX; i++)
-		cltarg->cl_addrlist[i] = clp->m_addrlist[i];
 
+	j = 0;
+	for (i = 0; i < cltarg->cl_naddr && i < NFSCLNT_ADDRMAX; i++) {
+		struct sockaddr_in *sin = get_addrlist_in(clp, i);
+		if (sin->sin_family == AF_INET)
+			cltarg->cl_addrlist[j++] = sin->sin_addr;
+	}
+	if (j == 0) {
+		xlog(L_ERROR, "internal: no supported addresses in nfs_client");
+		return 0;
+	}
+
+	cltarg->cl_naddr = j;
 	return 1;
 }
 
