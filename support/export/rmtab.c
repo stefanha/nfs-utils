@@ -19,39 +19,57 @@
 #include "xio.h"
 #include "xlog.h"
 
+/*
+ * See if the entry already exists.  If not,
+ * this was an instantiated wild card, and we
+ * must add it.
+ */
+static void
+rmtab_read_wildcard(struct rmtabent *rep)
+{
+	nfs_export *exp, *exp2;
+	struct hostent *hp;
+
+	hp = gethostbyname(rep->r_client);
+	if (hp == NULL)
+		return;
+	hp = hostent_dup(hp);
+	if (hp == NULL)
+		return;
+
+	exp = export_allowed(hp, rep->r_path);
+	free(hp);
+	if (exp == NULL)
+		return;
+
+	exp2 = export_lookup(rep->r_client, exp->m_export.e_path, 0);
+	if (exp2 == NULL) {
+		struct exportent ee;
+
+		memset(&ee, 0, sizeof(ee));
+		dupexportent(&ee, &exp->m_export);
+
+		ee.e_hostname = rep->r_client;
+		exp2 = export_create(&ee, 0);
+		exp2->m_changed = exp->m_changed;
+	}
+	exp2->m_mayexport = 1;
+}
+
 int
 rmtab_read(void)
 {
 	struct rmtabent		*rep;
-	nfs_export		*exp = NULL;
 
 	setrmtabent("r");
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
-		struct hostent		*hp = NULL;
 		int			htype;
-		
+
 		htype = client_gettype(rep->r_client);
-		if ((htype == MCL_FQDN || htype == MCL_SUBNETWORK)
-		    && (hp = gethostbyname (rep->r_client))
-		    && (hp = hostent_dup (hp),
-			exp = export_allowed (hp, rep->r_path))) {
-			/* see if the entry already exists, otherwise this was an instantiated
-			 * wild card, and we must add it
-			 */
-			nfs_export *exp2 = export_lookup(rep->r_client,
-							exp->m_export.e_path, 0);
-			if (!exp2) {
-				struct exportent ee;
-				dupexportent(&ee, &exp->m_export);
-				ee.e_hostname = rep->r_client;
-				exp2 = export_create(&ee, 0);
-				exp2->m_changed = exp->m_changed;
-			}
-			free (hp);
-			exp2->m_mayexport = 1;
-		} else if (hp) /* export_allowed failed */
-			free(hp);
+		if (htype == MCL_FQDN || htype == MCL_SUBNETWORK)
+			rmtab_read_wildcard(rep);
 	}
+
 	if (errno == EINVAL) {
 		/* Something goes wrong. We need to fix the rmtab
 		   file. */
