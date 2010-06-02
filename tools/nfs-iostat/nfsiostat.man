@@ -57,6 +57,7 @@ displays statistics related to the page cache
 .TP
 .B \-s " or " \-\-sort
 Sort NFS mount points by ops/second
+.TP
 .B \-\-version
 show program's version number and exit
 .SH FILES
