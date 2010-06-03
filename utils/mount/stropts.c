@@ -538,7 +538,10 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 
 	if (!nfs_construct_new_options(options, nfs_saddr, &nfs_pmap,
 					mnt_saddr, &mnt_pmap)) {
-		errno = EINVAL;
+		if (rpc_createerr.cf_stat == RPC_UNKNOWNPROTO)
+			errno = EPROTONOSUPPORT;
+		else
+			errno = EINVAL;
 		return 0;
 	}
 
@@ -586,18 +589,21 @@ static int nfs_do_mount_v3v2(struct nfsmount_info *mi,
 		errno = ENOMEM;
 		return result;
 	}
-
+	errno = 0;
 	if (!nfs_append_addr_option(sap, salen, options)) {
-		errno = EINVAL;
+		if (errno == 0)
+			errno = EINVAL;
 		goto out_fail;
 	}
 
 	if (!nfs_fix_mounthost_option(options, mi->hostname)) {
-		errno = EINVAL;
+		if (errno == 0)
+			errno = EINVAL;
 		goto out_fail;
 	}
 	if (!mi->fake && !nfs_verify_lock_option(options)) {
-		errno = EINVAL;
+		if (errno == 0)
+			errno = EINVAL;
 		goto out_fail;
 	}
 

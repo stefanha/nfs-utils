@@ -1311,6 +1311,8 @@ nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 		if (option != NULL) {
 			if (!nfs_get_proto(option, &family, protocol)) {
 				errno = EPROTONOSUPPORT;
+				nfs_error(_("%s: Failed to find '%s' protocol"), 
+					progname, option);
 				return 0;
 			}
 			return 1;
@@ -1399,8 +1401,13 @@ int nfs_nfs_proto_family(struct mount_options *options,
 	case 2: /* proto */
 		option = po_get(options, "proto");
 		if (option != NULL &&
-		    !nfs_get_proto(option, &tmp_family, &protocol))
-			goto out_err;
+		    !nfs_get_proto(option, &tmp_family, &protocol)) {
+
+			nfs_error(_("%s: Failed to find '%s' protocol"), 
+				progname, option);
+			errno = EPROTONOSUPPORT;
+			return 0;
+		}
 	}
 
 	if (!nfs_verify_family(tmp_family))
@@ -1492,6 +1499,8 @@ nfs_mount_protocol(struct mount_options *options, unsigned long *protocol)
 	if (option != NULL) {
 		if (!nfs_get_proto(option, &family, protocol)) {
 			errno = EPROTONOSUPPORT;
+			nfs_error(_("%s: Failed to find '%s' protocol"), 
+				progname, option);
 			return 0;
 		}
 		return 1;
@@ -1551,8 +1560,12 @@ int nfs_mount_proto_family(struct mount_options *options,
 
 	option = po_get(options, "mountproto");
 	if (option != NULL) {
-		if (!nfs_get_proto(option, &tmp_family, &protocol))
+		if (!nfs_get_proto(option, &tmp_family, &protocol)) {
+			nfs_error(_("%s: Failed to find '%s' protocol"), 
+				progname, option);
+			errno = EPROTONOSUPPORT;
 			goto out_err;
+		}
 		if (!nfs_verify_family(tmp_family))
 			goto out_err;
 		*family = tmp_family;
