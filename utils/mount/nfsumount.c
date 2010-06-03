@@ -179,10 +179,8 @@ static int nfs_umount_do_umnt(struct mount_options *options,
 	struct pmap nfs_pmap, mnt_pmap;
 	sa_family_t family;
 
-	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap)) {
-		nfs_error(_("%s: bad mount options"), progname);
+	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap))
 		return EX_FAIL;
-	}
 
 	/* Skip UMNT call for vers=4 mounts */
 	if (nfs_pmap.pm_vers == 4)

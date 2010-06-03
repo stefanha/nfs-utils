@@ -1212,6 +1212,8 @@ nfs_nfs_program(struct mount_options *options, unsigned long *program)
 			return 1;
 		}
 	case PO_BAD_VALUE:
+		nfs_error(_("%s: invalid value for 'nfsprog=' option"),
+				progname);
 		return 0;
 	}
 
@@ -1251,9 +1253,12 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 			}
 			return 0;
 		case PO_NOT_FOUND:
-			nfs_error(_("%s: option parsing error\n"),
+			nfs_error(_("%s: parsing error on 'vers=' option\n"),
 					progname);
+			return 0;
 		case PO_BAD_VALUE:
+			nfs_error(_("%s: invalid value for 'vers=' option"),
+					progname);
 			return 0;
 		}
 	case 4: /* nfsvers */
@@ -1265,9 +1270,12 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 			}
 			return 0;
 		case PO_NOT_FOUND:
-			nfs_error(_("%s: option parsing error\n"),
+			nfs_error(_("%s: parsing error on 'nfsvers=' option\n"),
 					progname);
+			return 0;
 		case PO_BAD_VALUE:
+			nfs_error(_("%s: invalid value for 'nfsvers=' option"),
+					progname);
 			return 0;
 		}
 	}
@@ -1336,6 +1344,8 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 			return 1;
 		}
 	case PO_BAD_VALUE:
+		nfs_error(_("%s: invalid value for 'port=' option"),
+				progname);
 		return 0;
 	}
 
@@ -1423,6 +1433,8 @@ nfs_mount_program(struct mount_options *options, unsigned long *program)
 			return 1;
 		}
 	case PO_BAD_VALUE:
+		nfs_error(_("%s: invalid value for 'mountprog=' option"),
+				progname);
 		return 0;
 	}
 
@@ -1452,6 +1464,8 @@ nfs_mount_version(struct mount_options *options, unsigned long *version)
 			return 1;
 		}
 	case PO_BAD_VALUE:
+		nfs_error(_("%s: invalid value for 'mountvers=' option"),
+				progname);
 		return 0;
 	}
 
@@ -1510,6 +1524,8 @@ nfs_mount_port(struct mount_options *options, unsigned long *port)
 			return 1;
 		}
 	case PO_BAD_VALUE:
+		nfs_error(_("%s: invalid value for 'mountport=' option"),
+				progname);
 		return 0;
 	}
 
