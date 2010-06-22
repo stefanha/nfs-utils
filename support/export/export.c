@@ -24,6 +24,7 @@ static int export_hash(char *);
 
 static void	export_init(nfs_export *exp, nfs_client *clp,
 					struct exportent *nep);
+static void	export_add(nfs_export *exp);
 static int	export_check(const nfs_export *exp, const struct addrinfo *ai,
 				const char *path);
 static nfs_export *
@@ -151,10 +152,7 @@ export_dup(nfs_export *exp, const struct addrinfo *ai)
 	return new;
 }
 
-/*
- * Add export entry to hash table
- */
-void 
+static void
 export_add(nfs_export *exp)
 {
 	exp_hash_table *p_tbl;
