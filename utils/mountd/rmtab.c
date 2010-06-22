@@ -133,8 +133,7 @@ mountlist_del(char *hname, const char *path)
 void
 mountlist_del_all(struct sockaddr_in *sin)
 {
-	struct in_addr	addr = sin->sin_addr;
-	struct hostent	*hp;
+	char		*hostname;
 	struct rmtabent	*rep;
 	nfs_export	*exp;
 	FILE		*fp;
@@ -142,11 +141,13 @@ mountlist_del_all(struct sockaddr_in *sin)
 
 	if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
 		return;
-	if (!(hp = gethostbyaddr((char *)&addr, sizeof(addr), AF_INET))) {
-		xlog(L_ERROR, "can't get hostname of %s", inet_ntoa(addr));
+	hostname = host_canonname((struct sockaddr *)sin);
+	if (hostname == NULL) {
+		char buf[INET_ADDRSTRLEN];
+		xlog(L_ERROR, "can't get hostname of %s",
+			host_ntop((struct sockaddr *)sin, buf, sizeof(buf)));
 		goto out_unlock;
 	}
-	hp = hostent_dup (hp);
 
 	if (!setrmtabent("r"))
 		goto out_free;
@@ -155,7 +156,7 @@ mountlist_del_all(struct sockaddr_in *sin)
 		goto out_close;
 
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
-		if (strcmp(rep->r_client, hp->h_name) == 0 &&
+		if (strcmp(rep->r_client, hostname) == 0 &&
 		    (exp = auth_authenticate("umountall", sin, rep->r_path)))
 			continue;
 		fputrmtabent(fp, rep, NULL);
@@ -168,7 +169,7 @@ mountlist_del_all(struct sockaddr_in *sin)
 out_close:
 	endrmtabent();	/* close & unlink */
 out_free:
-	free (hp);
+	free(hostname);
 out_unlock:
 	xfunlock(lockid);
 }

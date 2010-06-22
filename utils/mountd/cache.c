@@ -912,7 +912,7 @@ int cache_export_ent(char *domain, struct exportent *exp, char *path)
 
 int cache_export(nfs_export *exp, char *path)
 {
-	struct sockaddr_in *sin = get_addrlist_in(exp->m_client, 0);
+	char buf[INET_ADDRSTRLEN];
 	int err;
 	FILE *f;
 
@@ -920,8 +920,10 @@ int cache_export(nfs_export *exp, char *path)
 	if (!f)
 		return -1;
 
+
 	qword_print(f, "nfsd");
-	qword_print(f, inet_ntoa(sin->sin_addr));
+	qword_print(f, 
+		host_ntop(get_addrlist(exp->m_client, 0), buf, sizeof(buf)));
 	qword_printint(f, time(0)+30*60);
 	qword_print(f, exp->m_client->m_hostname);
 	err = qword_eol(f);

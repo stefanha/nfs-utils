@@ -146,6 +146,19 @@ void				xtab_append(nfs_export *);
 
 int				secinfo_addflavor(struct flav_info *, struct exportent *);
 
+char *				host_ntop(const struct sockaddr *sap,
+						char *buf, const size_t buflen);
+__attribute_malloc__
+struct addrinfo *		host_pton(const char *paddr);
+__attribute_malloc__
+struct addrinfo *		host_addrinfo(const char *hostname);
+__attribute_malloc__
+char *				host_canonname(const struct sockaddr *sap);
+__attribute_malloc__
+struct addrinfo *		host_reliable_addrinfo(const struct sockaddr *sap);
+__attribute_malloc__
+struct addrinfo *		host_numeric_addrinfo(const struct sockaddr *sap);
+
 int				rmtab_read(void);
 
 struct nfskey *			key_lookup(char *hname);

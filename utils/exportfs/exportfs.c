@@ -287,7 +287,7 @@ static void
 unexportfs(char *arg, int verbose)
 {
 	nfs_export	*exp;
-	struct hostent	*hp = NULL;
+	struct addrinfo *ai = NULL;
 	char		*path;
 	char		*hname = arg;
 	int		htype;
@@ -302,10 +302,9 @@ unexportfs(char *arg, int verbose)
 	}
 
 	if ((htype = client_gettype(hname)) == MCL_FQDN) {
-		if ((hp = gethostbyname(hname)) != 0) {
-			hp = hostent_dup (hp);
-			hname = (char *) hp->h_name;
-		}
+		ai = host_addrinfo(hname);
+		if (ai)
+			hname = ai->ai_canonname;
 	}
 
 	for (exp = exportlist[htype].p_head; exp; exp = exp->m_next) {
@@ -341,7 +340,7 @@ unexportfs(char *arg, int verbose)
 		exp->m_mayexport = 0;
 	}
 
-	if (hp) free (hp);
+	freeaddrinfo(ai);
 }
 
 static int can_test(void)
