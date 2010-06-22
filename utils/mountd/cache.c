@@ -170,13 +170,16 @@ void auth_unix_gid(FILE *f)
 #if USE_BLKID
 static const char *get_uuid_blkdev(char *path)
 {
+	/* We set *safe if we know that we need the
+	 * fsid from statfs too.
+	 */
 	static blkid_cache cache = NULL;
 	struct stat stb;
 	char *devname;
 	blkid_tag_iterate iter;
 	blkid_dev dev;
 	const char *type;
-	const char *val = NULL;
+	const char *val, *uuid = NULL;
 
 	if (cache == NULL)
 		blkid_get_cache(&cache, NULL);
@@ -193,42 +196,29 @@ static const char *get_uuid_blkdev(char *path)
 	iter = blkid_tag_iterate_begin(dev);
 	if (!iter)
 		return NULL;
-	while (blkid_tag_next(iter, &type, &val) == 0)
+	while (blkid_tag_next(iter, &type, &val) == 0) {
 		if (strcmp(type, "UUID") == 0)
+			uuid = val;
+		if (strcmp(type, "TYPE") == 0 &&
+		    strcmp(val, "btrfs") == 0) {
+			uuid = NULL;
 			break;
+		}
+	}
 	blkid_tag_iterate_end(iter);
-	return val;
+	return uuid;
 }
 #else
 #define get_uuid_blkdev(path) (NULL)
 #endif
 
-int get_uuid(char *path, char *uuid, int uuidlen, char *u)
+int get_uuid(const char *val, int uuidlen, char *u)
 {
 	/* extract hex digits from uuidstr and compose a uuid
 	 * of the given length (max 16), xoring bytes to make
-	 * a smaller uuid.  Then compare with uuid
+	 * a smaller uuid.
 	 */
 	int i = 0;
-	const char *val = NULL;
-	char fsid_val[17];
-
-	if (path) {
-		val = get_uuid_blkdev(path);
-		if (!val) {
-			struct statfs64 st;
-
-			if (statfs64(path, &st))
-				return 0;
-			if (!st.f_fsid.__val[0] && !st.f_fsid.__val[1])
-				return 0;
-			snprintf(fsid_val, 17, "%08x%08x",
-				 st.f_fsid.__val[0], st.f_fsid.__val[1]);
-			val = fsid_val;
-		}
-	} else {
-		val = uuid;
-	}
 	
 	memset(u, 0, uuidlen);
 	for ( ; *val ; val++) {
@@ -249,6 +239,60 @@ int get_uuid(char *path, char *uuid, int uuidlen, char *u)
 		if (i == uuidlen*2)
 			i = 0;
 	}
+	return 1;
+}
+
+int uuid_by_path(char *path, int type, int uuidlen, char *uuid)
+{
+	/* get a uuid for the filesystem found at 'path'.
+	 * There are several possible ways of generating the
+	 * uuids (types).
+	 * Type 0 is used for new filehandles, while other types
+	 * may be used to interpret old filehandle - to ensure smooth
+	 * forward migration.
+	 * We return 1 if a uuid was found (and it might be worth 
+	 * trying the next type) or 0 if no more uuid types can be
+	 * extracted.
+	 */
+
+	/* Possible sources of uuid are
+	 * - blkid uuid
+	 * - statfs64 uuid
+	 *
+	 * On some filesystems (e.g. vfat) the statfs64 uuid is simply an
+	 * encoding of the device that the filesystem is mounted from, so
+	 * it we be very bad to use that (as device numbers change).  blkid
+	 * must be preferred.
+	 * On other filesystems (e.g. btrfs) the statfs64 uuid contains
+	 * important info that the blkid uuid cannot contain:  This happens
+	 * when multiple subvolumes are exported (they have the same
+	 * blkid uuid but different statfs64 uuids).
+	 * We rely on get_uuid_blkdev *knowing* which is which and not returning
+	 * a uuid for filesystems where the statfs64 uuid is better.
+	 *
+	 */
+	struct statfs64 st;
+	char fsid_val[17];
+	const char *blkid_val;
+	const char *val;
+
+	blkid_val = get_uuid_blkdev(path);
+
+	if (statfs64(path, &st) == 0 &&
+	    (st.f_fsid.__val[0] || st.f_fsid.__val[1]))
+		snprintf(fsid_val, 17, "%08x%08x",
+			 st.f_fsid.__val[0], st.f_fsid.__val[1]);
+	else
+		fsid_val[0] = 0;
+
+	if (blkid_val && (type--) == 0)
+		val = blkid_val;
+	else if (fsid_val[0] && (type--) == 0)
+		val = fsid_val;
+	else
+		return 0;
+
+	get_uuid(val, uuidlen, uuid);
 	return 1;
 }
 
@@ -398,6 +442,7 @@ void nfsd_fh(FILE *f)
 			struct stat stb;
 			char u[16];
 			char *path;
+			int type;
 
 			if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT) {
 				static nfs_export *prev = NULL;
@@ -461,10 +506,14 @@ void nfsd_fh(FILE *f)
 					continue;
 			check_uuid:
 				if (exp->m_export.e_uuid)
-					get_uuid(NULL, exp->m_export.e_uuid,
+					get_uuid(exp->m_export.e_uuid,
 						 uuidlen, u);
-				else if (get_uuid(path, NULL, uuidlen, u) == 0)
-					continue;
+				else
+					for (type = 0;
+					     uuid_by_path(path, type, uuidlen, u);
+					     type++)
+						if (memcmp(u, fhuuid, uuidlen) != 0)
+							break;
 
 				if (memcmp(u, fhuuid, uuidlen) != 0)
 					continue;
@@ -600,13 +649,13 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		write_secinfo(f, exp, flag_mask);
  		if (exp->e_uuid == NULL || different_fs) {
  			char u[16];
- 			if (get_uuid(path, NULL, 16, u)) {
+ 			if (uuid_by_path(path, 0, 16, u)) {
  				qword_print(f, "uuid");
  				qword_printhex(f, u, 16);
  			}
  		} else {
  			char u[16];
- 			get_uuid(NULL, exp->e_uuid, 16, u);
+ 			get_uuid(exp->e_uuid, 16, u);
  			qword_print(f, "uuid");
  			qword_printhex(f, u, 16);
  		}
