@@ -263,14 +263,10 @@ exportfs(char *arg, char *options, int verbose)
 
 	if (!exp) {
 		if (!(eep = mkexportent(hname, path, options)) ||
-		    !(exp = export_create(eep, 0))) {
-			if (hp) free (hp);
-			return;
-		}
-	} else if (!updateexportent(&exp->m_export, options)) {
-		if (hp) free (hp);
-		return;
-	}
+		    !(exp = export_create(eep, 0)))
+			goto out;
+	} else if (!updateexportent(&exp->m_export, options))
+		goto out;
 
 	if (verbose)
 		printf("exporting %s:%s\n", exp->m_client->m_hostname, 
@@ -280,6 +276,8 @@ exportfs(char *arg, char *options, int verbose)
 	exp->m_changed = 1;
 	exp->m_warned = 0;
 	validate_export(exp);
+
+out:
 	if (hp) free (hp);
 }
 
