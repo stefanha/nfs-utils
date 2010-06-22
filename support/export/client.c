@@ -134,9 +134,13 @@ client_add(nfs_client *clp)
 	*cpp = clp;
 }
 
-/* if canonical is set, then we *know* this is already a canonical name
- * so hostname lookup is avoided.
- * This is used when reading /proc/fs/nfs/exports
+/**
+ * client_lookup - look for @hname in our list of cached nfs_clients
+ * @hname: '\0'-terminated ASCII string containing hostname to look for
+ * @canonical: if set, @hname is known to be canonical DNS name
+ *
+ * Returns pointer to a matching or freshly created nfs_client.  NULL
+ * is returned if some problem occurs.
  */
 nfs_client *
 client_lookup(char *hname, int canonical)
@@ -215,6 +219,10 @@ client_dup(const nfs_client *clp, const struct addrinfo *ai)
 	return new;
 }
 
+/**
+ * client_release - drop a reference to an nfs_client record
+ *
+ */
 void
 client_release(nfs_client *clp)
 {
@@ -223,6 +231,10 @@ client_release(nfs_client *clp)
 	clp->m_count--;
 }
 
+/**
+ * client_freeall - deallocate all nfs_client records
+ *
+ */
 void
 client_freeall(void)
 {
@@ -558,6 +570,13 @@ client_check(const nfs_client *clp, const struct addrinfo *ai)
 	return 0;
 }
 
+/**
+ * client_gettype - determine type of nfs_client given an identifier
+ * @ident: '\0'-terminated ASCII string containing a client identifier
+ *
+ * Returns the type of nfs_client record that would be used for
+ * this client.
+ */
 int
 client_gettype(char *ident)
 {

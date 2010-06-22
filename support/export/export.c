@@ -81,8 +81,13 @@ export_read(char *fname)
 	endexportent();
 }
 
-/*
- * Create an in-core export struct from an export entry.
+/**
+ * export_create - create an in-core nfs_export record from an export entry
+ * @xep: export entry to lookup
+ * @canonical: if set, e_hostname is known to be canonical DNS name
+ *
+ * Returns a freshly instantiated export record, or NULL if
+ * a problem occurred.
  */
 nfs_export *
 export_create(struct exportent *xep, int canonical)
@@ -260,11 +265,17 @@ export_allowed(const struct addrinfo *ai, const char *path)
 	return NULL;
 }
 
-/*
- * Search hash table for export entry. 
- */  
+/**
+ * export_lookup - search hash table for export entry
+ * @hname: '\0'-terminated ASCII string containing client hostname to look for
+ * @path: '\0'-terminated ASCII string containing export path to look for
+ * @canonical: if set, @hname is known to be canonical DNS name
+ *
+ * Returns a pointer to nfs_export record matching @hname and @path,
+ * or NULL if the export was not found.
+ */
 nfs_export *
-export_lookup(char *hname, char *path, int canonical) 
+export_lookup(char *hname, char *path, int canonical)
 {
 	nfs_client *clp;
 	nfs_export *exp;
