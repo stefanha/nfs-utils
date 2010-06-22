@@ -366,6 +366,12 @@ class DeviceData:
         sends = float(self.__rpc_data['rpcsends'])
         if sample_time == 0:
             sample_time = float(self.__nfs_data['age'])
+        #  sample_time could still be zero if the export was just mounted.
+        #  Set it to 1 to avoid divide by zero errors in this case since we'll
+        #  likely still have relevant mount statistics to show.
+        #
+        if sample_time == 0:
+            sample_time = 1;
         if sends != 0:
             backlog = (float(self.__rpc_data['backlogutil']) / sends) / sample_time
         else:
