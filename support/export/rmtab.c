@@ -28,17 +28,14 @@ static void
 rmtab_read_wildcard(struct rmtabent *rep)
 {
 	nfs_export *exp, *exp2;
-	struct hostent *hp;
+	struct addrinfo *ai;
 
-	hp = gethostbyname(rep->r_client);
-	if (hp == NULL)
-		return;
-	hp = hostent_dup(hp);
-	if (hp == NULL)
+	ai = host_addrinfo(rep->r_client);
+	if (ai == NULL)
 		return;
 
-	exp = export_allowed(hp, rep->r_path);
-	free(hp);
+	exp = export_allowed(ai, rep->r_path);
+	freeaddrinfo(ai);
 	if (exp == NULL)
 		return;
 

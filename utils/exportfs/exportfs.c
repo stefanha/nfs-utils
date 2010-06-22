@@ -232,7 +232,7 @@ exportfs(char *arg, char *options, int verbose)
 {
 	struct exportent *eep;
 	nfs_export	*exp;
-	struct hostent	*hp = NULL;
+	struct addrinfo	*ai = NULL;
 	char		*path;
 	char		*hname = arg;
 	int		htype;
@@ -245,21 +245,14 @@ exportfs(char *arg, char *options, int verbose)
 		return;
 	}
 
-	if ((htype = client_gettype(hname)) == MCL_FQDN &&
-	    (hp = gethostbyname(hname)) != NULL) {
-		struct hostent *hp2 = hostent_dup (hp);
-		hp = gethostbyaddr(hp2->h_addr, hp2->h_length,
-				   hp2->h_addrtype);
-		if (hp) {
-			free(hp2);
-			hp = hostent_dup(hp);
-		} else
-			hp = hp2;
-		exp = export_find(hp, path);
-		hname = hp->h_name;
-	} else {
+	if ((htype = client_gettype(hname)) == MCL_FQDN) {
+		ai = host_addrinfo(hname);
+		if (ai != NULL) {
+			exp = export_find(ai, path);
+			hname = ai->ai_canonname;
+		}
+	} else
 		exp = export_lookup(hname, path, 0);
-	}
 
 	if (!exp) {
 		if (!(eep = mkexportent(hname, path, options)) ||
@@ -278,7 +271,7 @@ exportfs(char *arg, char *options, int verbose)
 	validate_export(exp);
 
 out:
-	if (hp) free (hp);
+	freeaddrinfo(ai);
 }
 
 static void

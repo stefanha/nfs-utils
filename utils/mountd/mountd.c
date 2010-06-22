@@ -536,22 +536,21 @@ static void free_exportlist(exports *elist)
 
 static void prune_clients(nfs_export *exp, struct exportnode *e)
 {
-	struct hostent 	*hp;
+	struct addrinfo *ai = NULL;
 	struct groupnode *c, **cp;
 
 	cp = &e->ex_groups;
 	while ((c = *cp) != NULL) {
 		if (client_gettype(c->gr_name) == MCL_FQDN
-				&& (hp = gethostbyname(c->gr_name))) {
-			hp = hostent_dup(hp);
-			if (client_check(exp->m_client, hp)) {
+		    && (ai = host_addrinfo(c->gr_name))) {
+			if (client_check(exp->m_client, ai)) {
 				*cp = c->gr_next;
 				xfree(c->gr_name);
 				xfree(c);
-				xfree (hp);
+				freeaddrinfo(ai);
 				continue;
 			}
-			xfree (hp);
+			freeaddrinfo(ai);
 		}
 		cp = &(c->gr_next);
 	}

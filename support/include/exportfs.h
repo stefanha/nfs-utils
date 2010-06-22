@@ -116,13 +116,15 @@ extern exp_hash_table exportlist[MCL_MAXTYPES];
 extern nfs_client *		clientlist[MCL_MAXTYPES];
 
 nfs_client *			client_lookup(char *hname, int canonical);
-nfs_client *			client_dup(nfs_client *, struct hostent *);
+nfs_client *			client_dup(const nfs_client *clp,
+						const struct addrinfo *ai);
 int				client_gettype(char *hname);
-int				client_check(nfs_client *, struct hostent *);
+int				client_check(const nfs_client *clp,
+						const struct addrinfo *ai);
 void				client_release(nfs_client *);
 void				client_freeall(void);
-char *				client_compose(struct hostent *he);
-struct hostent *		client_resolve(struct in_addr addr);
+char *				client_compose(const struct addrinfo *ai);
+struct addrinfo *		client_resolve(const struct sockaddr *sap);
 int 				client_member(const char *client,
 						const char *name);
 
@@ -130,10 +132,11 @@ int				export_read(char *fname);
 void			export_add(nfs_export *);
 void				export_reset(nfs_export *);
 nfs_export *			export_lookup(char *hname, char *path, int caconical);
-nfs_export *			export_find(struct hostent *, char *path);
-nfs_export *			export_allowed(struct hostent *, char *path);
+nfs_export *			export_find(const struct addrinfo *ai,
+						const char *path);
+nfs_export *			export_allowed(const struct addrinfo *ai,
+						const char *path);
 nfs_export *			export_create(struct exportent *, int canonical);
-nfs_export *			export_dup(nfs_export *, struct hostent *);
 void				export_freeall(void);
 int				export_export(nfs_export *);
 int				export_unexport(nfs_export *);

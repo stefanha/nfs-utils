@@ -35,22 +35,18 @@ nfs_client	*clientlist[MCL_MAXTYPES] = { NULL, };
 
 
 static void
-init_addrlist(nfs_client *clp, const struct hostent *hp)
+init_addrlist(nfs_client *clp, const struct addrinfo *ai)
 {
-	struct sockaddr_in sin = {
-		.sin_family		= AF_INET,
-	};
-	char **ap;
 	int i;
 
-	if (hp == NULL)
+	if (ai == NULL)
 		return;
 
-	ap = hp->h_addr_list;
-	for (i = 0; *ap != NULL && i < NFSCLNT_ADDRMAX; i++, ap++) {
-		sin.sin_addr = *(struct in_addr *)*ap;
-		set_addrlist_in(clp, i, &sin);
+	for (i = 0; (ai != NULL) && (i < NFSCLNT_ADDRMAX); i++) {
+		set_addrlist(clp, i, ai->ai_addr);
+		ai = ai->ai_next;
 	}
+
 	clp->m_naddr = i;
 }
 
@@ -109,7 +105,7 @@ init_subnetwork(nfs_client *clp)
 }
 
 static int
-client_init(nfs_client *clp, const char *hname, const struct hostent *hp)
+client_init(nfs_client *clp, const char *hname, const struct addrinfo *ai)
 {
 	clp->m_hostname = strdup(hname);
 	if (clp->m_hostname == NULL)
@@ -122,7 +118,7 @@ client_init(nfs_client *clp, const char *hname, const struct hostent *hp)
 	if (clp->m_type == MCL_SUBNETWORK)
 		return init_subnetwork(clp);
 
-	init_addrlist(clp, hp);
+	init_addrlist(clp, ai);
 	return 1;
 }
 
@@ -147,42 +143,21 @@ client_lookup(char *hname, int canonical)
 {
 	nfs_client	*clp = NULL;
 	int		htype;
-	struct hostent	*hp = NULL;
+	struct addrinfo	*ai = NULL;
 
 	htype = client_gettype(hname);
 
 	if (htype == MCL_FQDN && !canonical) {
-		struct hostent *hp2;
-		hp = gethostbyname(hname);
-		if (hp == NULL || hp->h_addrtype != AF_INET) {
-			xlog(L_ERROR, "%s has non-inet addr", hname);
-			return NULL;
+		ai = host_addrinfo(hname);
+		if (!ai) {
+			xlog(L_ERROR, "Failed to resolve %s", hname);
+			goto out;
 		}
-		/* make sure we have canonical name */
-		hp2 = hostent_dup(hp);
-		hp = gethostbyaddr(hp2->h_addr, hp2->h_length,
-				   hp2->h_addrtype);
-		if (hp) {
-			hp = hostent_dup(hp);
-			/* but now we might not have all addresses... */
-			if (hp2->h_addr_list[1]) {
-				struct hostent *hp3 =
-					gethostbyname(hp->h_name);
-				if (hp3) {
-					free(hp);
-					hp = hostent_dup(hp3);
-				}
-			}
-			free(hp2);
-		} else
-			hp = hp2;
+		hname = ai->ai_canonname;
 
-		hname = (char *) hp->h_name;
-
-		for (clp = clientlist[htype]; clp; clp = clp->m_next) {
-			if (client_check(clp, hp))
+		for (clp = clientlist[htype]; clp; clp = clp->m_next)
+			if (client_check(clp, ai))
 				break;
-		}
 	} else {
 		for (clp = clientlist[htype]; clp; clp = clp->m_next) {
 			if (strcasecmp(hname, clp->m_hostname)==0)
@@ -204,17 +179,24 @@ client_lookup(char *hname, int canonical)
 	}
 
 	if (htype == MCL_FQDN && clp->m_naddr == 0)
-		init_addrlist(clp, hp);
+		init_addrlist(clp, ai);
 
 out:
-	if (hp)
-		free (hp);
-
+	freeaddrinfo(ai);
 	return clp;
 }
 
+/**
+ * client_dup - create a copy of an nfs_client
+ * @clp: pointer to nfs_client to copy
+ * @ai: pointer to addrinfo used to initialize the new client's addrlist
+ *
+ * Returns a dynamically allocated nfs_client if successful, or
+ * NULL if some problem occurs.  Caller must free the returned
+ * nfs_client with free(3).
+ */
 nfs_client *
-client_dup(nfs_client *clp, struct hostent *hp)
+client_dup(const nfs_client *clp, const struct addrinfo *ai)
 {
 	nfs_client		*new;
 
@@ -225,7 +207,7 @@ client_dup(nfs_client *clp, struct hostent *hp)
 	new->m_type = MCL_FQDN;
 	new->m_hostname = NULL;
 
-	if (!client_init(new, hp->h_name, hp)) {
+	if (!client_init(new, ai->ai_canonname, ai)) {
 		client_free(new);
 		return NULL;
 	}
@@ -256,22 +238,29 @@ client_freeall(void)
 	}
 }
 
-struct hostent *
-client_resolve(struct in_addr addr)
+/**
+ * client_resolve - look up an IP address
+ * @sap: pointer to socket address to resolve
+ *
+ * Returns an addrinfo structure, or NULL if some problem occurred.
+ * Caller must free the result with freeaddrinfo(3).
+ */
+struct addrinfo *
+client_resolve(const struct sockaddr *sap)
 {
-	struct hostent *he = NULL;
+	struct addrinfo *ai = NULL;
 
 	if (clientlist[MCL_WILDCARD] || clientlist[MCL_NETGROUP])
-		he = get_reliable_hostbyaddr((const char*)&addr, sizeof(addr), AF_INET);
-	if (he == NULL)
-		he = get_hostent((const char*)&addr, sizeof(addr), AF_INET);
+		ai = host_reliable_addrinfo(sap);
+	if (ai == NULL)
+		ai = host_numeric_addrinfo(sap);
 
-	return he;
+	return ai;
 }
 
 /**
  * client_compose - Make a list of cached hostnames that match an IP address
- * @he: pointer to hostent containing IP address information to match
+ * @ai: pointer to addrinfo containing IP address information to match
  *
  * Gather all known client hostnames that match the IP address, and sort
  * the result into a comma-separated list.
@@ -282,7 +271,7 @@ client_resolve(struct in_addr addr)
  * returned string with free(3).
  */
 char *
-client_compose(struct hostent *he)
+client_compose(const struct addrinfo *ai)
 {
 	char *name = NULL;
 	int i;
@@ -290,7 +279,7 @@ client_compose(struct hostent *he)
 	for (i = 0 ; i < MCL_MAXTYPES; i++) {
 		nfs_client	*clp;
 		for (clp = clientlist[i]; clp ; clp = clp->m_next) {
-			if (!client_check(clp, he))
+			if (!client_check(clp, ai))
 				continue;
 			name = add_name(name, clp->m_hostname);
 		}
@@ -371,52 +360,83 @@ add_name(char *old, const char *add)
 	return new;
 }
 
+static _Bool
+addrs_match4(const struct sockaddr *sa1, const struct sockaddr *sa2)
+{
+	const struct sockaddr_in *si1 = (const struct sockaddr_in *)sa1;
+	const struct sockaddr_in *si2 = (const struct sockaddr_in *)sa2;
+
+	return si1->sin_addr.s_addr == si2->sin_addr.s_addr;
+}
+
+static _Bool
+addrs_match(const struct sockaddr *sa1, const struct sockaddr *sa2)
+{
+	if (sa1->sa_family == sa2->sa_family)
+		switch (sa1->sa_family) {
+		case AF_INET:
+			return addrs_match4(sa1, sa2);
+		}
+
+	return false;
+}
+
 /*
- * Check each address listed in @hp against each address
+ * Check each address listed in @ai against each address
  * stored in @clp.  Return 1 if a match is found, otherwise
  * zero.
  */
 static int
-check_fqdn(const nfs_client *clp, const struct hostent *hp)
+check_fqdn(const nfs_client *clp, const struct addrinfo *ai)
 {
-	const struct sockaddr_in *sin;
-	struct in_addr addr;
-	char **ap;
 	int i;
 
-	for (ap = hp->h_addr_list; *ap; ap++) {
-		addr = *(struct in_addr *)*ap;
-
-		for (i = 0; i < clp->m_naddr; i++) {
-			sin = get_addrlist_in(clp, i);
-			if (sin->sin_addr.s_addr == addr.s_addr)
+	for (; ai; ai = ai->ai_next)
+		for (i = 0; i < clp->m_naddr; i++)
+			if (addrs_match(ai->ai_addr, get_addrlist(clp, i)))
 				return 1;
-		}
+
+	return 0;
+}
+
+static _Bool
+mask_match(const uint32_t a, const uint32_t b, const uint32_t m)
+{
+	return ((a ^ b) & m) == 0;
+}
+
+static int
+check_subnet_v4(const struct sockaddr_in *address,
+		const struct sockaddr_in *mask, const struct addrinfo *ai)
+{
+	for (; ai; ai = ai->ai_next) {
+		struct sockaddr_in *sin = (struct sockaddr_in *)ai->ai_addr;
+
+		if (sin->sin_family != AF_INET)
+			continue;
+
+		if (mask_match(address->sin_addr.s_addr,
+				sin->sin_addr.s_addr,
+				mask->sin_addr.s_addr))
+			return 1;
 	}
 	return 0;
 }
 
 /*
- * Check each address listed in @hp against the subnetwork or
+ * Check each address listed in @ai against the subnetwork or
  * host address stored in @clp.  Return 1 if an address in @hp
  * matches the host address stored in @clp, otherwise zero.
  */
 static int
-check_subnetwork(const nfs_client *clp, const struct hostent *hp)
+check_subnetwork(const nfs_client *clp, const struct addrinfo *ai)
 {
-	const struct sockaddr_in *address, *mask;
-	struct in_addr addr;
-	char **ap;
-
-	for (ap = hp->h_addr_list; *ap; ap++) {
-		address = get_addrlist_in(clp, 0);
-		mask = get_addrlist_in(clp, 1);
-		addr = *(struct in_addr *)*ap;
-
-		if (!((address->sin_addr.s_addr ^ addr.s_addr) &
-		      mask->sin_addr.s_addr))
-			return 1;
+	switch (get_addrlist(clp, 0)->sa_family) {
+	case AF_INET:
+		return check_subnet_v4(get_addrlist_in(clp, 0),
+				get_addrlist_in(clp, 1), ai);
 	}
+
 	return 0;
 }
 
@@ -426,10 +446,11 @@ check_subnetwork(const nfs_client *clp, const struct hostent *hp)
  * zero.
  */
 static int
-check_wildcard(const nfs_client *clp, const struct hostent *hp)
+check_wildcard(const nfs_client *clp, const struct addrinfo *ai)
 {
 	char *cname = clp->m_hostname;
-	char *hname = hp->h_name;
+	char *hname = ai->ai_canonname;
+	struct hostent *hp;
 	char **ap;
 
 	if (wildmat(hname, cname))
@@ -437,27 +458,30 @@ check_wildcard(const nfs_client *clp, const struct hostent *hp)
 
 	/* See if hname aliases listed in /etc/hosts or nis[+]
 	 * match the requested wildcard */
-	for (ap = hp->h_aliases; *ap; ap++) {
-		if (wildmat(*ap, cname))
-			return 1;
+	hp = gethostbyname(hname);
+	if (hp != NULL) {
+		for (ap = hp->h_aliases; *ap; ap++)
+			if (wildmat(*ap, cname))
+				return 1;
 	}
 
 	return 0;
 }
 
 /*
- * Check if @hp's hostname or aliases fall in a given netgroup.
- * Return 1 if @hp represents a host in the netgroup, otherwise zero.
+ * Check if @ai's hostname or aliases fall in a given netgroup.
+ * Return 1 if @ai represents a host in the netgroup, otherwise
+ * zero.
  */
 #ifdef HAVE_INNETGR
 static int
-check_netgroup(const nfs_client *clp, const struct hostent *hp)
+check_netgroup(const nfs_client *clp, const struct addrinfo *ai)
 {
 	const char *netgroup = clp->m_hostname + 1;
-	const char *hname = hp->h_name;
-	struct hostent *nhp = NULL;
-	struct sockaddr_in addr;
-	int match, i;
+	const char *hname = ai->ai_canonname;
+	struct addrinfo *tmp = NULL;
+	struct hostent *hp;
+	int i, match;
 	char *dot;
 
 	/* First, try to match the hostname without
@@ -467,16 +491,17 @@ check_netgroup(const nfs_client *clp, const struct hostent *hp)
 
 	/* See if hname aliases listed in /etc/hosts or nis[+]
 	 * match the requested netgroup */
-	for (i = 0; hp->h_aliases[i]; i++) {
-		if (innetgr(netgroup, hp->h_aliases[i], NULL, NULL))
-			return 1;
+	hp = gethostbyname(hname);
+	if (hp != NULL) {
+		for (i = 0; hp->h_aliases[i]; i++)
+			if (innetgr(netgroup, hp->h_aliases[i], NULL, NULL))
+				return 1;
 	}
 
 	/* If hname is ip address convert to FQDN */
-	if (inet_aton(hname, &addr.sin_addr) &&
-	   (nhp = gethostbyaddr((const char *)&(addr.sin_addr),
-	    sizeof(addr.sin_addr), AF_INET))) {
-		hname = nhp->h_name;
+	tmp = host_pton(hname);
+	if (tmp != NULL) {
+		freeaddrinfo(tmp);
 		if (innetgr(netgroup, hname, NULL, NULL))
 			return 1;
 	}
@@ -495,7 +520,7 @@ check_netgroup(const nfs_client *clp, const struct hostent *hp)
 #else	/* !HAVE_INNETGR */
 static int
 check_netgroup(__attribute__((unused)) const nfs_client *clp,
-		__attribute__((unused)) const struct hostent *hp)
+		__attribute__((unused)) const struct addrinfo *ai)
 {
 	return 0;
 }
@@ -504,23 +529,23 @@ check_netgroup(__attribute__((unused)) const nfs_client *clp,
 /**
  * client_check - check if IP address information matches a cached nfs_client
  * @clp: pointer to a cached nfs_client record
- * @hp: pointer to hostent containing host IP information
+ * @ai: pointer to addrinfo to compare it with
  *
  * Returns 1 if the address information matches the cached nfs_client,
  * otherwise zero.
  */
 int
-client_check(nfs_client *clp, struct hostent *hp)
+client_check(const nfs_client *clp, const struct addrinfo *ai)
 {
 	switch (clp->m_type) {
 	case MCL_FQDN:
-		return check_fqdn(clp, hp);
+		return check_fqdn(clp, ai);
 	case MCL_SUBNETWORK:
-		return check_subnetwork(clp, hp);
+		return check_subnetwork(clp, ai);
 	case MCL_WILDCARD:
-		return check_wildcard(clp, hp);
+		return check_wildcard(clp, ai);
 	case MCL_NETGROUP:
-		return check_netgroup(clp, hp);
+		return check_netgroup(clp, ai);
 	case MCL_ANONYMOUS:
 		return 1;
 	case MCL_GSS:

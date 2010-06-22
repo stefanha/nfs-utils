@@ -77,8 +77,8 @@ void auth_unix_ip(FILE *f)
 	char class[20];
 	char ipaddr[20];
 	char *client = NULL;
-	struct in_addr addr;
-	struct hostent *he = NULL;
+	struct addrinfo *tmp = NULL;
+	struct addrinfo *ai = NULL;
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
 
@@ -93,17 +93,20 @@ void auth_unix_ip(FILE *f)
 	if (qword_get(&cp, ipaddr, 20) <= 0)
 		return;
 
-	if (inet_aton(ipaddr, &addr)==0)
+	tmp = host_pton(ipaddr);
+	if (tmp == NULL)
 		return;
 
 	auth_reload();
 
 	/* addr is a valid, interesting address, find the domain name... */
 	if (!use_ipaddr) {
-		he = client_resolve(addr);
-		client = client_compose(he);
+		ai = client_resolve(tmp->ai_addr);
+		client = client_compose(ai);
+		freeaddrinfo(ai);
 	}
-	
+	freeaddrinfo(tmp);
+
 	qword_print(f, "nfsd");
 	qword_print(f, ipaddr);
 	qword_printint(f, time(0)+30*60);
@@ -114,8 +117,7 @@ void auth_unix_ip(FILE *f)
 	qword_eol(f);
 	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, client?client: "DEFAULT");
 
-	if (client) free(client);
-	free(he);
+	free(client);
 }
 
 void auth_unix_gid(FILE *f)
@@ -338,8 +340,7 @@ void nfsd_fh(FILE *f)
 	unsigned int fsidnum=0;
 	char fsid[32];
 	struct exportent *found = NULL;
-	struct hostent *he = NULL;
-	struct in_addr addr;
+	struct addrinfo *ai = NULL;
 	char *found_path = NULL;
 	nfs_export *exp;
 	int i;
@@ -520,12 +521,15 @@ void nfsd_fh(FILE *f)
 				break;
 			}
 			if (use_ipaddr) {
-				if (he == NULL) {
-					if (!inet_aton(dom, &addr))
+				if (ai == NULL) {
+					struct addrinfo *tmp;
+					tmp = host_pton(dom);
+					if (tmp == NULL)
 						goto out;
-					he = client_resolve(addr);
+					ai = client_resolve(tmp->ai_addr);
+					freeaddrinfo(tmp);
 				}
-				if (!client_check(exp->m_client, he))
+				if (!client_check(exp->m_client, ai))
 					continue;
 			}
 			/* It's a match !! */
@@ -583,8 +587,7 @@ void nfsd_fh(FILE *f)
  out:
 	if (found_path)
 		free(found_path);
-	if (he)
-		free(he);
+	freeaddrinfo(ai);
 	free(dom);
 	xlog(D_CALL, "nfsd_fh: found %p path %s", found, found ? found->e_path : NULL);
 	return;		
@@ -678,19 +681,22 @@ static int path_matches(nfs_export *exp, char *path)
 	return strcmp(path, exp->m_export.e_path) == 0;
 }
 
-static int client_matches(nfs_export *exp, char *dom, struct hostent *he)
+static int
+client_matches(nfs_export *exp, char *dom, struct addrinfo *ai)
 {
 	if (use_ipaddr)
-		return client_check(exp->m_client, he);
+		return client_check(exp->m_client, ai);
 	return client_member(dom, exp->m_client->m_hostname);
 }
 
-static int export_matches(nfs_export *exp, char *dom, char *path, struct hostent *he)
+static int
+export_matches(nfs_export *exp, char *dom, char *path, struct addrinfo *ai)
 {
-	return path_matches(exp, path) && client_matches(exp, dom, he);
+	return path_matches(exp, path) && client_matches(exp, dom, ai);
 }
 
-static nfs_export *lookup_export(char *dom, char *path, struct hostent *he)
+static nfs_export *
+lookup_export(char *dom, char *path, struct addrinfo *ai)
 {
 	nfs_export *exp;
 	nfs_export *found = NULL;
@@ -699,7 +705,7 @@ static nfs_export *lookup_export(char *dom, char *path, struct hostent *he)
 
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
-			if (!export_matches(exp, dom, path, he))
+			if (!export_matches(exp, dom, path, ai))
 				continue;
 			if (!found) {
 				found = exp;
@@ -747,9 +753,7 @@ void nfsd_export(FILE *f)
 	char *cp;
 	char *dom, *path;
 	nfs_export *found = NULL;
-	struct in_addr addr;
-	struct hostent *he = NULL;
-
+	struct addrinfo *ai = NULL;
 
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
@@ -771,12 +775,16 @@ void nfsd_export(FILE *f)
 	auth_reload();
 
 	if (use_ipaddr) {
-		if (!inet_aton(dom, &addr))
+		struct addrinfo *tmp;
+		tmp = host_pton(dom);
+		if (tmp == NULL)
 			goto out;
-		he = client_resolve(addr);
+		ai = client_resolve(tmp->ai_addr);
+		freeaddrinfo(tmp);
+			goto out;
 	}
 
-	found = lookup_export(dom, path, he);
+	found = lookup_export(dom, path, ai);
 
 	if (found) {
 		if (dump_to_cache(f, dom, path, &found->m_export) < 0) {
@@ -792,7 +800,7 @@ void nfsd_export(FILE *f)
 	xlog(D_CALL, "nfsd_export: found %p path %s", found, path ? path : NULL);
 	if (dom) free(dom);
 	if (path) free(path);
-	if (he) free(he);
+	freeaddrinfo(ai);
 }
 
 

@@ -110,13 +110,15 @@ auth_reload()
 	return counter;
 }
 
-static char *get_client_hostname(struct sockaddr_in *caller, struct hostent *hp, enum auth_error *error)
+static char *
+get_client_hostname(struct sockaddr_in *caller, struct addrinfo *ai,
+		enum auth_error *error)
 {
 	char *n;
 
 	if (use_ipaddr)
 		return strdup(inet_ntoa(caller->sin_addr));
-	n = client_compose(hp);
+	n = client_compose(ai);
 	*error = unknown_host;
 	if (!n)
 		return NULL;
@@ -128,8 +130,8 @@ static char *get_client_hostname(struct sockaddr_in *caller, struct hostent *hp,
 
 /* return static nfs_export with details filled in */
 static nfs_export *
-auth_authenticate_newcache(char *what, struct sockaddr_in *caller,
-			   char *path, struct hostent *hp,
+auth_authenticate_newcache(struct sockaddr_in *caller,
+			   char *path, struct addrinfo *ai,
 			   enum auth_error *error)
 {
 	nfs_export *exp;
@@ -137,7 +139,7 @@ auth_authenticate_newcache(char *what, struct sockaddr_in *caller,
 
 	free(my_client.m_hostname);
 
-	my_client.m_hostname = get_client_hostname(caller, hp, error);
+	my_client.m_hostname = get_client_hostname(caller, ai, error);
 	if (my_client.m_hostname == NULL)
 		return NULL;
 
@@ -152,7 +154,7 @@ auth_authenticate_newcache(char *what, struct sockaddr_in *caller,
 				continue;
 			if (!use_ipaddr && !client_member(my_client.m_hostname, exp->m_client->m_hostname))
 				continue;
-			if (use_ipaddr && !client_check(exp->m_client, hp))
+			if (use_ipaddr && !client_check(exp->m_client, ai))
 				continue;
 			break;
 		}
@@ -166,18 +168,19 @@ auth_authenticate_newcache(char *what, struct sockaddr_in *caller,
 }
 
 static nfs_export *
-auth_authenticate_internal(char *what, struct sockaddr_in *caller,
-			   char *path, struct hostent *hp,
+auth_authenticate_internal(struct sockaddr_in *caller,
+			   char *path, struct addrinfo *ai,
 			   enum auth_error *error)
 {
 	nfs_export *exp;
 
 	if (new_cache) {
-		exp = auth_authenticate_newcache(what, caller, path, hp, error);
+		exp = auth_authenticate_newcache(caller, path, ai, error);
 		if (!exp)
 			return NULL;
 	} else {
-		if (!(exp = export_find(hp, path))) {
+		exp = export_find(ai, path);
+		if (exp == NULL) {
 			*error = no_entry;
 			return NULL;
 		}
@@ -202,7 +205,7 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	nfs_export	*exp = NULL;
 	char		epath[MAXPATHLEN+1];
 	char		*p = NULL;
-	struct hostent	*hp = NULL;
+	struct addrinfo *ai = NULL;
 	struct in_addr	addr = caller->sin_addr;
 	enum auth_error	error = bad_path;
 
@@ -216,14 +219,14 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	epath[sizeof (epath) - 1] = '\0';
 	auth_fixpath(epath); /* strip duplicate '/' etc */
 
-	hp = client_resolve(caller->sin_addr);
-	if (!hp)
+	ai = client_resolve((struct sockaddr *)caller);
+	if (ai == NULL)
 		return exp;
 
 	/* Try the longest matching exported pathname. */
 	while (1) {
-		exp = auth_authenticate_internal(what, caller, epath,
-						 hp, &error);
+		exp = auth_authenticate_internal(caller, epath,
+						 ai, &error);
 		if (exp || (error != not_exported && error != no_entry))
 			break;
 		/* We have to treat the root, "/", specially. */
@@ -246,31 +249,30 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 
 	case no_entry:
 		xlog(L_WARNING, "refused %s request from %s for %s (%s): no export entry",
-		     what, hp->h_name, path, epath);
+		     what, ai->ai_canonname, path, epath);
 		break;
 
 	case not_exported:
 		xlog(L_WARNING, "refused %s request from %s for %s (%s): not exported",
-		     what, hp->h_name, path, epath);
+		     what, ai->ai_canonname, path, epath);
 		break;
 
 	case illegal_port:
 		xlog(L_WARNING, "refused %s request from %s for %s (%s): illegal port %d",
-		     what, hp->h_name, path, epath, ntohs(caller->sin_port));
+		     what, ai->ai_canonname, path, epath, ntohs(caller->sin_port));
 		break;
 
 	case success:
 		xlog(L_NOTICE, "authenticated %s request from %s:%d for %s (%s)",
-		     what, hp->h_name, ntohs(caller->sin_port), path, epath);
+		     what, ai->ai_canonname, ntohs(caller->sin_port), path, epath);
 		break;
 	default:
 		xlog(L_NOTICE, "%s request from %s:%d for %s (%s) gave %d",
-		     what, hp->h_name, ntohs(caller->sin_port), path, epath, error);
+		     what, ai->ai_canonname, ntohs(caller->sin_port),
+			path, epath, error);
 	}
 
-	if (hp)
-		free (hp);
-
+	freeaddrinfo(ai);
 	return exp;
 }
 
