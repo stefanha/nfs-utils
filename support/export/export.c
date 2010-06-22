@@ -58,7 +58,12 @@ static void warn_duplicated_exports(nfs_export *exp, struct exportent *eep)
 	}
 }
 
-int
+/**
+ * export_read - read entries from /etc/exports
+ * @fname: name of file to read from
+ *
+ */
+void
 export_read(char *fname)
 {
 	struct exportent	*eep;
@@ -73,7 +78,6 @@ export_read(char *fname)
 			warn_duplicated_exports(exp, eep);
 	}
 	endexportent();
-	return 0;
 }
 
 /*
