@@ -15,6 +15,7 @@
 #include <sys/vfs.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -36,6 +37,7 @@ static void	dump(int verbose);
 static void	error(nfs_export *exp, int err);
 static void	usage(void);
 static void	validate_export(nfs_export *exp);
+static int	matchhostname(const char *hostname1, const char *hostname2);
 
 int
 main(int argc, char **argv)
@@ -421,6 +423,82 @@ validate_export(nfs_export *exp)
 	}
 }
 
+static _Bool
+is_hostname(const char *sp)
+{
+	if (*sp == '\0' || *sp == '@')
+		return false;
+
+	for (; *sp != '\0'; sp++) {
+		if (*sp == '*' || *sp == '?' || *sp == '[' || *sp == '/')
+			return false;
+		if (*sp == '\\' && sp[1] != '\0')
+			sp++;
+	}
+
+	return true;
+}
+
+static _Bool
+compare_sockaddrs4(const struct sockaddr *sa1, const struct sockaddr *sa2)
+{
+	const struct sockaddr_in *sin1 = (const struct sockaddr_in *)sa1;
+	const struct sockaddr_in *sin2 = (const struct sockaddr_in *)sa2;
+	return sin1->sin_addr.s_addr == sin2->sin_addr.s_addr;
+}
+
+static _Bool
+compare_sockaddrs(const struct sockaddr *sa1, const struct sockaddr *sa2)
+{
+	if (sa1->sa_family == sa2->sa_family)
+		switch (sa1->sa_family) {
+		case AF_INET:
+			return compare_sockaddrs4(sa1, sa2);
+		}
+
+	return false;
+}
+
+static int
+matchhostname(const char *hostname1, const char *hostname2)
+{
+	struct addrinfo *results1 = NULL, *results2 = NULL;
+	struct addrinfo *ai1, *ai2;
+	int result = 0;
+
+	if (strcasecmp(hostname1, hostname2) == 0)
+		return 1;
+
+	/*
+	 * Don't pass export wildcards or netgroup names to DNS
+	 */
+	if (!is_hostname(hostname1) || !is_hostname(hostname2))
+		return 0;
+
+	results1 = host_addrinfo(hostname1);
+	if (results1 == NULL)
+		goto out;
+	results2 = host_addrinfo(hostname2);
+	if (results2 == NULL)
+		goto out;
+
+	if (strcasecmp(results1->ai_canonname, results2->ai_canonname) == 0) {
+		result = 1;
+		goto out;
+	}
+
+	for (ai1 = results1; ai1 != NULL; ai1 = ai1->ai_next)
+		for (ai2 = results2; ai2 != NULL; ai2 = ai2->ai_next)
+			if (compare_sockaddrs(ai1->ai_addr, ai2->ai_addr)) {
+				result = 1;
+				break;
+			}
+
+out:
+	freeaddrinfo(results1);
+	freeaddrinfo(results2);
+	return result;
+}
 
 static char
 dumpopt(char c, char *fmt, ...)
