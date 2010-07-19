@@ -191,6 +191,8 @@ serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf, int32_t *endtime)
 		if (WRITE_BYTES(&p, end, kctx->signalg)) goto out_err;
 		if (WRITE_BYTES(&p, end, kctx->sealalg)) goto out_err;
 		if (WRITE_BYTES(&p, end, kctx->endtime)) goto out_err;
+		if (endtime)
+			*endtime = kctx->endtime;
 		word_seq_send = kctx->seq_send;
 		if (WRITE_BYTES(&p, end, word_seq_send)) goto out_err;
 		if (write_oid(&p, end, kctx->mech_used)) goto out_err;

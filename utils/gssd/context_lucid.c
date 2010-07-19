@@ -77,7 +77,7 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	unsigned char fakeseed[FAKESEED_SIZE];
 	uint32_t word_send_seq;
 	gss_krb5_lucid_key_t enc_key;
-	int i;
+	uint32_t i;
 	char *skd, *dkd;
 	gss_buffer_desc fakeoid;
 
@@ -202,6 +202,8 @@ prepare_krb5_rfc4121_buffer(gss_krb5_lucid_context_v1_t *lctx,
 
 	if (WRITE_BYTES(&p, end, v2_flags)) goto out_err;
 	if (WRITE_BYTES(&p, end, lctx->endtime)) goto out_err;
+	if (endtime)
+		*endtime = lctx->endtime;
 	if (WRITE_BYTES(&p, end, lctx->send_seq)) goto out_err;
 
 	/* Protocol 0 here implies DES3 or RC4 */
