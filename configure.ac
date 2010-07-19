@@ -400,7 +400,7 @@ case $host in
     ARCHFLAGS="" ;;
 esac
 
-my_am_cflags="-Wall -Wstrict-prototypes $ARCHFLAGS -pipe"
+my_am_cflags="-Wall -Wextra -Wstrict-prototypes $ARCHFLAGS -pipe"
 
 AC_SUBST([AM_CFLAGS], ["$my_am_cflags"])
 
