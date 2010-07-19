@@ -593,7 +593,7 @@ void nfsd_fh(FILE *f)
 	return;		
 }
 
-static void write_fsloc(FILE *f, struct exportent *ep, char *path)
+static void write_fsloc(FILE *f, struct exportent *ep)
 {
 	struct servers *servers;
 
@@ -648,7 +648,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		qword_printint(f, exp->e_anonuid);
 		qword_printint(f, exp->e_anongid);
 		qword_printint(f, exp->e_fsid);
-		write_fsloc(f, exp, path);
+		write_fsloc(f, exp);
 		write_secinfo(f, exp, flag_mask);
  		if (exp->e_uuid == NULL || different_fs) {
  			char u[16];
@@ -809,11 +809,11 @@ struct {
 	void (*cache_handle)(FILE *f);
 	FILE *f;
 } cachelist[] = {
-	{ "auth.unix.ip", auth_unix_ip},
-	{ "auth.unix.gid", auth_unix_gid},
-	{ "nfsd.export", nfsd_export},
-	{ "nfsd.fh", nfsd_fh},
-	{ NULL, NULL }
+	{ "auth.unix.ip", auth_unix_ip, NULL},
+	{ "auth.unix.gid", auth_unix_gid, NULL},
+	{ "nfsd.export", nfsd_export, NULL},
+	{ "nfsd.fh", nfsd_fh, NULL},
+	{ NULL, NULL, NULL }
 };
 
 extern int manage_gids;
@@ -881,8 +881,8 @@ int cache_export_ent(char *domain, struct exportent *exp, char *path)
 		 * and export them with the same options
 		 */
 		struct stat stb;
-		int l = strlen(exp->e_path);
-		int dev;
+		size_t l = strlen(exp->e_path);
+		__dev_t dev;
 
 		if (strlen(path) <= l || path[l] != '/' ||
 		    strncmp(exp->e_path, path, l) != 0)

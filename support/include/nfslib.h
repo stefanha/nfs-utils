@@ -83,7 +83,7 @@ struct exportent {
 	int		e_nsquids;
 	int *		e_sqgids;
 	int		e_nsqgids;
-	int		e_fsid;
+	unsigned int	e_fsid;
 	char *		e_mountpoint;
 	int             e_fslocmethod;
 	char *          e_fslocdata;
