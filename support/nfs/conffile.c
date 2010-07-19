@@ -49,7 +49,7 @@
 #include "conffile.h"
 #include "xlog.h"
 
-static void conf_load_defaults (int);
+static void conf_load_defaults(void);
 static int conf_set(int , char *, char *, char *, 
 	char *, int , int );
 
@@ -212,7 +212,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 {
 	char *val, *ptr;
 	size_t i;
-	int j;
+	size_t j;
 	static char *section = 0;
 	static char *arg = 0;
 	static int ln = 0;
@@ -353,7 +353,7 @@ conf_parse(int trans, char *buf, size_t sz)
 }
 
 static void
-conf_load_defaults(int tr)
+conf_load_defaults(void)
 {
 	/* No defaults */
 	return;
@@ -412,7 +412,7 @@ conf_reinit(void)
 		trans = conf_begin();
 
 	/* Load default configuration values.  */
-	conf_load_defaults(trans);
+	conf_load_defaults();
 
 	/* Free potential existing configuration.  */
 	if (conf_addr) {
