@@ -224,6 +224,13 @@ gssd_find_existing_krb5_ccache(uid_t uid, char *dirname, struct dirent **d)
 				free(namelist[i]);
 				continue;
 			}
+			if (uid == 0 && !root_uses_machine_creds && 
+				strstr(namelist[i]->d_name, "_machine_")) {
+				printerr(3, "CC file '%s' not available to root\n",
+					 statname);
+				free(namelist[i]);
+				continue;
+			}
 			if (!query_krb5_ccache(buf, &princname, &realm)) {
 				printerr(3, "CC file '%s' is expired or corrupt\n",
 					 statname);
