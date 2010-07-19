@@ -181,7 +181,7 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 		}
 
 		snprintf(buf, sizeof(buf), "%d\n", sockfd); 
-		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
+		if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
 			/*
 			 * this error may be common on older kernels that don't
 			 * support IPv6, so turn into a debug message.
@@ -251,7 +251,7 @@ nfssvc_setvers(unsigned int ctlbits, int minorvers4)
 	}
 	xlog(D_GENERAL, "Writing version string to kernel: %s", buf);
 	snprintf(ptr+off, sizeof(buf) - off, "\n");
-	if (write(fd, buf, strlen(buf)) != strlen(buf))
+	if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf))
 		xlog(L_ERROR, "Setting version failed: errno %d (%m)", errno);
 
 	close(fd);
@@ -277,7 +277,7 @@ nfssvc_threads(unsigned short port, const int nrservs)
 		snprintf(buf, sizeof(buf), "%d\n", nrservs);
 		n = write(fd, buf, strlen(buf));
 		close(fd);
-		if (n != strlen(buf))
+		if (n != (ssize_t)strlen(buf))
 			return -1;
 		else
 			return 0;
