@@ -109,7 +109,7 @@ expsetup(struct nfsctl_export *exparg, nfs_export *exp, int unexport)
 	str_tolower(exparg->ex_client);
 	exparg->ex_flags    = exp->m_export.e_flags;
 	exparg->ex_dev      = (!unexport && (exp->m_export.e_flags & NFSEXP_FSID)) ?
-				exp->m_export.e_fsid : stb.st_dev;
+			(__nfsd_dev_t)exp->m_export.e_fsid : stb.st_dev;
 	exparg->ex_ino      = stb.st_ino;
 	exparg->ex_anon_uid = exp->m_export.e_anonuid;
 	exparg->ex_anon_gid = exp->m_export.e_anongid;
