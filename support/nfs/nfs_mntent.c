@@ -28,7 +28,7 @@ static char *
 mangle(const char *arg) {
 	const unsigned char *s = (const unsigned char *)arg;
 	char *ss, *sp;
-	int n;
+	unsigned int n;
 
 	n = strlen(arg);
 	ss = sp = xmalloc(4*n+1);
