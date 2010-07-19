@@ -60,12 +60,12 @@ extern int	_rpcsvcdirty;
 
 static inline struct sockaddr_in *nfs_getrpccaller_in(SVCXPRT *xprt)
 {
-	return (struct sockaddr_in *)svc_getcaller(xprt);
+	return (struct sockaddr_in *)(char *)svc_getcaller(xprt);
 }
 
 static inline struct sockaddr *nfs_getrpccaller(SVCXPRT *xprt)
 {
-	return (struct sockaddr *)svc_getcaller(xprt);
+	return (struct sockaddr *)(char *)svc_getcaller(xprt);
 }
 
 #endif /* RPCMISC_H */
