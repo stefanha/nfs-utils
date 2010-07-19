@@ -513,7 +513,7 @@ void nfsd_fh(FILE *f)
 					for (type = 0;
 					     uuid_by_path(path, type, uuidlen, u);
 					     type++)
-						if (memcmp(u, fhuuid, uuidlen) != 0)
+						if (memcmp(u, fhuuid, uuidlen) == 0)
 							break;
 
 				if (memcmp(u, fhuuid, uuidlen) != 0)
