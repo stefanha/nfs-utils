@@ -158,6 +158,6 @@ void qword_printuint(FILE *f, unsigned int num);
 void closeall(int min);
 
 int			svctcp_socket (u_long __number, int __reuse);
-int			svcudp_socket (u_long __number, int __reuse);
+int			svcudp_socket (u_long __number);
 
 #endif /* NFSLIB_H */

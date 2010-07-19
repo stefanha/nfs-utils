@@ -157,9 +157,9 @@ svctcp_socket (u_long number, int reuse)
  * Create and bind a UDP socket based on program number
  */
 int
-svcudp_socket (u_long number, int reuse)
+svcudp_socket (u_long number)
 {
-  return svc_socket (number, SOCK_DGRAM, IPPROTO_UDP, 0);
+  return svc_socket (number, SOCK_DGRAM, IPPROTO_UDP, FALSE);
 }
 
 #ifdef TEST
@@ -174,7 +174,7 @@ check (u_long number, u_short port, int protocol, int reuse)
   if (protocol == IPPROTO_TCP)
     socket = svctcp_socket (number, reuse);
   else
-    socket = svcudp_socket (number, reuse);
+    socket = svcudp_socket (number);
 
   if (socket < 0)
     return 1;

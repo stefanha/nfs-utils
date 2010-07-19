@@ -154,7 +154,7 @@ rpc_init(char *name, int prog, int vers,
 				sock = makesock(defport, IPPROTO_UDP);
 		}
 		if (sock == RPC_ANYSOCK)
-			sock = svcudp_socket (prog, 1);
+			sock = svcudp_socket (prog);
 		transp = svcudp_create(sock);
 		if (transp == NULL) {
 			xlog(L_FATAL, "cannot create udp service.");
