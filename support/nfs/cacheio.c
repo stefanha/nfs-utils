@@ -349,7 +349,7 @@ cache_flush(int force)
 		sprintf(path, "/proc/net/rpc/%s/flush", cachelist[c]);
 		fd = open(path, O_RDWR);
 		if (fd >= 0) {
-			if (write(fd, stime, strlen(stime)) != strlen(stime)) {
+			if (write(fd, stime, strlen(stime)) != (ssize_t)strlen(stime)) {
 				xlog_warn("Writing to '%s' failed: errno %d (%s)",
 				path, errno, strerror(errno));
 			}
