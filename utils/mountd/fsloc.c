@@ -146,7 +146,7 @@ static struct servers *method_list(char *data)
 }
 
 /* Returns appropriately filled struct servers, or NULL if had a problem */
-struct servers *replicas_lookup(int method, char *data, char *key)
+struct servers *replicas_lookup(int method, char *data)
 {
 	struct servers *sp=NULL;
 	switch(method) {

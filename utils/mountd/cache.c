@@ -600,7 +600,7 @@ static void write_fsloc(FILE *f, struct exportent *ep, char *path)
 	if (ep->e_fslocmethod == FSLOC_NONE)
 		return;
 
-	servers = replicas_lookup(ep->e_fslocmethod, ep->e_fslocdata, path);
+	servers = replicas_lookup(ep->e_fslocmethod, ep->e_fslocdata);
 	if (!servers)
 		return;
 	qword_print(f, "fsloc");

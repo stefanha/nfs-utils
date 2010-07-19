@@ -44,7 +44,7 @@ struct servers {
 	int h_referral;		/* 0=replica, 1=referral */
 };
 
-struct servers *replicas_lookup(int method, char *data, char *key);
+struct servers *replicas_lookup(int method, char *data);
 void release_replicas(struct servers *server);
 
 #endif /* FSLOC_H */
