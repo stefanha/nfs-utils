@@ -791,7 +791,7 @@ print_callstats(const char *hdr, const char **names,
 {
 	unsigned long long	total;
 	unsigned long long	pct;
-	int		i, j;
+	unsigned int		i, j;
 
 	fputs(hdr, stdout);
 	for (i = 0, total = 0; i < nr; i++)
@@ -816,7 +816,7 @@ print_callstats_list(const char *hdr, const char **names,
 		 	unsigned int *callinfo, unsigned int nr)
 {
 	unsigned long long	calltotal;
-	int			i;
+	unsigned int			i;
 
 	for (i = 0, calltotal = 0; i < nr; i++) {
 		calltotal += callinfo[i];
@@ -1118,7 +1118,7 @@ unpause(int sig)
 	time_diff = difftime(endtime, starttime);
 	minutes = time_diff / 60;
 	seconds = (int)time_diff % 60;
-	printf("Signal received; displaying (only) statistics gathered over the last %d minutes, %d seconds:\n\n", minutes, seconds);
+	printf("Signal %d received; displaying (only) statistics gathered over the last %d minutes, %d seconds:\n\n", sig, minutes, seconds);
 }
 
 static void
