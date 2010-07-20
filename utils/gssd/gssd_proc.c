@@ -936,7 +936,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	if (sec.cred != GSS_C_NO_CREDENTIAL)
 		gss_release_cred(&min_stat, &sec.cred);
 	/* Restore euid to original value */
-	if ((save_uid != -1) && (setfsuid(save_uid) != uid)) {
+	if (((int)save_uid != -1) && (setfsuid(save_uid) != (int)uid)) {
 		printerr(0, "WARNING: Failed to restore fsuid"
 			    " to uid %d from %d\n", save_uid, uid);
 	}
@@ -1161,7 +1161,7 @@ handle_krb5_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
 
-	if (read(clp->krb5_fd, &uid, sizeof(uid)) < sizeof(uid)) {
+	if (read(clp->krb5_fd, &uid, sizeof(uid)) < (ssize_t)sizeof(uid)) {
 		printerr(0, "WARNING: failed reading uid from krb5 "
 			    "upcall pipe: %s\n", strerror(errno));
 		return;
@@ -1175,7 +1175,7 @@ handle_spkm3_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
 
-	if (read(clp->spkm3_fd, &uid, sizeof(uid)) < sizeof(uid)) {
+	if (read(clp->spkm3_fd, &uid, sizeof(uid)) < (ssize_t)sizeof(uid)) {
 		printerr(0, "WARNING: failed reading uid from spkm3 "
 			 "upcall pipe: %s\n", strerror(errno));
 		return;
