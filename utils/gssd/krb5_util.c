@@ -613,24 +613,32 @@ out:
  * and has *any* instance (hostname), return 1.
  * Otherwise return 0, indicating no match.
  */
-static int
-realm_and_service_match(krb5_context context, krb5_principal p,
-			const char *realm, const char *service)
-{
 #ifdef HAVE_KRB5
+static int
+realm_and_service_match(krb5_principal p, const char *realm, const char *service)
+{
 	/* Must have two components */
 	if (p->length != 2)
 		return 0;
+
 	if ((strlen(realm) == p->realm.length)
 	    && (strncmp(realm, p->realm.data, p->realm.length) == 0)
 	    && (strlen(service) == p->data[0].length)
 	    && (strncmp(service, p->data[0].data, p->data[0].length) == 0))
 		return 1;
+
+	return 0;
+}
 #else
+static int
+realm_and_service_match(krb5_context context, krb5_principal p,
+			const char *realm, const char *service)
+{
 	const char *name, *inst;
 
 	if (p->name.name_string.len != 2)
 		return 0;
+
 	name = krb5_principal_get_comp_string(context, p, 0);
 	inst = krb5_principal_get_comp_string(context, p, 1);
 	if (name == NULL || inst == NULL)
@@ -638,9 +646,10 @@ realm_and_service_match(krb5_context context, krb5_principal p,
 	if ((strcmp(realm, p->realm) == 0)
 	    && (strcmp(service, name) == 0))
 		return 1;
-#endif
+
 	return 0;
 }
+#endif
 
 /*
  * Search the given keytab file looking for an entry with the given
@@ -662,7 +671,7 @@ gssd_search_krb5_keytab(krb5_context context, krb5_keytab kt,
 	krb5_kt_cursor cursor;
 	krb5_error_code code;
 	struct gssd_k5_kt_princ *ple;
-	int retval = -1;
+	int retval = -1, status;
 	char kt_name[BUFSIZ];
 	char *pname;
 	char *k5err = NULL;
@@ -705,8 +714,12 @@ gssd_search_krb5_keytab(krb5_context context, krb5_keytab kt,
 		printerr(4, "Processing keytab entry for principal '%s'\n",
 			 pname);
 		/* Use the first matching keytab entry found */
-	        if ((realm_and_service_match(context, kte->principal, realm,
-					     service))) {
+#ifdef HAVE_KRB5
+		status = realm_and_service_match(kte->principal, realm, service);
+#else
+		status = realm_and_service_match(context, kte->principal, realm, service);
+#endif
+		if (status) {
 			printerr(4, "We WILL use this entry (%s)\n", pname);
 			ple = get_ple_by_princ(context, kte->principal);
 			/*
@@ -1272,7 +1285,7 @@ gssd_k5_get_default_realm(char **def_realm)
  */
 
 int
-limit_krb5_enctypes(struct rpc_gss_sec *sec, uid_t uid)
+limit_krb5_enctypes(struct rpc_gss_sec *sec)
 {
 	u_int maj_stat, min_stat;
 	gss_cred_id_t credh;

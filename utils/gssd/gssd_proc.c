@@ -859,7 +859,7 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		 * Do this before creating rpc connection since we won't need
 		 * rpc connection if it fails!
 		 */
-		if (limit_krb5_enctypes(&sec, uid)) {
+		if (limit_krb5_enctypes(&sec)) {
 			printerr(1, "WARNING: Failed while limiting krb5 "
 				    "encryption types for user with uid %d\n",
 				 uid);
