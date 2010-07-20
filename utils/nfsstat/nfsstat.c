@@ -31,7 +31,7 @@ enum {
 	SRVPROC3_SZ = 22,
 	CLTPROC3_SZ = 22,
 	SRVPROC4_SZ = 2,
-	CLTPROC4_SZ = 48,
+	CLTPROC4_SZ = 49,
 	SRVPROC4OPS_SZ = 59,
 };
 
@@ -118,6 +118,7 @@ static const char *	nfscltproc4name[CLTPROC4_SZ] = {
 	"remove",    "rename",    "link",    "symlink",     "create",      "pathconf",
 	"statfs",    "readlink",  "readdir", "server_caps", "delegreturn", "getacl",
 	"setacl",    "fs_locations",
+	"rel_lkowner",
 	/* nfsv4.1 client ops */
 	"exchange_id",
 	"create_ses",
