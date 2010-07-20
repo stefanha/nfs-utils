@@ -146,7 +146,7 @@ static int fill_ipv4_sockaddr(const char *hostname, struct sockaddr_in *addr)
 				progname, hostname);
 		return -1;
 	}
-	if (hp->h_length > sizeof(struct in_addr)) {
+	if (hp->h_length > (int)sizeof(struct in_addr)) {
 		nfs_error(_("%s: got bad hp->h_length"), progname);
 		hp->h_length = sizeof(struct in_addr);
 	}
