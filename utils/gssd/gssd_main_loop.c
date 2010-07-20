@@ -63,6 +63,8 @@ static volatile int dir_changed = 1;
 
 static void dir_notify_handler(int sig, siginfo_t *si, void *data)
 {
+	printerr(2, "dir_notify_handler: sig %d si %p data %p\n", sig, si, data);
+
 	dir_changed = 1;
 }
 
