@@ -510,8 +510,12 @@ nfsmount(const char *spec, const char *node, int flags,
 	int val;
 	static int doonce = 0;
 
-	clnt_addr_t mnt_server = { &mounthost, };
-	clnt_addr_t nfs_server = { &hostname, };
+	clnt_addr_t mnt_server = { 
+		.hostname = &mounthost 
+	};
+	clnt_addr_t nfs_server = { 
+		.hostname = &hostname 
+	};
 	struct sockaddr_in *nfs_saddr = &nfs_server.saddr;
 	struct pmap  *mnt_pmap = &mnt_server.pmap,
 		     *nfs_pmap = &nfs_server.pmap;
