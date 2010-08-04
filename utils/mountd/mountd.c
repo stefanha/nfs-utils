@@ -192,7 +192,8 @@ sig_hup (int sig)
 }
 
 bool_t
-mount_null_1_svc(struct svc_req *rqstp, void *argp, void *resp)
+mount_null_1_svc(struct svc_req *UNUSED(rqstp), void *UNUSED(argp), 
+	void *UNUSED(resp))
 {
 	return 1;
 }
@@ -210,7 +211,7 @@ mount_mnt_1_svc(struct svc_req *rqstp, dirpath *path, fhstatus *res)
 }
 
 bool_t
-mount_dump_1_svc(struct svc_req *rqstp, void *argp, mountlist *res)
+mount_dump_1_svc(struct svc_req *rqstp, void *UNUSED(argp), mountlist *res)
 {
 	struct sockaddr_in *addr = nfs_getrpccaller_in(rqstp->rq_xprt);
 
@@ -221,7 +222,7 @@ mount_dump_1_svc(struct svc_req *rqstp, void *argp, mountlist *res)
 }
 
 bool_t
-mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *resp)
+mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *UNUSED(resp))
 {
 	struct sockaddr_in *sin = nfs_getrpccaller_in(rqstp->rq_xprt);
 	nfs_export	*exp;
@@ -245,7 +246,8 @@ mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *resp)
 }
 
 bool_t
-mount_umntall_1_svc(struct svc_req *rqstp, void *argp, void *resp)
+mount_umntall_1_svc(struct svc_req *rqstp, void *UNUSED(argp), 
+	void *UNUSED(resp))
 {
 	/* Reload /etc/xtab if necessary */
 	auth_reload();
@@ -255,7 +257,7 @@ mount_umntall_1_svc(struct svc_req *rqstp, void *argp, void *resp)
 }
 
 bool_t
-mount_export_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
+mount_export_1_svc(struct svc_req *rqstp, void *UNUSED(argp), exports *resp)
 {
 	struct sockaddr_in *addr = nfs_getrpccaller_in(rqstp->rq_xprt);
 
@@ -266,7 +268,7 @@ mount_export_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
 }
 
 bool_t
-mount_exportall_1_svc(struct svc_req *rqstp, void *argp, exports *resp)
+mount_exportall_1_svc(struct svc_req *rqstp, void *UNUSED(argp), exports *resp)
 {
 	struct sockaddr_in *addr = nfs_getrpccaller_in(rqstp->rq_xprt);
 
