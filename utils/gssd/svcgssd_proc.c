@@ -132,7 +132,7 @@ struct gss_verifier {
 #define RPCSEC_GSS_SEQ_WIN	5
 
 static int
-send_response(FILE *f, gss_buffer_desc *in_handle, gss_buffer_desc *in_token,
+send_response(gss_buffer_desc *in_handle, gss_buffer_desc *in_token,
 	      u_int32_t maj_stat, u_int32_t min_stat,
 	      gss_buffer_desc *out_handle, gss_buffer_desc *out_token)
 {
@@ -431,12 +431,6 @@ handle_nullreq(FILE *f) {
 	print_hexl("in_tok", in_tok.value, in_tok.length);
 #endif
 
-	if (in_tok.length < 0) {
-		printerr(0, "WARNING: handle_nullreq: "
-			    "failed parsing request\n");
-		goto out_err;
-	}
-
 	if (in_handle.length != 0) { /* CONTINUE_INIT case */
 		if (in_handle.length != sizeof(ctx)) {
 			printerr(0, "WARNING: handle_nullreq: "
@@ -498,7 +492,7 @@ handle_nullreq(FILE *f) {
 	do_svc_downcall(&out_handle, &cred, mech, &ctx_token, ctx_endtime,
 			hostbased_name);
 continue_needed:
-	send_response(f, &in_handle, &in_tok, maj_stat, min_stat,
+	send_response(&in_handle, &in_tok, maj_stat, min_stat,
 			&out_handle, &out_tok);
 out:
 	if (ctx_token.value != NULL)
@@ -514,7 +508,7 @@ out:
 out_err:
 	if (ctx != GSS_C_NO_CONTEXT)
 		gss_delete_sec_context(&ignore_min_stat, &ctx, &ignore_out_tok);
-	send_response(f, &in_handle, &in_tok, maj_stat, min_stat,
+	send_response(&in_handle, &in_tok, maj_stat, min_stat,
 			&null_token, &null_token);
 	goto out;
 }
