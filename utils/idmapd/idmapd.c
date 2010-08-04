@@ -117,8 +117,24 @@ struct idmap_client {
 	TAILQ_ENTRY(idmap_client)  ic_next;
 };
 static struct idmap_client nfsd_ic[2] = {
-{IC_IDNAME, "Server", "", IC_IDNAME_CHAN, -1, -1, 0},
-{IC_NAMEID, "Server", "", IC_NAMEID_CHAN, -1, -1, 0},
+{
+	.ic_which = IC_IDNAME, 
+	.ic_clid = "Server", 
+	.ic_id = "", 
+	.ic_path = IC_IDNAME_CHAN, 
+	.ic_fd = -1, 
+	.ic_dirfd = -1, 
+	.ic_scanned = 0
+},
+{
+	.ic_which = IC_NAMEID, 
+	.ic_clid = "Server", 
+	.ic_id = "", 
+	.ic_path = IC_NAMEID_CHAN, 
+	.ic_fd = -1, 
+	.ic_dirfd = -1, 
+	.ic_scanned = 0
+},
 };
 
 TAILQ_HEAD(idmap_clientq, idmap_client);
@@ -170,7 +186,7 @@ flush_nfsd_cache(char *path, time_t now)
 	fd = open(path, O_RDWR);
 	if (fd == -1)
 		return -1;
-	if (write(fd, stime, strlen(stime)) != strlen(stime)) {
+	if (write(fd, stime, strlen(stime)) != (ssize_t)strlen(stime)) {
 		errx(1, "Flushing nfsd cache failed: errno %d (%s)",
 			errno, strerror(errno));
 	}
@@ -381,7 +397,7 @@ main(int argc, char **argv)
 }
 
 static void
-dirscancb(int fd, short which, void *data)
+dirscancb(int UNUSED(fd), short UNUSED(which), void *data)
 {
 	int nent, i;
 	struct dirent **ents;
@@ -465,13 +481,13 @@ out:
 }
 
 static void
-svrreopen(int fd, short which, void *data)
+svrreopen(int UNUSED(fd), short UNUSED(which), void *UNUSED(data))
 {
 	nfsdreopen();
 }
 
 static void
-clntscancb(int fd, short which, void *data)
+clntscancb(int UNUSED(fd), short UNUSED(which), void *data)
 {
 	struct idmap_clientq *icq = data;
 	struct idmap_client *ic;
@@ -485,7 +501,7 @@ clntscancb(int fd, short which, void *data)
 }
 
 static void
-nfsdcb(int fd, short which, void *data)
+nfsdcb(int UNUSED(fd), short which, void *data)
 {
 	struct idmap_client *ic = data;
 	struct idmap_msg im;
@@ -660,7 +676,7 @@ imconv(struct idmap_client *ic, struct idmap_msg *im)
 }
 
 static void
-nfscb(int fd, short which, void *data)
+nfscb(int UNUSED(fd), short which, void *data)
 {
 	struct idmap_client *ic = data;
 	struct idmap_msg im;
@@ -845,7 +861,7 @@ nametoidres(struct idmap_msg *im)
 static int
 validateascii(char *string, u_int32_t len)
 {
-	int i;
+	u_int32_t i;
 
 	for (i = 0; i < len; i++) {
 		if (string[i] == '\0')
@@ -901,7 +917,7 @@ static int
 getfield(char **bpp, char *fld, size_t fldsz)
 {
 	char *bp;
-	u_int val, n;
+	int val, n;
 
 	while ((bp = strsep(bpp, " ")) != NULL && bp[0] == '\0')
 		;
