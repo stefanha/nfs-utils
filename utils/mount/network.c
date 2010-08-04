@@ -53,6 +53,7 @@
 #include "parse_opt.h"
 #include "network.h"
 #include "conffile.h"
+#include "nfslib.h"
 
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
@@ -1363,7 +1364,7 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 sa_family_t	config_default_family = AF_UNSPEC;
 
 static int
-nfs_verify_family(sa_family_t family)
+nfs_verify_family(sa_family_t UNUSED(family))
 {
 	return 1;
 }

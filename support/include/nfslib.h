@@ -160,4 +160,7 @@ void closeall(int min);
 int			svctcp_socket (u_long __number, int __reuse);
 int			svcudp_socket (u_long __number);
 
+
+#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
+
 #endif /* NFSLIB_H */
