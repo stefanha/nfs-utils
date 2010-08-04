@@ -192,7 +192,8 @@ void free_all(void)
 	}
 }
 static char *versions[] = {"v2", "v3", "v4", "vers", "nfsvers", NULL};
-int inline check_vers(char *mopt, char *field)
+static int 
+check_vers(char *mopt, char *field)
 {
 	int i, found=0;
 
@@ -229,7 +230,8 @@ extern sa_family_t config_default_family;
  * If so, set the appropriate global value which will 
  * be used as the initial value in the server negation.
  */
-int inline default_value(char *mopt)
+static int 
+default_value(char *mopt)
 {
 	struct mount_options *options = NULL;
 	int dftlen = strlen("default");
