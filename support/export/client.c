@@ -490,13 +490,18 @@ static int
 check_netgroup(const nfs_client *clp, const struct addrinfo *ai)
 {
 	const char *netgroup = clp->m_hostname + 1;
-	const char *hname = ai->ai_canonname;
 	struct addrinfo *tmp = NULL;
 	struct hostent *hp;
+	char *dot, *hname;
 	int i, match;
-	char *dot;
 
 	match = 0;
+
+	hname = strdup(ai->ai_canonname);
+	if (hname == NULL) {
+		xlog(D_GENERAL, "%s: no memory for strdup", __func__);
+		goto out;
+	}
 
 	/* First, try to match the hostname without
 	 * splitting off the domain */
@@ -516,13 +521,21 @@ check_netgroup(const nfs_client *clp, const struct addrinfo *ai)
 			}
 	}
 
-	/* If hname is ip address convert to FQDN */
+	/* If hname happens to be an IP address, convert it
+	 * to a the canonical DNS name bound to this address. */
 	tmp = host_pton(hname);
 	if (tmp != NULL) {
+		char *cname = host_canonname(tmp->ai_addr);
 		freeaddrinfo(tmp);
-		if (innetgr(netgroup, hname, NULL, NULL)) {
-			match = 1;
-			goto out;
+
+		/* The resulting FQDN may be in our netgroup. */
+		if (cname != NULL) {
+			free(hname);
+			hname = cname;
+			if (innetgr(netgroup, hname, NULL, NULL)) {
+				match = 1;
+				goto out;
+			}
 		}
 	}
 
@@ -533,9 +546,9 @@ check_netgroup(const nfs_client *clp, const struct addrinfo *ai)
 
 	*dot = '\0';
 	match = innetgr(netgroup, hname, NULL, NULL);
-	*dot = '.';
 
 out:
+	free(hname);
 	return match;
 }
 #else	/* !HAVE_INNETGR */
