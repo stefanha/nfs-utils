@@ -212,7 +212,9 @@ statd_canonical_name(const char *hostname)
 					buf, (socklen_t)sizeof(buf));
 		freeaddrinfo(ai);
 		if (!result)
-			return NULL;
+			/* OK to use presentation address,
+			 * if no reverse map exists */
+			return strdup(hostname);
 		return strdup(buf);
 	}
 
