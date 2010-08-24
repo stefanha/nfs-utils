@@ -496,37 +496,46 @@ check_netgroup(const nfs_client *clp, const struct addrinfo *ai)
 	int i, match;
 	char *dot;
 
+	match = 0;
+
 	/* First, try to match the hostname without
 	 * splitting off the domain */
-	if (innetgr(netgroup, hname, NULL, NULL))
-		return 1;
+	if (innetgr(netgroup, hname, NULL, NULL)) {
+		match = 1;
+		goto out;
+	}
 
 	/* See if hname aliases listed in /etc/hosts or nis[+]
 	 * match the requested netgroup */
 	hp = gethostbyname(hname);
 	if (hp != NULL) {
 		for (i = 0; hp->h_aliases[i]; i++)
-			if (innetgr(netgroup, hp->h_aliases[i], NULL, NULL))
-				return 1;
+			if (innetgr(netgroup, hp->h_aliases[i], NULL, NULL)) {
+				match = 1;
+				goto out;
+			}
 	}
 
 	/* If hname is ip address convert to FQDN */
 	tmp = host_pton(hname);
 	if (tmp != NULL) {
 		freeaddrinfo(tmp);
-		if (innetgr(netgroup, hname, NULL, NULL))
-			return 1;
+		if (innetgr(netgroup, hname, NULL, NULL)) {
+			match = 1;
+			goto out;
+		}
 	}
 
 	/* Okay, strip off the domain (if we have one) */
 	dot = strchr(hname, '.');
 	if (dot == NULL)
-		return 0;
+		goto out;
 
 	*dot = '\0';
 	match = innetgr(netgroup, hname, NULL, NULL);
 	*dot = '.';
 
+out:
 	return match;
 }
 #else	/* !HAVE_INNETGR */
