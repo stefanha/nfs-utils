@@ -12,6 +12,8 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/vfs.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -20,13 +22,13 @@
 #include <string.h>
 #include <stdarg.h>
 #include <getopt.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
-#include "xmalloc.h"
+
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
-#include "xmalloc.h"
 #include "xlog.h"
 
 static void	export_all(int verbose);
