@@ -602,7 +602,8 @@ client_check(const nfs_client *clp, const struct addrinfo *ai)
 int
 client_gettype(char *ident)
 {
-	char	*sp;
+	struct addrinfo *ai;
+	char *sp;
 
 	if (ident[0] == '\0' || strcmp(ident, "*")==0)
 		return MCL_ANONYMOUS;
@@ -622,12 +623,16 @@ client_gettype(char *ident)
 		if (*sp == '\\' && sp[1])
 			sp++;
 	}
-	/* check for N.N.N.N */
-	sp = ident;
-	if(!isdigit(*sp) || strtoul(sp, &sp, 10) > 255 || *sp != '.') return MCL_FQDN;
-	sp++; if(!isdigit(*sp) || strtoul(sp, &sp, 10) > 255 || *sp != '.') return MCL_FQDN;
-	sp++; if(!isdigit(*sp) || strtoul(sp, &sp, 10) > 255 || *sp != '.') return MCL_FQDN;
-	sp++; if(!isdigit(*sp) || strtoul(sp, &sp, 10) > 255 || *sp != '\0') return MCL_FQDN;
-	/* we lie here a bit. but technically N.N.N.N == N.N.N.N/32 :) */
-	return MCL_SUBNETWORK;
+
+	/*
+	 * Treat unadorned IP addresses as MCL_SUBNETWORK.
+	 * Everything else is MCL_FQDN.
+	 */
+	ai = host_pton(ident);
+	if (ai != NULL) {
+		freeaddrinfo(ai);
+		return MCL_SUBNETWORK;
+	}
+
+	return MCL_FQDN;
 }
