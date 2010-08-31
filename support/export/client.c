@@ -17,6 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <netdb.h>
+#include <errno.h>
 
 #include "misc.h"
 #include "nfslib.h"
@@ -58,25 +59,58 @@ client_free(nfs_client *clp)
 }
 
 static int
-init_netmask(nfs_client *clp, const char *slash)
+init_netmask(nfs_client *clp, const char *slash, const sa_family_t family)
 {
 	struct sockaddr_in sin = {
 		.sin_family		= AF_INET,
 	};
+	unsigned long prefixlen;
+	uint32_t shift;
 
-	if (strchr(slash + 1, '.') != NULL)
-		sin.sin_addr.s_addr = inet_addr(slash + 1);
-	else {
-		int prefixlen = atoi(slash + 1);
-		if (0 < prefixlen && prefixlen <= 32)
-			sin.sin_addr.s_addr =
-					htonl((uint32_t)~0 << (32 - prefixlen));
-		else
+	/* No slash present; assume netmask is all ones */
+	if (slash == NULL) {
+		switch (family) {
+		case AF_INET:
+			prefixlen = 32;
+			break;
+		default:
+			goto out_badfamily;
+		}
+	} else {
+		char *endptr;
+
+		/* A spelled out netmask address, perhaps? */
+		if (strchr(slash + 1, '.') != NULL) {
+			if (inet_pton(AF_INET, slash + 1,
+						&sin.sin_addr.s_addr) == 0)
+				goto out_badmask;
+			set_addrlist_in(clp, 1, &sin);
+			return 1;
+		}
+
+		/* A prefixlen was given */
+		prefixlen = strtoul(slash + 1, &endptr, 10);
+		if (*endptr != '\0' && prefixlen != ULONG_MAX && errno != ERANGE)
 			goto out_badprefix;
 	}
 
-	set_addrlist_in(clp, 1, &sin);
-	return 1;
+	switch (family) {
+	case AF_INET:
+		if (prefixlen > 32)
+			goto out_badprefix;
+		shift = 32 - (uint32_t)prefixlen;
+		sin.sin_addr.s_addr = htonl((uint32_t)~0 << shift);
+		set_addrlist_in(clp, 1, &sin);
+		return 1;
+	}
+
+out_badfamily:
+	xlog(L_ERROR, "Unsupported address family for %s", clp->m_hostname);
+	return 0;
+
+out_badmask:
+	xlog(L_ERROR, "Invalid netmask `%s' for %s", slash + 1, clp->m_hostname);
+	return 0;
 
 out_badprefix:
 	xlog(L_ERROR, "Invalid prefix `%s' for %s", slash + 1, clp->m_hostname);
@@ -86,25 +120,28 @@ out_badprefix:
 static int
 init_subnetwork(nfs_client *clp)
 {
-	static char slash32[] = "/32";
 	struct addrinfo *ai;
-	char *cp;
+	sa_family_t family;
+	char *slash;
 
-	cp = strchr(clp->m_hostname, '/');
-	if (cp == NULL)
-		cp = slash32;
-
-	*cp = '\0';
-	ai = host_pton(clp->m_hostname);
-	*cp = '/';
+	slash = strchr(clp->m_hostname, '/');
+	if (slash != NULL) {
+		*slash = '\0';
+		ai = host_pton(clp->m_hostname);
+		*slash = '/';
+	} else
+		ai = host_pton(clp->m_hostname);
 	if (ai == NULL) {
 		xlog(L_ERROR, "Invalid IP address %s", clp->m_hostname);
 		return false;
 	}
+
 	set_addrlist(clp, 0, ai->ai_addr);
+	family = ai->ai_addr->sa_family;
+
 	freeaddrinfo(ai);
 
-	return init_netmask(clp, cp);
+	return init_netmask(clp, slash, family);
 }
 
 static int
