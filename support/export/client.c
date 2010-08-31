@@ -66,6 +66,12 @@ init_netmask(nfs_client *clp, const char *slash, const sa_family_t family)
 	};
 	unsigned long prefixlen;
 	uint32_t shift;
+#ifdef IPV6_SUPPORTED
+	struct sockaddr_in6 sin6 = {
+		.sin6_family		= AF_INET6,
+	};
+	int i;
+#endif
 
 	/* No slash present; assume netmask is all ones */
 	if (slash == NULL) {
@@ -73,6 +79,11 @@ init_netmask(nfs_client *clp, const char *slash, const sa_family_t family)
 		case AF_INET:
 			prefixlen = 32;
 			break;
+#ifdef IPV6_SUPPORTED
+		case AF_INET6:
+			prefixlen = 128;
+			break;
+#endif
 		default:
 			goto out_badfamily;
 		}
@@ -87,6 +98,14 @@ init_netmask(nfs_client *clp, const char *slash, const sa_family_t family)
 			set_addrlist_in(clp, 1, &sin);
 			return 1;
 		}
+#ifdef IPV6_SUPPORTED
+		if (strchr(slash + 1, ':')) {
+			if (!inet_pton(AF_INET6, slash + 1, &sin6.sin6_addr))
+				goto out_badmask;
+			set_addrlist_in6(clp, 1, &sin6);
+			return 1;
+		}
+#endif
 
 		/* A prefixlen was given */
 		prefixlen = strtoul(slash + 1, &endptr, 10);
@@ -102,6 +121,19 @@ init_netmask(nfs_client *clp, const char *slash, const sa_family_t family)
 		sin.sin_addr.s_addr = htonl((uint32_t)~0 << shift);
 		set_addrlist_in(clp, 1, &sin);
 		return 1;
+#ifdef IPV6_SUPPORTED
+	case AF_INET6:
+		if (prefixlen > 128)
+			goto out_badprefix;
+		for (i = 0; prefixlen > 32; i++) {
+			sin6.sin6_addr.s6_addr32[i] = 0xffffffff;
+			prefixlen -= 32;
+		}
+		shift = 32 - (uint32_t)prefixlen;
+		sin6.sin6_addr.s6_addr32[i] = htonl((uint32_t)~0 << shift);
+		set_addrlist_in6(clp, 1, &sin6);
+		return 1;
+#endif
 	}
 
 out_badfamily:
