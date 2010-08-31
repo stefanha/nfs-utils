@@ -86,10 +86,8 @@ out_badprefix:
 static int
 init_subnetwork(nfs_client *clp)
 {
-	struct sockaddr_in sin = {
-		.sin_family		= AF_INET,
-	};
 	static char slash32[] = "/32";
+	struct addrinfo *ai;
 	char *cp;
 
 	cp = strchr(clp->m_hostname, '/');
@@ -97,9 +95,14 @@ init_subnetwork(nfs_client *clp)
 		cp = slash32;
 
 	*cp = '\0';
-	sin.sin_addr.s_addr = inet_addr(clp->m_hostname);
-	set_addrlist_in(clp, 0, &sin);
+	ai = host_pton(clp->m_hostname);
 	*cp = '/';
+	if (ai == NULL) {
+		xlog(L_ERROR, "Invalid IP address %s", clp->m_hostname);
+		return false;
+	}
+	set_addrlist(clp, 0, ai->ai_addr);
+	freeaddrinfo(ai);
 
 	return init_netmask(clp, cp);
 }
