@@ -303,8 +303,10 @@ static int nfs_set_version(struct nfsmount_info *mi)
 	if (strncmp(mi->type, "nfs4", 4) == 0)
 		mi->version = 4;
 	else {
-		char *option = po_get(mi->options, "proto");
-		if (option && strcmp(option, "rdma") == 0)
+		unsigned long protocol;
+		if (!nfs_nfs_protocol(mi->options, &protocol))
+			return 0;
+		if (protocol == NFSPROTO_RDMA)
 			mi->version = 3;
 	}
 
@@ -490,14 +492,19 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 	union nfs_sockaddr mnt_address;
 	struct sockaddr *mnt_saddr = &mnt_address.sa;
 	socklen_t mnt_salen = sizeof(mnt_address);
+	unsigned long protocol;
 	struct pmap mnt_pmap;
 	char *option;
 
 	/*
-	 * Skip option negotiation for proto=rdma mounts.
+	 * Version and transport negotiation is not required
+	 * and does not work for RDMA mounts.
 	 */
-	option = po_get(options, "proto");
-	if (option && strcmp(option, "rdma") == 0)
+	if (!nfs_nfs_protocol(options, &protocol)) {
+		errno = EINVAL;
+		return 0;
+	}
+	if (protocol == NFSPROTO_RDMA)
 		goto out;
 
 	/*
