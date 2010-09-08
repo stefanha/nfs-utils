@@ -481,7 +481,10 @@ command,
 .I netid
 is a valid netid listed in
 .IR /etc/netconfig .
-Otherwise,
+The value "rdma" may also be specified.
+If the
+.B mount.nfs
+command does not have TI-RPC support, then
 .I netid
 is one of "tcp," "udp," or "rdma," and only IPv4 may be used.
 .IP
@@ -522,6 +525,12 @@ The
 option is an alternative to specifying
 .BR proto=tcp.
 It is included for compatibility with other operating systems.
+.TP 1.5i
+.B rdma
+The
+.B rdma
+option is an alternative to specifying
+.BR proto=rdma.
 .TP 1.5i
 .BI port= n
 The numeric value of the server's NFS service port.

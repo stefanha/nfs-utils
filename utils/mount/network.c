@@ -83,6 +83,7 @@ static const char *nfs_nfs_pgmtbl[] = {
 static const char *nfs_transport_opttbl[] = {
 	"udp",
 	"tcp",
+	"rdma",
 	"proto",
 	NULL,
 };
@@ -1307,7 +1308,10 @@ nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol)
 	case 1: /* tcp */
 		*protocol = IPPROTO_TCP;
 		return 1;
-	case 2: /* proto */
+	case 2: /* rdma */
+		*protocol = NFSPROTO_RDMA;
+		return 1;
+	case 3: /* proto */
 		option = po_get(options, "proto");
 		if (option != NULL) {
 			if (!nfs_get_proto(option, &family, protocol)) {
@@ -1396,10 +1400,11 @@ int nfs_nfs_proto_family(struct mount_options *options,
 	switch (po_rightmost(options, nfs_transport_opttbl)) {
 	case 0:	/* udp */
 	case 1: /* tcp */
+	case 2: /* rdma */
 		/* for compatibility; these are always AF_INET */
 		*family = AF_INET;
 		return 1;
-	case 2: /* proto */
+	case 3: /* proto */
 		option = po_get(options, "proto");
 		if (option != NULL &&
 		    !nfs_get_proto(option, &tmp_family, &protocol)) {
