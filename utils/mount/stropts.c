@@ -302,13 +302,6 @@ static int nfs_set_version(struct nfsmount_info *mi)
 
 	if (strncmp(mi->type, "nfs4", 4) == 0)
 		mi->version = 4;
-	else {
-		unsigned long protocol;
-		if (!nfs_nfs_protocol(mi->options, &protocol))
-			return 0;
-		if (protocol == NFSPROTO_RDMA)
-			mi->version = 3;
-	}
 
 	/*
 	 * If we still don't know, check for version-specific
