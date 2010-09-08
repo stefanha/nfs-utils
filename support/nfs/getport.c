@@ -216,6 +216,21 @@ nfs_get_proto(const char *netid, sa_family_t *family, unsigned long *protocol)
 	struct netconfig *nconf;
 	struct protoent *proto;
 
+	/*
+	 * IANA does not define a protocol number for rdma netids,
+	 * since "rdma" is not an IP protocol.
+	 */
+	if (strcmp(netid, "rdma") == 0) {
+		*family = AF_INET;
+		*protocol = NFSPROTO_RDMA;
+		return 1;
+	}
+	if (strcmp(netid, "rdma6") == 0) {
+		*family = AF_INET6;
+		*protocol = NFSPROTO_RDMA;
+		return 1;
+	}
+
 	nconf = getnetconfigent(netid);
 	if (nconf == NULL)
 		return 0;
@@ -241,6 +256,16 @@ int
 nfs_get_proto(const char *netid, sa_family_t *family, unsigned long *protocol)
 {
 	struct protoent *proto;
+
+	/*
+	 * IANA does not define a protocol number for rdma netids,
+	 * since "rdma" is not an IP protocol.
+	 */
+	if (strcmp(netid, "rdma") == 0) {
+		*family = AF_INET;
+		*protocol = NFSPROTO_RDMA;
+		return 1;
+	}
 
 	proto = getprotobyname(netid);
 	if (proto == NULL)

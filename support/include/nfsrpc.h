@@ -27,6 +27,12 @@
 #include <rpc/clnt.h>
 
 /*
+ * IANA does not define an IP protocol number for RDMA transports.
+ * Choose an arbitrary value we can use locally.
+ */
+#define NFSPROTO_RDMA		(3939)
+
+/*
  * Conventional RPC program numbers
  */
 #ifndef RPCBPROG
