@@ -487,7 +487,6 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 	socklen_t mnt_salen = sizeof(mnt_address);
 	unsigned long protocol;
 	struct pmap mnt_pmap;
-	char *option;
 
 	/*
 	 * Version and transport negotiation is not required
