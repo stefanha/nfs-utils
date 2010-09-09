@@ -60,86 +60,51 @@ client_free(nfs_client *clp)
 }
 
 static int
-init_netmask(nfs_client *clp, const char *slash, const sa_family_t family)
+init_netmask4(nfs_client *clp, const char *slash)
 {
 	struct sockaddr_in sin = {
 		.sin_family		= AF_INET,
 	};
-	unsigned long prefixlen;
 	uint32_t shift;
-#ifdef IPV6_SUPPORTED
-	struct sockaddr_in6 sin6 = {
-		.sin6_family		= AF_INET6,
-	};
-	int i;
-#endif
 
-	/* No slash present; assume netmask is all ones */
-	if (slash == NULL) {
-		switch (family) {
-		case AF_INET:
-			prefixlen = 32;
-			break;
-#ifdef IPV6_SUPPORTED
-		case AF_INET6:
-			prefixlen = 128;
-			break;
-#endif
-		default:
-			goto out_badfamily;
-		}
-	} else {
-		char *endptr;
+	/*
+	 * Decide what kind of netmask was specified.  If there's
+	 * no '/' present, assume the netmask is all ones.  If
+	 * there is a '/' and at least one '.', look for a spelled-
+	 * out netmask.  Otherwise, assume it was a prefixlen.
+	 */
+	if (slash == NULL)
+		shift = 0;
+	else {
+		unsigned long prefixlen;
 
-		/* A spelled out netmask address, perhaps? */
 		if (strchr(slash + 1, '.') != NULL) {
 			if (inet_pton(AF_INET, slash + 1,
 						&sin.sin_addr.s_addr) == 0)
 				goto out_badmask;
 			set_addrlist_in(clp, 1, &sin);
 			return 1;
-		}
-#ifdef IPV6_SUPPORTED
-		if (strchr(slash + 1, ':')) {
-			if (!inet_pton(AF_INET6, slash + 1, &sin6.sin6_addr))
-				goto out_badmask;
-			set_addrlist_in6(clp, 1, &sin6);
-			return 1;
-		}
-#endif
+		} else {
+			char *endptr;
 
-		/* A prefixlen was given */
-		prefixlen = strtoul(slash + 1, &endptr, 10);
-		if (*endptr != '\0' && prefixlen != ULONG_MAX && errno != ERANGE)
-			goto out_badprefix;
-	}
-
-	switch (family) {
-	case AF_INET:
+			prefixlen = strtoul(slash + 1, &endptr, 10);
+			if (*endptr != '\0' && prefixlen != ULONG_MAX &&
+			    errno != ERANGE)
+				goto out_badprefix;
+		}
 		if (prefixlen > 32)
 			goto out_badprefix;
 		shift = 32 - (uint32_t)prefixlen;
-		sin.sin_addr.s_addr = htonl((uint32_t)~0 << shift);
-		set_addrlist_in(clp, 1, &sin);
-		return 1;
-#ifdef IPV6_SUPPORTED
-	case AF_INET6:
-		if (prefixlen > 128)
-			goto out_badprefix;
-		for (i = 0; prefixlen > 32; i++) {
-			sin6.sin6_addr.s6_addr32[i] = 0xffffffff;
-			prefixlen -= 32;
-		}
-		shift = 32 - (uint32_t)prefixlen;
-		sin6.sin6_addr.s6_addr32[i] = htonl((uint32_t)~0 << shift);
-		set_addrlist_in6(clp, 1, &sin6);
-		return 1;
-#endif
 	}
 
-out_badfamily:
-	xlog(L_ERROR, "Unsupported address family for %s", clp->m_hostname);
-	return 0;
+	/*
+	 * Now construct the full netmask bitmask in a sockaddr_in,
+	 * and plant it in the nfs_client record.
+	 */
+	sin.sin_addr.s_addr = htonl((uint32_t)~0 << shift);
+	set_addrlist_in(clp, 1, &sin);
+
+	return 1;
 
 out_badmask:
 	xlog(L_ERROR, "Invalid netmask `%s' for %s", slash + 1, clp->m_hostname);
@@ -150,11 +115,83 @@ out_badprefix:
 	return 0;
 }
 
+#ifdef IPV6_SUPPORTED
+static int
+init_netmask6(nfs_client *clp, const char *slash)
+{
+	struct sockaddr_in6 sin6 = {
+		.sin6_family		= AF_INET6,
+	};
+	unsigned long prefixlen;
+	uint32_t shift;
+	int i;
+
+	/*
+	 * Decide what kind of netmask was specified.  If there's
+	 * no '/' present, assume the netmask is all ones.  If
+	 * there is a '/' and at least one ':', look for a spelled-
+	 * out netmask.  Otherwise, assume it was a prefixlen.
+	 */
+	if (slash == NULL)
+		prefixlen = 128;
+	else {
+		if (strchr(slash + 1, ':') != NULL) {
+			if (!inet_pton(AF_INET6, slash + 1, &sin6.sin6_addr))
+				goto out_badmask;
+			set_addrlist_in6(clp, 1, &sin6);
+			return 1;
+		} else {
+			char *endptr;
+
+			prefixlen = strtoul(slash + 1, &endptr, 10);
+			if (*endptr != '\0' && prefixlen != ULONG_MAX &&
+			    errno != ERANGE)
+				goto out_badprefix;
+		}
+		if (prefixlen > 128)
+			goto out_badprefix;
+	}
+
+	/*
+	 * Now construct the full netmask bitmask in a sockaddr_in6,
+	 * and plant it in the nfs_client record.
+	 */
+	for (i = 0; prefixlen > 32; i++) {
+		sin6.sin6_addr.s6_addr32[i] = 0xffffffff;
+		prefixlen -= 32;
+	}
+	shift = 32 - (uint32_t)prefixlen;
+	sin6.sin6_addr.s6_addr32[i] = htonl((uint32_t)~0 << shift);
+	set_addrlist_in6(clp, 1, &sin6);
+
+	return 1;
+
+out_badmask:
+	xlog(L_ERROR, "Invalid netmask `%s' for %s", slash + 1, clp->m_hostname);
+	return 0;
+
+out_badprefix:
+	xlog(L_ERROR, "Invalid prefix `%s' for %s", slash + 1, clp->m_hostname);
+	return 0;
+}
+#else	/* IPV6_SUPPORTED */
+static int
+init_netmask6(nfs_client *UNUSED(clp), const char *UNUSED(slash))
+{
+}
+#endif	/* IPV6_SUPPORTED */
+
+/*
+ * Parse the network mask for M_SUBNETWORK type clients.
+ *
+ * Return TRUE if successful, or FALSE if some error occurred.
+ */
 static int
 init_subnetwork(nfs_client *clp)
 {
 	struct addrinfo *ai;
 	sa_family_t family;
+	int result = 0;
 	char *slash;
 
 	slash = strchr(clp->m_hostname, '/');
@@ -166,7 +203,7 @@ init_subnetwork(nfs_client *clp)
 		ai = host_pton(clp->m_hostname);
 	if (ai == NULL) {
 		xlog(L_ERROR, "Invalid IP address %s", clp->m_hostname);
-		return false;
+		return result;
 	}
 
 	set_addrlist(clp, 0, ai->ai_addr);
@@ -174,7 +211,19 @@ init_subnetwork(nfs_client *clp)
 
 	freeaddrinfo(ai);
 
-	return init_netmask(clp, slash, family);
+	switch (family) {
+	case AF_INET:
+		result = init_netmask4(clp, slash);
+		break;
+	case AF_INET6:
+		result = init_netmask6(clp, slash);
+		break;
+	default:
+		xlog(L_ERROR, "Unsupported address family for %s",
+			clp->m_hostname);
+	}
+
+	return result;
 }
 
 static int
