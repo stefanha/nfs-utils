@@ -16,7 +16,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "xmalloc.h"
+
 #include "misc.h"
 #include "exportfs.h"
 #include "xio.h"
@@ -179,9 +179,9 @@ mountlist_freeall(mountlist list)
 	while (list != NULL) {
 		mountlist m = list;
 		list = m->ml_next;
-		xfree(m->ml_hostname);
-		xfree(m->ml_directory);
-		xfree(m);
+		free(m->ml_hostname);
+		free(m->ml_directory);
+		free(m);
 	}
 }
 
@@ -211,16 +211,32 @@ mountlist_list(void)
 
 		setrmtabent("r");
 		while ((rep = getrmtabent(1, NULL)) != NULL) {
-			m = (mountlist) xmalloc(sizeof(*m));
+			m = calloc(1, sizeof(*m));
+			if (m == NULL) {
+				mountlist_freeall(mlist);
+				mlist = NULL;
+				xlog(L_ERROR, "%s: memory allocation failed",
+						__func__);
+				break;
+			}
 
 			if (reverse_resolve &&
 			   inet_aton((const char *) rep->r_client, &addr) &&
 			   (he = gethostbyaddr(&addr, sizeof(addr), AF_INET)))
-				m->ml_hostname = xstrdup(he->h_name);
+				m->ml_hostname = strdup(he->h_name);
 			else
-				m->ml_hostname = xstrdup(rep->r_client);
+				m->ml_hostname = strdup(rep->r_client);
 
- 			m->ml_directory = xstrdup(rep->r_path);
+			m->ml_directory = strdup(rep->r_path);
+
+			if (m->ml_hostname == NULL || m->ml_directory == NULL) {
+				mountlist_freeall(mlist);
+				mlist = NULL;
+				xlog(L_ERROR, "%s: memory allocation failed",
+						__func__);
+				break;
+			}
+
 			m->ml_next = mlist;
 			mlist = m;
 		}
