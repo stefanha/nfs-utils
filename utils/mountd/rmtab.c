@@ -194,8 +194,6 @@ mountlist_list(void)
 	struct rmtabent		*rep;
 	struct stat		stb;
 	int			lockid;
-	struct in_addr		addr;
-	struct hostent		*he;
 
 	if ((lockid = xflock(_PATH_RMTABLCK, "r")) < 0)
 		return NULL;
@@ -220,11 +218,15 @@ mountlist_list(void)
 				break;
 			}
 
-			if (reverse_resolve &&
-			   inet_aton((const char *) rep->r_client, &addr) &&
-			   (he = gethostbyaddr(&addr, sizeof(addr), AF_INET)))
-				m->ml_hostname = strdup(he->h_name);
-			else
+			if (reverse_resolve) {
+				struct addrinfo *ai;
+				ai = host_pton(rep->r_client);
+				if (ai != NULL) {
+					m->ml_hostname = host_canonname(ai->ai_addr);
+					freeaddrinfo(ai);
+				}
+			}
+			if (m->ml_hostname == NULL)
 				m->ml_hostname = strdup(rep->r_client);
 
 			m->ml_directory = strdup(rep->r_path);
