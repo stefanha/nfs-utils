@@ -173,6 +173,18 @@ out_unlock:
 	xfunlock(lockid);
 }
 
+static void
+mountlist_freeall(mountlist list)
+{
+	while (list != NULL) {
+		mountlist m = list;
+		list = m->ml_next;
+		xfree(m->ml_hostname);
+		xfree(m->ml_directory);
+		xfree(m);
+	}
+}
+
 mountlist
 mountlist_list(void)
 {
@@ -194,12 +206,7 @@ mountlist_list(void)
 		return NULL;
 	}
 	if (stb.st_mtime != last_mtime) {
-		while (mlist) {
-			mlist = (m = mlist)->ml_next;
-			xfree(m->ml_hostname);
-			xfree(m->ml_directory);
-			xfree(m);
-		}
+		mountlist_freeall(mlist);
 		last_mtime = stb.st_mtime;
 
 		setrmtabent("r");
