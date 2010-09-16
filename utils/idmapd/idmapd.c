@@ -119,8 +119,8 @@ struct idmap_client {
 static struct idmap_client nfsd_ic[2] = {
 {
 	.ic_which = IC_IDNAME, 
-	.ic_clid = "Server", 
-	.ic_id = "", 
+	.ic_clid = "", 
+	.ic_id = "Server", 
 	.ic_path = IC_IDNAME_CHAN, 
 	.ic_fd = -1, 
 	.ic_dirfd = -1, 
@@ -128,8 +128,8 @@ static struct idmap_client nfsd_ic[2] = {
 },
 {
 	.ic_which = IC_NAMEID, 
-	.ic_clid = "Server", 
-	.ic_id = "", 
+	.ic_clid = "", 
+	.ic_id = "Server", 
 	.ic_path = IC_NAMEID_CHAN, 
 	.ic_fd = -1, 
 	.ic_dirfd = -1, 
