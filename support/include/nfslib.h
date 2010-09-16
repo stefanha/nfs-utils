@@ -134,9 +134,12 @@ int			nfsaddclient(struct nfsctl_client *clp);
 int			nfsdelclient(struct nfsctl_client *clp);
 int			nfsexport(struct nfsctl_export *exp);
 int			nfsunexport(struct nfsctl_export *exp);
-struct nfs_fh_len *	getfh_old(struct sockaddr *addr, dev_t dev, ino_t ino);
-struct nfs_fh_len *	getfh(struct sockaddr *addr, const char *);
-struct nfs_fh_len *	getfh_size(struct sockaddr *addr, const char *, int size);
+
+struct nfs_fh_len *	getfh_old(const struct sockaddr_in *sin,
+					const dev_t dev, const ino_t ino);
+struct nfs_fh_len *	getfh(const struct sockaddr_in *sin, const char *path);
+struct nfs_fh_len *	getfh_size(const struct sockaddr_in *sin,
+					const char *path, int const size);
 
 void qword_print(FILE *f, char *str);
 void qword_printhex(FILE *f, char *str, int slen);

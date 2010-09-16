@@ -484,14 +484,13 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 			xtab_append(exp);
 
 		if (v3)
-			fh = getfh_size ((struct sockaddr *) sin, p, 64);
+			fh = getfh_size(sin, p, 64);
 		if (!v3 || (fh == NULL && errno == EINVAL)) {
 			/* We first try the new nfs syscall. */
-			fh = getfh ((struct sockaddr *) sin, p);
+			fh = getfh(sin, p);
 			if (fh == NULL && errno == EINVAL)
 				/* Let's try the old one. */
-				fh = getfh_old ((struct sockaddr *) sin,
-						stb.st_dev, stb.st_ino);
+				fh = getfh_old(sin, stb.st_dev, stb.st_ino);
 		}
 		if (fh == NULL && !did_export) {
 			exp->m_exported = 0;
