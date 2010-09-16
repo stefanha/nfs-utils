@@ -304,6 +304,16 @@ static int nfs_set_version(struct nfsmount_info *mi)
 		mi->version = 4;
 
 	/*
+	 * Before 2.6.32, the kernel NFS client didn't
+	 * support "-t nfs vers=4" mounts, so NFS version
+	 * 4 cannot be included when autonegotiating
+	 * while running on those kernels.
+	 */
+	if (mi->version == 0 &&
+	    linux_version_code() <= MAKE_VERSION(2, 6, 31))
+		mi->version = 3;
+
+	/*
 	 * If we still don't know, check for version-specific
 	 * mount options.
 	 */
@@ -746,6 +756,47 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 }
 
 /*
+ * Handle NFS version and transport protocol
+ * autonegotiation.
+ *
+ * When no version or protocol is specified on the
+ * command line, mount.nfs negotiates with the server
+ * to determine appropriate settings for the new
+ * mount point.
+ *
+ * Returns TRUE if successful, otherwise FALSE.
+ * "errno" is set to reflect the individual error.
+ */
+static int nfs_autonegotiate(struct nfsmount_info *mi)
+{
+	int result;
+
+	result = nfs_try_mount_v4(mi);
+	if (result)
+		return result;
+		
+	switch (errno) {
+	case EPROTONOSUPPORT:
+		/* A clear indication that the server or our
+		 * client does not support NFS version 4. */
+		goto fall_back;
+	case ENOENT:
+		/* Legacy Linux servers don't export an NFS
+		 * version 4 pseudoroot. */
+		goto fall_back;
+	case EPERM:
+		/* Linux servers prior to 2.6.25 may return
+		 * EPERM when NFS version 4 is not supported. */
+		goto fall_back;
+	default:
+		return result;
+	}
+
+fall_back:
+	return nfs_try_mount_v3v2(mi);
+}
+
+/*
  * This is a single pass through the fg/bg loop.
  *
  * Returns TRUE if successful, otherwise FALSE.
@@ -757,20 +808,8 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 
 	switch (mi->version) {
 	case 0:
-		if (linux_version_code() > MAKE_VERSION(2, 6, 31)) {
-			errno = 0;
-			result = nfs_try_mount_v4(mi);
-			if (errno != EPROTONOSUPPORT) {
-				/* 
-				 * To deal with legacy Linux servers that don't
-				 * automatically export a pseudo root, retry
-				 * ENOENT errors using version 3. And for
-				 * Linux servers prior to 2.6.25, retry EPERM
-				 */
-				if (errno != ENOENT && errno != EPERM)
-					break;
-			}
-		}
+		result = nfs_autonegotiate(mi);
+		break;
 	case 2:
 	case 3:
 		result = nfs_try_mount_v3v2(mi);
