@@ -80,7 +80,7 @@ static void auth_unix_ip(FILE *f)
 	 */
 	char *cp;
 	char class[20];
-	char ipaddr[20];
+	char ipaddr[INET6_ADDRSTRLEN];
 	char *client = NULL;
 	struct addrinfo *tmp = NULL;
 	struct addrinfo *ai = NULL;
@@ -95,7 +95,7 @@ static void auth_unix_ip(FILE *f)
 	    strcmp(class, "nfsd") != 0)
 		return;
 
-	if (qword_get(&cp, ipaddr, 20) <= 0)
+	if (qword_get(&cp, ipaddr, sizeof(ipaddr)) <= 0)
 		return;
 
 	tmp = host_pton(ipaddr);
@@ -953,7 +953,7 @@ int cache_export(nfs_export *exp, char *path)
 
 
 	qword_print(f, "nfsd");
-	qword_print(f, 
+	qword_print(f,
 		host_ntop(get_addrlist(exp->m_client, 0), buf, sizeof(buf)));
 	qword_printint(f, time(0)+30*60);
 	qword_print(f, exp->m_client->m_hostname);
