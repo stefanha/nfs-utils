@@ -943,7 +943,7 @@ static int cache_export_ent(char *domain, struct exportent *exp, char *path)
  */
 int cache_export(nfs_export *exp, char *path)
 {
-	char buf[INET_ADDRSTRLEN];
+	char buf[INET6_ADDRSTRLEN];
 	int err;
 	FILE *f;
 
