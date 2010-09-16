@@ -237,9 +237,9 @@ mount_umnt_1_svc(struct svc_req *rqstp, dirpath *argp, void *UNUSED(resp))
 		p = rpath;
 	}
 
-	if (!(exp = auth_authenticate("unmount", sin, p))) {
+	exp = auth_authenticate("unmount", (struct sockaddr *)sin, p);
+	if (exp == NULL)
 		return 1;
-	}
 
 	mountlist_del(inet_ntoa(sin->sin_addr), p);
 	return 1;
@@ -313,10 +313,10 @@ mount_pathconf_2_svc(struct svc_req *rqstp, dirpath *path, ppathcnf *res)
 	}
 
 	/* Now authenticate the intruder... */
-	exp = auth_authenticate("pathconf", sin, p);
-	if (!exp) {
+	exp = auth_authenticate("pathconf", (struct sockaddr *)sin, p);
+	if (exp == NULL)
 		return 1;
-	} else if (stat(p, &stb) < 0) {
+	else if (stat(p, &stb) < 0) {
 		xlog(L_WARNING, "can't stat exported dir %s: %s",
 				p, strerror(errno));
 		return 1;
@@ -415,8 +415,8 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 	}
 
 	/* Now authenticate the intruder... */
-	exp = auth_authenticate("mount", sin, p);
-	if (!exp) {
+	exp = auth_authenticate("mount", (struct sockaddr *)sin, p);
+	if (exp == NULL) {
 		*error = NFSERR_ACCES;
 		return NULL;
 	}

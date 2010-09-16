@@ -157,7 +157,8 @@ mountlist_del_all(struct sockaddr_in *sin)
 
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		if (strcmp(rep->r_client, hostname) == 0 &&
-		    (exp = auth_authenticate("umountall", sin, rep->r_path)))
+		    (exp = auth_authenticate("umountall",
+				(struct sockaddr *)sin, rep->r_path)))
 			continue;
 		fputrmtabent(fp, rep, NULL);
 	}

@@ -15,6 +15,8 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <unistd.h>
+
+#include "sockaddr.h"
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
@@ -111,13 +113,14 @@ auth_reload()
 }
 
 static char *
-get_client_hostname(struct sockaddr_in *caller, struct addrinfo *ai,
+get_client_hostname(const struct sockaddr *caller, struct addrinfo *ai,
 		enum auth_error *error)
 {
+	char buf[INET6_ADDRSTRLEN];
 	char *n;
 
 	if (use_ipaddr)
-		return strdup(inet_ntoa(caller->sin_addr));
+		return strdup(host_ntop(caller, buf, sizeof(buf)));
 	n = client_compose(ai);
 	*error = unknown_host;
 	if (!n)
@@ -130,8 +133,8 @@ get_client_hostname(struct sockaddr_in *caller, struct addrinfo *ai,
 
 /* return static nfs_export with details filled in */
 static nfs_export *
-auth_authenticate_newcache(struct sockaddr_in *caller,
-			   char *path, struct addrinfo *ai,
+auth_authenticate_newcache(const struct sockaddr *caller,
+			   const char *path, struct addrinfo *ai,
 			   enum auth_error *error)
 {
 	nfs_export *exp;
@@ -144,7 +147,7 @@ auth_authenticate_newcache(struct sockaddr_in *caller,
 		return NULL;
 
 	my_client.m_naddr = 1;
-	set_addrlist_in(&my_client, 0, caller);
+	set_addrlist(&my_client, 0, caller);
 	my_exp.m_client = &my_client;
 
 	exp = NULL;
@@ -168,9 +171,8 @@ auth_authenticate_newcache(struct sockaddr_in *caller,
 }
 
 static nfs_export *
-auth_authenticate_internal(struct sockaddr_in *caller,
-			   char *path, struct addrinfo *ai,
-			   enum auth_error *error)
+auth_authenticate_internal(const struct sockaddr *caller, const char *path,
+		struct addrinfo *ai, enum auth_error *error)
 {
 	nfs_export *exp;
 
@@ -190,7 +192,7 @@ auth_authenticate_internal(struct sockaddr_in *caller,
 		return NULL;
 	}
 	if (!(exp->m_export.e_flags & NFSEXP_INSECURE_PORT) &&
-		     ntohs(caller->sin_port) >= IPPORT_RESERVED) {
+		     nfs_get_port(caller) >= IPPORT_RESERVED) {
 		*error = illegal_port;
 		return NULL;
 	}
@@ -200,18 +202,19 @@ auth_authenticate_internal(struct sockaddr_in *caller,
 }
 
 nfs_export *
-auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
+auth_authenticate(const char *what, const struct sockaddr *caller,
+		const char *path)
 {
 	nfs_export	*exp = NULL;
 	char		epath[MAXPATHLEN+1];
 	char		*p = NULL;
+	char		buf[INET6_ADDRSTRLEN];
 	struct addrinfo *ai = NULL;
-	struct in_addr	addr = caller->sin_addr;
 	enum auth_error	error = bad_path;
 
-	if (path [0] != '/') {
-		xlog(L_WARNING, "bad path in %s request from %s: \"%s\"",
-		     what, inet_ntoa(addr), path);
+	if (path[0] != '/') {
+		xlog(L_WARNING, "Bad path in %s request from %s: \"%s\"",
+			     what, host_ntop(caller, buf, sizeof(buf)), path);
 		return exp;
 	}
 
@@ -219,14 +222,13 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	epath[sizeof (epath) - 1] = '\0';
 	auth_fixpath(epath); /* strip duplicate '/' etc */
 
-	ai = client_resolve((struct sockaddr *)caller);
+	ai = client_resolve(caller);
 	if (ai == NULL)
 		return exp;
 
 	/* Try the longest matching exported pathname. */
 	while (1) {
-		exp = auth_authenticate_internal(caller, epath,
-						 ai, &error);
+		exp = auth_authenticate_internal(caller, epath, ai, &error);
 		if (exp || (error != not_exported && error != no_entry))
 			break;
 		/* We have to treat the root, "/", specially. */
@@ -239,12 +241,12 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 	switch (error) {
 	case bad_path:
 		xlog(L_WARNING, "bad path in %s request from %s: \"%s\"",
-		     what, inet_ntoa(addr), path);
+		     what, host_ntop(caller, buf, sizeof(buf)), path);
 		break;
 
 	case unknown_host:
 		xlog(L_WARNING, "refused %s request from %s for %s (%s): unmatched host",
-		     what, inet_ntoa(addr), path, epath);
+		     what, host_ntop(caller, buf, sizeof(buf)), path, epath);
 		break;
 
 	case no_entry:
@@ -258,17 +260,17 @@ auth_authenticate(char *what, struct sockaddr_in *caller, char *path)
 		break;
 
 	case illegal_port:
-		xlog(L_WARNING, "refused %s request from %s for %s (%s): illegal port %d",
-		     what, ai->ai_canonname, path, epath, ntohs(caller->sin_port));
+		xlog(L_WARNING, "refused %s request from %s for %s (%s): illegal port %u",
+		     what, ai->ai_canonname, path, epath, nfs_get_port(caller));
 		break;
 
 	case success:
-		xlog(L_NOTICE, "authenticated %s request from %s:%d for %s (%s)",
-		     what, ai->ai_canonname, ntohs(caller->sin_port), path, epath);
+		xlog(L_NOTICE, "authenticated %s request from %s:%u for %s (%s)",
+		     what, ai->ai_canonname, nfs_get_port(caller), path, epath);
 		break;
 	default:
-		xlog(L_NOTICE, "%s request from %s:%d for %s (%s) gave %d",
-		     what, ai->ai_canonname, ntohs(caller->sin_port),
+		xlog(L_NOTICE, "%s request from %s:%u for %s (%s) gave %d",
+		     what, ai->ai_canonname, nfs_get_port(caller),
 			path, epath, error);
 	}
 
