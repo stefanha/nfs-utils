@@ -37,6 +37,11 @@
 #include "blkid/blkid.h"
 #endif
 
+/*
+ * Invoked by RPC service loop
+ */
+void	cache_set_fds(fd_set *fdset);
+int	cache_process_req(fd_set *readfds);
 
 enum nfsd_fsid {
 	FSID_DEV = 0,
@@ -57,14 +62,14 @@ enum nfsd_fsid {
  * Record is terminated with newline.
  *
  */
-int cache_export_ent(char *domain, struct exportent *exp, char *p);
+static int cache_export_ent(char *domain, struct exportent *exp, char *p);
 
 
 char *lbuf  = NULL;
 int lbuflen = 0;
 extern int use_ipaddr;
 
-void auth_unix_ip(FILE *f)
+static void auth_unix_ip(FILE *f)
 {
 	/* requests are
 	 *  class IP-ADDR
@@ -120,7 +125,7 @@ void auth_unix_ip(FILE *f)
 	free(client);
 }
 
-void auth_unix_gid(FILE *f)
+static void auth_unix_gid(FILE *f)
 {
 	/* Request are
 	 *  uid
@@ -214,7 +219,7 @@ static const char *get_uuid_blkdev(char *path)
 #define get_uuid_blkdev(path) (NULL)
 #endif
 
-int get_uuid(const char *val, int uuidlen, char *u)
+static int get_uuid(const char *val, int uuidlen, char *u)
 {
 	/* extract hex digits from uuidstr and compose a uuid
 	 * of the given length (max 16), xoring bytes to make
@@ -244,7 +249,7 @@ int get_uuid(const char *val, int uuidlen, char *u)
 	return 1;
 }
 
-int uuid_by_path(char *path, int type, int uuidlen, char *uuid)
+static int uuid_by_path(char *path, int type, int uuidlen, char *uuid)
 {
 	/* get a uuid for the filesystem found at 'path'.
 	 * There are several possible ways of generating the
@@ -323,7 +328,7 @@ static char *next_mnt(void **v, char *p)
 	return me->mnt_dir;
 }
 
-void nfsd_fh(FILE *f)
+static void nfsd_fh(FILE *f)
 {
 	/* request are:
 	 *  domain fsidtype fsid
@@ -742,7 +747,7 @@ lookup_export(char *dom, char *path, struct addrinfo *ai)
 	return found;
 }
 
-void nfsd_export(FILE *f)
+static void nfsd_export(FILE *f)
 {
 	/* requests are:
 	 *  domain path
@@ -817,6 +822,11 @@ struct {
 };
 
 extern int manage_gids;
+
+/**
+ * cache_open - prepare communications channels with kernel RPC caches
+ *
+ */
 void cache_open(void) 
 {
 	int i;
@@ -829,6 +839,10 @@ void cache_open(void)
 	}
 }
 
+/**
+ * cache_set_fds - prepare cache file descriptors for one iteration of the service loop
+ * @fdset: pointer to fd_set to prepare
+ */
 void cache_set_fds(fd_set *fdset)
 {
 	int i;
@@ -838,6 +852,10 @@ void cache_set_fds(fd_set *fdset)
 	}
 }
 
+/**
+ * cache_process_req - process any active cache file descriptors during service loop iteration
+ * @fdset: pointer to fd_set to examine for activity
+ */
 int cache_process_req(fd_set *readfds) 
 {
 	int i;
@@ -860,7 +878,7 @@ int cache_process_req(fd_set *readfds)
  * % echo $domain $path $[now+30*60] $options $anonuid $anongid $fsid > /proc/net/rpc/nfsd.export/channel
  */
 
-int cache_export_ent(char *domain, struct exportent *exp, char *path)
+static int cache_export_ent(char *domain, struct exportent *exp, char *path)
 {
 	int err;
 	FILE *f = fopen("/proc/net/rpc/nfsd.export/channel", "w");
@@ -918,6 +936,11 @@ int cache_export_ent(char *domain, struct exportent *exp, char *path)
 	return err;
 }
 
+/**
+ * cache_export - Inform kernel of a new nfs_export
+ * @exp: target nfs_export
+ * @path: NUL-terminated C string containing export path
+ */
 int cache_export(nfs_export *exp, char *path)
 {
 	char buf[INET_ADDRSTRLEN];
@@ -943,7 +966,14 @@ int cache_export(nfs_export *exp, char *path)
 	return err;
 }
 
-/* Get a filehandle.
+/**
+ * cache_get_filehandle - given an nfs_export, get its root filehandle
+ * @exp: target nfs_export
+ * @len: length of requested file handle
+ * @p: NUL-terminated C string containing export path
+ *
+ * Returns pointer to NFS file handle of root directory of export
+ *
  * { 
  *   echo $domain $path $length 
  *   read filehandle <&0
@@ -977,4 +1007,3 @@ cache_get_filehandle(nfs_export *exp, int len, char *p)
 	fh.fh_size = qword_get(&bp, (char *)fh.fh_handle, NFS3_FHSIZE);
 	return &fh;
 }
-

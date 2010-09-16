@@ -51,5 +51,9 @@ void		mountlist_del(char *host, const char *path);
 void		mountlist_del_all(const struct sockaddr *sap);
 mountlist	mountlist_list(void);
 
+void		cache_open(void);
+struct nfs_fh_len *
+		cache_get_filehandle(nfs_export *exp, int len, char *p);
+int		cache_export(nfs_export *exp, char *path);
 
 #endif /* MOUNTD_H */

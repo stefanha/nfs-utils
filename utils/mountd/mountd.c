@@ -28,10 +28,6 @@
 #include "rpcmisc.h"
 #include "pseudoflavors.h"
 
-extern void	cache_open(void);
-extern struct nfs_fh_len *cache_get_filehandle(nfs_export *exp, int len, char *p);
-extern int cache_export(nfs_export *exp, char *path);
-
 extern void my_svc_run(void);
 
 static void		usage(const char *, int exitcode);
