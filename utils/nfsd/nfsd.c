@@ -246,6 +246,9 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	/* make sure nfsdfs is mounted if it's available */
+	nfssvc_mount_nfsdfs(progname);
+
 	/* can only change number of threads if nfsd is already up */
 	if (nfssvc_inuse()) {
 		socket_up = 1;
