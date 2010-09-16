@@ -34,16 +34,6 @@
 #define AI_ADDRCONFIG	0
 #endif
 
-#ifdef HAVE_GETNAMEINFO
-static socklen_t
-sockaddr_size(const struct sockaddr *sap)
-{
-	if (sap->sa_family != AF_INET)
-		return 0;
-	return (socklen_t)sizeof(struct sockaddr_in);
-}
-#endif	/* HAVE_GETNAMEINFO */
-
 /**
  * host_ntop - generate presentation address given a sockaddr
  * @sap: pointer to socket address
@@ -56,7 +46,7 @@ sockaddr_size(const struct sockaddr *sap)
 char *
 host_ntop(const struct sockaddr *sap, char *buf, const size_t buflen)
 {
-	socklen_t salen = sockaddr_size(sap);
+	socklen_t salen = nfs_sockaddr_length(sap);
 	int error;
 
 	memset(buf, 0, buflen);
@@ -117,7 +107,7 @@ host_pton(const char *paddr)
 		.ai_family	= AF_UNSPEC,
 	};
 	struct sockaddr_in sin;
-	int error;
+	int error, inet4;
 
 	/*
 	 * Although getaddrinfo(3) is easier to use and supports
@@ -129,12 +119,17 @@ host_pton(const char *paddr)
 	 * have a real AF_INET presentation address, before invoking
 	 * getaddrinfo(3) to generate the full addrinfo list.
 	 */
+	inet4 = 1;
 	if (inet_pton(AF_INET, paddr, &sin.sin_addr) == 0)
-		return NULL;
+		inet4 = 0;
 
 	error = getaddrinfo(paddr, NULL, &hint, &ai);
 	switch (error) {
 	case 0:
+		if (!inet4 && ai->ai_addr->sa_family == AF_INET) {
+			freeaddrinfo(ai);
+			break;
+		}
 		return ai;
 	case EAI_NONAME:
 		if (paddr == NULL)
@@ -168,7 +163,11 @@ host_addrinfo(const char *hostname)
 {
 	struct addrinfo *ai = NULL;
 	struct addrinfo hint = {
+#ifdef IPV6_SUPPORTED
+		.ai_family	= AF_UNSPEC,
+#else
 		.ai_family	= AF_INET,
+#endif
 		/* don't return duplicates */
 		.ai_protocol	= (int)IPPROTO_UDP,
 		.ai_flags	= AI_ADDRCONFIG | AI_CANONNAME,
@@ -208,7 +207,7 @@ __attribute_malloc__
 char *
 host_canonname(const struct sockaddr *sap)
 {
-	socklen_t salen = sockaddr_size(sap);
+	socklen_t salen = nfs_sockaddr_length(sap);
 	char buf[NI_MAXHOST];
 	int error;
 
@@ -298,8 +297,8 @@ __attribute_malloc__
 struct addrinfo *
 host_numeric_addrinfo(const struct sockaddr *sap)
 {
-	socklen_t salen = sockaddr_size(sap);
-	char buf[INET_ADDRSTRLEN];
+	socklen_t salen = nfs_sockaddr_length(sap);
+	char buf[INET6_ADDRSTRLEN];
 	struct addrinfo *ai;
 	int error;
 
