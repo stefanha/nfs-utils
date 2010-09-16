@@ -48,7 +48,7 @@ void		auth_export(nfs_export *exp);
 
 void		mountlist_add(char *host, const char *path);
 void		mountlist_del(char *host, const char *path);
-void		mountlist_del_all(struct sockaddr_in *sin);
+void		mountlist_del_all(const struct sockaddr *sap);
 mountlist	mountlist_list(void);
 
 

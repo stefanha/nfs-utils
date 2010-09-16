@@ -131,21 +131,20 @@ mountlist_del(char *hname, const char *path)
 }
 
 void
-mountlist_del_all(struct sockaddr_in *sin)
+mountlist_del_all(const struct sockaddr *sap)
 {
 	char		*hostname;
 	struct rmtabent	*rep;
-	nfs_export	*exp;
 	FILE		*fp;
 	int		lockid;
 
 	if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
 		return;
-	hostname = host_canonname((struct sockaddr *)sin);
+	hostname = host_canonname(sap);
 	if (hostname == NULL) {
-		char buf[INET_ADDRSTRLEN];
+		char buf[INET6_ADDRSTRLEN];
 		xlog(L_ERROR, "can't get hostname of %s",
-			host_ntop((struct sockaddr *)sin, buf, sizeof(buf)));
+			host_ntop(sap, buf, sizeof(buf)));
 		goto out_unlock;
 	}
 
@@ -157,8 +156,7 @@ mountlist_del_all(struct sockaddr_in *sin)
 
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
 		if (strcmp(rep->r_client, hostname) == 0 &&
-		    (exp = auth_authenticate("umountall",
-				(struct sockaddr *)sin, rep->r_path)))
+		    auth_authenticate("umountall", sap, rep->r_path) != NULL)
 			continue;
 		fputrmtabent(fp, rep, NULL);
 	}

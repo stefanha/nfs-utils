@@ -275,7 +275,7 @@ mount_umntall_1_svc(struct svc_req *rqstp, void *UNUSED(argp),
 	/* Reload /etc/xtab if necessary */
 	auth_reload();
 
-	mountlist_del_all(nfs_getrpccaller_in(rqstp->rq_xprt));
+	mountlist_del_all(nfs_getrpccaller(rqstp->rq_xprt));
 	return 1;
 }
 
