@@ -888,7 +888,8 @@ main(int argc, char **argv)
 
 	my_svc_run();
 
-	xlog(L_ERROR, "Ack! Gack! svc_run returned!\n");
+	xlog(L_ERROR, "RPC service loop terminated unexpectedly. Exiting...\n");
+	unregister_services();
 	exit(1);
 }
 
