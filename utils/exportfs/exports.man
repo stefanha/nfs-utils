@@ -1,18 +1,22 @@
-.TH EXPORTS 5 "4 March 2005" "Linux" "Linux File Formats Manual"
+.\"@(#)exports.5"
+.\"
+.TH exports 5 "31 December 2009"
 .SH NAME
-exports \- NFS file systems being exported (for Kernel based NFS)
-.SH SYNOPSIS
-.B /etc/exports
+exports \- NFS server export table
 .SH DESCRIPTION
 The file
 .I /etc/exports
-serves as the access control list for file systems which may be
-exported to NFS clients.  It is used by
-.IR exportfs (8)
+contains a table of local physical file systems on an NFS server
+that are accessible to NFS clients.
+The contents of the file are maintained by the server's system
+administrator.
+.PP
+Each file system in this table has a list of options and an
+access control list.
+The table is used by
+.BR exportfs (8)
 to give information to
-.IR mountd (8)
-and to the kernel based NFS file server daemon
-.IR nfsd (8).
+.BR mountd (8).
 .PP
 The file format is similar to the SunOS
 .I exports
@@ -34,7 +38,9 @@ double quotes. You can also specify spaces or other unusual character in
 the export name using a backslash followed by the character code as three
 octal digits.
 .PP
-To apply changes to this file, run exportfs \-ra or restart the NFS server.
+To apply changes to this file, run
+.BR exportfs \-ra
+or restart the NFS server.
 .PP
 .SS Machine Name Formats
 NFS clients may be specified in a number of ways:
@@ -61,9 +67,10 @@ simultaneously. This is done by specifying an IP address and netmask pair
 as
 .IR address/netmask
 where the netmask can be specified in dotted-decimal format, or as a
-contiguous mask length (for example, either `/255.255.252.0' or `/22' appended
-to the network base address result in identical subnetworks with 10 bits of
-host). Wildcard characters generally do not work on IP addresses, though they
+contiguous mask length.
+For example, either `/255.255.252.0' or `/22' appended
+to the network base IPv4 address results in identical subnetworks with 10 bits of
+host. Wildcard characters generally do not work on IP addresses, though they
 may work by accident when reverse DNS lookups fail.
 '''.TP
 '''.B =public
@@ -106,7 +113,7 @@ preceding sec= option.  The only options that are permitted to vary in
 this way are ro, rw, no_root_squash, root_squash, and all_squash.
 .PP
 .SS General Options
-.IR exportfs
+.BR exportfs
 understands the following export options:
 .TP
 .IR secure "\*d
@@ -144,7 +151,8 @@ default.  In all releases after 1.0.0,
 is the default, and
 .I async
 must be explicitly requested if needed.
-To help make system administrators aware of this change, 'exportfs'
+To help make system administrators aware of this change,
+.B exportfs
 will issue a warning if neither
 .I sync
 nor
@@ -188,7 +196,7 @@ The
 option is currently only effective on
 .I "single host
 exports.  It does not work reliably with netgroup, subnet, or wildcard
-exports. 
+exports.
 
 This option can be very useful in some situations, but it should be
 used with due care, and only after confirming that the client system
@@ -246,7 +254,7 @@ If you genuinely require subtree checking, you should explicitly put
 that option in the
 .B exports
 file.  If you put neither option,
-.I exportfs
+.B exportfs
 will warn you that the change is pending.
 
 .TP
@@ -272,7 +280,9 @@ or
 .TP
 .IR no_acl
 On some specially patched kernels, and when exporting filesystems that
-support ACLs, this option tells nfsd not to reveal ACLs to clients, so
+support ACLs, this option tells
+.B nfsd
+not to reveal ACLs to clients, so
 they will see only a subset of actual permissions on the given file
 system.  This option is safe for filesystems used by NFSv2 clients and
 old NFSv3 clients that perform access decisions locally.  Current
@@ -381,7 +391,7 @@ of the filesystem must be handled elsewhere.)
 
 .SS User ID Mapping
 .PP
-.I nfsd
+.B nfsd
 bases its access control to files on the server machine on the uid and
 gid provided in each NFS RPC request. The normal behavior a user would
 expect is that she can access her files on the server just as she would
@@ -399,19 +409,19 @@ and can be turned off with
 .IR no_root_squash .
 .PP
 By default,
-'''.I nfsd
+'''.B nfsd
 '''tries to obtain the anonymous uid and gid by looking up user
 '''.I nobody
 '''in the password file at startup time. If it isn't found, a uid and gid
-.I exportfs
+.B exportfs
 chooses a uid and gid
 of 65534 for squashed access. These values can also be overridden by
 the
 .IR anonuid " and " anongid
 options.
 '''.PP
-'''In addition to this, 
-'''.I nfsd
+'''In addition to this,
+'''.B nfsd
 '''lets you specify arbitrary uids and gids that should be mapped to user
 '''nobody as well.
 Finally, you can map all user requests to the
@@ -424,7 +434,7 @@ Here's the complete list of mapping options:
 Map requests from uid/gid 0 to the anonymous uid/gid. Note that this does
 not apply to any other uids or gids that might be equally sensitive, such as
 user
-.IR bin 
+.IR bin
 or group
 .IR staff .
 .TP
@@ -434,7 +444,7 @@ Turn off root squashing. This option is mainly useful for diskless clients.
 .IR all_squash
 Map all uids and gids to the anonymous user. Useful for NFS-exported
 public FTP directories, news spool directories, etc. The opposite option
-is 
+is
 .IR no_all_squash ,
 which is the default setting.
 .TP
@@ -468,7 +478,7 @@ and netgroups (this is the entry `@trusted'). The fourth line shows the
 entry for the PC/NFS client discussed above. Line 5 exports the
 public FTP directory to every host in the world, executing all requests
 under the nobody account. The
-.I insecure 
+.I insecure
 option in this entry also allows clients with NFS implementations that
 don't use a reserved port for NFS.
 The sixth line exports a directory read-write to the machine 'server'
@@ -478,15 +488,15 @@ all three mounts with the `sync' option enabled.
 '''access to the private directory.
 '''.SH CAVEATS
 '''Unlike other NFS server implementations, this
-'''.I nfsd
+'''.B nfsd
 '''allows you to export both a directory and a subdirectory thereof to
-'''the same host, for instance 
+'''the same host, for instance
 '''.IR /usr " and " /usr/X11R6 .
 '''In this case, the mount options of the most specific entry apply. For
-'''instance, when a user on the client host accesses a file in 
+'''instance, when a user on the client host accesses a file in
 '''.IR /usr/X11R6 ,
-'''the mount options given in the 
-'''.I /usr/X11R6 
+'''the mount options given in the
+'''.I /usr/X11R6
 '''entry apply. This is also true when the latter is a wildcard or netgroup
 '''entry.
 .SH FILES
@@ -499,7 +509,15 @@ all three mounts with the `sync' option enabled.
 .BR showmount (8).
 '''.SH DIAGNOSTICS
 '''An error parsing the file is reported using syslogd(8) as level NOTICE from
-'''a DAEMON whenever nfsd(8) or mountd(8) is started up.  Any unknown
+'''a DAEMON whenever
+'''.BR nfsd (8)
+'''or
+'''.BR mountd (8)
+'''is started up.  Any unknown
 '''host is reported at that time, but often not all hosts are not yet known
-'''to named(8) at boot time, thus as hosts are found they are reported
-'''with the same syslogd(8) parameters.
+'''to
+'''.BR named (8)
+'''at boot time, thus as hosts are found they are reported
+'''with the same
+'''.BR syslogd (8)
+'''parameters.
