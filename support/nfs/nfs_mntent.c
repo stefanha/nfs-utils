@@ -1,7 +1,7 @@
 /* Private version of the libc *mntent() routines. */
 /* Note slightly different prototypes. */
 
-/* 1999-02-22 Arkadiusz Mi¶kiewicz <misiek@pld.ORG.PL>
+/* 1999-02-22 Arkadiusz Miskiewicz <misiek@pld.ORG.PL>
  * - added Native Language Support
  *
  * 2006-06-08 Amit Gud <agud@redhat.com>

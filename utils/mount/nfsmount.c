@@ -21,7 +21,7 @@
  * Wed Oct  1 23:55:28 1997: Dick Streefland <dick_streefland@tasking.com>
  * Implemented the "bg", "fg" and "retry" mount options for NFS.
  *
- * 1999-02-22 Arkadiusz Mi¶kiewicz <misiek@pld.ORG.PL>
+ * 1999-02-22 Arkadiusz Miskiewicz <misiek@pld.ORG.PL>
  * - added Native Language Support
  *
  * Modified by Olaf Kirch and Trond Myklebust for new NFS code,
