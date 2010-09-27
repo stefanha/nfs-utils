@@ -71,16 +71,34 @@ static struct option longopts[] =
 	{ NULL, 0, 0, 0 }
 };
 
-static int nfs_version = -1;
+#define NFSVERSBIT(vers)	(0x1 << (vers - 1))
+#define NFSVERSBIT_ALL		(NFSVERSBIT(2) | NFSVERSBIT(3) | NFSVERSBIT(4))
+
+static int nfs_version = NFSVERSBIT_ALL;
+
+static int version2(void)
+{
+	return nfs_version & NFSVERSBIT(2);
+}
+
+static int version3(void)
+{
+	return nfs_version & NFSVERSBIT(3);
+}
+
+static int version_any(void)
+{
+	return nfs_version & NFSVERSBIT_ALL;
+}
 
 static void
 unregister_services (void)
 {
-	if (nfs_version & (0x1 << 1)) {
+	if (version2()) {
 		pmap_unset (MOUNTPROG, MOUNTVERS);
 		pmap_unset (MOUNTPROG, MOUNTVERS_POSIX);
 	}
-	if (nfs_version & (0x1 << 2))
+	if (version3())
 		pmap_unset (MOUNTPROG, MOUNTVERS_NFSV3);
 }
 
@@ -673,6 +691,7 @@ main(int argc, char **argv)
 	int	port = 0;
 	int	descriptors = 0;
 	int	c;
+	int	vers;
 	struct sigaction sa;
 	struct rlimit rlim;
 
@@ -716,7 +735,13 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'N':
-			nfs_version &= ~(1 << (atoi (optarg) - 1));
+			vers = atoi(optarg);
+			if (vers < 2 || vers > 4) {
+				fprintf(stderr, "%s: bad version number: %s\n",
+					argv[0], optarg);
+				usage(argv[0], 1);
+			}
+			nfs_version &= ~NFSVERSBIT(vers);
 			break;
 		case 'n':
 			_rpcfdtype = SOCK_DGRAM;
@@ -735,7 +760,13 @@ main(int argc, char **argv)
 			num_threads = atoi (optarg);
 			break;
 		case 'V':
-			nfs_version |= 1 << (atoi (optarg) - 1);
+			vers = atoi(optarg);
+			if (vers < 2 || vers > 4) {
+				fprintf(stderr, "%s: bad version number: %s\n",
+					argv[0], optarg);
+				usage(argv[0], 1);
+			}
+			nfs_version |= NFSVERSBIT(vers);
 			break;
 		case 'v':
 			printf("kmountd %s\n", VERSION);
@@ -750,7 +781,7 @@ main(int argc, char **argv)
 	/* No more arguments allowed.
 	 * Require at least one valid version (2, 3, or 4)
 	 */
-	if (optind != argc || !(nfs_version & 0xE))
+	if (optind != argc || !version_any())
 		usage(argv [0], 1);
 
 	if (chdir(state_dir)) {
@@ -798,13 +829,13 @@ main(int argc, char **argv)
 	if (new_cache)
 		cache_open();
 
-	if (nfs_version & (0x1 << 1)) {
+	if (version2()) {
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS,
 			 mount_dispatch, port);
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS_POSIX,
 			 mount_dispatch, port);
 	}
-	if (nfs_version & (0x1 << 2))
+	if (version3())
 		rpc_init("mountd", MOUNTPROG, MOUNTVERS_NFSV3,
 			 mount_dispatch, port);
 
