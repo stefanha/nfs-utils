@@ -474,27 +474,27 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 	/* Now authenticate the intruder... */
 	exp = auth_authenticate("mount", sap, p);
 	if (exp == NULL) {
-		*error = NFSERR_ACCES;
+		*error = MNT3ERR_ACCES;
 		return NULL;
 	}
 	if (stat(p, &stb) < 0) {
 		xlog(L_WARNING, "can't stat exported dir %s: %s",
 				p, strerror(errno));
 		if (errno == ENOENT)
-			*error = NFSERR_NOENT;
+			*error = MNT3ERR_NOENT;
 		else
-			*error = NFSERR_ACCES;
+			*error = MNT3ERR_ACCES;
 		return NULL;
 	}
 	if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
 		xlog(L_WARNING, "%s is not a directory or regular file", p);
-		*error = NFSERR_NOTDIR;
+		*error = MNT3ERR_NOTDIR;
 		return NULL;
 	}
 	if (stat(exp->m_export.e_path, &estb) < 0) {
 		xlog(L_WARNING, "can't stat export point %s: %s",
 		     p, strerror(errno));
-		*error = NFSERR_NOENT;
+		*error = MNT3ERR_NOENT;
 		return NULL;
 	}
 	if (estb.st_dev != stb.st_dev
@@ -502,7 +502,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 			   || !(exp->m_export.e_flags & NFSEXP_CROSSMOUNT))) {
 		xlog(L_WARNING, "request to export directory %s below nearest filesystem %s",
 		     p, exp->m_export.e_path);
-		*error = NFSERR_ACCES;
+		*error = MNT3ERR_ACCES;
 		return NULL;
 	}
 	if (exp->m_export.e_mountpoint &&
@@ -511,7 +511,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 				  exp->m_export.e_path)) {
 		xlog(L_WARNING, "request to export an unmounted filesystem: %s",
 		     p);
-		*error = NFSERR_NOENT;
+		*error = MNT3ERR_NOENT;
 		return NULL;
 	}
 
@@ -522,12 +522,12 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 		 */
 
 		if (cache_export(exp, p)) {
-			*error = NFSERR_ACCES;
+			*error = MNT3ERR_ACCES;
 			return NULL;
 		}
 		fh = cache_get_filehandle(exp, v3?64:32, p);
 		if (fh == NULL) {
-			*error = NFSERR_ACCES;
+			*error = MNT3ERR_ACCES;
 			return NULL;
 		}
 	} else {
@@ -557,11 +557,11 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 
 		if (fh == NULL) {
 			xlog(L_WARNING, "getfh failed: %s", strerror(errno));
-			*error = NFSERR_ACCES;
+			*error = MNT3ERR_ACCES;
 			return NULL;
 		}
 	}
-	*error = NFS_OK;
+	*error = MNT_OK;
 	mountlist_add(host_ntop(sap, buf, sizeof(buf)), p);
 	if (expret)
 		*expret = exp;
