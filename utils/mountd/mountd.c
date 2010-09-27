@@ -86,6 +86,11 @@ static int version3(void)
 	return nfs_version & NFSVERSBIT(3);
 }
 
+static int version23(void)
+{
+	return nfs_version & (NFSVERSBIT(2) | NFSVERSBIT(3));
+}
+
 static int version_any(void)
 {
 	return nfs_version & NFSVERSBIT_ALL;
@@ -95,11 +100,11 @@ static void
 unregister_services (void)
 {
 	if (version2()) {
-		pmap_unset (MOUNTPROG, MOUNTVERS);
-		pmap_unset (MOUNTPROG, MOUNTVERS_POSIX);
+		nfs_svc_unregister(MOUNTPROG, MOUNTVERS);
+		nfs_svc_unregister(MOUNTPROG, MOUNTVERS_POSIX);
 	}
 	if (version3())
-		pmap_unset (MOUNTPROG, MOUNTVERS_NFSV3);
+		nfs_svc_unregister(MOUNTPROG, MOUNTVERS_NFSV3);
 }
 
 static void
@@ -687,6 +692,7 @@ main(int argc, char **argv)
 {
 	char	*export_file = _PATH_EXPORTS;
 	char    *state_dir = NFS_STATEDIR;
+	unsigned int listeners = 0;
 	int	foreground = 0;
 	int	port = 0;
 	int	descriptors = 0;
@@ -830,14 +836,16 @@ main(int argc, char **argv)
 		cache_open();
 
 	if (version2()) {
-		rpc_init("mountd", MOUNTPROG, MOUNTVERS,
-			 mount_dispatch, port);
-		rpc_init("mountd", MOUNTPROG, MOUNTVERS_POSIX,
-			 mount_dispatch, port);
+		listeners += nfs_svc_create("mountd", MOUNTPROG,
+					MOUNTVERS, mount_dispatch, port);
+		listeners += nfs_svc_create("mountd", MOUNTPROG,
+					MOUNTVERS_POSIX, mount_dispatch, port);
 	}
 	if (version3())
-		rpc_init("mountd", MOUNTPROG, MOUNTVERS_NFSV3,
-			 mount_dispatch, port);
+		listeners += nfs_svc_create("mountd", MOUNTPROG,
+					MOUNTVERS_NFSV3, mount_dispatch, port);
+	if (version23() && listeners == 0)
+		xlog(L_FATAL, "mountd: could not create listeners\n");
 
 	sa.sa_handler = killer;
 	sigaction(SIGINT, &sa, NULL);
