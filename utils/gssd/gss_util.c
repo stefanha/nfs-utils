@@ -191,7 +191,7 @@ pgsserr(char *msg, u_int32_t maj_stat, u_int32_t min_stat, const gss_OID mech)
 }
 
 int
-gssd_acquire_cred(char *server_name)
+gssd_acquire_cred(char *server_name, const gss_OID oid)
 {
 	gss_buffer_desc name;
 	gss_name_t target_name;
@@ -203,7 +203,7 @@ gssd_acquire_cred(char *server_name)
 	name.length = strlen(server_name);
 
 	maj_stat = gss_import_name(&min_stat, &name,
-			(const gss_OID) GSS_C_NT_HOSTBASED_SERVICE,
+			oid,
 			&target_name);
 
 	if (maj_stat != GSS_S_COMPLETE) {

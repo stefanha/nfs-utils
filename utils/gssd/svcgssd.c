@@ -167,7 +167,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-n] [-f] [-v] [-r] [-i]\n",
+	fprintf(stderr, "usage: %s [-n] [-f] [-v] [-r] [-i] [-p principal]\n",
 		progname);
 	exit(1);
 }
@@ -180,9 +180,10 @@ main(int argc, char *argv[])
 	int verbosity = 0;
 	int rpc_verbosity = 0;
 	int idmap_verbosity = 0;
-	int opt;
+	int opt, status;
 	extern char *optarg;
 	char *progname;
+	char *principal = NULL;
 
 	while ((opt = getopt(argc, argv, "fivrnp:")) != -1) {
 		switch (opt) {
@@ -200,6 +201,9 @@ main(int argc, char *argv[])
 				break;
 			case 'r':
 				rpc_verbosity++;
+				break;
+			case 'p':
+				principal = optarg;
 				break;
 			default:
 				usage(argv[0]);
@@ -244,12 +248,20 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sig_die);
 	signal(SIGHUP, sig_hup);
 
-	if (get_creds && !gssd_acquire_cred(GSSD_SERVICE_NAME)) {
-                printerr(0, "unable to obtain root (machine) credentials\n");
-                printerr(0, "do you have a keytab entry for "
-			    "nfs/<your.host>@<YOUR.REALM> in "
-			    "/etc/krb5.keytab?\n");
-		exit(1);
+	if (get_creds) {
+		if (principal)
+			status = gssd_acquire_cred(principal, 
+				((const gss_OID)GSS_C_NT_USER_NAME));
+		else
+			status = gssd_acquire_cred(GSSD_SERVICE_NAME, 
+				(const gss_OID)GSS_C_NT_HOSTBASED_SERVICE);
+		if (status == FALSE) {
+			printerr(0, "unable to obtain root (machine) credentials\n");
+			printerr(0, "do you have a keytab entry for "
+				"nfs/<your.host>@<YOUR.REALM> in "
+				"/etc/krb5.keytab?\n");
+			exit(1);
+		}
 	}
 
 	if (!fg)
