@@ -601,8 +601,7 @@ client are listed.
         while count != 0:
             print_iostat_summary(old_mountstats, mountstats, devices, sample_time, options)
             old_mountstats = mountstats
-			if count != 1:
-            	time.sleep(interval)
+            time.sleep(interval)
             sample_time = interval
             mountstats = parse_stats_file('/proc/self/mountstats')
             # automount mountpoints add and drop, if automount is involved
