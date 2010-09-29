@@ -717,6 +717,50 @@ If this option is not specified, the NFS client uses READDIRPLUS requests
 on NFS version 3 mounts to read small directories.
 Some applications perform better if the client uses only READDIR requests
 for all directories.
+.TP 1.5i
+.BR local_lock= mechanism
+Specifies whether to use local locking for any or both of the flock and the
+POSIX locking mechanisms.
+.I mechanism
+can be one of
+.BR all ,
+.BR flock ,
+.BR posix ,
+or
+.BR none .
+This option is supported in kernels 2.6.37 and later.
+.IP
+The Linux NFS client provides a way to make locks local. This means, the
+applications can lock files, but such locks provide exclusion only against
+other applications running on the same client. Remote applications are not
+affected by these locks.
+.IP
+If this option is not specified, or if
+.B none
+is specified, the client assumes that the locks are not local.
+.IP
+If
+.BR all
+is specified, the client assumes that both flock and POSIX locks are local.
+.IP
+If
+.BR flock
+is specified, the client assumes that only flock locks are local and uses
+NLM sideband protocol to lock files when POSIX locks are used.
+.IP
+If
+.BR posix
+is specified, the client assumes that POSIX locks are local and uses NLM
+sideband protocol to lock files when flock locks are used.
+.IP
+To support legacy flock behavior similar to that of NFS clients < 2.6.12, use
+'local_lock=flock'. This option is required when exporting NFS mounts via
+Samba as Samba maps Windows share mode locks as flock. Since NFS clients >
+2.6.12 implement flock by emulating POSIX locks, this will result in
+conflicting locks.
+.IP
+NOTE: When used together, the 'local_lock' mount option will be overridden
+by 'nolock'/'lock' mount option.
 .SS "Options for version 4 only"
 Use these options, along with the options in the first subsection above,
 for NFSv4 only. They will be ignored with older versions.
