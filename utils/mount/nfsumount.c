@@ -31,6 +31,7 @@
 #include "nls.h"
 
 #include "mount_constants.h"
+#include "nfs_mount.h"
 #include "mount.h"
 #include "error.h"
 #include "network.h"
