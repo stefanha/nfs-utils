@@ -178,6 +178,7 @@ out_badprefix:
 static int
 init_netmask6(nfs_client *UNUSED(clp), const char *UNUSED(slash))
 {
+	return 0;
 }
 #endif	/* IPV6_SUPPORTED */
 
