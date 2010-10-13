@@ -28,25 +28,15 @@
 #include <unistd.h>
 #include <errno.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* HAVE_CONFIG_H */
-
 /*
  * ensure all of data on socket comes through. f==read || f==write
  */
-ssize_t
-atomicio(
-	ssize_t (*f) (int, void*, size_t),
-	int fd,
-	void *_s,
-	size_t n)
+ssize_t atomicio(ssize_t(*f) (int, void *, size_t), int fd, void *_s, size_t n)
 {
 	char *s = _s;
-	ssize_t res;
-	size_t pos = 0;
+	ssize_t res, pos = 0;
 
-	while (n > pos) {
+	while ((ssize_t)n > pos) {
 		res = (f) (fd, s + pos, n - pos);
 		switch (res) {
 		case -1:
@@ -54,11 +44,11 @@ atomicio(
 				continue;
 		case 0:
 			if (pos != 0)
-				return (pos);
-			return (res);
+				return pos;
+			return res;
 		default:
 			pos += res;
 		}
 	}
-	return (pos);
+	return pos;
 }
