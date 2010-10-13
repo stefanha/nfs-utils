@@ -364,19 +364,22 @@ lock_mtab (void) {
 	/* Repeat until it was us who made the link */
 	while (!we_created_lockfile) {
 		struct flock flock;
-		int errsv, j;
+		int j;
 
 		j = link(linktargetfile, MOUNTED_LOCK);
-		errsv = errno;
 
-		if (j == 0)
-			we_created_lockfile = 1;
+		{
+			int errsv = errno;
 
-		if (j < 0 && errsv != EEXIST) {
-			(void) unlink(linktargetfile);
-			die (EX_FILEIO, _("can't link lock file %s: %s "
-			     "(use -n flag to override)"),
-			     MOUNTED_LOCK, strerror (errsv));
+			if (j == 0)
+				we_created_lockfile = 1;
+
+			if (j < 0 && errsv != EEXIST) {
+				(void) unlink(linktargetfile);
+				die (EX_FILEIO, _("can't link lock file %s: %s "
+				     "(use -n flag to override)"),
+				     MOUNTED_LOCK, strerror (errsv));
+			}
 		}
 
 		lockfile_fd = open (MOUNTED_LOCK, O_WRONLY);
@@ -414,7 +417,7 @@ lock_mtab (void) {
 			}
 			(void) unlink(linktargetfile);
 		} else {
-			static int tries = 0;
+			static int retries = 0;
 
 			/* Someone else made the link. Wait. */
 			alarm(LOCK_TIMEOUT);
@@ -428,10 +431,10 @@ lock_mtab (void) {
 			alarm(0);
 			/* Limit the number of iterations - maybe there
 			   still is some old /etc/mtab~ */
-			++tries;
-			if (tries % 200 == 0)
+			++retries;
+			if (retries % 200 == 0)
 			   usleep(30);
-			if (tries > 100000) {
+			if (retries > 100000) {
 				(void) unlink(linktargetfile);
 				close(lockfile_fd);
 				die (EX_FILEIO, _("Cannot create link %s\n"
