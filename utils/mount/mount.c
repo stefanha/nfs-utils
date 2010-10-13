@@ -337,7 +337,7 @@ static void mount_usage(void)
 	printf(_("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n"));
 }
 
-static void parse_opt(const char *opt, int *mask, char *extra_opts, int len)
+static void parse_opt(const char *opt, int *mask, char *extra_opts, size_t len)
 {
 	const struct opt_map *om;
 
@@ -371,7 +371,7 @@ static void parse_opts(const char *options, int *flags, char **extra_opts)
 	if (options != NULL) {
 		char *opts = xstrdup(options);
 		char *opt, *p;
-		int len = strlen(opts) + 1;	/* include room for a null */
+		size_t len = strlen(opts) + 1;	/* include room for a null */
 		int open_quote = 0;
 
 		*extra_opts = xmalloc(len);
