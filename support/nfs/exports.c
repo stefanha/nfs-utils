@@ -332,6 +332,8 @@ dupexportent(struct exportent *dst, struct exportent *src)
 		dst->e_mountpoint = strdup(src->e_mountpoint);
 	if (src->e_fslocdata)
 		dst->e_fslocdata = strdup(src->e_fslocdata);
+	if (src->e_uuid)
+		dst->e_uuid = strdup(src->e_uuid);
 	dst->e_hostname = NULL;
 }
 

@@ -38,6 +38,7 @@ export_free(nfs_export *exp)
 	xfree(exp->m_export.e_sqgids);
 	free(exp->m_export.e_mountpoint);
 	free(exp->m_export.e_fslocdata);
+	free(exp->m_export.e_uuid);
 
 	xfree(exp->m_export.e_hostname);
 	xfree(exp);
