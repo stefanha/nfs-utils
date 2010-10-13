@@ -110,7 +110,7 @@ static int del_mtab(const char *spec, const char *node)
 			res = try_remount(spec, node);
 			if (res)
 				goto writemtab;
-			return 0;
+			return EX_SUCCESS;
 		} else
 			umnt_err = errno;
 	}
@@ -128,7 +128,7 @@ static int del_mtab(const char *spec, const char *node)
 	}
 
 	if (res >= 0)
-		return 0;
+		return EX_SUCCESS;
 
 	if (umnt_err)
 		umount_error(umnt_err, node);
@@ -363,7 +363,7 @@ int nfsumount(int argc, char *argv[])
 		}
 	}
 
-	ret = 0;
+	ret = EX_SUCCESS;
 	if (mc) {
 		if (!lazy && strcmp(mc->m.mnt_type, "nfs4") != 0)
 			/* We ignore the error from nfs_umount23.
@@ -372,7 +372,7 @@ int nfsumount(int argc, char *argv[])
 			 * could cause /sbin/mount to retry!
 			 */
 			nfs_umount23(mc->m.mnt_fsname, mc->m.mnt_opts);
-		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir) ?: ret;
+		ret = del_mtab(mc->m.mnt_fsname, mc->m.mnt_dir);
 	} else if (*spec != '/') {
 		if (!lazy)
 			ret = nfs_umount23(spec, "tcp,v3");
