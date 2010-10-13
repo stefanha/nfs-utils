@@ -321,7 +321,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 	return result;
 }
 
-void mount_usage(void)
+static void mount_usage(void)
 {
 	printf(_("usage: %s remotetarget dir [-rvVwfnsih] [-o nfsoptions]\n"),
 		progname);
