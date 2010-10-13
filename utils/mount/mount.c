@@ -209,7 +209,7 @@ static char *fix_opts_string(int flags, const char *extra_opts)
 	}
 	if (flags & MS_USERS)
 		new_opts = xstrconcat3(new_opts, ",users", "");
-	
+
 	for (om = opt_map; om->opt != NULL; om++) {
 		if (om->skip)
 			continue;
@@ -281,7 +281,7 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 	ment.mnt_fsname = spec;
 	ment.mnt_dir = mount_point;
 	ment.mnt_type = fstype;
-	ment.mnt_opts = fix_opts_string(flags, opts);
+	ment.mnt_opts = fix_opts_string(flags & ~MS_NOMTAB, opts);
 	ment.mnt_freq = freq;
 	ment.mnt_passno = pass;
 

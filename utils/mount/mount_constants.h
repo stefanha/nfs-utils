@@ -64,4 +64,8 @@ if we have a stack or plain mount - mount atop of it, forming a stack. */
 #define MS_MGC_MSK 0xffff0000	/* magic flag number mask */
 #endif
 
+/* Generic options that are prevented from appearing
+ * in the options field in /etc/mtab. */
+#define MS_NOMTAB	(MS_REMOUNT)
+
 #endif	/* _NFS_UTILS_MOUNT_CONSTANTS_H */
