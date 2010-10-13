@@ -59,6 +59,8 @@
 #define CONNECT_TIMEOUT	(20)
 #define MOUNT_TIMEOUT	(30)
 
+#define SAFE_SOCKADDR(x)	(struct sockaddr *)(char *)(x)
+
 extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
@@ -428,12 +430,12 @@ static int get_socket(struct sockaddr_in *saddr, unsigned int p_prot,
 		if (bindresvport(so, &laddr) < 0)
 			goto err_bindresvport;
 	} else {
-		cc = bind(so, (struct sockaddr *)&laddr, namelen);
+		cc = bind(so, SAFE_SOCKADDR(&laddr), namelen);
 		if (cc < 0)
 			goto err_bind;
 	}
 	if (type == SOCK_STREAM || (conn && type == SOCK_DGRAM)) {
-		cc = connect_to(so, (struct sockaddr *)saddr, namelen,
+		cc = connect_to(so, SAFE_SOCKADDR(saddr), namelen,
 				timeout);
 		if (cc < 0)
 			goto err_connect;
@@ -756,11 +758,12 @@ int nfs_probe_bothports(const struct sockaddr *mnt_saddr,
  */
 int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 {
-	return nfs_probe_bothports((struct sockaddr *)&mnt_server->saddr,
-					sizeof(mnt_server->saddr),
+	struct sockaddr *mnt_addr = SAFE_SOCKADDR(&mnt_server->saddr);
+	struct sockaddr *nfs_addr = SAFE_SOCKADDR(&nfs_server->saddr);
+
+	return nfs_probe_bothports(mnt_addr, sizeof(mnt_server->saddr),
 					&mnt_server->pmap,
-					(struct sockaddr *)&nfs_server->saddr,
-					sizeof(nfs_server->saddr),
+					nfs_addr, sizeof(nfs_server->saddr),
 					&nfs_server->pmap);
 }
 
@@ -772,7 +775,7 @@ static int nfs_probe_statd(void)
 	};
 	rpcprog_t program = nfs_getrpcbyname(NSMPROG, nfs_ns_pgmtbl);
 
-	return nfs_getport_ping((struct sockaddr *)&addr, sizeof(addr),
+	return nfs_getport_ping(SAFE_SOCKADDR(&addr), sizeof(addr),
 				program, (rpcvers_t)1, IPPROTO_UDP);
 }
 
@@ -901,7 +904,7 @@ int nfs_advise_umount(const struct sockaddr *sap, const socklen_t salen,
  */
 int nfs_call_umount(clnt_addr_t *mnt_server, dirpath *argp)
 {
-	struct sockaddr *sap = (struct sockaddr *)&mnt_server->saddr;
+	struct sockaddr *sap = SAFE_SOCKADDR(&mnt_server->saddr);
 	socklen_t salen = sizeof(mnt_server->saddr);
 	struct pmap *pmap = &mnt_server->pmap;
 	CLIENT *clnt;
@@ -1011,11 +1014,11 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 		struct sockaddr_in *caddr)
 {
 	CLIENT *clnt = NULL;
-	int sock, stat;
+	int sock, status;
 	static char clnt_res;
 	struct sockaddr dissolve;
 
-	rpc_createerr.cf_stat = stat = 0;
+	rpc_createerr.cf_stat = status = 0;
 	sock = get_socket(saddr, prot, CONNECT_TIMEOUT, FALSE, TRUE);
 	if (sock == RPC_ANYSOCK) {
 		if (rpc_createerr.cf_error.re_errno == ETIMEDOUT) {
@@ -1058,18 +1061,18 @@ int clnt_ping(struct sockaddr_in *saddr, const unsigned long prog,
 		return 0;
 	}
 	memset(&clnt_res, 0, sizeof(clnt_res));
-	stat = clnt_call(clnt, NULLPROC,
+	status = clnt_call(clnt, NULLPROC,
 			 (xdrproc_t)xdr_void, (caddr_t)NULL,
 			 (xdrproc_t)xdr_void, (caddr_t)&clnt_res,
 			 TIMEOUT);
-	if (stat) {
+	if (status) {
 		clnt_geterr(clnt, &rpc_createerr.cf_error);
-		rpc_createerr.cf_stat = stat;
+		rpc_createerr.cf_stat = status;
 	}
 	clnt_destroy(clnt);
 	close(sock);
 
-	if (stat == RPC_SUCCESS)
+	if (status == RPC_SUCCESS)
 		return 1;
 	else
 		return 0;
@@ -1103,13 +1106,13 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
 
 	switch (sap->sa_family) {
 	case AF_INET:
-		if (bind(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		if (bind(sock, SAFE_SOCKADDR(&sin), sizeof(sin)) < 0) {
 			close(sock);
 			return 0;
 		}
 		break;
 	case AF_INET6:
-		if (bind(sock, (struct sockaddr *)&sin6, sizeof(sin6)) < 0) {
+		if (bind(sock, SAFE_SOCKADDR(&sin6), sizeof(sin6)) < 0) {
 			close(sock);
 			return 0;
 		}
