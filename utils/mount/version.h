@@ -42,9 +42,9 @@ static inline unsigned int linux_version_code(void)
 	if (uname(&my_utsname))
 		return 0;
 
-	p = atoi(strtok(my_utsname.release, "."));
-	q = atoi(strtok(NULL, "."));
-	r = atoi(strtok(NULL, "."));
+	p = (unsigned int)atoi(strtok(my_utsname.release, "."));
+	q = (unsigned int)atoi(strtok(NULL, "."));
+	r = (unsigned int)atoi(strtok(NULL, "."));
 	return MAKE_VERSION(p, q, r);
 }
 
