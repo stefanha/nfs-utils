@@ -1521,7 +1521,11 @@ nfs_mount_protocol(struct mount_options *options, unsigned long *protocol)
 	 * set @protocol to zero.  The pmap protocol value will
 	 * be filled in later by an rpcbind query in this case.
 	 */
-	return nfs_nfs_protocol(options, protocol);
+	if (!nfs_nfs_protocol(options, protocol))
+		return 0;
+	if (*protocol == NFSPROTO_RDMA)
+		*protocol = IPPROTO_TCP;
+	return 1;
 }
 
 /*
