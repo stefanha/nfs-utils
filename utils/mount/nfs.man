@@ -619,7 +619,7 @@ in such cases.
 .BI nfsvers= n
 The NFS protocol version number used to contact the server's NFS service.
 If the server does not support the requested version, the mount request fails.
-If this option is not specified, the client negociate a suitable version with
+If this option is not specified, the client negotiates a suitable version with
 the server, trying version 4 first, version 3 second, and version 2 last.
 .TP 1.5i
 .BI vers= n
