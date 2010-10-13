@@ -508,7 +508,7 @@ po_found_t po_get_numeric(struct mount_options *options, char *keyword, long *va
 int po_rightmost(struct mount_options *options, const char *keys[])
 {
 	struct mount_option *option;
-	unsigned int i;
+	int i;
 
 	if (options) {
 		for (option = options->tail; option; option = option->prev) {
