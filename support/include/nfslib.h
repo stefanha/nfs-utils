@@ -163,6 +163,12 @@ void closeall(int min);
 int			svctcp_socket (u_long __number, int __reuse);
 int			svcudp_socket (u_long __number);
 
+/* Misc shared code prototypes */
+size_t  strlcat(char *, const char *, size_t);
+size_t  strlcpy(char *, const char *, size_t);
+ssize_t atomicio(ssize_t (*f) (int, void*, size_t),
+		 int, void *, size_t);
+
 
 #define UNUSED(x) UNUSED_ ## x __attribute__((unused))
 

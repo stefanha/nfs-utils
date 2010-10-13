@@ -158,10 +158,6 @@ static int nfsdopenone(struct idmap_client *);
 static void nfsdreopen_one(struct idmap_client *);
 static void nfsdreopen(void);
 
-size_t  strlcat(char *, const char *, size_t);
-size_t  strlcpy(char *, const char *, size_t);
-ssize_t atomicio(ssize_t (*f) (int, void*, size_t),
-		 int, void *, size_t);
 void    mydaemon(int, int);
 void    release_parent(void);
 
