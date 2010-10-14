@@ -99,12 +99,9 @@ static int version_any(void)
 static void
 unregister_services (void)
 {
-	if (version2()) {
-		nfs_svc_unregister(MOUNTPROG, MOUNTVERS);
-		nfs_svc_unregister(MOUNTPROG, MOUNTVERS_POSIX);
-	}
-	if (version3())
-		nfs_svc_unregister(MOUNTPROG, MOUNTVERS_NFSV3);
+	nfs_svc_unregister(MOUNTPROG, MOUNTVERS);
+	nfs_svc_unregister(MOUNTPROG, MOUNTVERS_POSIX);
+	nfs_svc_unregister(MOUNTPROG, MOUNTVERS_NFSV3);
 }
 
 static void
@@ -840,6 +837,7 @@ main(int argc, char **argv)
 	if (new_cache)
 		cache_open();
 
+	unregister_services();
 	if (version2()) {
 		listeners += nfs_svc_create("mountd", MOUNTPROG,
 					MOUNTVERS, mount_dispatch, port);
