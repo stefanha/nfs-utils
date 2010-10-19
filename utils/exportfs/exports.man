@@ -145,7 +145,9 @@ storage (see
 .IR async
 above).
 
-In releases of nfs-utils up to and including 1.0.0, this option was the
+In releases of nfs-utils up to and including 1.0.0, the
+.I async 
+option was the
 default.  In all releases after 1.0.0,
 .I sync
 is the default, and
