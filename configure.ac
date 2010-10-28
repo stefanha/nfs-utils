@@ -136,7 +136,7 @@ AC_ARG_ENABLE(tirpc,
 	[AC_HELP_STRING([--enable-tirpc],
 			[enable use of TI-RPC @<:@default=yes@:>@])],
 	enable_tirpc=$enableval,
-	enable_tirpc='yes')
+	enable_tirpc='')
 AC_ARG_ENABLE(ipv6,
 	[AC_HELP_STRING([--enable-ipv6],
                         [enable support for IPv6 @<:@default=no@:>@])],
