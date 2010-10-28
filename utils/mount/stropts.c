@@ -119,10 +119,12 @@ inline void nfs_default_version(struct nfsmount_info *mi) {}
  * Returns a time_t timeout timestamp, in seconds.
  */
 static time_t nfs_parse_retry_option(struct mount_options *options,
-				     unsigned int timeout_minutes)
+				     const time_t default_timeout)
 {
+	time_t timeout_minutes;
 	long tmp;
 
+	timeout_minutes = default_timeout;
 	switch (po_get_numeric(options, "retry", &tmp)) {
 	case PO_NOT_FOUND:
 		break;
@@ -131,6 +133,7 @@ static time_t nfs_parse_retry_option(struct mount_options *options,
 			timeout_minutes = tmp;
 			break;
 		}
+		/*FALLTHROUGH*/
 	case PO_BAD_VALUE:
 		if (verbose)
 			nfs_error(_("%s: invalid retry timeout was specified; "
@@ -138,7 +141,7 @@ static time_t nfs_parse_retry_option(struct mount_options *options,
 		break;
 	}
 
-	return time(NULL) + (time_t)(timeout_minutes * 60);
+	return time(NULL) + (timeout_minutes * 60);
 }
 
 /*
