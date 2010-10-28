@@ -568,16 +568,18 @@ static int nfs_sys_mount(struct nfsmount_info *mi, struct mount_options *opts)
 	char *options = NULL;
 	int result;
 
+	if (mi->fake)
+		return 1;
+
 	if (po_join(opts, &options) == PO_FAILED) {
 		errno = EIO;
 		return 0;
 	}
 
-	if (mi->fake)
-		return 1;
-
 	result = mount(mi->spec, mi->node, mi->type,
 			mi->flags & ~(MS_USER|MS_USERS), options);
+	free(options);
+
 	if (verbose && result) {
 		int save = errno;
 		nfs_error(_("%s: mount(2): %s"), progname, strerror(save));
