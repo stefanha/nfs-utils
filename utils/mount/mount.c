@@ -224,6 +224,20 @@ static char *fix_opts_string(int flags, const char *extra_opts)
 	return new_opts;
 }
 
+static void
+init_mntent(struct mntent *mnt, char *fsname, char *dir, char *type,
+		int flags, char *opts)
+{
+	mnt->mnt_fsname	= fsname;
+	mnt->mnt_dir	= dir;
+	mnt->mnt_type	= type;
+	mnt->mnt_opts	= fix_opts_string(flags & ~MS_NOMTAB, opts);
+
+	/* these are always zero for NFS */
+	mnt->mnt_freq	= 0;
+	mnt->mnt_passno	= 0;
+}
+
 /* Create mtab with a root entry.  */
 static void
 create_mtab (void) {
@@ -245,11 +259,8 @@ create_mtab (void) {
 	if ((fstab = getfsfile ("/")) || (fstab = getfsfile ("root"))) {
 		char *extra_opts;
 		parse_opts (fstab->m.mnt_opts, &flags, &extra_opts);
-		mnt.mnt_dir = "/";
-		mnt.mnt_fsname = xstrdup(fstab->m.mnt_fsname);
-		mnt.mnt_type = fstab->m.mnt_type;
-		mnt.mnt_opts = fix_opts_string (flags, extra_opts);
-		mnt.mnt_freq = mnt.mnt_passno = 0;
+		init_mntent(&mnt, xstrdup(fstab->m.mnt_fsname), "/",
+				fstab->m.mnt_type, flags, extra_opts);
 		free(extra_opts);
 
 		if (nfs_addmntent (mfp, &mnt) == 1) {
@@ -273,17 +284,12 @@ create_mtab (void) {
 }
 
 static int add_mtab(char *spec, char *mount_point, char *fstype,
-			int flags, char *opts, int freq, int pass)
+			int flags, char *opts)
 {
 	struct mntent ment;
 	int result = EX_SUCCESS;
 
-	ment.mnt_fsname = spec;
-	ment.mnt_dir = mount_point;
-	ment.mnt_type = fstype;
-	ment.mnt_opts = fix_opts_string(flags & ~MS_NOMTAB, opts);
-	ment.mnt_freq = freq;
-	ment.mnt_passno = pass;
+	init_mntent(&ment, spec, mount_point, fstype, flags, opts);
 
 	if (!nomtab && mtab_does_not_exist()) {
 		if (verbose > 1)
@@ -441,9 +447,7 @@ static int try_mount(char *spec, char *mount_point, int flags,
 	if (!fake)
 		print_one(spec, mount_point, fs_type, mount_opts);
 
-	ret = add_mtab(spec, mount_point, fs_type, flags, *extra_opts,
-			0, 0 /* these are always zero for NFS */ );
-	return ret;
+	return add_mtab(spec, mount_point, fs_type, flags, *extra_opts);
 }
 
 int main(int argc, char *argv[])
