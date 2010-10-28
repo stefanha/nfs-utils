@@ -39,10 +39,6 @@
 #include "statd.h"
 #include "xlog.h"
 
-#ifndef HAVE_DECL_AI_ADDRCONFIG
-#define AI_ADDRCONFIG	0
-#endif
-
 /**
  * statd_present_address - convert sockaddr to presentation address
  * @sap: pointer to socket address to convert

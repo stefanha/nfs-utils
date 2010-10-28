@@ -30,10 +30,6 @@
 #include "sockaddr.h"
 #include "exportfs.h"
 
-#ifndef HAVE_DECL_AI_ADDRCONFIG
-#define AI_ADDRCONFIG	0
-#endif
-
 /**
  * host_ntop - generate presentation address given a sockaddr
  * @sap: pointer to socket address
@@ -170,7 +166,7 @@ host_addrinfo(const char *hostname)
 #endif
 		/* don't return duplicates */
 		.ai_protocol	= (int)IPPROTO_UDP,
-		.ai_flags	= AI_ADDRCONFIG | AI_CANONNAME,
+		.ai_flags	= AI_CANONNAME,
 	};
 	int error;
 

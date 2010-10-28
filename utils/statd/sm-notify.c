@@ -34,10 +34,6 @@
 #include "nsm.h"
 #include "nfsrpc.h"
 
-#ifndef HAVE_DECL_AI_ADDRCONFIG
-#define AI_ADDRCONFIG	0
-#endif
-
 #define NSM_TIMEOUT	2
 #define NSM_MAX_TIMEOUT	120	/* don't make this too big */
 
@@ -78,7 +74,6 @@ smn_lookup(const char *name)
 {
 	struct addrinfo	*ai = NULL;
 	struct addrinfo hint = {
-		.ai_flags	= AI_ADDRCONFIG,
 		.ai_family	= (nsm_family == AF_INET ? AF_INET: AF_UNSPEC),
 		.ai_protocol	= (int)IPPROTO_UDP,
 	};

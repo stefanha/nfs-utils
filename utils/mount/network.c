@@ -210,9 +210,6 @@ int nfs_lookup(const char *hostname, const sa_family_t family,
 {
 	struct addrinfo *gai_results;
 	struct addrinfo gai_hint = {
-#ifdef HAVE_DECL_AI_ADDRCONFIG
-		.ai_flags	= AI_ADDRCONFIG,
-#endif	/* HAVE_DECL_AI_ADDRCONFIG */
 		.ai_family	= family,
 	};
 	socklen_t len = *salen;

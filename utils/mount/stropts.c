@@ -49,10 +49,6 @@
 #include "parse_dev.h"
 #include "conffile.h"
 
-#ifndef HAVE_DECL_AI_ADDRCONFIG
-#define AI_ADDRCONFIG	0
-#endif
-
 #ifndef NFS_PROGRAM
 #define NFS_PROGRAM	(100003)
 #endif
@@ -343,7 +339,6 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 {
 	struct addrinfo hint = {
 		.ai_protocol	= (int)IPPROTO_UDP,
-		.ai_flags	= AI_ADDRCONFIG,
 	};
 	sa_family_t family;
 	int error;
