@@ -69,10 +69,9 @@ for details on specifying raw IPv6 addresses.
 .P
 The
 .I fstype
-field contains "nfs", for whatever version of the protocol.
-The
-.B nfs
-allow several mount options, which are described below.
+field contains "nfs".  Use of the "nfs4" fstype in
+.I /etc/fstab
+is deprecated.
 .SH "MOUNT OPTIONS"
 Refer to
 .BR mount (8)
@@ -464,9 +463,9 @@ by other clients, but can impact application and server performance.
 .IP
 The DATA AND METADATA COHERENCE section contains a
 detailed discussion of these trade-offs.
-.SS "Options for versions 2 and 3 only"
+.SS "Options for NFS versions 2 and 3 only"
 Use these options, along with the options in the above subsection,
-for NFSv2/v3 only. They will be ignored for newer versions.
+for NFS versions 2 and 3 only.
 .TP 1.5i
 .BI proto= netid
 The transport protocol name and protocol family the NFS client uses
@@ -761,9 +760,9 @@ conflicting locks.
 .IP
 NOTE: When used together, the 'local_lock' mount option will be overridden
 by 'nolock'/'lock' mount option.
-.SS "Options for version 4 only"
+.SS "Options for NFS version 4 only"
 Use these options, along with the options in the first subsection above,
-for NFSv4 only. They will be ignored with older versions.
+for NFS version 4 and newer.
 .TP 1.5i
 .BI proto= netid
 The transport protocol name and protocol family the NFS client uses
