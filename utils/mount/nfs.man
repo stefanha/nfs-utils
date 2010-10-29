@@ -1523,32 +1523,54 @@ of Access Control Lists that are semantically richer than POSIX ACLs.
 NFS version 4 ACLs are not fully compatible with POSIX ACLs; as such,
 some translation between the two is required
 in an environment that mixes POSIX ACLs and NFS version 4.
-.SH FILES
-.TP 1.5i
-.I /etc/fstab
-file system table
-.SH BUGS
-The generic
-.B remount
-option is not fully supported.
-Generic options, such as
-.BR rw " and " ro
-can be modified using the
-.B remount
-option,
-but NFS-specific options are not all supported.
+.SH "THE REMOUNT OPTION"
+Generic mount options such as
+.BR rw " and " sync
+can be modified on NFS mount points using the
+.BR remount
+option.
+See
+.BR mount (8)
+for more information on generic mount options.
+.P
+With few exceptions, NFS-specific options
+are not able to be modified during a remount.
 The underlying transport or NFS version
 cannot be changed by a remount, for example.
+.P
 Performing a remount on an NFS file system mounted with the
 .B noac
 option may have unintended consequences.
 The
 .B noac
-option is a mixture of a generic option,
+option is a combination of the generic option
 .BR sync ,
-and an NFS-specific option
+and the NFS-specific option
 .BR actimeo=0 .
+.SS "Unmounting after a remount"
+For mount points that use NFS versions 2 or 3, the NFS umount subcommand
+depends on knowing the original set of mount options used to perform the
+MNT operation.
+These options are stored on disk by the NFS mount subcommand,
+and can be erased by a remount.
 .P
+To ensure that the saved mount options are not erased during a remount,
+specify either the local mount directory, or the server hostname and
+export pathname, but not both, during a remount.  For example,
+.P
+.NF
+.TA 2.5i
+	mount -o remount,ro /mnt
+.FI
+.P
+merges the mount option
+.B ro
+with the mount options already saved on disk for the NFS server mounted at /mnt.
+.SH FILES
+.TP 1.5i
+.I /etc/fstab
+file system table
+.SH BUGS
 Before 2.4.7, the Linux NFS client did not support NFS over TCP.
 .P
 Before 2.4.20, the Linux NFS client used a heuristic
