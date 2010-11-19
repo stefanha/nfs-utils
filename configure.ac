@@ -247,6 +247,9 @@ if test "$enable_nfsv4" = yes; then
   dnl check for nfsidmap libraries and headers
   AC_LIBNFSIDMAP
 
+  dnl check for the keyutils libraries and headers
+  AC_KEYUTILS
+
   dnl librpcsecgss already has a dependency on libgssapi,
   dnl but we need to make sure we get the right version
   if test "$enable_gss" = yes; then
@@ -435,6 +438,7 @@ AC_CONFIG_FILES([
 	utils/mountd/Makefile
 	utils/nfsd/Makefile
 	utils/nfsstat/Makefile
+	utils/nfsidmap/Makefile
 	utils/showmount/Makefile
 	utils/statd/Makefile
 	tests/Makefile
