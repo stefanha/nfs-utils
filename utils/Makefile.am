@@ -4,6 +4,9 @@ OPTDIRS =
 
 if CONFIG_NFSV4
 OPTDIRS += idmapd
+if CONFIG_NFSIDMAP
+OPTDIRS += nfsidmap
+endif
 endif
 
 if CONFIG_GSS

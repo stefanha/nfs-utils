@@ -247,6 +247,9 @@ if test "$enable_nfsv4" = yes; then
   dnl check for nfsidmap libraries and headers
   AC_LIBNFSIDMAP
 
+  dnl enable nfsidmap when its support by libnfsidmap
+  AM_CONDITIONAL(CONFIG_NFSIDMAP, [test "$enable_nfsidmap" = "yes"])
+
   dnl check for the keyutils libraries and headers
   AC_KEYUTILS
 

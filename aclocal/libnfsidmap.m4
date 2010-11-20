@@ -14,4 +14,8 @@ AC_DEFUN([AC_LIBNFSIDMAP], [
                [AC_DEFINE([HAVE_NFS4_SET_DEBUG], 1,
                           [Define to 1 if you have the `nfs4_set_debug' function.])])
 
+  dnl only enable nfsidmap when libnfsidmap supports it
+  AC_CHECK_LIB([nfsidmap], [nfs4_owner_to_uid], [enable_nfsidmap=yes],
+               [enable_nfsidmap=no])
+
 ])dnl

@@ -64,6 +64,7 @@ tests/nsm_client/nlm_sm_inter.h
 tests/nsm_client/nlm_sm_inter_clnt.c
 tests/nsm_client/nlm_sm_inter_svc.c
 tests/nsm_client/nlm_sm_inter_xdr.c
+utils/nfsidmap/nfsidmap
 # cscope database files
 cscope.*
 # generic editor backup et al
