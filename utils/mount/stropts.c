@@ -650,7 +650,7 @@ out_fail:
 static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 {
 	struct addrinfo *ai;
-	int ret;
+	int ret = 0;
 
 	for (ai = mi->address; ai != NULL; ai = ai->ai_next) {
 		ret = nfs_do_mount_v3v2(mi, ai->ai_addr, ai->ai_addrlen);
@@ -737,7 +737,7 @@ out_fail:
 static int nfs_try_mount_v4(struct nfsmount_info *mi)
 {
 	struct addrinfo *ai;
-	int ret;
+	int ret = 0;
 
 	for (ai = mi->address; ai != NULL; ai = ai->ai_next) {
 		ret = nfs_do_mount_v4(mi, ai->ai_addr, ai->ai_addrlen);
