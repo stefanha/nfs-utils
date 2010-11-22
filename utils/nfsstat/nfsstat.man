@@ -30,10 +30,12 @@ Print only NFS v2 statistics. The default is to only print information
 about the versions of \fBNFS\fR that have non-zero counts.
 .TP
 .B \-3
-Print only NFS v3 statistics. 
+Print only NFS v3 statistics. The default is to only print information
+about the versions of \fBNFS\fR that have non-zero counts.
 .TP
 .B \-4
-Print only NFS v4 statistics. 
+Print only NFS v4 statistics. The default is to only print information
+about the versions of \fBNFS\fR that have non-zero counts.
 .TP
 .B \-m, \-\-mounts
 Print information about each of the mounted \fBNFS\fR file systems.
