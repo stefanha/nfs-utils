@@ -271,9 +271,9 @@ conf_parse_line(int trans, char *line, size_t sz)
 		if (ptr == NULL)
 			return;
 		line = ++ptr;
-		while (*ptr && *ptr != '"')
+		while (*ptr && *ptr != '"' && *ptr != ']')
 			ptr++;
-		if (*ptr == '\0') {
+		if (*ptr == '\0' || *ptr == ']') {
 			xlog_warn("config file error: line %d: "
  				"non-matched '\"', ignoring until next section", ln);
 		}  else {
