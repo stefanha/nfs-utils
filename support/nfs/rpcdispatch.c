@@ -37,6 +37,11 @@ rpc_dispatch(struct svc_req *rqstp, SVCXPRT *transp,
 		return;
 	}
 
+	if (dtable->nproc <= rqstp->rq_proc) {
+		svcerr_noproc(transp);
+		return;
+	}
+
 	dent = dtable->entries + rqstp->rq_proc;
 
 	if (dent->func == NULL) {
