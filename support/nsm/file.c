@@ -568,15 +568,28 @@ nsm_retire_monitored_hosts(void)
 
 	while ((de = readdir(dir)) != NULL) {
 		char *src, *dst;
+		struct stat stb;
 
-		if (de->d_type != (unsigned char)DT_REG)
-			continue;
 		if (de->d_name[0] == '.')
 			continue;
 
 		src = nsm_make_record_pathname(NSM_MONITOR_DIR, de->d_name);
 		if (src == NULL) {
 			xlog_warn("Bad monitor file name, skipping");
+			continue;
+		}
+
+		/* NB: not all file systems fill in d_type correctly */
+		if (lstat(src, &stb) == -1) {
+			xlog_warn("Bad monitor file %s, skipping: %m",
+					de->d_name);
+			free(src);
+			continue;
+		}
+		if (!S_ISREG(stb.st_mode)) {
+			xlog(D_GENERAL, "Skipping non-regular file %s",
+					de->d_name);
+			free(src);
 			continue;
 		}
 
@@ -846,7 +859,7 @@ nsm_read_line(const char *hostname, const time_t timestamp, char *line,
 }
 
 /*
- * Given a filename, reads data from a file under NSM_MONITOR_DIR
+ * Given a filename, reads data from a file under "directory"
  * and invokes @func so caller can populate their in-core
  * database with this data.
  */
@@ -863,8 +876,13 @@ nsm_load_host(const char *directory, const char *filename, nsm_populate_t func)
 	if (path == NULL)
 		goto out_err;
 
-	if (stat(path, &stb) == -1) {
+	if (lstat(path, &stb) == -1) {
 		xlog(L_ERROR, "Failed to stat %s: %m", path);
+		goto out_freepath;
+	}
+	if (!S_ISREG(stb.st_mode)) {
+		xlog(D_GENERAL, "Skipping non-regular file %s",
+				path);
 		goto out_freepath;
 	}
 
@@ -913,8 +931,6 @@ nsm_load_dir(const char *directory, nsm_populate_t func)
 	}
 
 	while ((de = readdir(dir)) != NULL) {
-		if (de->d_type != (unsigned char)DT_REG)
-			continue;
 		if (de->d_name[0] == '.')
 			continue;
 
