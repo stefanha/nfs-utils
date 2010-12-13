@@ -126,7 +126,7 @@ exact_error_check(const ssize_t len, const size_t buflen)
  * containing an appropriate pathname, or NULL if an error
  * occurs.  Caller must free the returned result with free(3).
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static char *
 nsm_make_record_pathname(const char *directory, const char *hostname)
 {
@@ -174,7 +174,7 @@ nsm_make_record_pathname(const char *directory, const char *hostname)
  * containing an appropriate pathname, or NULL if an error
  * occurs.  Caller must free the returned result with free(3).
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static char *
 nsm_make_pathname(const char *directory)
 {
@@ -204,7 +204,7 @@ nsm_make_pathname(const char *directory)
  * containing an appropriate pathname, or NULL if an error
  * occurs.  Caller must free the returned result with free(3).
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static char *
 nsm_make_temp_pathname(const char *pathname)
 {
@@ -634,7 +634,7 @@ nsm_priv_to_hex(const char *priv, char *buf, const size_t buflen)
 /*
  * Returns the length in bytes of the created record.
  */
-__attribute_noinline__
+__attribute__((__noinline__))
 static size_t
 nsm_create_monitor_record(char *buf, const size_t buflen,
 		const struct sockaddr *sap, const struct mon *m)
@@ -784,7 +784,7 @@ out:
 	return result;
 }
 
-__attribute_noinline__
+__attribute__((__noinline__))
 static _Bool
 nsm_parse_line(char *line, struct sockaddr_in *sin, struct mon *m)
 {
