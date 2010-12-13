@@ -34,6 +34,11 @@
 #include "nsm.h"
 #include "nfsrpc.h"
 
+/* glibc before 2.3.4 */
+#ifndef AI_NUMERICSERV
+#define AI_NUMERICSERV	0
+#endif
+
 #define NSM_TIMEOUT	2
 #define NSM_MAX_TIMEOUT	120	/* don't make this too big */
 
@@ -248,6 +253,7 @@ smn_bind_address(const char *srcaddr, const char *srcport)
 	if (srcaddr == NULL)
 		hint.ai_flags |= AI_PASSIVE;
 
+	/* Do not allow "node" and "service" parameters both to be NULL */
 	if (srcport == NULL)
 		error = getaddrinfo(srcaddr, "", &hint, &ai);
 	else
