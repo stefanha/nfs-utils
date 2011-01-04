@@ -421,7 +421,7 @@ nsm_drop_privileges(const int pidfd)
 	 */
         if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == -1) {
                 xlog(L_ERROR, "prctl(PR_SET_KEEPCAPS) failed: %m");
-		return 0;
+		return false;
 	}
 
 	if (setgroups(0, NULL) == -1) {
