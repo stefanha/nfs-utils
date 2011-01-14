@@ -241,7 +241,7 @@ get_ids(gss_name_t client_name, gss_OID mech, struct svc_cred *cred)
 			"file for name '%s'\n", sname);
 		goto out_free;
 	}
-	nfs4_init_name_mapping(NULL); /* XXX: should only do this once */
+
 	res = nfs4_gss_princ_to_ids(secname, sname, &uid, &gid);
 	if (res < 0) {
 		/*

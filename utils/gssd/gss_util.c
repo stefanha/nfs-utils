@@ -138,6 +138,83 @@ display_status_1(char *m, u_int32_t code, int type, const gss_OID mech)
 	}
 }
 #endif
+static char *
+gss_display_error(OM_uint32 status)
+{
+		char *error = NULL;
+
+		switch(status) {
+		case GSS_S_COMPLETE: 
+			error = "GSS_S_COMPLETE";
+			break;
+		case GSS_S_CALL_INACCESSIBLE_READ: 
+			error = "GSS_S_CALL_INACCESSIBLE_READ";
+			break;
+		case GSS_S_CALL_INACCESSIBLE_WRITE:
+			error = "GSS_S_CALL_INACCESSIBLE_WRITE";
+			break;
+		case GSS_S_CALL_BAD_STRUCTURE:
+			error = "GSS_S_CALL_BAD_STRUCTURE";
+			break;
+		case  GSS_S_BAD_MECH:
+			error = "GSS_S_BAD_MECH";
+			break;
+		case  GSS_S_BAD_NAME:
+			error = "GSS_S_BAD_NAME";
+			break;
+		case  GSS_S_BAD_NAMETYPE:
+			error = "GSS_S_BAD_NAMETYPE";
+			break;
+		case  GSS_S_BAD_BINDINGS:
+			error = "GSS_S_BAD_BINDINGS";
+			break;
+		case  GSS_S_BAD_STATUS:
+			error = "GSS_S_BAD_STATUS";
+			break;
+		case  GSS_S_BAD_SIG:
+			error = "GSS_S_BAD_SIG";
+			break;
+		case  GSS_S_NO_CRED:
+			error = "GSS_S_NO_CRED";
+			break;
+		case  GSS_S_NO_CONTEXT:
+			error = "GSS_S_NO_CONTEXT";
+			break;
+		case  GSS_S_DEFECTIVE_TOKEN:
+			error = "GSS_S_DEFECTIVE_TOKEN";
+			break;
+		case  GSS_S_DEFECTIVE_CREDENTIAL:
+			error = "GSS_S_DEFECTIVE_CREDENTIAL";
+			break;
+		case  GSS_S_CREDENTIALS_EXPIRED:
+			error = "GSS_S_CREDENTIALS_EXPIRED";
+			break;
+		case  GSS_S_CONTEXT_EXPIRED:
+			error = "GSS_S_CONTEXT_EXPIRED";
+			break;
+		case  GSS_S_FAILURE:
+			error = "GSS_S_FAILURE";
+			break;
+		case  GSS_S_BAD_QOP:
+			error = "GSS_S_BAD_QOP";
+			break;
+		case  GSS_S_UNAUTHORIZED:
+			error = "GSS_S_UNAUTHORIZED";
+			break;
+		case  GSS_S_UNAVAILABLE:
+			error = "GSS_S_UNAVAILABLE";
+			break;
+		case  GSS_S_DUPLICATE_ELEMENT:
+			error = "GSS_S_DUPLICATE_ELEMENT";
+			break;
+		case  GSS_S_NAME_NOT_MN:
+			error = "GSS_S_NAME_NOT_MN";
+			break;
+		default:
+			error = "Not defined";
+		}
+	return error;
+}
 
 static void
 display_status_2(char *m, u_int32_t major, u_int32_t minor, const gss_OID mech)
@@ -175,8 +252,8 @@ display_status_2(char *m, u_int32_t major, u_int32_t minor, const gss_OID mech)
 
 	if (major == GSS_S_CREDENTIALS_EXPIRED)
 		msg_verbosity = 1;
-	printerr(msg_verbosity, "ERROR: GSS-API: error in %s(): %s - %s\n",
-		 m, maj, min);
+	printerr(msg_verbosity, "ERROR: GSS-API: error in %s(): %s (%s) - %s(%s)\n",
+		 m, gss_display_error(major), maj, min);
 
 	if (maj_gss_buf.length != 0)
 		(void) gss_release_buffer(&min_stat1, &maj_gss_buf);

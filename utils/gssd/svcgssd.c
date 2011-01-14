@@ -267,6 +267,7 @@ main(int argc, char *argv[])
 	if (!fg)
 		release_parent();
 
+	nfs4_init_name_mapping(NULL); /* XXX: should only do this once */
 	gssd_run();
 	printerr(0, "gssd_run returned!\n");
 	abort();
