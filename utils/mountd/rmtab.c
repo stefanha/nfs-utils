@@ -205,6 +205,7 @@ mountlist_list(void)
 	}
 	if (stb.st_mtime != last_mtime) {
 		mountlist_freeall(mlist);
+		mlist = NULL;
 		last_mtime = stb.st_mtime;
 
 		setrmtabent("r");
