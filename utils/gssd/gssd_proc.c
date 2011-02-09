@@ -1245,7 +1245,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 			goto out;
 		if (sscanf(p, "enctypes=%s", enctypes) != 1) {
 			printerr(0, "WARNING: handle_gssd_upcall: "
-				    "failed to parse target name "
+				    "failed to parse encryption types "
 				    "in upcall string '%s'\n", lbuf);
 			goto out;
 		}
