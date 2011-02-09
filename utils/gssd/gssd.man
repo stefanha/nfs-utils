@@ -53,6 +53,8 @@ To be more consistent with other implementations, we now look for
 specific keytab entries.  The search order for keytabs to be used
 for "machine credentials" is now:
 .br
+  <HOSTNAME>$@<REALM>
+.br
   root/<hostname>@<REALM>
 .br
   nfs/<hostname>@<REALM>
@@ -64,6 +66,9 @@ for "machine credentials" is now:
   nfs/<anyname>@<REALM>
 .br
   host/<anyname>@<REALM>
+.IP
+If this search order does not use the correct key then provide a
+keytab file that contains only correct keys.
 .TP
 .B -p path
 Tells

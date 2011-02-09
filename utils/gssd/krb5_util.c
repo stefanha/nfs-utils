@@ -768,6 +768,7 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
 	krb5_error_code code;
 	char **realmnames = NULL;
 	char myhostname[NI_MAXHOST], targethostname[NI_MAXHOST];
+	char myhostad[NI_MAXHOST+1];
 	int i, j, retval;
 	char *default_realm = NULL;
 	char *realm;
@@ -789,6 +790,14 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
 		printerr(1, "%s while getting local hostname\n", k5err);
 		goto out;
 	}
+
+	/* Compute the active directory machine name HOST$ */
+	strcpy(myhostad, myhostname);
+	for (i = 0; myhostad[i] != 0; ++i)
+		myhostad[i] = toupper(myhostad[i]);
+	myhostad[i] = '$';
+	myhostad[i+1] = 0;
+
 	retval = get_full_hostname(myhostname, myhostname, sizeof(myhostname));
 	if (retval)
 		goto out;
@@ -833,32 +842,47 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
 		if (strcmp(realm, default_realm) == 0)
 			tried_default = 1;
 		for (j = 0; svcnames[j] != NULL; j++) {
-			code = krb5_build_principal_ext(context, &princ,
-							strlen(realm),
-							realm,
-							strlen(svcnames[j]),
-							svcnames[j],
-							strlen(myhostname),
-							myhostname,
-							NULL);
+			char spn[300];
+
+			/*
+			 * The special svcname "$" means 'try the active
+			 * directory machine account'
+			 */
+			if (strcmp(svcnames[j],"$") == 0) {
+				snprintf(spn, sizeof(spn), "%s@%s", myhostad, realm);
+				code = krb5_build_principal_ext(context, &princ,
+								strlen(realm),
+								realm,
+								strlen(myhostad),
+								myhostad,
+								NULL);
+			} else {
+				snprintf(spn, sizeof(spn), "%s/%s@%s",
+					 svcnames[j], myhostname, realm);
+				code = krb5_build_principal_ext(context, &princ,
+								strlen(realm),
+								realm,
+								strlen(svcnames[j]),
+								svcnames[j],
+								strlen(myhostname),
+								myhostname,
+								NULL);
+			}
+
 			if (code) {
 				k5err = gssd_k5_err_msg(context, code);
-				printerr(1, "%s while building principal for "
-					 "'%s/%s@%s'\n", k5err, svcnames[j],
-					 myhostname, realm);
+				printerr(1, "%s while building principal for '%s'\n",
+					 k5err, spn);
 				continue;
 			}
 			code = krb5_kt_get_entry(context, kt, princ, 0, 0, kte);
 			krb5_free_principal(context, princ);
 			if (code) {
 				k5err = gssd_k5_err_msg(context, code);
-				printerr(3, "%s while getting keytab entry for "
-					 "'%s/%s@%s'\n", k5err, svcnames[j],
-					 myhostname, realm);
+				printerr(3, "%s while getting keytab entry for '%s'\n",
+					 k5err, spn);
 			} else {
-				printerr(3, "Success getting keytab entry for "
-					 "'%s/%s@%s'\n",
-					 svcnames[j], myhostname, realm);
+				printerr(3, "Success getting keytab entry for '%s'\n",spn);
 				retval = 0;
 				goto out;
 			}
@@ -870,6 +894,8 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
 		 */
 		for (j = 0; svcnames[j] != NULL; j++) {
 			int found = 0;
+			if (strcmp(svcnames[j],"$") == 0)
+				continue;
 			code = gssd_search_krb5_keytab(context, kt, realm,
 						       svcnames[j], &found, kte);
 			if (!code && found) {
@@ -1160,7 +1186,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 	krb5_keytab kt = NULL;;
 	int retval = 0;
 	char *k5err = NULL;
-	const char *svcnames[4] = { "root", "nfs", "host", NULL };
+	const char *svcnames[5] = { "$", "root", "nfs", "host", NULL };
 
 	/*
 	 * If a specific service name was specified, use it.
