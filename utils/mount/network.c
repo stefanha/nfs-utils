@@ -1346,7 +1346,7 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 	case PO_NOT_FOUND:
 		break;
 	case PO_FOUND:
-		if (tmp >= 1 && tmp <= 65535) {
+		if (tmp >= 0 && tmp <= 65535) {
 			*port = tmp;
 			return 1;
 		}
@@ -1538,7 +1538,7 @@ nfs_mount_port(struct mount_options *options, unsigned long *port)
 	case PO_NOT_FOUND:
 		break;
 	case PO_FOUND:
-		if (tmp >= 1 && tmp <= 65535) {
+		if (tmp >= 0 && tmp <= 65535) {
 			*port = tmp;
 			return 1;
 		}
