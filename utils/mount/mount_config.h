@@ -39,10 +39,10 @@ static inline char *mount_config_opts(char *spec,
 
 #else /* MOUNT_CONFIG */
 
-static inline void mount_config_init(char *program) { }
+static inline void mount_config_init(__attribute__ ((unused)) char *program) { }
 
-static inline char *mount_config_opts(char *spec,
-		char *mount_point, char *mount_opts)
+static inline char *mount_config_opts(__attribute__ ((unused)) char *spec,
+		__attribute__ ((unused)) char *mount_point, char *mount_opts)
 {
 	return mount_opts;
 }

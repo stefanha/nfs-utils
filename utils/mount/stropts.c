@@ -110,7 +110,7 @@ static void nfs_default_version(struct nfsmount_info *mi)
 	}
 }
 #else
-inline void nfs_default_version(struct nfsmount_info *mi) {}
+inline void nfs_default_version(__attribute__ ((unused)) struct nfsmount_info *mi) {}
 #endif /* MOUNT_CONFIG */
 
 /*
