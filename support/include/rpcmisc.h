@@ -31,7 +31,7 @@ struct rpc_dentry {
 
 struct rpc_dtable {
 	struct rpc_dentry *entries;
-	int		nproc;
+	rpcproc_t		nproc;
 };
 
 #define dtable_ent(func, vers, arg_type, res_type) \
