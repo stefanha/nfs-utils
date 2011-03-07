@@ -37,11 +37,15 @@ when a client sends an NFS MOUNT request.
 .PP
 Normally the master export table is initialized with the contents of
 .I /etc/exports
+and files under
+.I /etc/exports.d
 by invoking
 .BR "exportfs -a" .
 However, a system administrator can choose to add or delete
 exports without modifying
 .I /etc/exports
+or files under
+.I /etc/exports.d
 by using the
 .B exportfs
 command.
@@ -92,17 +96,24 @@ Specify a list of export options in the same manner as in
 .B -i
 Ignore the
 .I /etc/exports
-file.  Only default options and options given on the command line are used.
+file and files under
+.I /etc/exports.d
+directory.  Only default options and options given on the command line are used.
 .TP
 .B -r
 Reexport all directories, synchronizing
 .I /var/lib/nfs/etab
 with
-.IR /etc/exports .
+.IR /etc/exports 
+and files under 
+.IR /etc/exports.d .
 This option removes entries in
 .I /var/lib/nfs/etab
 which have been deleted from
-.I /etc/exports, and removes any entries from the
+.I /etc/exports
+or files under
+.IR /etc/exports.d , 
+and removes any entries from the
 kernel export table which are no longer valid.
 .TP
 .B -u
@@ -130,6 +141,8 @@ when adding new entries to the export table.  When using
 .BR "exportfs -a" ,
 all exports listed in
 .I /etc/exports
+and files under
+.I /etc/exports.d
 are added to
 .IR /var/lib/nfs/etab .
 The kernel's export table is also updated as needed.
@@ -149,7 +162,9 @@ several sources.
 The default export options are
 .BR sync,ro,root_squash,wdelay .
 These can be overridden by entries in
-.IR /etc/exports .
+.IR /etc/exports 
+or files under
+.IR /etc/exports.d .
 .PP
 A system administrator may override options from these sources using the
 .B -o
@@ -188,6 +203,8 @@ to display the export options for each export.
 .SH EXAMPLES
 The following adds all directories listed in
 .I /etc/exports
+and files under
+.I /etc/exports.d
 to
 .I /var/lib/nfs/etab
 and pushes the resulting export entries into the kernel:
@@ -215,7 +232,9 @@ directory:
 .fi
 .PP
 To unexport all exports listed in
-.IR /etc/exports :
+.IR /etc/exports 
+and files under
+.IR /etc/exports.d :
 .PP
 .nf
 .B "# exportfs -au
@@ -237,6 +256,13 @@ if they themselves are no longer valid they will be removed.
 .TP 2.5i
 .I /etc/exports
 input file listing exports, export options, and access control lists
+.TP 2.5i
+.I /etc/exports.d
+directory where extra input files are stored.
+.B Note:
+only files that end with 
+.I .exports
+are used.
 .TP 2.5i
 .I /var/lib/nfs/etab
 master table of exports

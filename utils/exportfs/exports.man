@@ -444,6 +444,24 @@ export entry for
 .B /home/joe
 in the example section below, which maps all requests to uid 150 (which
 is supposedly that of user joe).
+.SS Extra Export Tables
+After reading 
+.I /etc/exports 
+.B exportfs
+reads files under 
+.I /etc/exports.d. 
+directory as extra export tables.
+.B exportfs
+regards only a file which name is ended with 
+.I .exports
+and
+not started with 
+.I . 
+as an extra export file. A file which name
+is not met this condition is just ignored.
+The format for extra export tables is the same as 
+.I /etc/exports
+.
 .IP
 .SH EXAMPLE
 .PP
@@ -489,6 +507,7 @@ all three mounts with the `sync' option enabled.
 '''entry.
 .SH FILES
 /etc/exports
+/etc/exports.d
 .SH SEE ALSO
 .BR exportfs (8),
 .BR netgroup (5),
