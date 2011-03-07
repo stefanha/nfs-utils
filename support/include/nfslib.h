@@ -25,6 +25,12 @@
 #ifndef _PATH_EXPORTS
 #define _PATH_EXPORTS		"/etc/exports"
 #endif
+#ifndef _PATH_EXPORTS_D
+#define _PATH_EXPORTS_D         "/etc/exports.d"
+#endif
+#ifndef _EXT_EXPORT
+#define _EXT_EXPORT             ".exports"
+#endif
 #ifndef _PATH_IDMAPDCONF
 #define _PATH_IDMAPDCONF	"/etc/idmapd.conf"
 #endif
