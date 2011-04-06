@@ -12,7 +12,7 @@
 .SH NAME
 rpc.statd \- NSM service daemon
 .SH SYNOPSIS
-.BI "rpc.statd [-dh?FLNvVw] [-H " prog "] [-n " my-name "] [-o " outgoing-port "] [-p " listener-port "] [-P " path " ]
+.BI "rpc.statd [-dh?FLNvV] [-H " prog "] [-n " my-name "] [-o " outgoing-port "] [-p " listener-port "] [-P " path " ]
 .SH DESCRIPTION
 File locks are not part of persistent file system state.
 Lock state is thus lost when a host reboots.
