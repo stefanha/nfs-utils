@@ -276,20 +276,25 @@ gssd_acquire_cred(char *server_name, const gss_OID oid)
 	u_int32_t ignore_maj_stat, ignore_min_stat;
 	gss_buffer_desc pbuf;
 
-	name.value = (void *)server_name;
-	name.length = strlen(server_name);
+	/* If server_name is NULL, get cred for GSS_C_NO_NAME */
+	if (server_name == NULL) {
+		target_name = GSS_C_NO_NAME;
+	} else {
+		name.value = (void *)server_name;
+		name.length = strlen(server_name);
 
-	maj_stat = gss_import_name(&min_stat, &name,
-			oid,
-			&target_name);
+		maj_stat = gss_import_name(&min_stat, &name,
+				oid,
+				&target_name);
 
-	if (maj_stat != GSS_S_COMPLETE) {
-		pgsserr("gss_import_name", maj_stat, min_stat, g_mechOid);
-		return (FALSE);
+		if (maj_stat != GSS_S_COMPLETE) {
+			pgsserr("gss_import_name", maj_stat, min_stat, g_mechOid);
+			return (FALSE);
+		}
 	}
 
-	maj_stat = gss_acquire_cred(&min_stat, target_name, 0,
-			GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
+	maj_stat = gss_acquire_cred(&min_stat, target_name, GSS_C_INDEFINITE,
+			GSS_C_NO_OID_SET, GSS_C_ACCEPT,
 			&gssd_creds, NULL, NULL);
 
 	if (maj_stat != GSS_S_COMPLETE) {

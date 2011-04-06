@@ -57,6 +57,7 @@
 #include "err_util.h"
 #include "context.h"
 #include "gss_oids.h"
+#include "svcgssd_krb5.h"
 
 extern char * mech2file(gss_OID mech);
 #define SVCGSSD_CONTEXT_CHANNEL "/proc/net/rpc/auth.rpcsec.context/channel"
@@ -441,6 +442,10 @@ handle_nullreq(FILE *f) {
 		/* in_handle is the context id stored in the out_handle
 		 * for the GSS_S_CONTINUE_NEEDED case below.  */
 		memcpy(&ctx, in_handle.value, in_handle.length);
+	}
+
+	if (svcgssd_limit_krb5_enctypes()) {
+		goto out_err;
 	}
 
 	maj_stat = gss_accept_sec_context(&min_stat, &ctx, gssd_creds,

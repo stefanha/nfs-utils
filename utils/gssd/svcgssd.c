@@ -262,6 +262,13 @@ main(int argc, char *argv[])
 				"/etc/krb5.keytab?\n");
 			exit(1);
 		}
+	} else {
+		status = gssd_acquire_cred(NULL,
+			(const gss_OID)GSS_C_NT_HOSTBASED_SERVICE);
+		if (status == FALSE) {
+			printerr(0, "unable to obtain nameless credentials\n");
+			exit(1);
+		}
 	}
 
 	if (!fg)

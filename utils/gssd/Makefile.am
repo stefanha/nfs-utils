@@ -51,7 +51,9 @@ svcgssd_SOURCES = \
 	svcgssd_main_loop.c \
 	svcgssd_mech2file.c \
 	svcgssd_proc.c \
+	svcgssd_krb5.c \
 	\
+	svcgssd_krb5.h \
 	svcgssd.h
 
 svcgssd_LDADD = \
