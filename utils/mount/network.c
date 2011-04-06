@@ -1095,7 +1095,7 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
 		.sin6_family		= AF_INET6,
 		.sin6_addr		= IN6ADDR_ANY_INIT,
 	};
-	int sock;
+	int sock, result = 0;
 
 	sock = socket(sap->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0)
@@ -1103,28 +1103,26 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
 
 	switch (sap->sa_family) {
 	case AF_INET:
-		if (bind(sock, SAFE_SOCKADDR(&sin), sizeof(sin)) < 0) {
-			close(sock);
-			return 0;
-		}
+		if (bind(sock, SAFE_SOCKADDR(&sin), sizeof(sin)) < 0)
+			goto out;
 		break;
 	case AF_INET6:
-		if (bind(sock, SAFE_SOCKADDR(&sin6), sizeof(sin6)) < 0) {
-			close(sock);
-			return 0;
-		}
+		if (bind(sock, SAFE_SOCKADDR(&sin6), sizeof(sin6)) < 0)
+			goto out;
 		break;
 	default:
 		errno = EAFNOSUPPORT;
-		return 0;
+		goto out;
 	}
 
-	if (connect(sock, sap, salen) < 0) {
-		close(sock);
-		return 0;
-	}
+	if (connect(sock, sap, salen) < 0)
+		goto out;
 
-	return !getsockname(sock, buf, buflen);
+	result = !getsockname(sock, buf, buflen);
+
+out:
+	close(sock);
+	return result;
 }
 
 /*
