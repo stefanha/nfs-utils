@@ -250,7 +250,7 @@ static void
 exportfs(char *arg, char *options, int verbose)
 {
 	struct exportent *eep;
-	nfs_export	*exp;
+	nfs_export	*exp = NULL;
 	struct addrinfo	*ai = NULL;
 	char		*path;
 	char		*hname = arg;
