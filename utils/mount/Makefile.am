@@ -9,7 +9,7 @@ man5_MANS	= nfs.man
 
 sbin_PROGRAMS	= mount.nfs
 EXTRA_DIST = nfsmount.x $(man8_MANS) $(man5_MANS)
-mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c \
+mount_common = error.c network.c fstab.c token.c \
 		    parse_opt.c parse_dev.c \
 		    nfsmount.c nfs4mount.c stropts.c\
 		    nfsumount.c \
@@ -19,13 +19,22 @@ mount_nfs_SOURCES = mount.c error.c network.c fstab.c token.c \
 		    mount_config.h utils.c utils.h
 
 if MOUNT_CONFIG
-mount_nfs_SOURCES += configfile.c
+mount_common += configfile.c
 man5_MANS += nfsmount.conf.man
 EXTRA_DIST += nfsmount.conf
 endif
 
 mount_nfs_LDADD = ../../support/nfs/libnfs.a \
 		  ../../support/export/libexport.a
+
+mount_nfs_SOURCES = $(mount_common)
+
+if CONFIG_LIBMOUNT
+mount_nfs_SOURCES += mount_libmount.c
+mount_nfs_LDADD += $(LIBMOUNT)
+else
+mount_nfs_SOURCES += mount.c
+endif
 
 MAINTAINERCLEANFILES = Makefile.in
 
