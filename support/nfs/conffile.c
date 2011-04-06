@@ -251,6 +251,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 		}
 		/* Strip off any blanks before ']' */
 		val = line;
+		j=0;
 		while (*val && !isblank(*val)) 
 			val++, j++;
 		if (*val)
