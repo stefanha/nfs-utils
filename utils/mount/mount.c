@@ -47,7 +47,7 @@
 #include "mount.h"
 #include "error.h"
 #include "stropts.h"
-#include "version.h"
+#include "utils.h"
 
 char *progname;
 int nfs_mount_data_version;
@@ -148,49 +148,6 @@ static const struct opt_map opt_map[] = {
 };
 
 static void parse_opts(const char *options, int *flags, char **extra_opts);
-
-/*
- * Choose the version of the nfs_mount_data structure that is appropriate
- * for the kernel that is doing the mount.
- *
- * NFS_MOUNT_VERSION:		maximum version supported by these sources
- * nfs_mount_data_version:	maximum version supported by the running kernel
- */
-static void discover_nfs_mount_data_version(void)
-{
-	unsigned int kernel_version = linux_version_code();
-
-	if (kernel_version) {
-		if (kernel_version < MAKE_VERSION(2, 1, 32))
-			nfs_mount_data_version = 1;
-		else if (kernel_version < MAKE_VERSION(2, 2, 18))
-			nfs_mount_data_version = 3;
-		else if (kernel_version < MAKE_VERSION(2, 3, 0))
-			nfs_mount_data_version = 4;
-		else if (kernel_version < MAKE_VERSION(2, 3, 99))
-			nfs_mount_data_version = 3;
-		else if (kernel_version < MAKE_VERSION(2, 6, 3))
-			nfs_mount_data_version = 4;
-		else
-			nfs_mount_data_version = 6;
-	}
-	if (nfs_mount_data_version > NFS_MOUNT_VERSION)
-		nfs_mount_data_version = NFS_MOUNT_VERSION;
-	else
-		if (kernel_version > MAKE_VERSION(2, 6, 22))
-			string++;
-}
-
-static void print_one(char *spec, char *node, char *type, char *opts)
-{
-	if (!verbose)
-		return;
-
-	if (opts)
-		printf(_("%s on %s type %s (%s)\n"), spec, node, type, opts);
-	else
-		printf(_("%s on %s type %s\n"), spec, node, type);
-}
 
 /*
  * Build a canonical mount option string for /etc/mtab.
@@ -327,22 +284,6 @@ static int add_mtab(char *spec, char *mount_point, char *fstype,
 	return result;
 }
 
-static void mount_usage(void)
-{
-	printf(_("usage: %s remotetarget dir [-rvVwfnsih] [-o nfsoptions]\n"),
-		progname);
-	printf(_("options:\n"));
-	printf(_("\t-r\t\tMount file system readonly\n"));
-	printf(_("\t-v\t\tVerbose\n"));
-	printf(_("\t-V\t\tPrint version\n"));
-	printf(_("\t-w\t\tMount file system read-write\n"));
-	printf(_("\t-f\t\tFake mount, do not actually mount\n"));
-	printf(_("\t-n\t\tDo not update /etc/mtab\n"));
-	printf(_("\t-s\t\tTolerate sloppy mount options rather than fail\n"));
-	printf(_("\t-h\t\tPrint this help\n"));
-	printf(_("\tnfsoptions\tRefer to mount.nfs(8) or nfs(5)\n\n"));
-}
-
 static void parse_opt(const char *opt, int *mask, char *extra_opts, size_t len)
 {
 	const struct opt_map *om;
@@ -403,26 +344,6 @@ static void parse_opts(const char *options, int *flags, char **extra_opts)
 	}
 }
 
-static int chk_mountpoint(char *mount_point)
-{
-	struct stat sb;
-
-	if (stat(mount_point, &sb) < 0){
-		mount_error(NULL, mount_point, errno);
-		return 1;
-	}
-	if (S_ISDIR(sb.st_mode) == 0){
-		mount_error(NULL, mount_point, ENOTDIR);
-		return 1;
-	}
-	if (access(mount_point, X_OK) < 0) {
-		mount_error(NULL, mount_point, errno);
-		return 1;
-	}
-
-	return 0;
-}
-
 static int try_mount(char *spec, char *mount_point, int flags,
 			char *fs_type, char **extra_opts, char *mount_opts,
 			int fake, int bg)
@@ -459,7 +380,7 @@ int main(int argc, char *argv[])
 
 	progname = basename(argv[0]);
 
-	discover_nfs_mount_data_version();
+	nfs_mount_data_version = discover_nfs_mount_data_version(&string);
 
 	if(!strncmp(progname, "umount", strlen("umount")))
 		exit(nfsumount(argc, argv));

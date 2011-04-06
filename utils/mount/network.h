@@ -75,4 +75,7 @@ int nfs_advise_umount(const struct sockaddr *, const socklen_t,
 CLIENT *mnt_openclnt(clnt_addr_t *, int *);
 void mnt_closeclnt(CLIENT *, int);
 
+int nfs_umount_do_umnt(struct mount_options *options,
+		       char **hostname, char **dirname);
+
 #endif	/* _NFS_UTILS_MOUNT_NETWORK_H */

@@ -1624,3 +1624,71 @@ int nfs_options2pmap(struct mount_options *options,
 
 	return 1;
 }
+
+/*
+ * Discover mount server's hostname/address by examining mount options
+ *
+ * Returns a pointer to a string that the caller must free, on
+ * success; otherwise NULL is returned.
+ */
+static char *nfs_umount_hostname(struct mount_options *options,
+				 char *hostname)
+{
+	char *option;
+
+	option = po_get(options, "mountaddr");
+	if (option)
+		goto out;
+	option = po_get(options, "mounthost");
+	if (option)
+		goto out;
+	option = po_get(options, "addr");
+	if (option)
+		goto out;
+
+	return hostname;
+
+out:
+	free(hostname);
+	return strdup(option);
+}
+
+
+/*
+ * Returns EX_SUCCESS if mount options and device name have been
+ * parsed successfully; otherwise EX_FAIL.
+ */
+int nfs_umount_do_umnt(struct mount_options *options,
+		       char **hostname, char **dirname)
+{
+	union nfs_sockaddr address;
+	struct sockaddr *sap = &address.sa;
+	socklen_t salen = sizeof(address);
+	struct pmap nfs_pmap, mnt_pmap;
+	sa_family_t family;
+
+	if (!nfs_options2pmap(options, &nfs_pmap, &mnt_pmap))
+		return EX_FAIL;
+
+	/* Skip UMNT call for vers=4 mounts */
+	if (nfs_pmap.pm_vers == 4)
+		return EX_SUCCESS;
+
+	*hostname = nfs_umount_hostname(options, *hostname);
+	if (!*hostname) {
+		nfs_error(_("%s: out of memory"), progname);
+		return EX_FAIL;
+	}
+
+	if (!nfs_mount_proto_family(options, &family))
+		return 0;
+	if (!nfs_lookup(*hostname, family, sap, &salen))
+		/* nfs_lookup reports any errors */
+		return EX_FAIL;
+
+	if (nfs_advise_umount(sap, salen, &mnt_pmap, dirname) == 0)
+		/* nfs_advise_umount reports any errors */
+		return EX_FAIL;
+
+	return EX_SUCCESS;
+}
