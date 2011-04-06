@@ -95,6 +95,7 @@ struct exportent {
 	char *          e_fslocdata;
 	char *		e_uuid;
 	struct sec_entry e_secinfo[SECFLAVOR_COUNT+1];
+	unsigned int	e_ttl;
 };
 
 struct rmtabent {

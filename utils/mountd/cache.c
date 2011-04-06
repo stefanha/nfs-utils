@@ -114,7 +114,7 @@ static void auth_unix_ip(FILE *f)
 
 	qword_print(f, "nfsd");
 	qword_print(f, ipaddr);
-	qword_printint(f, time(0)+30*60);
+	qword_printuint(f, time(0) + DEFAULT_TTL);
 	if (use_ipaddr)
 		qword_print(f, ipaddr);
 	else if (client)
@@ -161,7 +161,7 @@ static void auth_unix_gid(FILE *f)
 		}
 	}
 	qword_printuint(f, uid);
-	qword_printuint(f, time(0)+30*60);
+	qword_printuint(f, time(0) + DEFAULT_TTL);
 	if (rv >= 0) {
 		qword_printuint(f, ngroups);
 		for (i=0; i<ngroups; i++)
@@ -644,11 +644,11 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 {
 	qword_print(f, domain);
 	qword_print(f, path);
-	qword_printint(f, time(0)+30*60);
 	if (exp) {
 		int different_fs = strcmp(path, exp->e_path) != 0;
 		int flag_mask = different_fs ? ~NFSEXP_FSID : ~0;
 
+		qword_printuint(f, time(0) + exp->e_ttl);
 		qword_printint(f, exp->e_flags & flag_mask);
 		qword_printint(f, exp->e_anonuid);
 		qword_printint(f, exp->e_anongid);
@@ -667,7 +667,8 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  			qword_print(f, "uuid");
  			qword_printhex(f, u, 16);
  		}
-	}
+	} else
+		qword_printuint(f, time(0) + DEFAULT_TTL);
 	return qword_eol(f);
 }
 
@@ -874,8 +875,8 @@ int cache_process_req(fd_set *readfds)
 
 /*
  * Give IP->domain and domain+path->options to kernel
- * % echo nfsd $IP  $[now+30*60] $domain > /proc/net/rpc/auth.unix.ip/channel
- * % echo $domain $path $[now+30*60] $options $anonuid $anongid $fsid > /proc/net/rpc/nfsd.export/channel
+ * % echo nfsd $IP  $[now+DEFAULT_TTL] $domain > /proc/net/rpc/auth.unix.ip/channel
+ * % echo $domain $path $[now+DEFAULT_TTL] $options $anonuid $anongid $fsid > /proc/net/rpc/nfsd.export/channel
  */
 
 static int cache_export_ent(char *domain, struct exportent *exp, char *path)
@@ -955,7 +956,7 @@ int cache_export(nfs_export *exp, char *path)
 	qword_print(f, "nfsd");
 	qword_print(f,
 		host_ntop(get_addrlist(exp->m_client, 0), buf, sizeof(buf)));
-	qword_printint(f, time(0)+30*60);
+	qword_printuint(f, time(0) + exp->m_export.e_ttl);
 	qword_print(f, exp->m_client->m_hostname);
 	err = qword_eol(f);
 	

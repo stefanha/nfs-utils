@@ -107,6 +107,7 @@ static void init_exportent (struct exportent *ee, int fromkernel)
 	ee->e_nsquids = 0;
 	ee->e_nsqgids = 0;
 	ee->e_uuid = NULL;
+	ee->e_ttl = DEFAULT_TTL;
 }
 
 struct exportent *
