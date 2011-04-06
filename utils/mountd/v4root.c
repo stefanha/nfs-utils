@@ -144,8 +144,11 @@ static int v4root_add_parents(nfs_export *exp)
 	char *ptr;
 
 	path = strdup(exp->m_export.e_path);
-	if (!path)
+	if (!path) {
+		xlog(L_WARNING, "v4root_add_parents: Unable to create "
+				"pseudo export for '%s'", exp->m_export.e_path);
 		return -ENOMEM;
+	}
 	for (ptr = path + 1; ptr; ptr = strchr(ptr, '/')) {
 		int ret;
 		char saved;
@@ -173,7 +176,7 @@ void
 v4root_set()
 {
 	nfs_export	*exp;
-	int	i, ret;
+	int	i;
 
 	if (!v4root_needed)
 		return;
@@ -189,7 +192,7 @@ v4root_set()
 				 */
 				continue;
 
-			ret = v4root_add_parents(exp);
+			v4root_add_parents(exp);
 			/* XXX: error handling! */
 		}
 	}
