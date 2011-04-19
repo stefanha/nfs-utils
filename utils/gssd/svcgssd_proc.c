@@ -56,6 +56,7 @@
 #include "gss_util.h"
 #include "err_util.h"
 #include "context.h"
+#include "misc.h"
 #include "gss_oids.h"
 #include "svcgssd_krb5.h"
 
@@ -71,6 +72,7 @@ struct svc_cred {
 	int	cr_ngroups;
 	gid_t	cr_groups[NGROUPS];
 };
+static char vbuf[RPC_CHAN_BUF_SIZE];
 
 static int
 do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
@@ -92,6 +94,7 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 			     SVCGSSD_CONTEXT_CHANNEL, strerror(errno));
 		goto out_err;
 	}
+	setvbuf(f, vbuf, _IOLBF, RPC_CHAN_BUF_SIZE);
 	qword_printhex(f, out_handle->value, out_handle->length);
 	/* XXX are types OK for the rest of this? */
 	/* For context cache, use the actual context endtime */

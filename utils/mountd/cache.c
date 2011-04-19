@@ -825,6 +825,7 @@ struct {
 	char *cache_name;
 	void (*cache_handle)(FILE *f);
 	FILE *f;
+	char vbuf[RPC_CHAN_BUF_SIZE];
 } cachelist[] = {
 	{ "auth.unix.ip", auth_unix_ip, NULL},
 	{ "auth.unix.gid", auth_unix_gid, NULL},
@@ -848,6 +849,10 @@ void cache_open(void)
 			continue;
 		sprintf(path, "/proc/net/rpc/%s/channel", cachelist[i].cache_name);
 		cachelist[i].f = fopen(path, "r+");
+		if (cachelist[i].f != NULL) {
+			setvbuf(cachelist[i].f, cachelist[i].vbuf, _IOLBF, 
+				RPC_CHAN_BUF_SIZE);
+		}
 	}
 }
 

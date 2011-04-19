@@ -17,4 +17,7 @@ int	weakrandomkey(unsigned char *keyout, int len);
 
 extern int is_mountpoint(char *path);
 
+/* size of the file pointer buffers for rpc procfs files */
+#define RPC_CHAN_BUF_SIZE 32768
+
 #endif /* MISC_H */
