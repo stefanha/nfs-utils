@@ -64,6 +64,7 @@ enum nfsd_fsid {
  */
 static int cache_export_ent(char *domain, struct exportent *exp, char *p);
 
+#define INITIAL_MANAGED_GROUPS 100
 
 char *lbuf  = NULL;
 int lbuflen = 0;
@@ -134,10 +135,20 @@ static void auth_unix_gid(FILE *f)
 	 */
 	uid_t uid;
 	struct passwd *pw;
-	gid_t glist[100], *groups = glist;
-	int ngroups = 100;
+	static gid_t *groups = NULL;
+	static int groups_len = 0;
+	gid_t *more_groups;
+	int ngroups = 0;
 	int rv, i;
 	char *cp;
+
+	if (groups_len == 0) {
+		groups = malloc(sizeof(gid_t) * INITIAL_MANAGED_GROUPS);
+		if (!groups)
+			return;
+
+		groups_len = ngroups = INITIAL_MANAGED_GROUPS;
+	}
 
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
@@ -151,13 +162,16 @@ static void auth_unix_gid(FILE *f)
 		rv = -1;
 	else {
 		rv = getgrouplist(pw->pw_name, pw->pw_gid, groups, &ngroups);
-		if (rv == -1 && ngroups >= 100) {
-			groups = malloc(sizeof(gid_t)*ngroups);
-			if (!groups)
+		if (rv == -1 && ngroups >= groups_len) {
+			more_groups = realloc(groups, sizeof(gid_t)*ngroups);
+			if (!more_groups)
 				rv = -1;
-			else
+			else {
+				groups = more_groups;
+				groups_len = ngroups;
 				rv = getgrouplist(pw->pw_name, pw->pw_gid,
 						  groups, &ngroups);
+			}
 		}
 	}
 	qword_printuint(f, uid);
@@ -169,9 +183,6 @@ static void auth_unix_gid(FILE *f)
 	} else
 		qword_printuint(f, 0);
 	qword_eol(f);
-
-	if (groups != glist)
-		free(groups);
 }
 
 #if USE_BLKID
