@@ -252,7 +252,8 @@ display_status_2(char *m, u_int32_t major, u_int32_t minor, const gss_OID mech)
 
 	if (major == GSS_S_CREDENTIALS_EXPIRED)
 		msg_verbosity = 1;
-	printerr(msg_verbosity, "ERROR: GSS-API: error in %s(): %s (%s) - %s(%s)\n",
+
+	printerr(msg_verbosity, "ERROR: GSS-API: error in %s(): %s (%s) - %s\n",
 		 m, gss_display_error(major), maj, min);
 
 	if (maj_gss_buf.length != 0)
