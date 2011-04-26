@@ -540,7 +540,7 @@ print_server_stats(int opt_prt)
 			;
 		} else {
 			print_numbers(LABEL_srvrpc
-				"calls      badcalls   badauth    badclnt    xdrcall\n",
+				"calls      badcalls   badclnt    badauth    xdrcall\n",
 				srvrpcinfo, 5);
 			printf("\n");
 		}
