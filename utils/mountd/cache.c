@@ -827,11 +827,11 @@ struct {
 	FILE *f;
 	char vbuf[RPC_CHAN_BUF_SIZE];
 } cachelist[] = {
-	{ "auth.unix.ip", auth_unix_ip, NULL},
-	{ "auth.unix.gid", auth_unix_gid, NULL},
-	{ "nfsd.export", nfsd_export, NULL},
-	{ "nfsd.fh", nfsd_fh, NULL},
-	{ NULL, NULL, NULL }
+	{ "auth.unix.ip", auth_unix_ip, NULL, ""},
+	{ "auth.unix.gid", auth_unix_gid, NULL, ""},
+	{ "nfsd.export", nfsd_export, NULL, ""},
+	{ "nfsd.fh", nfsd_fh, NULL, ""},
+	{ NULL, NULL, NULL, ""}
 };
 
 extern int manage_gids;
