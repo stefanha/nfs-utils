@@ -174,8 +174,13 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 		sockfd = socket(addr->ai_family, addr->ai_socktype,
 				addr->ai_protocol);
 		if (sockfd < 0) {
-			xlog(L_ERROR, "unable to create %s %s socket: "
-				"errno %d (%m)", family, proto, errno);
+			if (errno == EAFNOSUPPORT)
+				xlog(L_NOTICE, "address family %s not "
+						"supported by protocol %s",
+						family, proto);
+			else
+				xlog(L_ERROR, "unable to create %s %s socket: "
+				     "errno %d (%m)", family, proto, errno);
 			rc = errno;
 			goto error;
 		}
