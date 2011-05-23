@@ -12,6 +12,7 @@
 #include <string.h>		/* for index */
 #include <ctype.h>		/* for isdigit */
 #include <sys/stat.h>		/* for umask */
+#include <unistd.h>		/* for ftruncate */
 
 #include "nfs_mntent.h"
 #include "nls.h"
@@ -127,9 +128,11 @@ int
 nfs_addmntent (mntFILE *mfp, struct mntent *mnt) {
 	char *m1, *m2, *m3, *m4;
 	int res;
+	off_t length;
 
 	if (fseek (mfp->mntent_fp, 0, SEEK_END))
 		return 1;			/* failure */
+	length = ftell(mfp->mntent_fp);
 
 	m1 = mangle(mnt->mnt_fsname);
 	m2 = mangle(mnt->mnt_dir);
@@ -143,6 +146,12 @@ nfs_addmntent (mntFILE *mfp, struct mntent *mnt) {
 	free(m2);
 	free(m3);
 	free(m4);
+	if (res >= 0) {
+		res = fflush(mfp->mntent_fp);
+		if (res < 0)
+			/* Avoid leaving a corrupt mtab file */
+			ftruncate(fileno(mfp->mntent_fp), length);
+	}
 	return (res < 0) ? 1 : 0;
 }
 
