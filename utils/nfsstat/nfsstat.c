@@ -126,14 +126,11 @@ static const char *	nfscltproc4name[CLTPROC4_SZ] = {
 	"sequence",
 	"get_lease_t",
 	"reclaim_comp",
+	"getdevinfo",
 	"layoutget",
 	"layoutcommit",
 	"layoutreturn",
 	"getdevlist",
-	"getdevinfo",
-	/* nfsv4.1 pnfs client ops to data server only */
-	"ds_write",
-	"ds_commit",
 };
 
 static const char *     nfssrvproc4opname[SRVPROC4OPS_SZ] = {
