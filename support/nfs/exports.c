@@ -142,9 +142,14 @@ getexportent(int fromkernel, int fromexports)
 		return NULL;
 	}
 	first = 0;
-		
-	/* Check for default options */
-	if (exp[0] == '-') {
+
+	/*
+	 * Check for default options.  The kernel will never have default
+	 * options in /proc/fs/nfs/exports, however due to the initial '-' in
+	 * the -test-client- string from the test export we have to check that
+	 * we're not reading from the kernel.
+	 */
+	if (exp[0] == '-' && !fromkernel) {
 		if (parseopts(exp + 1, &def_ee, 0, &has_default_subtree_opts) < 0)
 			return NULL;
 		
