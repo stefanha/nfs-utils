@@ -6,7 +6,7 @@
 .SH NAME
 rpc.svcgssd \- server-side rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.svcgssd [-v] [-r] [-i] [-f] [-p principal]"
+.B "rpc.svcgssd [-n] [-v] [-r] [-i] [-f] [-p principal]"
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -37,7 +37,14 @@ If the nfsidmap library supports setting debug level,
 increases the verbosity of the output (can be specified multiple times).
 .TP
 .B -p
-Use \fIprincipal\fR instead of the default nfs/host.domain.
+Use \fIprincipal\fR instead of the default
+.RI nfs/ FQDN @ REALM .
+.TP
+.B -n
+Use the system default credentials
+.RI (host/ FQDN @ REALM )
+rather than the default
+.RI nfs/ FQDN @ REALM .
 .SH SEE ALSO
 .BR rpc.gssd(8),
 .SH AUTHORS
