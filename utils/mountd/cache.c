@@ -138,7 +138,7 @@ static void auth_unix_gid(FILE *f)
 	static gid_t *groups = NULL;
 	static int groups_len = 0;
 	gid_t *more_groups;
-	int ngroups = 0;
+	int ngroups;
 	int rv, i;
 	char *cp;
 
@@ -147,8 +147,10 @@ static void auth_unix_gid(FILE *f)
 		if (!groups)
 			return;
 
-		groups_len = ngroups = INITIAL_MANAGED_GROUPS;
+		groups_len = INITIAL_MANAGED_GROUPS;
 	}
+
+	ngroups = groups_len;
 
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
 		return;
