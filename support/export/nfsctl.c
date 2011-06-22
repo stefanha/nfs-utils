@@ -78,7 +78,7 @@ cltsetup(struct nfsctl_client *cltarg, nfs_client *clp)
 	str_tolower(cltarg->cl_ident);
 
 	j = 0;
-	for (i = 0; i < cltarg->cl_naddr && i < NFSCLNT_ADDRMAX; i++) {
+	for (i = 0; i < clp->m_naddr && i < NFSCLNT_ADDRMAX; i++) {
 		const struct sockaddr_in *sin = get_addrlist_in(clp, i);
 		if (sin->sin_family == AF_INET)
 			cltarg->cl_addrlist[j++] = sin->sin_addr;
