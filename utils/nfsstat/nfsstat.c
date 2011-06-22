@@ -118,7 +118,7 @@ static const char *	nfscltproc4name[CLTPROC4_SZ] = {
 	"remove",    "rename",    "link",    "symlink",     "create",      "pathconf",
 	"statfs",    "readlink",  "readdir", "server_caps", "delegreturn", "getacl",
 	"setacl",    "fs_locations",
-	"rel_lkowner",
+	"rel_lkowner", "secinfo",
 	/* nfsv4.1 client ops */
 	"exchange_id",
 	"create_ses",
@@ -126,8 +126,8 @@ static const char *	nfscltproc4name[CLTPROC4_SZ] = {
 	"sequence",
 	"get_lease_t",
 	"reclaim_comp",
-	"getdevinfo",
 	"layoutget",
+	"getdevinfo",
 	"layoutcommit",
 	"layoutreturn",
 	"getdevlist",
