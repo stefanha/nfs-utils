@@ -45,7 +45,7 @@ or restart the NFS server.
 .SS Machine Name Formats
 NFS clients may be specified in a number of ways:
 .IP "single host
-This is the most common format. You may specify a host either by an
+You may specify a host either by an
 abbreviated name recognized be the resolver, the fully qualified domain
 name, an IPv4 address, or an IPv6 address.
 .IP "IP networks
