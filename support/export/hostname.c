@@ -258,17 +258,19 @@ host_canonname(const struct sockaddr *sap)
  * @sap: pointer to socket address to look up
  *
  * Reverse and forward lookups are performed to ensure the address has
- * proper forward and reverse mappings.
+ * matching forward and reverse mappings.
  *
- * Returns address info structure with ai_canonname filled in, or NULL
- * if no information is available for @sap.  Caller must free the returned
- * structure with freeaddrinfo(3).
+ * Returns addrinfo structure with just the provided address with
+ * ai_canonname filled in. If there is a problem with resolution or
+ * the resolved records don't match up properly then it returns NULL
+ *
+ * Caller must free the returned structure with freeaddrinfo(3).
  */
 __attribute_malloc__
 struct addrinfo *
 host_reliable_addrinfo(const struct sockaddr *sap)
 {
-	struct addrinfo *ai;
+	struct addrinfo *ai, *a;
 	char *hostname;
 
 	hostname = host_canonname(sap);
@@ -276,9 +278,31 @@ host_reliable_addrinfo(const struct sockaddr *sap)
 		return NULL;
 
 	ai = host_addrinfo(hostname);
+	if (!ai)
+		goto out_free_hostname;
 
-	free(hostname);
+	/* make sure there's a matching address in the list */
+	for (a = ai; a; a = a->ai_next)
+		if (nfs_compare_sockaddr(a->ai_addr, sap))
+			break;
+
+	freeaddrinfo(ai);
+	if (!a)
+		goto out_free_hostname;
+
+	/* get addrinfo with just the original address */
+	ai = host_numeric_addrinfo(sap);
+	if (!ai)
+		goto out_free_hostname;
+
+	/* and populate its ai_canonname field */
+	free(ai->ai_canonname);
+	ai->ai_canonname = hostname;
 	return ai;
+
+out_free_hostname:
+	free(hostname);
+	return NULL;
 }
 
 /**
