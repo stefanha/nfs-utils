@@ -341,6 +341,17 @@ static char *next_mnt(void **v, char *p)
 	return me->mnt_dir;
 }
 
+/* True iff e1 is a child of e2 and e2 has crossmnt set: */
+static bool subexport(struct exportent *e1, struct exportent *e2)
+{
+	char *p1 = e1->e_path, *p2 = e2->e_path;
+	int l2 = strlen(p2);
+
+	return e2->e_flags & NFSEXP_CROSSMOUNT
+	       && strncmp(p1, p2, l2) == 0
+	       && p1[l2] == '/';
+}
+
 static void nfsd_fh(FILE *f)
 {
 	/* request are:
@@ -550,13 +561,14 @@ static void nfsd_fh(FILE *f)
 				if (!client_check(exp->m_client, ai))
 					continue;
 			}
-			/* It's a match !! */
-			if (!found) {
+			if (!found || subexport(&exp->m_export, found)) {
 				found = &exp->m_export;
+				free(found_path);
 				found_path = strdup(path);
 				if (found_path == NULL)
 					goto out;
-			} else if (strcmp(found->e_path, exp->m_export.e_path)!= 0)
+			} else if (strcmp(found->e_path, exp->m_export.e_path)
+				   && !subexport(found, &exp->m_export))
 			{
 				xlog(L_WARNING, "%s and %s have same filehandle for %s, using first",
 				     found_path, path, dom);
