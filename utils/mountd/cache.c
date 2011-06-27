@@ -364,6 +364,137 @@ struct parsed_fsid {
 	char *fhuuid;
 };
 
+int parse_fsid(int fsidtype, int fsidlen, char *fsid, struct parsed_fsid *parsed)
+{
+	unsigned int dev;
+	unsigned long long inode64;
+
+	parsed->fsidtype = fsidtype;
+	switch(fsidtype) {
+	case FSID_DEV: /* 4 bytes: 2 major, 2 minor, 4 inode */
+		if (fsidlen != 8)
+			return -1;
+		memcpy(&dev, fsid, 4);
+		memcpy(&parsed->inode, fsid+4, 4);
+		parsed->major = ntohl(dev)>>16;
+		parsed->minor = ntohl(dev) & 0xFFFF;
+		break;
+
+	case FSID_NUM: /* 4 bytes - fsid */
+		if (fsidlen != 4)
+			return -1;
+		memcpy(&parsed->fsidnum, fsid, 4);
+		break;
+
+	case FSID_MAJOR_MINOR: /* 12 bytes: 4 major, 4 minor, 4 inode 
+		 * This format is never actually used but was
+		 * an historical accident
+		 */
+		if (fsidlen != 12)
+			return -1;
+		memcpy(&dev, fsid, 4);
+		parsed->major = ntohl(dev);
+		memcpy(&dev, fsid+4, 4);
+		parsed->minor = ntohl(dev);
+		memcpy(&parsed->inode, fsid+8, 4);
+		break;
+
+	case FSID_ENCODE_DEV: /* 8 bytes: 4 byte packed device number, 4 inode */
+		/* This is *host* endian, not net-byte-order, because
+		 * no-one outside this host has any business interpreting it
+		 */
+		if (fsidlen != 8)
+			return -1;
+		memcpy(&dev, fsid, 4);
+		memcpy(&parsed->inode, fsid+4, 4);
+		parsed->major = (dev & 0xfff00) >> 8;
+		parsed->minor = (dev & 0xff) | ((dev >> 12) & 0xfff00);
+		break;
+
+	case FSID_UUID4_INUM: /* 4 byte inode number and 4 byte uuid */
+		if (fsidlen != 8)
+			return -1;
+		memcpy(&parsed->inode, fsid, 4);
+		parsed->uuidlen = 4;
+		parsed->fhuuid = fsid+4;
+		break;
+	case FSID_UUID8: /* 8 byte uuid */
+		if (fsidlen != 8)
+			return -1;
+		parsed->uuidlen = 8;
+		parsed->fhuuid = fsid;
+		break;
+	case FSID_UUID16: /* 16 byte uuid */
+		if (fsidlen != 16)
+			return -1;
+		parsed->uuidlen = 16;
+		parsed->fhuuid = fsid;
+		break;
+	case FSID_UUID16_INUM: /* 8 byte inode number and 16 byte uuid */
+		if (fsidlen != 24)
+			return -1;
+		memcpy(&inode64, fsid, 8);
+		parsed->inode = inode64;
+		parsed->uuidlen = 16;
+		parsed->fhuuid = fsid+8;
+		break;
+	}
+	return 0;
+}
+
+static bool match_fsid(struct parsed_fsid *parsed, nfs_export *exp, char *path)
+{
+	struct stat stb;
+	int type;
+	char u[16];
+
+	if (stat(path, &stb) != 0)
+		return false;
+	if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode))
+		return false;
+
+	switch (parsed->fsidtype) {
+	case FSID_DEV:
+	case FSID_MAJOR_MINOR:
+	case FSID_ENCODE_DEV:
+		if (stb.st_ino != parsed->inode)
+			return false;
+		if (parsed->major != major(stb.st_dev) ||
+		    parsed->minor != minor(stb.st_dev))
+			return false;
+		return true;
+	case FSID_NUM:
+		if (((exp->m_export.e_flags & NFSEXP_FSID) == 0 ||
+		     exp->m_export.e_fsid != parsed->fsidnum))
+			return false;
+		return true;
+	case FSID_UUID4_INUM:
+	case FSID_UUID16_INUM:
+		if (stb.st_ino != parsed->inode)
+			return false;
+		goto check_uuid;
+	case FSID_UUID8:
+	case FSID_UUID16:
+		if (!is_mountpoint(path))
+			return false;
+	check_uuid:
+		if (exp->m_export.e_uuid)
+			get_uuid(exp->m_export.e_uuid, parsed->uuidlen, u);
+		else
+			for (type = 0;
+			     uuid_by_path(path, type, parsed->uuidlen, u);
+			     type++)
+				if (memcmp(u, parsed->fhuuid, parsed->uuidlen) == 0)
+					return true;
+
+		if (memcmp(u, parsed->fhuuid, parsed->uuidlen) != 0)
+			return false;
+		return true;
+	}
+	/* Well, unreachable, actually: */
+	return false;
+}
+
 static void nfsd_fh(FILE *f)
 {
 	/* request are:
@@ -375,8 +506,6 @@ static void nfsd_fh(FILE *f)
 	char *dom;
 	int fsidtype;
 	int fsidlen;
-	unsigned long long inode64;
-	unsigned int dev;
 	char fsid[32];
 	struct parsed_fsid parsed;
 	struct exportent *found = NULL;
@@ -392,7 +521,7 @@ static void nfsd_fh(FILE *f)
 	xlog(D_CALL, "nfsd_fh: inbuf '%s'", lbuf);
 
 	cp = lbuf;
-	
+
 	dom = malloc(strlen(cp));
 	if (dom == NULL)
 		return;
@@ -404,75 +533,8 @@ static void nfsd_fh(FILE *f)
 		goto out; /* unknown type */
 	if ((fsidlen = qword_get(&cp, fsid, 32)) <= 0)
 		goto out;
-	switch(fsidtype) {
-	case FSID_DEV: /* 4 bytes: 2 major, 2 minor, 4 inode */
-		if (fsidlen != 8)
-			goto out;
-		memcpy(&dev, fsid, 4);
-		memcpy(&parsed.inode, fsid+4, 4);
-		parsed.major = ntohl(dev)>>16;
-		parsed.minor = ntohl(dev) & 0xFFFF;
-		break;
-
-	case FSID_NUM: /* 4 bytes - fsid */
-		if (fsidlen != 4)
-			goto out;
-		memcpy(&parsed.fsidnum, fsid, 4);
-		break;
-
-	case FSID_MAJOR_MINOR: /* 12 bytes: 4 major, 4 minor, 4 inode 
-		 * This format is never actually used but was
-		 * an historical accident
-		 */
-		if (fsidlen != 12)
-			goto out;
-		memcpy(&dev, fsid, 4);
-		parsed.major = ntohl(dev);
-		memcpy(&dev, fsid+4, 4);
-		parsed.minor = ntohl(dev);
-		memcpy(&parsed.inode, fsid+8, 4);
-		break;
-
-	case FSID_ENCODE_DEV: /* 8 bytes: 4 byte packed device number, 4 inode */
-		/* This is *host* endian, not net-byte-order, because
-		 * no-one outside this host has any business interpreting it
-		 */
-		if (fsidlen != 8)
-			goto out;
-		memcpy(&dev, fsid, 4);
-		memcpy(&parsed.inode, fsid+4, 4);
-		parsed.major = (dev & 0xfff00) >> 8;
-		parsed.minor = (dev & 0xff) | ((dev >> 12) & 0xfff00);
-		break;
-
-	case FSID_UUID4_INUM: /* 4 byte inode number and 4 byte uuid */
-		if (fsidlen != 8)
-			goto out;
-		memcpy(&parsed.inode, fsid, 4);
-		parsed.uuidlen = 4;
-		parsed.fhuuid = fsid+4;
-		break;
-	case FSID_UUID8: /* 8 byte uuid */
-		if (fsidlen != 8)
-			goto out;
-		parsed.uuidlen = 8;
-		parsed.fhuuid = fsid;
-		break;
-	case FSID_UUID16: /* 16 byte uuid */
-		if (fsidlen != 16)
-			goto out;
-		parsed.uuidlen = 16;
-		parsed.fhuuid = fsid;
-		break;
-	case FSID_UUID16_INUM: /* 8 byte inode number and 16 byte uuid */
-		if (fsidlen != 24)
-			goto out;
-		memcpy(&inode64, fsid, 8);
-		parsed.inode = inode64;
-		parsed.uuidlen = 16;
-		parsed.fhuuid = fsid+8;
-		break;
-	}
+	if (parse_fsid(fsidtype, fsidlen, fsid, &parsed))
+		goto out;
 
 	auth_reload();
 
@@ -480,10 +542,7 @@ static void nfsd_fh(FILE *f)
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		nfs_export *next_exp;
 		for (exp = exportlist[i].p_head; exp; exp = next_exp) {
-			struct stat stb;
-			char u[16];
 			char *path;
-			int type;
 
 			if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT) {
 				static nfs_export *prev = NULL;
@@ -516,50 +575,9 @@ static void nfsd_fh(FILE *f)
 					   exp->m_export.e_mountpoint:
 					   exp->m_export.e_path))
 				dev_missing ++;
-			if (stat(path, &stb) != 0)
-				continue;
-			if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
-				continue;
-			}
-			switch(fsidtype){
-			case FSID_DEV:
-			case FSID_MAJOR_MINOR:
-			case FSID_ENCODE_DEV:
-				if (stb.st_ino != parsed.inode)
-					continue;
-				if (parsed.major != major(stb.st_dev) ||
-				    parsed.minor != minor(stb.st_dev))
-					continue;
-				break;
-			case FSID_NUM:
-				if (((exp->m_export.e_flags & NFSEXP_FSID) == 0 ||
-				     exp->m_export.e_fsid != parsed.fsidnum))
-					continue;
-				break;
-			case FSID_UUID4_INUM:
-			case FSID_UUID16_INUM:
-				if (stb.st_ino != parsed.inode)
-					continue;
-				goto check_uuid;
-			case FSID_UUID8:
-			case FSID_UUID16:
-				if (!is_mountpoint(path))
-					continue;
-			check_uuid:
-				if (exp->m_export.e_uuid)
-					get_uuid(exp->m_export.e_uuid,
-						 parsed.uuidlen, u);
-				else
-					for (type = 0;
-					     uuid_by_path(path, type, parsed.uuidlen, u);
-					     type++)
-						if (memcmp(u, parsed.fhuuid, parsed.uuidlen) == 0)
-							break;
 
-				if (memcmp(u, parsed.fhuuid, parsed.uuidlen) != 0)
-					continue;
-				break;
-			}
+			if (!match_fsid(&parsed, exp, path))
+				continue;
 			if (use_ipaddr) {
 				if (ai == NULL) {
 					struct addrinfo *tmp;
