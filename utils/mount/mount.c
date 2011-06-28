@@ -374,7 +374,7 @@ static int try_mount(char *spec, char *mount_point, int flags,
 int main(int argc, char *argv[])
 {
 	int c, flags = 0, mnt_err = 1, fake = 0;
-	char *spec, *mount_point, *fs_type = "nfs";
+	char *spec = NULL, *mount_point = NULL, *fs_type = "nfs";
 	char *extra_opts = NULL, *mount_opts = NULL;
 	uid_t uid = getuid();
 
@@ -397,9 +397,6 @@ int main(int argc, char *argv[])
 		mount_usage();
 		exit(EX_USAGE);
 	}
-
-	spec = argv[1];
-	mount_point = argv[2];
 
 	mount_config_init(progname);
 
@@ -447,6 +444,14 @@ int main(int argc, char *argv[])
 	if (optind != argc - 2) {
 		mount_usage();
 		goto out_usage;
+	} else {
+		while (optind < argc) {
+			if (!spec)
+				spec = argv[optind];
+			else
+				mount_point = argv[optind];
+			optind++;
+		}
 	}
 
 	if (strcmp(progname, "mount.nfs4") == 0)
