@@ -331,16 +331,43 @@ lock_mtab (void) {
 		int sig = 0;
 		struct sigaction sa;
 
-		sa.sa_handler = handler;
 		sa.sa_flags = 0;
 		sigfillset (&sa.sa_mask);
   
-		while (sigismember (&sa.sa_mask, ++sig) != -1
-		       && sig != SIGCHLD) {
-			if (sig == SIGALRM)
+		while (sigismember (&sa.sa_mask, ++sig) != -1) {
+			switch(sig) {
+			case SIGCHLD:
+			case SIGKILL:
+			case SIGCONT:
+			case SIGSTOP:
+				/* The cannot be caught, or should not,
+				 * so don't even try.
+				 */
+				continue;
+			case SIGALRM:
 				sa.sa_handler = setlkw_timeout;
-			else
+				break;
+			case SIGHUP:
+			case SIGINT:
+			case SIGQUIT:
+			case SIGWINCH:
+			case SIGTSTP:
+			case SIGTTIN:
+			case SIGTTOU:
+			case SIGPIPE:
+			case SIGXFSZ:
+			case SIGXCPU:
+				/* non-priv user can cause these to be
+				 * generated, so ignore them.
+				 */
+				sa.sa_handler = SIG_IGN;
+				break;
+			default:
+				/* The rest should not be possible, so just
+				 * print a message and unlock mtab.
+				 */
 				sa.sa_handler = handler;
+			}
 			sigaction (sig, &sa, (struct sigaction *) 0);
 		}
 		signals_have_been_setup = 1;
