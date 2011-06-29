@@ -1,2063 +1,1516 @@
-commit 3030aded70e616cdeac4223785754b86a33b587d
-Author: Eberhard Kuemmerle <e.kuemmerle@fz-juelich.de>
-Date:   Mon Sep 27 13:24:48 2010 -0400
+commit 057d2add27d1e05fed3ae7206ee043b6c1fda45a
+Author: NeilBrown <neilb@suse.de>
+Date:   Tue Jun 28 13:24:33 2011 -0400
 
-    Added the -p <principal> flag to the svcgssd manpage
-    
-    Signed-off-by:  Eberhard Kuemmerle <E.Kuemmerle@fz-juelich.de>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 6cc96cada639a823961d5d8a136cbcdc8b8952b8
-Author: Eberhard Kuemmerle <e.kuemmerle@fz-juelich.de>
-Date:   Mon Sep 27 13:16:23 2010 -0400
-
-    svcgssd: Adding a <-p principal> flag
-    
-    Allow the principal that is used to get the machines creds definable
-    on the command like with the new '-p <principal>'. This is useful
-    in cluster environments.
-    
-    Signed-off-by:  Eberhard Kuemmerle <E.Kuemmerle@fz-juelich.de>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 837796686ad8f9178c7b6855ada728a53ae511e3
-Author: David Lecorfe <dlecorfec@gmail.com>
-Date:   Mon Sep 27 13:29:31 2010 -0400
-
-    nfs-iostat.py: don't wait for an extra interval when given a count
-    
-    If I invoke the tool with an interval of 10 and a count of 2, it will:
-    - show the summary
-    - sleep 10s
-    - show the stats for the last 10s
-    - sleep 10s
-    - exit
-    
-    Signed-off-by: David Lecorfe <dlecorfec@gmail.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit eaa588a137b0b2f38aa9e9c542635a222e51ee48
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:16:34 2010 -0400
-
-    nfsd: Enable IPv6 support in rpc.nfsd again.
-    
-    Revert commit b2a3cd59 so that rpc.nfsd can create IPv6 listener
-    sockets for the kernel.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit c18e9a780f376b868e62b75abe64b0fd9915ada5
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:14:34 2010 -0400
-
-    mountd: Update mountd/exportfs man pages to reflect IPv6 changes
-    
-    Document IPv6 support in rpc.mountd and exportfs, and clarify existing
-    language in the man page.
-    
-    Clean up: Use bold consistently for program names, and italics
-    consistently for file names.  Use "rpc.mountd" consistently as the
-    name of the mountd daemon.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 7e454e03131f56872639fe7b62b726479b22c087
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:13:39 2010 -0400
-
-    mountd: Use MNT status values instead of NFSERR
-    
-    Clean up:  The MNT protocol has its own enum type defining error
-    status values.  While the values can be the same as the NFSERR enum
-    type on some systems, it's not guaranteed to be true everywhere.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit ef32b76ae37926faacaf4b8121eba638567c4692
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:11:18 2010 -0400
-
-    mountd: Fix up version and usage messages
-    
-    Clean up: rpc.mountd is no longer known as kmountd.  Use the program's
-    basename rather than the full pathname for the usage message.  Display
-    a version message at start up similar to statd's.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 2c15cf2963367dee7106964c38ab7b1e30ba347d
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:09:49 2010 -0400
-
-    mountd: Unregister mountd if my_svc_run() returns
-    
-    Fix a long standing bug: when my_svc_run() returns, mountd should
-    unregister itself with the local rpcbind so that it can subsequently
-    start cleanly.
-    
-    Log a more helpful error message in this case.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit b551b1fd0052de9b8c674b30c39d9f2a1e9d79cc
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:09:10 2010 -0400
-
-    mountd: Support TI-RPC mountd listener
-    
-    If TI-RPC is available, use it to create mountd's svc listener.  If
-    not, use the old function, rpc_init(), to create mountd's listener.
-    
-    IPv6 can be supported if TI-RPC is available.  In this case,
-    /etc/netconfig is searched to determine which transports to advertise.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit c5571da8e92f87fc9ec6e8aa8075c69497361c87
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 10:06:35 2010 -0400
-
-    mountd: Make NFS version checks more strict
-    
-    Ensure users and programmers specify NFS version numbers correctly.
-    This also makes the next patch more clean.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 05f93b531d59df6e976d9b40c97b51546524040a
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Sep 27 09:50:11 2010 -0400
-
-    nfs-utils: Fix source code character encoding
-    
-    Minor clean up.
-    
-    Most modern Linux distributions set UTF-8 locales.  Standardize the
-    character encoding of source files on UTF-8, to squelch vim com-
-    plaints.
-    
-    I probably missed a few spots.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 5341111d4b34bcd1b1263d5ed215cbe375aa9314
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Sep 27 09:35:26 2010 -0400
-
-    libnfs.a: Remove support/nfs/fstab.c
+    Do not compile unnecessary files when the libmount code is enable
     
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 72ae199db4be7bf0092e15adaa8a43ce2434bf9f
+commit 30ebf04700654deddbf5f57d95e84ec69cea8610
+Author: Prem Karat <prem.karat@linux.vnet.ibm.com>
+Date:   Tue Jun 28 11:53:40 2011 -0400
+
+    mount.nfs: Don't hard code source and destination
+    
+    Currently souce and destination parameters should be passed as first and
+    second paramter while using mount.nfs. This patch allows them to be passed
+    anywhere while mounting.
+    
+    Current functionality is
+    	mount.nfs source destn -o <options>
+    This patch will allow to do this
+    	mount.nfs -o <options> source destn
+    		or
+    	mount.nfs -o <options> source -o <options> destn
+    
+    Signed-off-by: Prem Karat <prem.karat@linux.vnet.ibm.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit b3e190c4adfc9ec47567c968bd000d282d07b05e
+Author: NeilBrown <neilb@suse.de>
+Date:   Tue Jun 28 11:36:31 2011 -0400
+
+    mount: improve signal management when locking mtab
+    
+    As mount.nfs can run setuid it must be careful about how the user can
+    interact with in.  In particular it needs to ensure it does not
+    respond badly to any signals that the user might be able to generate.
+    
+    This is particularly an issue while updating /etc/mtab (when that is
+    not linked to /proc/mounts).  If the user can generate a signal which
+    kills mount.nfs while /etc/mtab is locked, then it will leave the file
+    locked, and could possibly corrupt mtab (particularly if 'ulimit 1'
+    was previously issued).
+    
+    Currently lock_mtab does set some handlers for signals, but not
+    enough.  It arranges for every signal up to (but not including)
+    SIGCHLD to cause mount.nfs to unlock mdadm promptly exit ... even if
+    the default behaviour would be to ignore the signal.  SIGALRM is
+    handled specially, and signals after SIGCHLD are left with their
+    default behaviour.  This includes for example SIGXFSZ which can be
+    generated by the user running "ulimit 1".
+    
+    So: change this so that some signals are left unchanged, SIGALRM is
+    handled as required, and all signals that the user can generate are
+    explicitly ignored.
+    
+    The remainder still cause mount.nfs to print a message, unlock mtab, and
+    exit.
+    
+    Signed-off-by: NeilBrown <neilb@suse.de>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit a99b7846e2abec5e26ab6b764b921d79559e0a0f
+Author: J. Bruce Fields <bfields@redhat.com>
+Date:   Mon Jun 27 12:31:07 2011 -0400
+
+    mountd: move fsidtype-specific code to helpers
+    
+    Now we can move these big switch statements into helper functions.
+    
+    Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit e6559fd0b7b63f5d152d33d598dc74d78df30ecb
+Author: J. Bruce Fields <bfields@redhat.com>
+Date:   Mon Jun 27 12:30:36 2011 -0400
+
+    mountd: gather fsid information into one struct
+    
+    A large part of nfsd_fh() is concerned with extracting
+    fsid-type-specific information from the fsid, then matching that
+    information with information from the export list and the filesystem.
+    
+    Moving all that information into one struct will allow some further
+    simplifications.
+    
+    Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 13a0a61d037f2cc09e7997a96ce5822b9317883b
+Author: J. Bruce Fields <bfields@redhat.com>
+Date:   Mon Jun 27 12:29:51 2011 -0400
+
+    mountd: prefer explicit subexports over crossmnt parents
+    
+    If a parent is exported with crossmnt, and if a child is also explicitly
+    exported, then both exports could potentially produce matches in this
+    loop; that isn't a bug.
+    
+    Instead of warning and ignoring the second match we find, we should
+    instead prefer whichever export is deeper in the tree, so that
+    children's options can override those of their parents.
+    
+    Reported-by: Olga Kornievskaia <aglo@citi.umich.edu>
+    Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit f8d26c1db9a260597828685c7f62e1b29e78285f
 Author: Jeff Layton <jlayton@redhat.com>
-Date:   Thu Sep 16 14:34:39 2010 -0400
+Date:   Wed Jun 22 15:52:55 2011 -0400
 
-    rpc.nfsd: mount up nfsdfs is it doesn't appear to be mounted yet
-    
-    There's a bit of a chicken and egg problem when nfsd is run the first
-    time. On Fedora/RHEL at least, /proc/fs/nfsd is mounted up whenever nfsd
-    is plugged in via a modprobe.conf "install" directive.
-    
-    If someone runs rpc.nfsd without plugging in nfsd.ko first,
-    /proc/fs/nfsd won't be mounted and rpc.nfsd will end up using the legacy
-    nfsctl interface. After that, nfsd will be plugged in and subsequent
-    rpc.nfsd invocations will use that instead.
-    
-    This is a problem as some nfsd command-line options are ignored when the
-    legacy interface is used. It'll also be a problem for people who want
-    IPv6 enabled servers. The upshot is that we really don't want to use the
-    legacy interface unless there is no other option.
-    
-    To avoid this situation, have rpc.nfsd check to see if the "threads"
-    file is already present. If it's not, then make an attempt to mount
-    /proc/fs/nfsd.  This is a "best-effort" sort of thing, however so we
-    just ignore the return code from the mount attempt and fall back to
-    using nfsctl() if it fails.
+    manpage: add section on character class matches to exports(5)
     
     Signed-off-by: Jeff Layton <jlayton@redhat.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 63afb96b9d36e72782ad25ca496896029a9d9061
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 14:25:52 2010 -0400
+commit cb6676aea5bcfcbeaf868e53177eff51f4efe9a8
+Author: James Pearson <james-p@moving-picture.com>
+Date:   Wed Jun 22 15:51:47 2011 -0400
 
-    libexport.a: Enable IPv6 support in hostname.c
+    nfs-utils: remove possibly false statement from exports.man
     
-    If --enable-ipv6 is specified when building nfs-utils, libexport's
-    host_foo() helpers can now return both IPv4 and IPv6 addresses.
+    A very minor change suggested by J. Bruce Fields <bfields@fieldses.org>
+    to remove the statement that exporting to a single host or IP address is
+    the "most common format" - as it probably isn't.
     
-    This means IPv6 presentation addresses and IPv6 DNS resolution
-    results are handled properly in the mountd cache and /etc/exports,
-    but does not yet enable IPv6 mountd listeners.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: James Pearson <james-p@moving-picture.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit d901e329e380a2adc22783b1b241e414aa24cf51
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 14:21:48 2010 -0400
+commit 7d71ff8e3825a7f8c2d5c9b5b9344e95e7aa1392
+Author: Jeff Layton <jlayton@redhat.com>
+Date:   Wed Jun 22 15:51:02 2011 -0400
 
-    mountd: Ensure cache downcall can handle IPv6 addresses
+    manpage: add info about IPv6 configuration to exports(5)
     
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    The parts of the exports(5) manpage that discuss IP addressing neglect
+    IPv6 configuration. Update to include info on how to export to IPv6
+    subnets and addresses, and add a line demonstrating that to the EXAMPLE
+    section.
+    
+    Signed-off-by: Jeff Layton <jlayton@redhat.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 1ba28ec59f39de0bc4953b42556d847efbb508eb
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 14:21:08 2010 -0400
+commit 545ea1098089d6396d5a70111ec231c4de967faa
+Author: Benny Halevy <benny@tonian.com>
+Date:   Wed Jun 22 15:44:17 2011 -0400
 
-    mountd: Handle IPv6 addresses in kernel auth_unix_ip upcalls
+    nfsstat: reorder nfs4 stats for 2.6.39
     
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Benny Halevy <benny@tonian.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit ffe8c9a084fec4fdd3acfcf4b36fbe434d297b82
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 14:19:19 2010 -0400
+commit c7ce7a4674ad446bee4dd3baf90155ce6b216816
+Author: Mi Jinlong <mijinlong@cn.fujitsu.com>
+Date:   Wed Jun 22 15:41:27 2011 -0400
 
-    mountd: clean up cache API
+    libexport.a: fix using bad index for loop at cltsetup()
     
-    Clean up: Squelch compiler warnings and document public parts of
-    cache API.
+    In cltsetup(), when checking the address, use clp's naddr for index,
+    instead of  cltarg's naddr, which it's always zero there.
     
-    cache.c: At top level:
-    cache.c:67: warning: no previous prototype for auth_unix_ip
-    cache.c:123: warning: no previous prototype for auth_unix_gid
-    cache.c:217: warning: no previous prototype for get_uuid
-    cache.c:247: warning: no previous prototype for uuid_by_path
-    cache.c:326: warning: no previous prototype for nfsd_fh
-    cache.c:745: warning: no previous prototype for nfsd_export
-    cache.c:820: warning: no previous prototype for cache_open
-    cache.c:832: warning: no previous prototype for cache_set_fd
-    cache.c:841: warning: no previous prototype for
-    cache_process_req
-    cache.c:921: warning: no previous prototype for cache_export
-    cache.c:953: warning: no previous prototype for
-    cache_get_filehandle
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Mi Jinlong <mijinlong@cn.fujitsu.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 6f189dae5eb38800c8ae3e2d5c098d11fb44d7d5
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 14:17:08 2010 -0400
+commit b50ad13298b3e9519a9bdecb8c146c9ecf39cef8
+Author: Jeff Layton <jlayton@redhat.com>
+Date:   Wed Jun 22 14:51:38 2011 -0400
 
-    exportfs: Enable IPv6 support in matchhostname()
+    nfs: fix host_reliable_addrinfo
     
-    To gain IPv6 support in matchhostname(), simply replace the socket
-    address comparison helpers with the generic versions that can handle
-    IPv4 and IPv6.
+    According to Neil Brown:
     
-    host_addrinfo() (called by matchhostname()) returns IPv6 addresses
-    only if IPv6 support is enabled.
+        The point of the word 'reliable' is to check that the name we get
+        really does belong to the host in question - ie that both the
+        forward and reverse maps agree.
     
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+        But the new code doesn't do that check at all.  Rather it simply
+        maps the address to a name, then discards the address and maps the
+        name back to a list of addresses and uses that list of addresses as
+        "where the request came from" for permission checking.
+    
+    This bug is exploitable via the following scenario and could allow an
+    attacker access to data that they shouldn't be able to access.
+    
+        Suppose you export a filesystem to some subnet or FQDN and also to a
+        wildcard or netgroup, and I know the details of this (maybe
+        showmount -e tells me) Suppose further that I can get IP packets to
+        your server..
+    
+        Then I create a reverse mapping for my ipaddress to a domain that I
+        own, say "black.hat.org", and a forward mapping from that domain to
+        my IP address, and one of your IP addresses.
+    
+        Then I try to mount your filesystem.  The IP address gets correctly
+        mapped to "black.hat.org" and then mapped to both my IP address and
+        your IP address.
+    
+        Then you search through all of your exports and find that one of the
+        addresses: yours - is allowed to access the filesystem.
+    
+        So you create an export based on the addrinfo you have which allows
+        my IP address the same access as your IP address.
+    
+    Fix this by instead using the forward lookup of the hostname just to
+    verify that the original address is in the list. Then do a numeric
+    lookup using the address and stick the hostname in the ai_canonname.
+    
+    Reviewed-by: NeilBrown <neilb@suse.de>
+    Signed-off-by: Jeff Layton <jlayton@redhat.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 10a6b17d3588647ab5e1ee81ba40f1ce12a5184d
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 13:54:21 2010 -0400
+commit 7235a2164aabfd8dba1f7e1577047bda45053db0
+Author: James Pearson <james-p@moving-picture.com>
+Date:   Tue Jun 7 16:25:13 2011 -0400
 
-    mountd: Support IPv6 in mountlist_list()
+    exports: Clearly Defining Exports Priorities
     
-    Replace inet_aton(3) and gethostbyaddr(3) calls in mountlist_list()
-    with calls to the new host_foo() DNS helpers.
-    
-    The new functions will support IPv6 without additional changes, once
-    IPv6 is enabled in the generic hostname helpers.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 76209cdbe989ee4cdfbf489f2695ac779457e763
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 13:51:51 2010 -0400
-
-    mountd: Handle memory exhaustion in mountlist_list()
-    
-    I'm about to replace inet_aton(3)/gethostbyaddr(3) with
-    host_pton()/host_canonname() in mountlist_list().
-    
-    Since host_canonname() returns a string allocated with strdup(3)
-    instead of xstrdup(), mountlist_list() must now deal with memory
-    exhaustion properly.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit a8348c2c48d45f991995707fa22a2fa441aaa907
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 13:48:38 2010 -0400
-
-    mountd: Add mountlist_freeall()
-    
-    I'm about to add a second bit of logic that needs to free all
-    mountlist records, so introduce a helper for freeing them.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 454aea5dad83ca75f3154ff12ecff39169703e69
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 13:46:26 2010 -0400
-
-    mountd: support IPv6 in mountlist_del_all()
-    
-    Replace IPv4-specific code in the mountlist_del_all() path with code
-    that is address family agnostic.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 4210d6f0c9cad57907877bf1e5d32ebe4a27bf17
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 13:44:02 2010 -0400
-
-    mountd: Support IPv6 in mountd's svc routines
-    
-    Replace IPv4-specific code with use of our generic hostname helpers
-    in the routines that handle incoming MNT RPC requests.
-    
-    These functions will support IPv6 without additional changes, once
-    IPv6 is enabled in the generic hostname helpers.
-    
-    As part of this update, I've modified all of mountd's _svc routines
-    to use a debug message format that is consistent with statd.  It may
-    be overkill for some of these; if so we can pull them out later.
+    Added some verbiage to the exports(5) man page
+    that clearly explains the precedence around
+    how exports will work with regard to netgroups.
     
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit f35762f959cc5f29ad7817f8b7968e3792132651
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 13:39:39 2010 -0400
+commit a36f2437caffb23c68fdc0900544d59198bd52b6
+Author: Neil Brown <neilb@suse.de>
+Date:   Tue Jun 7 13:18:55 2011 -0400
 
-    mountd: add IPv6 support in auth_authenticate()
+    Document "-n" for svcgssd
     
-    Make the entire auth_authenticate() code path address-family agnostic.
+    The svcgssd man page doesn't mention the "-n" flag.
     
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: NeilBrown <neilb@suse.de>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 29b8a7700129d9768e3e2d94c81eec9f84ba8691
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 09:32:52 2010 -0400
+commit 40aed2c3fb5164195a9975ae7f15ebd4b992839d
+Author: Pavel Shilovsky <piastry@etersoft.ru>
+Date:   Tue Jun 7 13:18:13 2011 -0400
 
-    libnfs.a: Fix API for getfh() & friends
+    mountd: Fix missing varialble assignment in auth_unix_gid
     
-    This is more of a clean-up than a behavioral change.
+    When we get into auth_unix_gid at the second time, groups_len
+    is not 0 and ngroups variable leave as 0. Then we use ngroups
+    in getgrouplist that fails in this case. This patch fixes it.
     
-    POSIX requires that a "struct sockaddr" is the same size as a "struct
-    sockaddr_in".  Therefore, a variable or field of type "struct sockaddr"
-    cannot contain an AF_INET6 address.  However, "struct sockaddr *" is
-    often used to reference a generic (ie non-address family specific)
-    socket address, generating some confusion about this.
-    
-    The nfsctl_arg struct uses a struct sockaddr (not a pointer) to pass
-    the client's IP address to the kernel.  This means the legacy nfsctl()
-    kernel API can never support IPv6.  Fortunately for us, this legacy
-    interface was replaced by a text-based cache interface a few years
-    back.  We don't need to support non-AF_INET addresses here.
-    
-    The getfh() functions in nfs-utils provide a handy C API for the
-    kernel's nfsctl interface.  The getfh() functions still take a struct
-    sockaddr *, though, and that can imply that a non-IPv4 address can be
-    passed via this API.  To make it abundantly clear that only IPv4
-    addresses can be used with this interface, change the synopses of
-    getfh() and friends to take a struct sockaddr_in * instead of a struct
-    sockaddr * .
-    
-    This makes these functions conform with other places in mountd and
-    exportfs that already grok the difference between a struct sockaddr
-    and a struct sockaddr_in.
-    
-    While we're here...
-    
-    Introduce some nice documenting comments for the get_fh() functions,
-    and...
-    
-    Since mountd will support IPv6 in the near future, assert that the
-    family of client addresses passed to this API is indeed AF_INET, in
-    order to prevent non-AF_INET addresses from ever being passed to the
-    legacy nfsctl() interface.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Pavel Shilovsky <piastry@etersoft.ru>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit a88c279992f4b63e3dcaac9930e300fd4bb03dd7
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 07:28:18 2010 -0400
-
-    mount.nfs: Don't do anything fancy if this is a remount
-    
-    We don't want to append "vers=4" or perform any negotiation if the
-    "remount" mount option was specified.  It will just end in tears.
-    
-    This attempts to address
-    
-      https://qa.mandriva.com/show_bug.cgi?id=60311
-    
-    and
-    
-      https://bugzilla.linux-nfs.org/show_bug.cgi?id=187
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 6f73daf5a5711dc0620f7d43c61c4fd57c0d3f80
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 16 07:26:07 2010 -0400
-
-    mount.nfs: Refactor mount version and protocol autonegotiation
-    
-    Clean up.
-    
-    I'm beginning to agree with Bruce and Steve's assessment that the
-    fallthrough switch case in nfs_try_mount() is more difficult to read
-    and understand than it needs to be.  The logic that manages
-    negotiating NFS version and protocol settings is getting more complex
-    over time anyway.
-    
-    So let's split the autonegotiation piece out of nfs_try_mount().
-    
-    We can reduce indenting, and use cleaner switch-based logic.  Also,
-    adding more comments can only help.
-    
-    Neil also suggested replacing the pre-call "errno = 0" trick.  The
-    lower-level functions may try to mount several times (given a list of
-    addresses to try).  errno could be set by any of those.  The mount
-    request will succeed at some point, and "success" is returned, but
-    errno is still set to some non-zero value.
-    
-    The kernel version check in nfs_try_mount() is more or less loop
-    invariant: it's impossible for the result of that test to change
-    between retries.  So we should be able to safely move it to the logic
-    that sets the initial value of mi->version.
-    
-    This patch is not supposed to cause a behavioral change.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 64bf8db367fd43e80dd135b460afc157808647fa
-Author: Bian Naimeng <biannm@cn.fujitsu.com>
-Date:   Thu Sep 16 07:12:47 2010 -0400
-
-    rpc.idmapd: Type of idmap client should be defined by ic_id not ic_clid.
-    
-    The type of idmap_client is defined by idmap_client.ic_id for nfs,
-    so nfsd should have the same style.
-    
-    Signed-off-by: Bian Naimeng <biannm@cn.fujitsu.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 7f77ef90ad52eced1552efc2242e063aa4501ddc
+commit 8935933dedcd820c2fb3dddff8b79fd5841dc217
 Author: Benny Halevy <bhalevy@panasas.com>
-Date:   Tue Jul 20 08:40:34 2010 +0300
+Date:   Mon May 23 08:37:17 2011 -0400
 
-    nfsstat: add release_lockowner to client stats
+    nfsstat: reorder nfs4 stats for 2.6.38 and up
+    
+    match order in 2.6.38, 2.6.39 (-rc3) and development tree
+    while at it, get rid of obsolete ds_write and ds_commit
     
     Signed-off-by: Benny Halevy <bhalevy@panasas.com>
-
-commit bf6da0a22d971364dae25ec2f62c01fbd2960f07
-Author: Steve Dickson <steved@redhat.com>
-Date:   Thu Sep 9 10:47:32 2010 -0400
-
-    Cleaned up a warning from commit 44f09b7
-    
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 911630538580cdaaee1c37cdf1a8b35b8ed6b23f
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed Sep 8 13:28:24 2010 -0400
-
-    mount.nfs: Prepare way for "vers=4,rdma" mounts
-    
-    At some point, when the kernel starts to support "vers=4,rdma" mounts,
-    we will want the mount.nfs command to pass "vers=4,rdma" mounts
-    instead of rejecting them.
-    
-    Assuming that the kernel will reject these today with EPROTONOSUPPORT,
-    that would cause the version fallback logic to go to "vers=3,rdma"
-    automatically.  So the extra check we have now is not needed anyway.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit f99d1b8e8768ab96b51bed52f21a626ac9a4797f
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed Sep 8 13:27:31 2010 -0400
-
-    mount.nfs: Support an "rdma" mount option
-    
-    The kernel NFS client's mount option parser recognizes a stand-alone
-    "rdma" mount option, similar to the legacy "udp" and "tcp" options.
-    
-    The mount.nfs command text-based mount option parser used to pass
-    "rdma" straight to the kernel, but since we've started handling MNT in
-    the kernel instead of in user space, "rdma" on the command line has
-    not worked.
-    
-    Until now, no-one has noticed, especially since an "rdma" mount option
-    isn't documented in nfs(5).
-    
-    Support "rdma" in mount.nfs command, and document it in nfs(5).
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 44f09b7c4c79ca184a29138078c68a4db7aeb85a
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed Sep 8 13:26:34 2010 -0400
-
-    mount.nfs: Use nfs_nfs_protocol() for checking for	proto=rdma
-    
-    Clean up: Now that nfs_get_proto() can recognize "rdma" we can re-use
-    nfs_nfs_protocol() instead of ad hoc checks for "proto=rdma".
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit a77ca5c6a79486dc8c5a4c327fe5310f5d497766
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed Sep 8 13:25:56 2010 -0400
-
-    getport: Recognize "rdma" and "rdma6" netid
-    
-    The mount.nfs command must recognize the values of "rdma" and "rdma6"
-    with the "proto=" mount option.  Typically the mount.nfs command
-    relies on libtirpc or getprotobyname(3) to recognize netids and
-    translate them to protocol numbers.
-    
-    RFCs 5665 and 5666 define the "rdma" and "rdma6" netids.  IANA defines
-    a specific port number for NFS over RDMA (20049), but has not provided
-    a protocol name and number for RDMA transports, and is not expected
-    to.  The best we can do is translate these by hand, as needed, to get
-    RDMA mount requests to the kernel without erroring out.
-    
-    Only the forward translation is needed until such time that "rdma" and
-    "rdma6" start to appear in rpcbind registries.  For now, the version
-    and transport negotiation logic is skipped, avoiding rpcbind queries
-    for RDMA mounts.
-    
-    Note: As of kernel 2.6.36, the kernel's NFS over RDMA transport
-    capability does not support IPv6.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 57f36cd692c56b3b62705b5fafef4c25561a39ff
-Author: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Date:   Thu Sep 9 10:33:47 2010 -0400
-
-    Clarification about options supported by different versions
-    
-    Signed-off-by: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit b7df3370555877598d9f2ef49fae2ad4458e9f72
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Sep 9 10:27:17 2010 -0400
-
-    libexport.a: Refactor init_netmask()
-    
-    Instead of a single function that can handle both AF_INET and AF_INET6
-    addresses, two separate functions might be cleaner.
-    
-    The original plan was to keep code redundancy at a minimum, but the
-    resulting code was cumbersome at best.  I think I've traded a little
-    extra code for something that will be much easier to read, understand,
-    and maintain.
-    
-    I've also eliminated the "#if / #endif" instances inside the functions.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 60abb9889cea52022adf9c8bb946e9d19d79f9ed
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 31 15:31:57 2010 -0400
-
-    libexport.a: IPv6 support in client_check()
-    
-    Introduce support for IPv6 in client_check()'s helpers.  The local
-    addrs_match() twins are no longer needed since we can use
-    nfs_compare_addrs() now.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 965b15b855c0c621462256b0ab687fc32644255a
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 31 15:30:14 2010 -0400
-
-    libexport.a: IPv6 support for client_init_subnet()
-    
-    To parse and store an IPv6 host or subnet address, init_netmask()
-    needs to handle 128 bit subnet masks.
-    
-    Unfortunately what once was a pretty simple little function has grown
-    much larger.  This logic must now not only parse IPv6 addresses
-    correctly, but must also distinguish between IPv4 and IPv6.
-    
-    To avoid code duplication, I'm "bending" the cardinal rule of not
-    using "#ifdef" inside functions.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 2824097496f6b154befbf3b3d15dacf237b07f83
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 31 15:29:02 2010 -0400
-
-    libexport.a: Prepare init_subnetwork() for IPv6 support
-    
-    Retire the slash32 logic in inet_netmask() in favor of a more generic
-    netmask parser that can support IPv6 addresses.
-    
-    If an invalid IP address string is given to inet_addr(3), it returns
-    INADDR_NONE, which is actually a "valid" address (255.255.255.255).
-    We're none the wiser to the substitution until something breaks later.
-    
-    This patch provides better sanity checking of the parsed address, now
-    that such an error can be reported to client_init()'s callers.
-    We can also check the prefixlen value a little more carefully as well.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 03fc34b23c2bff48f54c2d889d7851a31fb64a3d
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 31 15:27:19 2010 -0400
-
-    libexport.a: Use host helper to parse address in client_init()
-    
-    Take the first step towards making it possible to parse either IPv4 or
-    IPv6 addresses in client_init().  It won't handle IPv6 until
-    host_pton() has IPv6 support enabled, and it still doesn't deal with
-    IPv6 netmasks yet.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 502edf1df5e727cf88b19b634f60392652f35ddc
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 31 15:25:35 2010 -0400
-
-    libexport.a: Prepare to recognize IPv6 addresses in	client_gettype()
-    
-    The current open-coded parsing logic in client_gettype() will be hard
-    to modify to recognize IPv6 addresses.  Use a more generic mechanism
-    for detecting IP presentation addresses.
-    
-    IPv6 will be enabled automatically in client_gettype() when host_pton()
-    is changed to support IPv6 addresses.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 26fd34002585e6a5aa09204b0b01d836fa83dcf3
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 24 07:19:34 2010 -0400
-
-    exportfs: Use xlog() for error reporting
-    
-    exportfs already invokes xlog_open() because libexport.a uses xlog()
-    exclusively for error reporting and debugging messages.  If we can
-    use xlog() throughout exportfs itself, that enables xlog debugging
-    messages everywhere in the code path.
-    
-    In addition, use xlog() instead of fprintf(stderr) for reporting
-    errors in exportfs.c, to be consistent with libexport.a and other
-    components of nfs-utils.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 6d7babe6afae068e8a1054f785785d374788f5ee
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 24 07:18:04 2010 -0400
-
-    exportfs: exportfs.c no longer needs #include "xmalloc.h"
-    
-    Clean up:  No calls to xmalloc() or xstrdup() here.  No need for the
-    double #include of xmalloc.h.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit e22f5a9c8e53a2373e8a939771e964ad315cdc5f
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 24 07:16:10 2010 -0400
-
-    statd: statd fails to monitor if no reverse mapping of mon_name exists
-    
-    Commit 8ce130c4 switched in the new statd_canonical_name() function
-    that constructs a "unique" name statd can use to uniquely identify a
-    monitor record.
-    
-    The legacy statd would monitor a client that sent an IP address with
-    no reverse map as its caller_name.  To remain bug-for-bug compatible,
-    allow this case in the new statd.
-    
-    This shouldn't be a problem: statd_canonical_name() needs to create
-    a unique name for the monitored host so it can keep track of monitor
-    requests from the same remote.  The IP address itself should work as
-    well as the host's canonical name, in case there is no reverse
-    mapping.
-    
-    We still enforce the requirement that a mon_name that is a DNS name
-    must have a forward map to an IP address.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 1bb84a09ff58d1314826945db2f3f1f63015e263
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 24 07:13:54 2010 -0400
-
-    libexport: Fix IP address check in check_netgroup()
-    
-    Neil Brown reports that recent changes to replace
-    gethostby{addr,name}(3) with get{addr,info}name(3) may have
-    inadvertently broken netgroup support.
-    
-    There used to be a gethostbyaddr(3) call in the third paragraph in
-    check_netgroup().  The reason for that gethostbyaddr(3) call was that
-    the first innetgr(3) call has already confirmed that hname is not a
-    member of the netgroup.  We also need to confirm that, if hname
-    happens to be an IP address, the hostname bound to that IP address is
-    not a member of the netgroup, either.
-    
-    Fix this by restoring appropriate address to hostname mapping of hname
-    before retrying the innetgr(3) call.
-    
-    See http://marc.info/?l=linux-nfs&m=128084830214653&w=2 .
-    
-    Introduced by commit 0509d3428f523776ddd9d6e9fa318587d3ec7d84.
-    
-    Reviewed-by: Neil Brown <neilb@suse.de>
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit abdc32b6af6f38a741a481aeefb5623916152498
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Aug 24 07:06:14 2010 -0400
-
-    bexport: Add a common exit label to check_netgroup()
-    
-    check_netgroup() is going to be changed to free dynamically
-    allocated resources before it returns, so a common
-    exit point is needed.
-    
-    Reviewed-by: Neil Brown <neilb@suse.de>
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 396aac50f5addea2f4d62c25600ca68788a56d97
-Author: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Date:   Tue Aug 17 17:47:38 2010 -0400
-
-    Fix the description of nfsversion mount option in the man nfs page
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit e2003650c68cf47806fb24f7d88fae5524b70aab
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:12:52 2010 -0400
-
-    Remove warnings from nfsctl.c
-    
-    nfsctl.c: In function 'expsetup':
-    nfsctl.c:112: warning: signed and unsigned type in conditional expression
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 1e472b3476cc6d7b95573b7d630d0fc51bebadf3
-Author: Steve Dickson <steved@redhat.com>
-Date:   Wed Aug 4 10:48:17 2010 -0400
-
-    Removed warnings from mountd.c
-    
-    mountd.c: In function 'mount_null_1_svc':
-    mountd.c:195: warning: unused parameter 'rqstp'
-    mountd.c:195: warning: unused parameter 'argp'
-    mountd.c:195: warning: unused parameter 'resp'
-    mountd.c: In function 'mount_dump_1_svc':
-    mountd.c:213: warning: unused parameter 'argp'
-    mountd.c: In function 'mount_umnt_1_svc':
-    mountd.c:224: warning: unused parameter 'resp'
-    mountd.c: In function 'mount_umntall_1_svc':
-    mountd.c:248: warning: unused parameter 'argp'
-    mountd.c:248: warning: unused parameter 'resp'
-    mountd.c: In function 'mount_export_1_svc':
-    mountd.c:258: warning: unused parameter 'argp'
-    mountd.c: In function 'mount_exportall_1_svc':
-    mountd.c:269: warning: unused parameter 'argp'
-    mountd.c: In function 'mount_dump_1_svc':
-    mountd.c:216: warning: unused parameter 'argp'
-    mountd.c: In function 'mount_umnt_1_svc':
-    mountd.c:227: warning: unused parameter 'resp'
-    mountd.c: In function 'mount_umntall_1_svc':
-    mountd.c:251: warning: unused parameter 'argp'
-    mountd.c:251: warning: unused parameter 'resp'
-    mountd.c: In function 'mount_export_1_svc':
-    mountd.c:261: warning: unused parameter 'argp'
-    mountd.c: In function 'mount_exportall_1_svc':
-    mountd.c:272: warning: unused parameter 'argp'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 14e6ec262e58e962c2d7e9161ca9c56529de3170
-Author: Steve Dickson <steved@redhat.com>
-Date:   Wed Aug 4 10:41:18 2010 -0400
-
-    Removed warnings from idmapd.c
-    
-    idmapd.c:120: warning: missing initializer
-    idmapd.c:120: warning: (near initialization for 'nfsd_ic[0].ic_event')
-    idmapd.c:121: warning: missing initializer
-    idmapd.c:121: warning: (near initialization for 'nfsd_ic[1].ic_event')
-    idmapd.c: In function 'flush_nfsd_cache':
-    idmapd.c:173: warning: comparison between signed and unsigned integer expressions
-    idmapd.c: In function 'dirscancb':
-    idmapd.c:384: warning: unused parameter 'fd'
-    idmapd.c:384: warning: unused parameter 'which'
-    idmapd.c: In function 'svrreopen':
-    idmapd.c:468: warning: unused parameter 'fd'
-    idmapd.c:468: warning: unused parameter 'which'
-    idmapd.c:468: warning: unused parameter 'data'
-    idmapd.c: In function 'clntscancb':
-    idmapd.c:474: warning: unused parameter 'fd'
-    idmapd.c:474: warning: unused parameter 'which'
-    idmapd.c: In function 'nfsdcb':
-    idmapd.c:488: warning: unused parameter 'fd'
-    idmapd.c: In function 'nfscb':
-    idmapd.c:663: warning: unused parameter 'fd'
-    idmapd.c: In function 'validateascii':
-    idmapd.c:850: warning: comparison between signed and unsigned integer expressions
-    idmapd.c:858: warning: comparison between signed and unsigned integer expressions
-    idmapd.c: In function 'getfield':
-    idmapd.c:916: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 2ccfd2d5f390bcac7a44f8887cd3f15df1966e0f
-Author: Steve Dickson <steved@redhat.com>
-Date:   Wed Aug 4 10:29:28 2010 -0400
-
-    Removed warnings from configfile.c
-    
-    configfile.c:195: warning: 'inline' is not at beginning of declaration
-    configfile.c:232: warning: 'inline' is not at beginning of declaration
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit bc8fdd5ebcabe57cacd382673ca9e4a79ff7b18e
-Author: Steve Dickson <steved@redhat.com>
-Date:   Wed Aug 4 10:26:13 2010 -0400
-
-    Removed warnings from svcgssd_proc.c
-    
-    svcgssd_proc.c: In function 'send_response':
-    svcgssd_proc.c:135: warning: unused parameter 'f'
-    svcgssd_proc.c: In function 'handle_nullreq':
-    svcgssd_proc.c:434: warning: comparison of unsigned expression < 0 is always false
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit be5b2ed57b0e0a3da91f4ec785718302d0351199
-Author: Steve Dickson <steved@redhat.com>
-Date:   Wed Aug 4 10:22:13 2010 -0400
-
-    Removed warnings from network.c
-    
-    network.c: In function 'nfs_verify_family':
-    network.c:1366: warning: unused parameter 'family'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 6b8d7c05fe738a4c7295754b4be552c703024f58
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 18:43:46 2010 -0400
-
-    Removed warnings from nfs4mount.c
-    
-    nfs4mount.c: In function 'fill_ipv4_sockaddr':
-    nfs4mount.c:149: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit cf2fd4869fdb77741bca9e3f713af49b889661b3
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 18:40:31 2010 -0400
-
-    Removed warnings from nfsmount.c
-    
-    nfsmount.c: In function 'nfsmount':
-    nfsmount.c:513: warning: missing initializer
-    nfsmount.c:513: warning: (near initialization for 'mnt_server.saddr')
-    nfsmount.c:514: warning: missing initializer
-    nfsmount.c:514: warning: (near initialization for 'nfs_server.saddr')
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 45a73911fff657942ec67317d000badb8e2c5282
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 18:22:32 2010 -0400
-
-    Removed warnings from svcgssd.c
-    
-    svcgssd.c: In function 'sig_hup':
-    svcgssd.c:160: warning: unused parameter 'signal'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit b8ba21cedc6aac3b2847217caf55885bb1a74805
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 18:13:45 2010 -0400
-
-    Removed warnings from gssd_proc.c
-    
-    gssd_proc.c: In function 'create_auth_rpc_client':
-    gssd_proc.c:939: warning: comparison between signed and unsigned integer expressions
-    gssd_proc.c:939: warning: comparison between signed and unsigned integer expressions
-    gssd_proc.c: In function 'handle_krb5_upcall':
-    gssd_proc.c:1164: warning: comparison between signed and unsigned integer expressions
-    gssd_proc.c: In function 'handle_spkm3_upcall':
-    gssd_proc.c:1178: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit f4321ac3466aa9d4c4e11ba232f1ff9bea561288
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 18:08:13 2010 -0400
-
-    Removed warnings from krb5_util.c
-    
-    krb5_util.c: In function 'realm_and_service_match':
-    krb5_util.c:617: warning: unused parameter 'context'
-    krb5_util.c: In function 'limit_krb5_enctypes':
-    krb5_util.c:1275: warning: unused parameter 'uid'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit f89b109c04a8eab81bfa8b8fcdc7692673e13e49
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 17:53:47 2010 -0400
-
-    Removed warnings from gssd_main_loop.c
-    
-    gssd_main_loop.c: In function 'dir_notify_handler':
-    gssd_main_loop.c:64: warning: unused parameter 'sig'
-    gssd_main_loop.c:64: warning: unused parameter 'si'
-    gssd_main_loop.c:64: warning: unused parameter 'data'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit d2c329ba4b7ccdea76bcc857a73206eab68428f8
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 17:45:17 2010 -0400
-
-    Removed warnings from gssd.c
-    
-    gssd.c: In function 'sig_hup':
-    gssd.c:78: warning: unused parameter 'signal'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 8a72ac3280ce8f9d0f48383d47dd06c80567bc09
-Author: Steve Dickson <steved@redhat.com>
-Date:   Tue Jul 20 17:19:20 2010 -0400
-
-    Removed warnings from atomicio.c
-    
-    atomicio.c: In function 'atomicio':
-    atomicio.c:48: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 14becdb7bc23f075f786325f7e953c2f928fe385
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 14:54:51 2010 -0400
-
-    Removed warnings from nfsstat.c
-    
-    nfsstat.c: In function 'print_callstats':
-    nfsstat.c:797: warning: comparison between signed and unsigned integer
-    expressions
-    nfsstat.c:801: warning: comparison between signed and unsigned integer
-    expressions
-    nfsstat.c:802: warning: comparison between signed and unsigned integer
-    expressions
-    nfsstat.c:805: warning: comparison between signed and unsigned integer
-    expressions
-    
-    nfsstat.c: In function 'print_callstats_list':
-    nfsstat.c:821: warning: comparison between signed and unsigned integer
-    expressions
-    nfsstat.c:828: warning: comparison between signed and unsigned integer
-    expressions
-    
-    nfsstat.c: In function 'unpause':
-    nfsstat.c:1111: warning: unused parameter 'sig'
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit b594ee2b2a1b9c0c5823a7af279488f113f91be4
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 14:48:37 2010 -0400
-
-    Removed warnings from nfssvc.c
-    
-    nfssvc.c:184: warning: comparison between signed and unsigned integer expressions
-    nfssvc.c: In function 'nfssvc_setvers':
-    nfssvc.c:254: warning: comparison between signed and unsigned integer expressions
-    nfssvc.c: In function 'nfssvc_threads':
-    nfssvc.c:280: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 7b331fb9d24a71242a6c0a45a06c49174b552c64
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 14:43:26 2010 -0400
-
-    Removed warnings from cache.c
-    
-    cache.c:812: warning: missing initializer
-    cache.c:812: warning: (near initialization for 'cachelist[0].f')
-    cache.c:813: warning: missing initializer
-    cache.c:813: warning: (near initialization for 'cachelist[1].f')
-    cache.c:814: warning: missing initializer
-    cache.c:814: warning: (near initialization for 'cachelist[2].f')
-    cache.c:815: warning: missing initializer
-    cache.c:815: warning: (near initialization for 'cachelist[3].f')
-    cache.c:816: warning: missing initializer
-    cache.c:816: warning: (near initialization for 'cachelist[4].f')
-    cache.c: In function 'cache_export_ent':
-    cache.c:887: warning: comparison between signed and unsigned integer expressions
-    cache.c:907: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 9d5eaa2e939723c47649f0f112b43cc8ff414740
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 13:07:00 2010 -0400
-
-    Removed warnings from fsloc.c
-    
-    fsloc.c: In function 'replicas_lookup':
-    fsloc.c:149: warning: unused parameter 'key'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit e10000740fc4c323dbc8d501d7c0caeae12c19b5
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:39:52 2010 -0400
-
-    Removed warnings from conffile.c
-    
-    conffile.c: In function 'conf_parse_line':
-    conffile.c:301: warning: comparison between signed and unsigned integer expressions
-    
-    conffile.c: In function 'conf_load_defaults':
-    conffile.c:356: warning: unused parameter 'tr'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 8810c9dd5b66a097a235e6eabd399739a44df63e
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:34:14 2010 -0400
-
-    Remove warnings from nfs_mntent.c
-    
-    nfs_mntent.c: In function 'mangle':
-    nfs_mntent.c:36: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 1ca569633e14c844e32d8e5e3a1c54be01a8b633
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:31:48 2010 -0400
-
-    emove warnings from cacheio.c
-    
-    cacheio.c: In function 'cache_flush':
-    cacheio.c:352: warning: comparison between signed and unsigned integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 0cdfd35cecc17eb1927f15d33205e43ec66675f2
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:28:09 2010 -0400
-
-    Remove warnings from svc_socket.c
-    
-    svc_socket.c: In function 'svcudp_socket':
-    svc_socket.c:160: warning: unused parameter 'reuse'
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 9c99b4633b185452614eb6c5630a30b30626a838
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:17:24 2010 -0400
-
-    Removed warnings from rpcdispatch.c
-    
-    rpcdispatch.c: In function 'rpc_dispatch':
-    rpcdispatch.c:30: warning: comparison between signed and unsigned
-         integer expressions
-    rpcdispatch.c:35: warning: comparison between signed and unsigned
-         integer expressions
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit b6e0ddd7bb3843bb8bb5ff56816b31bcf17adacd
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Jul 19 12:05:51 2010 -0400
-
-    Enable extra compile warnings (-Wextra) by default.
-    
-    Added -Wextra to the CFLAGS which enables more checking
-    during compilation, which in turn, will hopefully flag
-    potential problems before they occur.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 12af21aca517dfbaec465447d8336bcc4769f71d
-Author: Doug Nazar <nazard.michi@gmail.com>
-Date:   Mon Jul 19 11:08:46 2010 -0400
-
-    gssd: picking wrong creds
-    
-    When not using machine credentials for root, if the machine
-    credential cache file is newer than the root credential file
-    the wrong file will get picked. Ignore the machine file in
-    this case.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit e2aa2c8c4cc21eb312a301855c2e211dedf93146
-Author: Doug Nazar <nazard.michi@gmail.com>
-Date:   Mon Jul 19 10:58:47 2010 -0400
-
-    mountd: Fix memcmp result comparison error for uuid match.
-    
-    Fixed Small typo in the new fs uuid comparison code
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit eafc5a8873b09482c71313f425080cce2031010a
-Author: Doug Nazar <nazard.michi@gmail.com>
-Date:   Mon Jul 19 10:48:34 2010 -0400
-
-    gssd: Fix endtime issue
-    
-    Commit 4c5ff6d4 removed the setting of endtime for a few contexts by
-    accident.
-    
-    Now to figure out why I get stale handles on submounts.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 0bd7e91cea26bcfc5581290e4cdd87870da29b9e
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Jul 19 10:09:12 2010 -0400
-
-    nfs-utils: Fix C aliasing rules violation in	nfs_getrpccaller()
-    
-    Squelch compiler warnings reported with -Wextra:
-    
-    In file included from statd.c:24:
-    ../../support/include/rpcmisc.h: In function nfs_getrpccaller_in:
-    ../../support/include/rpcmisc.h:58: warning: dereferencing type-punned
-    pointer might break strict-aliasing rules
-    ../../support/include/rpcmisc.h: In function nfs_getrpccaller:
-    ../../support/include/rpcmisc.h:63: warning: dereferencing type-punned
-    pointer might break strict-aliasing rules
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit a8715bec8bd671135f20fc0422d2a9fc0993758a
-Author: Kevin Constantine <kevin.constantine@disneyanimation.com>
-Date:   Tue Jun 22 17:43:19 2010 -0400
-
-    nfs-iostat.py: divide by zero with fresh mount
-    
-    When an export is freshly mounted, /proc/self/mountstats displays age = 0.
-    This causes nfs-iostat.py to divide by zero throwing an error.  When we
-    have age = 0, other stats are greater than 0, so we'll set age = 1 and
-    print the relevant stats.
-    
-    Signed-off-by: Kevin Constantine <kevin.constantine@disneyanimation.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 9c3f7a220b4812c5d560db5fcacad790fc8b17af
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 13:31:38 2010 -0400
-
-    libexport.a: Remove unused hostent-based DNS helper	functions
-    
-    Clean up:  Get rid of hostent-based DNS helper functions in
-    libexport.a that have been replaced by addrinfo-based DNS helpers.
-    
-    None of the original code remains, so replace the copyright notice as
-    well.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 21015ace7d0a356b24a57540ccfeb41d941e78ed
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 13:06:40 2010 -0400
-
-    libexport.a: Replace matchhostname()
-    
-    So that exportfs can eventually support IPv6 addresses, copy statd's
-    getaddrinfo(3)-based matchhostname to exportfs, with adjustments for
-    dealing with export wildcards and netgroups.  Until exportfs has full
-    IPv6 support, however, we want to ensure that IPv6 addresses continue
-    to remain blocked in the address comparison code used by exportfs.  At
-    a later point we'll replace much of this with the generic functions
-    in sockaddr.h.
-    
-    Since it contains special logic for handling wildcard and netgroups,
-    this function is specialized for exportfs, and does not belong in
-    one of the shared libraries.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 22d6566d473f71e241c791a02435d414648c99e8
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 12:51:42 2010 -0400
-
-    libexport.a: Add documenting comments
-    
-    Clean up.  Add a few additional documenting comments for globally
-    visible functions.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 53928c0166dcc0acceaa995edb8551b48968b5dd
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 12:44:44 2010 -0400
-
-    libexport.a: Make export_add() static
-    
-    Clean up: export_add() is not called from outside of export.c, so make
-    it a static helper.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 8940675a20967145b37a596334c25a54804435cc
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 12:43:55 2010 -0400
-
-    libexport.a: Make export_read() return void
-    
-    Clean up: export_read()'s return value is always zero, and its only
-    caller never checks it.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 0509d3428f523776ddd9d6e9fa318587d3ec7d84
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 12:43:01 2010 -0400
-
-    mountd: Replace "struct hostent" with "struct addrinfo"
-    
-    struct hostent can store either IPv4 or IPv6 addresses, but it can't
-    store both address families concurrently for the same host.  Neither
-    can hostent deal with parts of socket addresses that are outside of
-    the sin{,6}_addr field.
-    
-    Replace the use of "struct hostent" everywhere in libexport.a, mountd,
-    and exportfs with "struct addrinfo".  This is a large change, but
-    there are so many strong dependencies on struct hostent that this
-    can't easily be broken into smaller pieces.
-    
-    One benefit of this change is that hostent_dup() is no longer
-    required, since the results of getaddrinfo(3) are already dynamically
-    allocated.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 3ca5879be32c4c11750e12230ff588195fff0738
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 12:40:27 2010 -0400
-
-    exportfs: Add a common exit label in exportfs()
-    
-    Clean up: Reduce code duplication by introducing a goto label for
-    freeing hp and exiting.  This will make replacing "struct hostent *"
-    with "struct addrinfo *" more straightforward in this code.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 94ce1eb94babb4c587b2826452fb053cba745098
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Tue Jun 22 10:41:03 2010 -0400
-
-    libexport.a: Add helpers to manage DNS lookups
-    
-    Introduce DNS query helpers based on getaddrinfo(3) and
-    getnameinfo(3).  These will eventually replace the existing
-    hostent-based functions in support/export/hostname.c.
-    
-    Put some of these new helpers to immediate use, where convenient.
-    
-    As they are part of libexport.a, I've added the forward declarations
-    for these new functions in exportfs.h rather than misc.h, where the
-    hostent-based forward declarations are currently.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 8d61f2518bebe11c5fd0624857f83de1dceca991
+commit 27dcd8a775024160e741cce53e4a402eaac3501d
 Author: NeilBrown <neilb@suse.de>
-Date:   Tue Jun 22 10:37:25 2010 -0400
+Date:   Mon May 23 08:23:51 2011 -0400
 
-    Improve support for exporting btrfs subvolumes
+    supress socket error when address family is not supported
     
-    If you export two subvolumes of a btrfs filesystem, they will both be
-    given the same uuid so lookups will be confused.
-    blkid cannot differentiate the two, so we must use the fsid from
-    statfs64 to identify the filesystem.
+    From: Suresh Jayaraman <sjayaraman@suse.de>
     
-    We cannot tell if blkid or statfs is best without knowing internal
-    details of the filesystem in question, so we need to encode specific
-    knowledge of btrfs in mountd.  This is unfortunate.
+    It was observed that when ipv6 module was not loaded and cannot be auto-loaded,
+    when starting NFS server, the following error occurs:
+    	"rpc.nfsd: unable to create inet6 TCP socket: errno 97 (Address
+    	family not supported by protocol)"
     
-    To ensure smooth handling of this and possible future changes in uuid
-    generation, we add infrastructure for multiple different uuids to be
-    recognised on old filehandles, but only the preferred on is used on
-    new filehandles.
+    This is obviously a true message, but does not represent an "error" when ipv6
+    is not enabled.  Rather, it is an expected condition.  As such, it can be
+    confusing / misleading / distracting to display it in this scenario.
+    
+    This patch instead of throwing error when a socket call fails with
+    EAFNOSUPPORT, makes it as a NOTICE.
+    
+    Signed-off-by: Suresh Jayaraman <sjayaraman@suse.de>
+    Signed-off-by: Neil Brown <neilb@suse.de>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 7a802337bfc92d0b30fe94dbd0fa231990a26161
+Author: NeilBrown <neilb@suse.de>
+Date:   Mon May 23 08:19:57 2011 -0400
+
+    Remove risk of nfs_addmntent corrupting mtab
+    
+    nfs_addmntent is used to append directly to /etc/mtab.
+    If the write partially fail, e.g. due to RLIMIT_FSIZE,
+    truncate back to original size and return an error.
+    
+    See also https://bugzilla.redhat.com/show_bug.cgi?id=697975
+    (CVE-2011-1749) CVE-2011-1749 nfs-utils: mount.nfs fails to anticipate RLIMIT_FSIZE
     
     Signed-off-by: NeilBrown <neilb@suse.de>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 9ac7a15017b876d4d8d3a4502ebaf954f36f7f54
+commit 56f537535190d034039570bafd9a0de71b79b8f1
+Author: Ben Myers <bpm@sgi.com>
+Date:   Mon May 23 08:07:00 2011 -0400
+
+    exportfs: getexportent interprets -test-client- as	default options
+    
+    With commit 1374c3861abdc66f3a1410e26cc85f86760b51dd Neil added a
+    -test-client- export to test the exportability of filesystems when exportfs
+    is run.  When using the old cache controls (i.e. /proc/fs/nfsd is not
+    mounted) exportfs will read /proc/fs/nfs/exports to process existing
+    exports and find these test client entries.  The dash at the beginning of
+    -test-client- will be cause getexportent to look for default options in the
+    rest of the string, which test-client- will not match:
+    
+    exportfs: /proc/fs/nfs/exports:1: unknown keyword "test-client-(rw"
+    
+    This patch resolves that problem (as Steve suggested) by not processing any
+    default options if we are reading the list of existing exports from the
+    kernel.  Default options are converted to individual exports by exportfs so
+    the kernel won't have any regardless.
+    
+    Signed-off-by: Ben Myers <bpm@sgi.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit c8e802c036a3f0fcd4481dae8b3ec09fb71f4118
+Author: Jim Rees <rees@umich.edu>
+Date:   Wed May 18 12:42:02 2011 -0400
+
+    Removed compilation warnings from mountd/cache.c
+    
+    Commit 5604b35a6 introduced a number of missing initializer
+    warnings that were missed. This patch removes those warnings.
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 68f7938c85258a8c54b13169dcdeae61cc1bf286
 Author: Steve Dickson <steved@redhat.com>
-Date:   Thu Jun 3 08:53:22 2010 -0400
+Date:   Tue Apr 26 13:32:35 2011 -0400
 
-    mount.nfs: silently fails when the network protocol is not found
+    nfsstat: Output headings mislabled
     
-    mount.nfs should display some type of error diagnostics when
-    the network protocol can not be determined.
+    The badclnt and badauth headers were reversed
+    when the server side rpc stats (-s -o rpc) were
+    displayed.
     
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 740171dea45a57e396a86fbda1579a465f101854
+commit 2e4a7e9b50a641dc8640a5dd911ee4a2f0b2c073
 Author: Steve Dickson <steved@redhat.com>
-Date:   Thu Jun 3 08:32:56 2010 -0400
+Date:   Tue Apr 19 12:31:30 2011 -0400
 
-    mount: silently fails when bad option values are given
+    rpc.svcgssd: Segmentation fault on error
     
-    mount.nfs should not only fail when an invalid option values
-    are supplied (as it does), it should also print a diagnostic
-    message identifying the problem
+    Commit 544ed73d introduced a regression that caused
+    rpc.svcgssd to seg fault on "Wrong principal in request"
+    errors in gss_accept_sec_context()
     
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 94c3d7c91de582cf29ff9100950ecd4a5fd1606b
-Author: Kevin Constantine <kevin.constantine@disneyanimation.com>
-Date:   Wed Jun 2 08:34:14 2010 -0400
+commit 5604b35a61e22930873ffc4e9971002f578e7978
+Author: Sean Finney <sean.finney@sonyericsson.com>
+Date:   Tue Apr 19 11:04:35 2011 -0400
 
-    nfsiostat.man: Add linebreak before --version option
+    nfs-utils: Increase the stdio file buffer size for procfs files
     
-    The nfsiostat man file was missing a linebreak before the --verbose option
+    Previously, when writing to /proc/net/rpc/*/channel, if a cache line
+    were larger than the default buffer size (likely 1024 bytes), mountd
+    and svcgssd would split writes into a number of buffer-sized writes.
+    Each of these writes would get an EINVAL error back from the kernel
+    procfs handle (it expects line-oriented input and does not account for
+    multiple/split writes), and no cache update would occur.
     
-    Signed-off-by: Kevin Constantine <kevin.constantine@disneyanimation.com>
+    When such behavior occurs, NFS clients depending on mountd to finish
+    the cache operation would block/hang, or receive EPERM, depending on
+    the context of the operation.  This is likely to happen if a user is a
+    member of a large (~100-200) number of groups.
+    
+    Instead, every fopen() on the procfs files in question is followed by
+    a call to setvbuf(), using a per-file dedicated buffer of
+    RPC_CHAN_BUF_SIZE length.
+    
+    Really, mountd should not be using stdio-style buffered file operations
+    on files in /proc to begin with.  A better solution would be to use
+    internally managed buffers and calls to write() instead of these stdio
+    calls, but that would be a more extensive change; so this is proposed
+    as a quick and not-so-dirty fix in the meantime.
+    
+    Signed-off-by: Sean Finney <sean.finney@sonyericsson.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 291b329ad1f5a65270097f4ec3a8dd465df42669
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon May 24 06:02:22 2010 -0400
+commit 9274e94db85bac04e170414cb8e0f4be271cde90
+Author: Sean Finney <sean.finney@sonyericsson.com>
+Date:   Tue Apr 19 11:05:47 2011 -0400
 
-    mountd: Convert colons in IPv6 presentation addresses tosemicolons
+    mountd: Use a dynamic buffer for storing lists of gid's
     
-    The /var/lib/nfs/rmtab file delineates fields in each of its lines
-    with a ":".  The first field contains the IP address of a client, in
-    presentation format.  IPv6 presentation format addresses contain
-    colons, which screws up the field delineation of rmtab.
+    Previously, in auth_unix_gid, group lists were stored in an array of
+    hard-coded length 100, and in the situation that the group lists for a
+    particular call were too large, the array was swapped with a dynamically
+    allocated/freed buffer.  For environments where users are commonly in
+    a large number of groups, this isn't an ideal approach.
     
-    Use a simple simple scheme to convert the colons in incoming client
-    names to some other character, and then convert them back when the
-    rmtab file is read.
+    Instead, use malloc/realloc to grow the list on an as-needed basis.
     
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Sean Finney <sean.finney@sonyericsson.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 9e398e49be79af62fca8efb21849d8a2714dc92a
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon May 24 06:01:22 2010 -0400
+commit a99269230a0e77e7bed4fa31c9547f0d61c7f206
+Author: Karel Zak <kzak@redhat.com>
+Date:   Wed Apr 6 12:39:21 2011 -0400
 
-    libexport.a: Refactor rmtab_read()
+    mount: add --enable-libmount-mount
     
-    Clean up: Make it easier to add IPv6 support by refactoring part of
-    rmtab_read() into a helper function.
+    This patch allows to link mount.nfs with libmount from util-linux >=
+    v2.19. The new libmount based code is enabled by CONFIG_LIBMOUNT and
+    is stored in mount_libmount.c. The old code is not affected by this
+    change.
     
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    The libmount does not have officially stable API yet, so the
+    --enable-libmount-mount is marked as experimental in the configure
+    help output.
+    
+    The ./configure option is the same as we use in util-linux to enable
+    support for libmount in mount(8).
+    
+    The addr= (and some other options necessary for remount/umount) are
+    stored to /etc/mtab or to /dev/.mount/utab. The utab file is *private*
+    libmount file. It's possible that some mount options (for example
+    user=) will be moved to kernel, so the utab will not be necessary.
+    
+    About libmount:
+    
+      * supports systems without and with regular /etc/mtab
+      * does not store VFS and FS mount options in userspace
+      * manages user= option and evaluate permissions
+      * parses VFS mount options and generate MS_* flags
+      * parses /etc/{fstab,mtab}, /proc/mounts or /proc/self/mountinfo
+      * long-term goal is to use the same code in all mount.<type> helpers
+    
+    Note, use
+    
+       LIBMOUNT_DEBUG=0xffff mount.nfs foo:/path /path
+    
+    to debug the library.
+    
+    On systems with util-linux v2.19 the findmnt(8) command uses libmount
+    to list all/selected mount points:
+    
+       $ findmnt /path
+       $ findmnt --mtab /path
+    
+    the --mtab appends userspace mount options (e.g. user=) to the output.
+    
+    CC: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Karel Zak <kzak@redhat.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 2fd2dfd9ebb2de145d50039233bd2a53b7f03062
-Author: NeilBrown <neilb@suse.de>
-Date:   Mon May 24 05:55:26 2010 -0400
+commit c01e5ca6179b8f5b041605d9bbd75a0f76812d54
+Author: Karel Zak <kzak@redhat.com>
+Date:   Wed Apr 6 11:36:40 2011 -0400
 
-    Mountd listens on 2 different versions for NFSv2 (MOUNTv1 and MOUNTv2)
-    and one for NFSv3 (MOUNTv3)
+    mount: move generic functions to utils.c and network.c
     
-    When --no-nfs-version requests an NFS version to be disabled, the
-    code actually disabled the MOUNT version. This works is several cases,
-    but requires --no-nfs-version 1 to completely disable NFSv2, which
-    is wrong.
+    Move generic code that could be shared between standard mount.nfs and
+    libmount version to utils.c and network.c.
     
-    So if we do disable 1, 2, and 3. mountd complain and won't run, it
-    is not possible to run just v4 - i.e. not listening for MOUNT requests
-    at all (as v4 doesn't need them).
-    
-    So change the handling of "--no-nfs-version 2" it disable MOUNTv1 as
-    well as
-    MOUNTv2, and allow mountd to continue running as long as one of
-    NFSv2 NFSv3 NFSv4 is enabled.
-    
-    Signed-off-by: NeilBrown <neilb@suse.de>
+    CC: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Karel Zak <kzak@redhat.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 6299a310d77e6495efdf7c50491f0b055fee2cfe
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed May 5 15:41:07 2010 -0400
-
-    mountd/exportfs: Make m_addrlist field a nfs_sockaddr
-    
-    To store non-AF_INET addresses in the nfs_client structure, we need to
-    use more than in_addr for the m_addrlist field.  Make m_addrlist
-    larger, then add a few helper functions to handle type casting and
-    array indexing cleanly.
-    
-    We could treat the nfs_client address list as if all the addresses
-    in the list were the same family.  This might work for MCL_SUBNETWORK
-    type nfs_clients.  However, during the transition to IPv6, most hosts
-    will have at least one IPv4 and one IPv6 address.  For MCL_FQDN, I
-    think we need to have the ability to store addresses from both
-    families in one nfs_client.
-    
-    Additionally, IPv6 scope IDs are not part of struct sin6_addr.  To
-    support link-local IPv6 addresses and the like, a scope ID must be
-    stored.
-    
-    Thus, each slot in the address list needs to be capable of storing an
-    entire socket address, and not simply the network address part.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 6ff1fd42db18c657fbc5f81169a566b41d53e731
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed May 5 14:42:01 2010 -0400
-
-    libexport.a: Clean up client_add()
-    
-    Clean up: client_add()'s current callers never set unknown m_type
-    values, so the m_type check is unnecessary.
-    
-    All of client_add()'s callers are in the same source file where it is
-    defined, so make it a static helper function.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 9bb85c5e8d2285f82367c75df5530a71a9a5a5f2
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed May 5 14:37:13 2010 -0400
-
-    libexport.a: Refactor client_init()
-    
-    Clean up:  Move subnet hostname parsing logic out of client_init() to
-    make it simpler to introduce IPv6 support.
-    
-    Make client_init() a helper, since it's already static.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 0a8bd742cc1412e2553f152ee0c3aab8c5570212
-Author: Mike Frysinger <vapier@gentoo.org>
-Date:   Fri Apr 23 12:22:53 2010 -0400
-
-    Make capabilities support optional
-    
-    The new code using libcap is quite minor, so rather than always reqiure
-    libcap support, make it a normal --enable type flag.  Current default
-    behavior is retained -- if libcap is found, it is enabled, else it is
-    disabled like every nfs-utils version in the past.
-    
-    Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit fbc038b7a5c7f5f102bf2c4fb149030d0092eec8
-Author: Mike Frysinger <vapier@gentoo.org>
-Date:   Fri Apr 23 12:18:27 2010 -0400
-
-    set +x on autogen.sh
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 08e1512e4a932f41867f0b515348b9402db50cbd
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Apr 23 12:09:35 2010 -0400
-
-    libexport.a: Allow malloc(3) failures in client_lookup() and friends
-    
-    Clean up: Use malloc(3) instead of xmalloc() in client_lookup() and
-    client_dup(), ensuring that a failed memory allocation here doesn't
-    cause our process to exit suddenly.
-    
-    Allocation of nfs_client records and the m_hostname string are now
-    consistently handled with malloc(3), calloc(3), strdup(3), and
-    free(3).
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit aa4b66b12b631885ed85f3ebe97e68b033407178
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Apr 23 12:08:49 2010 -0400
-
-    libexport.a: Allow m_hostname allocation to fail instead of exit
-    
-    Clean up: Replace xstrdup() with strdup(3) in client_init(), to
-    prevent the process from exiting if the memory allocation fails.
-    
-    Note that both of client_init()'s callers set m_hostname equal to NULL
-    before calling, thus the extra free(3) at the top of client_init() is
-    unneeded.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 5d954d871fb265af584faef5df6e2e7e6ada7c3b
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Apr 23 12:02:34 2010 -0400
-
-    libexport.a: Allow client_init() to fail instead of exit
-    
-    client_init()'s current callers can now deal correctly with a failure.
-    Get rid of code that can cause our process to exit in client_init(),
-    if address mask parsing or memory allocation fails.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 75cbc8d3fc9e7c3750629bd72519770ab58b868f
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Apr 23 12:00:28 2010 -0400
-
-    libexport.a: Add client_free()
-    
-    Clean up: Introduce a helper to free a nfs_client record.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 7fc6f6c6b68ba7fa1be6de05ce3b9e2d97b82ea4
-Author: Steve Dickson <steved@redhat.com>
-Date:   Fri Apr 16 10:56:29 2010 -0400
-
-    Add in autoconf support for mountstats and nfsiostats
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit d8ff9ef2828059bb2ee115d22f3c9579421daf54
-Author: Steve Dickson <steved@redhat.com>
-Date:   Fri Apr 16 10:49:10 2010 -0400
-
-    Introduce man page for the nfsiostats command
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit c03fe46d62bc78cb52d400fa5a52dc4ce9947945
-Author: Steve Dickson <steved@redhat.com>
-Date:   Fri Apr 16 10:46:41 2010 -0400
-
-    Introduce man page for the mountstats command
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit c4b2281c6c748b768de7a49af89660c9c1a68b11
-Author: Steve Dickson <steved@redhat.com>
-Date:   Fri Apr 16 13:31:57 2010 -0400
-
-    Removed some miscellaneous warnings in the new gssd code.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 4c5ff6d48021731128c4fc13d51610645a6fcf5c
+commit d6c1b35c6b40243bfd6fba2591c9f8f2653078c0
 Author: Kevin Coffman <kwc@citi.umich.edu>
-Date:   Mon Apr 12 17:13:25 2010 -0400
+Date:   Wed Apr 6 11:25:03 2011 -0400
 
-    Add support for non-DES encryption types.
+    nfs-utils: Add support to svcgssd to limit the negotiated enctypes
     
-    Sends a new format of context information to the kernel.
-    (Requires kernel support to do anything useful.)
+    Recent versions of Kerberos libraries negotiate and use
+    an "acceptor subkey".  This negotiation does not consider
+    that a service may have limited the encryption keys in its
+    keytab.  A patch (http://src.mit.edu/fisheye/changelog/krb5/?cs=24603)
+    has been added to the MIT Kerberos code to allow an application
+    to indicate that it wants to limit the encryption types negotiated.
+    (This functionality has been available on the client/initiator
+    side for a while.  The new patch adds this support to the
+    server/acceptor side.)
     
+    This patch adds support to read a recently added nfsd
+    proc file to determine the encryption types supported by
+    the kernel and calls the function to limit encryption
+    types negotiated for the acceptor subkey.
+    
+    Signed-off-by: Kevin Coffman <kwc@citi.umich.edu>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 76be349d5dd07f55797cb9920cc275667258f10f
-Author: Kevin Coffman <kwc@citi.umich.edu>
-Date:   Thu Apr 15 08:32:20 2010 -0400
-
-    Try to use kernel function to determine supported Kerberos enctypes.
-    
-    This patch replaces a hard-coded list with a function to obtain
-    the Kerberos encryption types that the kernel's rpcsec_gss code
-    can support.  Defaults to old behavior if kernel does not supply
-    information.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 48d13033dcb27eb3d9ea78c39692ff7c54095950
-Author: Kevin Coffman <kwc@citi.umich.edu>
-Date:   Mon Apr 12 17:06:30 2010 -0400
-
-    gssd: move function limit_krb5_enctypes into the exported functions area
-    
-    cleanup: Move function limit_krb5_enctypes() from the section
-    containing static functions into the section containing
-    externally visible functions.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 470448e77bd673b206cf40820f966dcb8f029f27
+commit 73840ef610accf4cf667427bc64805377c0d8394
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Apr 16 13:03:20 2010 -0400
+Date:   Wed Apr 6 10:53:57 2011 -0400
 
-    libexport.a: export_find() should handle address parsing errors
+    exports: add a configurable time-to-live for the kernel	cache entries
     
-    An address mask parsing error can cause client_init(), and therefore
-    client_dup(), to make our process exit suddenly.  Soon we want to add
-    more complex address parsing in client_init(), so we need this
-    interface to be a little more robust.
+    From: Trond Myklebust <Trond.Myklebust@netapp.com>
     
-    Since export_find() can return NULL in some cases, it can handle NULL
-    returns from its subroutines if an address parsing error occurs, or if
-    memory is exhausted.  Allow for client_dup() to return NULL instead of
-    exiting sideways.
+    The fedfs ldap server will specify a ttl for its entries.
+    
+    Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+    
+    This is a refactoring change only.  There should be no change in
+    behavior.
+    
+    Original patch had updates to utils/mountd/junctions.c, which no
+    longer exists.  These are not included here.
+    
+    Create a macro for the default cache TTL, which is used in several
+    places besides the export cache.
+    
+    Make e_ttl unsigned.
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 9b7cc679c70d00af3f44dc6a8b44a360a2423d64
+commit 38e4c685410885a6d464ddd44eff4fd5e7f8459f
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Apr 16 13:02:15 2010 -0400
+Date:   Wed Apr 6 10:49:52 2011 -0400
 
-    libexport.a: Add export_free()
+    statd: Remove vestigial "-w" option from man page synopsis
     
-    Clean up: Introduce a helper to free an nfs_export record.
+    The synopsis of rpc.statd in its man page lists "-w" as a valid
+    option.  There is currently no support in the source code for a "-w"
+    option.
+    
+    BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=199
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 30eff9c26141746fb26efb1af60d5cbe7a16ebae
+commit b57cd77c13831051ad974ae027d96cd88a8d0c59
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 15 08:59:18 2010 -0400
+Date:   Wed Apr 6 10:48:38 2011 -0400
 
-    libexport.a: Add helper for populating m_addrlist[]
+    mount.nfs: Don't leak socket in nfs_ca_sockname()
     
-    Clean up: Move common code that populates an nfs_client record's
-    m_addrlist to a helper function.  This eliminates a little code
-    duplication, and makes it simpler to add IPv6 support later.
+    Ensure the test socket is always closed before nfs_ca_sockname()
+    returns.  Otherwise it's orphaned.
+    
+    BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=197
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit e1c93f691348392ee36b763bf57946540891ff16
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 15 08:57:29 2010 -0400
+commit 502eef09d8050ffb87d394397c2780e1ef042d68
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Apr 6 10:46:06 2011 -0400
 
-    libexport.a: Reduce code duplication in client_init()
+    Removed a warning from v4root.c
     
-    Clean up:  Most cases in client_init() set clp->m_naddr to zero.  Move
-    it to the common part of the function, and simplify the logic.  This
-    will make adding IPv6 support here more straightforward.
+    v4root.c:176:9: warning: variable 'ret' set but not used
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit c2fa189a0467c25666f014cf9ff2576a9f54d682
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Apr 6 10:39:10 2011 -0400
+
+    Removed a warning from exportfs.c
+    
+    exportfs.c:280:29: warning: 'exp' may be used uninitialized in this function
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit b98ae9df8c4904289c9390288325058b24caa423
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Apr 6 10:36:30 2011 -0400
+
+    Removed a warning from conffile.c
+    
+    conffile.c:258:19: warning: 'j' may be used uninitialized in this function
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 012e1a4bf2a002e8cd4d5be3478bfa20a91cbfed
+Author: Masatake YAMATO <yamato@redhat.com>
+Date:   Mon Mar 7 08:36:19 2011 -0500
+
+    Update man pages for /etc/exports.d
+    
+    Man page updates for /etc/exports.d.
+    
+    Signed-off-by: Masatake YAMATO <yamato@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit c7427b57e2be8ef0d57ad0618d4590c062b130f5
+Author: Masatake YAMATO <yamato@redhat.com>
+Date:   Mon Mar 7 08:18:51 2011 -0500
+
+    Read /etc/exports.d/*.export as extra export files
+    
+    This patch adding a capability to read /etc/exports.d/*.exports as
+    extra export files to exportfs.
+    
+    If one wants to add or remove an export entry in a script, currently
+    one may have to use sed or something tool for adding or removing the
+    line for the entry in /etc/exports file.
+    
+    With the patch, adding and removing an entry from a script is much
+    easier.
+    cat<<EOF... or mv can be used for adding. rm can be used for removing.
+    
+    Signed-off-by: Masatake YAMATO <yamato@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit edb9b7f2ab9806afb9af31eabeb505fe454c51df
+Author: Steve Dickson <steved@redhat.com>
+Date:   Sat Mar 5 16:17:01 2011 -0500
+
+    Cleaned up a warning in rpcdispatch.c
+    
+    rpcdispatch.c:40:20: warning: comparison between signed and unsigned
+    integer expressions
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 930323817b61877d61fb8ef57229013daa2e6091
+Author: Steve Dickson <steved@redhat.com>
+Date:   Sat Mar 5 16:13:01 2011 -0500
+
+    mount: Remove MOUNT_CONFIG warnings
+    
+    The following changes are needed to remove compile warnings when
+    MOUNT_CONFIG is not defined
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 3ef3dc8f1e87ba7a6eaa3c2a6965aff6c80ba414
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Thu Mar 3 17:26:33 2011 -0500
+
+    mount: Recognize zero as a valid value for the port= option
+    
+    While zero is not a valid IP port number, zero does represent a valid
+    value for "port=".  It means "query rpcbind to discover the actual
+    non-zero port number to use".  So the parsing functions that handle
+    "port=" should not flag zero as an invalid value.
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 1fc99e6d5d6b9401e380ee756a4251c86a3b8d54
-Author: Mike Frysinger <vapier@gentoo.org>
-Date:   Thu Apr 15 08:49:28 2010 -0400
+commit b3a4dbfb61dad59829f5191d727267b2ea45937a
+Author: Mi Jinlong <mijinlong@cn.fujitsu.com>
+Date:   Wed Feb 9 11:29:42 2011 -0500
 
-    set +x on t0001-statd-basic-mon-unmon.sh
+    Gssd: modify wrong err message at handle_gssd_upcall
     
-    The test framework tries to exec this script, but it fails because it
-    lacks the +x bit.
+    Modify wrong err message at handle_gssd_upcall when
+    sscanf encryption types fail.
     
-    Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+    Signed-off-by: Mi Jinlong <mijinlong@cn.fujitsu.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit bf867b09201abb155b52e81aeb08757b2f7c6937
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 8 11:01:14 2010 -0400
+commit 45e4597bd570ed40221f51887cde7d7f096f55e7
+Author: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Date:   Wed Feb 9 11:27:19 2011 -0500
 
-    libexport.a: replace xlog(L_FATAL) in client_check()
+    Support AD style kerberos automatically in rpc.gss
     
-    Clean up: Prevent the process from exiting in client_check().  Report
-    bad m_type values, but return 0.
+    An Active Directory KDC will only grant a TGT for UPNs, getting
+    a TGT for SPNs is not possible:
     
-    This removes another site where a mountd or exportfs process can exit
-    sideways.
+    $ kinit -k host/ib5@ADS.ORCORP.CA
+    kinit: Client not found in Kerberos database while getting initial
+    credentials
+    
+    The correct thing to do for machine credentials is to get a TGT
+    for the computer UPN <HOSTNAME>$@REALM:
+    $ kinit -k IB5\$
+    $ klist
+    12/22/10 11:43:47  12/22/10 21:43:47  krbtgt/ADS.ORCORP.CA@ADS.ORCORP.CA
+    
+    Samba automatically creates /etc/krb5.keytab entry for the computer UPN,
+    this patch makes gssd_refresh_krb5_machine_credential prefer it above
+    the SPNs if it is present.
+    
+    The net result is that nfs client works automatically out of the box
+    if samba has been used to setup kerberos via 'net ads join' 'net ads
+    keytab create'
+    
+    Tested using Windows Server 2003 R2 as the AD server.
+    
+    Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 730f6986f86873513fa021a450eb55ccd0f2fbff
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Jan 26 07:49:19 2011 -0500
+
+    Fixed segfault in rpc.mountd
+    
+    A unallocated piece of memory, instead of a NULL point, was being
+    used to initialize a ->next point in the mount link list which
+    caused a segfault after a few remote accesses via the showmount
+    command.
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 544ed73d5ab27c1390833d5cf93b9585c151667d
+Author: Steve Dickson <steved@redhat.com>
+Date:   Fri Jan 14 10:12:28 2011 -0500
+
+    Improve debugging in svcgssd
+    
+    Added in gss_display_error() which translates the GSS error into the
+    actual GSS macro name. Currently only the translation of these errors
+    are logged. Since those translations are buried deep in the kerberos
+    library code, having the actual GSS macro name makes it easier to
+    follow the code.
+    
+    Moved the nfs4_init_name_mapping() call into main() so if debug is
+    enabled the DNS name and realms will be logged during start up.
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 57be18b9ab08148a1cc9d5af588119885720be8b
+Author: Mi Jinlong <mijinlong@cn.fujitsu.com>
+Date:   Tue Jan 4 11:16:45 2011 -0500
+
+    libnsm.a: modify return value to false from 0 at nsm_drop_privileges()
+    
+    At nsm_drop_privileges(), for improving readability, unify
+    the return value.
+    
+    Signed-off-by: Mi Jinlong <mijinlong@cn.fujitsu.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 5c498280fd9353ded3ea169841079bdae23418e2
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Mon Dec 13 14:50:45 2010 -0500
+
+    libnsm.a: sm-notify sometimes ignores monitored hosts
+    
+    Monitored host information is stored in files under /var/lib/nfs.
+    When visiting entries in the monitored hosts directory, libnsm.a
+    examines the value of dirent.d_type to determine if an entry is a
+    regular file.
+    
+    According to readdir(3), the d_type field is not supported by all
+    file system types.  My root file system happens to be one where d_type
+    isn't supported.  Typical installations that use an ext-derived root
+    file system are not exposed to this issue, but those who use xfs, for
+    instance, are.
+    
+    On such file systems, not only are remote peers not notified of
+    reboots, but the NSM state number is never incremented.  A statd warm
+    restart would not re-monitor any hosts that were monitored before
+    the restart.
+    
+    When writing support/nsm/file.c, I copied the use of d_type from the
+    original statd code, so this has likely been an issue for some time.
+    
+    Replace the use of d_type in support/nsm/file.c with a call to
+    lstat(2).  It's extra code, but is guaranteed to work on all file
+    system types.
+    
+    Note there is a usage of d_type in gssd.  I'll let gssd and rpcpipefs
+    experts decide whether that's worth changing.
+    
+    Fix for:
+    
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=193
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit a39b43b81a8e7b70310f250c5ffd77816577cd6c
+commit 089df7c754d9ebab0a7b804f396626ac95fee2e6
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 8 10:55:02 2010 -0400
+Date:   Mon Dec 13 14:47:42 2010 -0500
 
-    libexport.a: Refactor wildcard checking in client_check()
+    libnsm.a: Replace __attribute_noinline__
     
-    Clean up: refactor wildcard logic out of client_check() to make it
-    easier to introduce IPv6 support.
+    Replace the __attribute_noinline__ form with
     
-    Match the style used for client_check_{fqdn,subnetwork,netgroup}.
+      __attribute__((__noinline__)).
+    
+    Even though the compiler didn't complain about __attribute_malloc__,
+    also replace those in order to maintain consistent style throughout the
+    source file.
+    
+    Fix for:
+    
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=194
+    
+    Reported-by: "Gabor Z. Papp" <gzp@papp.hu>
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 7869a76207d3f4b3bd4ab57b4a7a8807ac2ff0c6
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Mon Dec 13 14:36:15 2010 -0500
+
+    sm-notify: Make use of AI_NUMERICSERV conditional
+    
+    Gabor Papp reports nfs-utils-1.2.3 doesn't build on his system that
+    uses glibc-2.2.5:
+    
+    make[3]: Entering directory
+    `/home/gzp/src/nfs-utils-1.2.3/utils/statd'
+    gcc -DHAVE_CONFIG_H -I. -I../../support/include   -D_GNU_SOURCE -Wall
+    	-Wextra -Wstrict-prototypes  -pipe -g -O2 -MT sm-notify.o -MD
+    	-MP -MF .deps/sm-notify.Tpo -c -o sm-notify.o sm-notify.c
+    	sm-notify.c: In function 'smn_bind_address':
+    sm-notify.c:247: error: 'AI_NUMERICSERV' undeclared (first use in this
+    function)
+    sm-notify.c:247: error: (Each undeclared identifier is reported only
+    once
+    sm-notify.c:247: error: for each function it appears in.)
+    make[3]: *** [sm-notify.o] Error 1
+    
+    According to the getaddrinfo(3) man page, AI_NUMERICSERV is available
+    only since glibc 2.3.4.  getaddrinfo(3) seems to convert strings
+    containing a number to the right port value without the use of
+    AI_NUMERICSERV, so I think we can survive on older glibc's without it.
+    It will allow admins to specify service names as well as port numbers
+    on those versions.
+    
+    There are uses of AI_NUMERICSERV in gssd and in nfs_svc_create().  The
+    one in nfs_svc_create() is behind HAVE_LIBTIRPC, and the other is a
+    issue only for those who want to deploy Kerberos -- likely in both
+    cases, a more modern glibc will be present.  I'm going to leave those
+    two.
+    
+    Fix for:
+    
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=195
+    
+    Reported-by: "Gabor Z. Papp" <gzp@papp.hu>
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit e8dbaddc8465dcd07b53f8e80a537703dd0248ca
+Author: Sid Moore <learnmost@gmail.com>
+Date:   Fri Dec 3 09:19:06 2010 -0500
+
+    rpc.mountd: Checking RPC Procedure ID before process it
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 3c6973c595d62dc6452967d50ae8abe69f9f8bad
+Author: Mi Jinlong <mijinlong@cn.fujitsu.com>
+Date:   Mon Nov 29 10:59:10 2010 -0500
+
+    libnfs.a: fix a bug when parse section's arg
+    
+    When parsing section's arg at configure file, the pointer
+    should stop when fetch ']', and give the warning message.
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 86f7be64cafd17d4a3f164603484eaedb4757431
+Author: Harshula Jayasuriya <harshula@redhat.com>
+Date:   Mon Nov 22 11:22:31 2010 -0500
+
+    nfs-utils: nfsstat: has_stats() does not function correctly for NFSv4 client stats
+    
+    The NFSv4 client procs/ops in "struct rpc_procinfo nfs4_procedures" is
+    used to generate the NFS client stats interface:
+    ------------------------------------------------------------
+    net 0 0 0 0
+    rpc 15 0 0
+    proc2 18 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    proc3 22 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 2 1 0
+    proc4 42 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0
+    0 0 0 0 0 0 0
+    ------------------------------------------------------------
+    Note, for proc4, the number 42. That is the number of stats that follow
+    on the same line. Currently nfsstat's has_stats() relies on this number
+    to be equal to CLTPROC4_SZ. Unfortunately this is not the case. I have
+    changed has_stats() not to rely on these two values being equal. This
+    should also allow nfsstat to work with different kernel versions that
+    expose a different number of NFS client ops.
+    
+    * Fix has_stats()
+    * Stop print_clnt_list() printing server stats!
+    * Describe the option -3 and -4 completely in the nfsstat manpage.
+    
+    Signed-off-by: Harshula Jayasuriya <harshula@redhat.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 0868dcccb9a3bf3d022a32ff31311fe371484e77
+Author: Steve Dickson <steved@redhat.com>
+Date:   Sat Nov 20 15:01:21 2010 -0500
+
+    Enable nfsidmap to compile
+    
+    Only enable the compilation of nfsidmap when libnfsidmap support it.
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 6f07548141e710767d425e119d9823691293771d
+Author: Bryan Schumaker <bjschuma@netapp.com>
+Date:   Fri Nov 19 12:01:10 2010 -0500
+
+    Add the new nfsidmap program
+    
+    This patch adds the nfsidmap program to nfs-utils.  This program is
+    called by the nfs idmapper through request-keys to map between
+    uid / user name and gid / group name.
+    
+    Signed-off-by: Bryan Schumaker <bjschuma@netapp.com>
+    Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 409487978593de13ae36be0ee56d8111ad6b3319
+Author: Steve Dickson <steved@redhat.com>
+Date:   Mon Nov 22 11:33:37 2010 -0500
+
+    Removed a couple warnings from utils/mount/stropts.c
+    
+    stropts.c:740:6: warning: 'ret' may be used uninitialized in this function
+    stropts.c:653:6: warning: 'ret' may be used uninitialized in this function
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit f4968a724c1d4162a8e2b9f6a19c460cc56c95f7
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Fri Oct 29 12:56:21 2010 -0400
+
+    nfs(5): Document remount behavior
+    
+    It appears that, for a long while, NFS "remount" mounts have
+    completely wiped the existing mount options in /etc/mtab for a given
+    mount point.  This is a problem for umount.nfs, since it reads its
+    options out of /etc/mtab to find out how to do the unmount.
+    
+    The mount(8) command provides the NFS mount subcommand with the mount
+    options to perform the remount.  There are four cases to consider:
+    
+      1. Both the device and mount directory are specified on the
+         command line, and the target mount point is in /etc/fstab
+    
+      2. Only one of the device and mount directory is specified on
+         the command line, and the target mount point is in
+         /etc/fstab
+    
+      3. Both the device and mount directory are specified on the
+         command line, and the target mount point is not in /etc/fstab
+    
+      4. Only one of the device and mount directory is specified on
+         the command line, and the target mount point is not in
+         /etc/fstab
+    
+    Currently only case 4 works correctly.  In that case, mount(8)
+    provides the correct set of mount options to the mount.nfs
+    subcommand and it can update /etc/mtab correctly.
+    
+    Cases 1 and 3 replace all mount options in /etc/mtab with the options
+    provided on the command line during a remount.  Case 2 replaces the
+    mount options in /etc/mtab with a mix of options from /etc/fstab and
+    /etc/mtab.
+    
+    Cases 1 and 3 are historical behavior.  Basically this is a formal
+    interface to allow administrators to replace the mount options in
+    /etc/mtab completely, instead of merging in new ones.  The present
+    patch documents that behavior in nfs(5), and provides best practice
+    for remounting NFS mount points.
+    
+    There are near-term plans to address case 2 by fixing mount(8)
+    (provided by utils-linux-ng in most distributions).
+    
+    This is a partial fix for:
+    
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=188
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 346ca35298e45e55a58d0f566c3b32b69102c6de
+commit 6d1a82b005994f759f2c847c0354413a24643da5
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 8 10:54:01 2010 -0400
+Date:   Thu Oct 28 13:15:22 2010 -0400
 
-    libexport.a: Refactor netgroup checking in client_check()
+    nfs(5): Grammar and style fixes
     
-    Clean up: refactor netgroup logic out of client_check() to make it
-    easier to introduce IPv6 support.
-    
-     +  Use preferred style of keeping #ifdef out of the middle of
-        function definitions.  Squelch compiler warnings for "#ifndef
-        HAVE_INNETGR" by using __attribute__((unused)).
-    
-     +  Use preferred style of not using curly braces around switch cases.
-    
-     +  Match style used for check_{fqdn,subnetwork}.
-    
-     +  Clarify comment documenting use of h_aliases
+    Clean up grammar and style issues introduced by recent updates.  Also,
+    I'm not certain inappropriate options are always ignored.
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 3455138100064d0213b124c72453accde2276be5
+commit ab2cdb859f738a25e2567a2ec674cfa78a0a175d
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 8 10:52:33 2010 -0400
+Date:   Thu Oct 28 13:13:19 2010 -0400
 
-    libexport.a: Remove unused function client_checkaddr()
+    mount.nfs: mnt_freq and mnt_pass are always zero
     
     Clean up.
     
+    No need to pass constant zeros to add_mtab() from its only call site.
+    Ensure that initialization of a struct mntent is consistent in both
+    places that it is done.
+    
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit a4e3d5c53195c789ae26697a0b2ecdf05d76a85b
+commit bc4a0c42570d5620cc1bb32428e16b9c9b5f3863
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 8 10:51:54 2010 -0400
+Date:   Thu Oct 28 13:10:48 2010 -0400
 
-    libexport.a: Factor SUBNETWORK checking out of	check_client()
+    mount.nfs: Fix memory leak in nfs_sys_mount()
     
-    Clean up:  Factor the MCL_SUBNETWORK case out of check_client() and
-    client_checkaddr().  This will make it easier to add IPv6 support
-    eventually.
-    
-    The logic in the new helper function will get a little more tangled
-    once IPv6 support is introduced.  Each slot in the clp address list
-    eventually may contain an address from either address family.
-    
-    Note that the switch statement in client_checkaddr() is redundant,
-    since clp->cl_mtype is loop invariant.  This change makes SUBNETWORK
-    client checking more computationally efficient, at the cost of a few
-    extra lines of code.
-    
-    This commit should not change code behavior in any way.
+    This appears to have been left behind by last year's adjustments to
+    how the extra_opts string is constructed.
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 6abde64e6a605443dfc283ffb2642cb853f8b5b0
+commit 1f237ac72e6f563908b350e11fd2bb866c003028
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Thu Apr 8 10:50:41 2010 -0400
+Date:   Thu Oct 28 13:09:38 2010 -0400
 
-    libexport.a: Factor FQDN checking out of check_client()
+    mount: Fix compiler warning in nfs_parse_retry_option()
     
-    Clean up:  Factor the MCL_FQDN case out of check_client() and
-    client_checkaddr().  This will make it easier to add IPv6 support
-    eventually.
+    stropts.c: In function nfs_parse_retry_option:
+    stropts.c:131: warning: conversion to unsigned int from long int may
+    alter its value
     
-    The logic in the new helper function will get a little more tangled
-    once IPv6 support is introduced.  Each slot in the clp address list
-    eventually may contain an address from either address family.
-    
-    Note that the switch statement in client_checkaddr() is redundant,
-    since clp->cl_mtype is loop invariant.  This change makes FQDN client
-    checking more computationally efficient, at the cost of a few extra
-    lines of code.
-    
-    This commit should not change code behavior in any way.
+    Make it more clear what the second argument is for, and flag the
+    switch fallthrough case.
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit e8a54a3d5e32c9de009f84d1ef3f26d2dffbf226
-Author: Steve Dickson <steved@redhat.com>
-Date:   Thu Apr 8 10:43:49 2010 -0400
-
-    Remove some warnings that were introduced by commit 6ca440c
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 132744e9f8885254bcf213c90009d40adeb716bc
+commit 1ea2c3be33f2eb4630c5cdb78edf2bb670b294ab
 Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Mar 22 10:18:00 2010 -0400
+Date:   Thu Oct 28 12:12:12 2010 -0400
 
-    libexport.a: e_fslocdata should be freed with free(3)
+    nfs-utils: Remove all uses of AI_ADDRCONFIG
     
-    Clean up: Since e_fslocdata is allocated with strdup(3), and not
-    xstrdup(), it should be freed with free(3), and not xfree().
+    It was reported that, if only "lo" is up,
+    
+      mount.nfs 127.0.0.1:/export /mount
+    
+    fails with "Name or service not known".
+    
+    "man 3 getaddrinfo" says this:
+    
+      If hints.ai_flags includes the AI_ADDRCONFIG flag, then IPv4
+      addresses are returned in the list pointed to by res only if the
+      local system has at least one IPv4 address configured, and IPv6
+      addresses are only returned if the local system has at least
+      one IPv6 address configured.
+    
+    The man page oversimplifies here.  A review of glibc shows that
+    getaddrinfo(3) explicitly ignores loopback addresses when deciding
+    whether an IPv4 or IPv6 address is configured.
+    
+    This behavior around loopback is a problem not just for mount.nfs,
+    but also for RPC daemons that have to start up before a system's
+    networking is fully configured and started.  Given the history of
+    other problems with AI_ADDRCONFIG and the unpredictable behavior it
+    introduces, let's just remove it everywhere in nfs-utils.
+    
+    This fix addresses:
+    
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=191
     
     Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit e3b0046b4b12a6e05c0a7afd59ca5431ded51e96
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Mar 22 10:16:04 2010 -0400
-
-    libexport.a: Fix whitespace damage in	support/export/export.c
-    
-    Clean up whitespace damage introduced by commit 4cacc965.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 5f722d8855ebcb2d041e182c8c69c8cbee4bf408
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Mar 22 10:13:15 2010 -0400
-
-    libexport.a: Clean up client_compose() and client_member()
-    
-    Clean up:  Replace outdated comments, and fix some function
-    declarations.  Use proper type for a couple of automatic variables.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit aa4c771fc359e097a3a6c3637f78c7bed7c450e9
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Mon Mar 22 10:10:59 2010 -0400
-
-    libexport.a: Remove dead code
-    
-    Clean up:  I can't find any call sites for client_find() or
-    client_match().
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 0935cebc1e130c6adfd870c88a6493277c84d47f
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Mar 19 16:14:26 2010 -0400
-
-    mount: Mount should retry unreachable hosts
-    
-    Currently if a server is up but not responding (ie, it answers ARP
-    requests, but not NFS or RPC requests), mount retries or backgrounds
-    itself waiting for the server.
-    
-    If the server is not responding on the network at all, mount fails
-    the mount request immediately.
-    
-    Users might find it more useful if mount retried in both cases.
-    
-    Note that this change means attempting to mount using a misspelled
-    server name will "hang" for the retry amount.  I suppose the error
-    message isn't very helpful whether it fails immediately or waits
-    a couple of minutes, though I imagine that an unreachable server is a
-    much more common occurrence than a misspelling.
-    
-    Reported-by: Daniel Goering <g_daniel@gmx.net>
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit baa41b2c78e796540c45692ea35214f7090a78cb
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Fri Mar 19 16:03:45 2010 -0400
-
-    sm-notify: Send fully-qualified and unqualified mon_names
-    
-    During any file locking interaction between an NFS client and server,
-    the client tells the server what hostname it will use as the mon_name
-    argument of the SM_NOTIFY request sent by the client when it reboots.
-    This is the "caller_name" argument of an NLMPROC_LOCK request.
-    
-    The server, however, never tells the client what mon_name argument
-    it will use when sending an SM_NOTIFY request.  In order to recognize
-    the server, clients usually guess what mon_name the server might
-    send, by using the server hostname provided by the user on the mount
-    command line.
-    
-    Frequently, the user provides an unqualified server name on the mount
-    command.  The server might then call the client back with a fully
-    qualified domain name, which might not match in some cases.
-    
-    Solaris, and perhaps other implementations, attempt to mitigate this
-    problem by sending two SM_NOTIFY requests to each peer: one with an
-    unqualified mon_name argument, and one with a fully qualified mon_name.
-    
-    Implement such a scheme for sm-notify.
-    
-    Since my_name is almost always the fully-qualified hostname associated
-    with the local system, just wiping the left-most '.' in the my_name
-    argument and sending another SM_NOTIFY is nearly always sufficient.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 900df0e7c0b9006d72d8459b30dc2cd69ce495a5
-Author: Chuck Lever <chuck.lever@oracle.com>
-Date:   Wed Mar 17 06:15:08 2010 -0400
-
-    sm-notify: Use my_name when sending SM_NOTIFY requests
-    
-    The mon_name argument of an SM_NOTIFY request is a string that
-    identifies the rebooting host.
-    
-    sm-notify should send the my_name provided by the local lockd at the
-    time the remote was monitored, rather than cocking up a mon_name
-    argument based on the present return value of gethostname(3).  If the
-    local system's hostname happened to change after the last reboot, then
-    the string returned by gethostname(3) will not be recognized by the
-    remote.  Thus the remote will never initiate lock recovery for the
-    original named host, possibly leaving stale locks.
-    
-    The existing behavior of using the -v command line option as the
-    mon_name argument is preserved, but we now prevent sending an IP
-    presentation address, as some non-Linux implementations don't
-    recognize addresses as valid mon_names.
-    
-    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-    Reviewed-by: Jeff Layton <jlayton@redhat.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 70c59e231e7257ac93b68ba4b844f8d10a6af4a8
-Author: J. Bruce Fields <bfields@citi.umich.edu>
-Date:   Mon Mar 8 15:02:26 2010 -0500
-
-    mountd: trivial: name parameters for clarity
-    
-    Part of the reason for the previous bug was confusion between "subpath"
-    and "path"; which is the shorter path, and which the longer?
-    
-    "child" and "parent" seem less ambiguous.
-    
-    Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit a064fde8c2615333227de97d159bb338d4ac640d
-Author: J. Bruce Fields <bfields@citi.umich.edu>
-Date:   Mon Mar 8 14:59:01 2010 -0500
-
-    mountd: fix path comparison for v4 crossmnt
-    
-    This was obviously wrong, since path[strlen(path)] == '\0'
-    should always be true.
-    
-    Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 6ca440c2661dccb05ae74ffb65817e9c30f05c8a
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Mar 8 11:22:46 2010 -0500
-
-    mountd: fix --manage-gids hang due to int/uint bug
-    
-    A uid or gid should be represented as unsigned, not signed.
-    
-    The conversion to signed here could cause a hang on access by an unknown
-    user to a server running mountd with --manage-gids; such a user is
-    likely to be mapped to 232-1, which may be converted to 231-1 when
-    represented as an int, resulting in a downcall for uid 231-1, hence the
-    original rpc hanging forever waiting for a cache downcall for 232-1.
-    
-    Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 84346b7d7e69c113d6dbf03f2646a47b0e74a6b8
-Author: Steve Dickson <steved@redhat.com>
-Date:   Mon Mar 8 10:24:44 2010 -0500
-
-    Use authunix_create() instead of authsys_create() to fix regression.
-    
-    Commit 409b8 introduced a regression when the --disable-tirpc
-    configuration flag is set. The authsys_create() interface, which
-    was introduced, does not exist in the legacy glibc library.
-    
-    Since the authsys_create() interface is a redefined of the
-    authunix_create() interface, which is defined in glibc, using
-    authunix_create() resolves the regression,
-    
-    Acked-by: Jeff Layton <jlayton@redhat.com>
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 409b89cc7106154780400c6b2bdce46bc9d5db4b
+commit f8e315543b7f1db7f37a4bfe8ede3020cef62868
 Author: Jeff Layton <jlayton@redhat.com>
-Date:   Mon Mar 1 08:07:34 2010 -0500
+Date:   Thu Oct 28 09:18:33 2010 -0400
 
-    nfs-utils: add and use nfs_authsys_create
+    nfs-utils: fix default value for --enable-tirpc
     
-    The current mount, umount and showmount code uses
-    authunix_create_default to get an auth handle. The one provided by glibc
-    returned a truncated list of groups when there were more than 16 groups.
-    libtirpc however currently does an abort() in this case, which causes
-    the program to crash and dump core.
+    We need $enable_tirpc to be a tristate. 'yes' means that someone
+    explicitly requested building with tirpc. 'no' means that it was
+    explicitly disabled. Anything else means that no one specified a value.
     
-    nfs-utils just uses these auth handles for the MNT protocol, so the
-    group list doesn't make a lot of difference here. Add a new function
-    that creates an auth handle with a supplemental gids list that consists
-    only of the primary gid. Have nfs-utils use that function anywhere that
-    it currently uses authunix_create_default. Also, have the caller
-    properly check for a NULL return from that function.
+    Fix it by setting the value to a blank string so that the default is
+    properly undefined.
     
+    Reported-by: Chuck Lever <chuck.lever@oracle.com>
     Signed-off-by: Jeff Layton <jlayton@redhat.com>
     Signed-off-by: Steve Dickson <steved@redhat.com>
 
-commit 9c8c2cd50d3cf0316c2a1bdf6cb9efc7e1a20be9
-Author: Trond Myklebust <Trond.Myklebust@netapp.com>
-Date:   Mon Mar 1 07:37:49 2010 -0500
-
-    Fix a typo in commit 6d5ac3fa (nfsd: Disble NFS 4.1 functionality by
-    default).
-    
-    We did not really intend to make NFSv4.0 support conditional on NFSv4.1
-    being enabled.
-    
-    Signed-off-by: Steve Dickson <steved@redhat.com>
-
-commit 639b63394c6dd66e06423bfe810366277955c570
+commit c62d756402509ca5d07c1fd4d2e5a9d78dc4171b
 Author: Steve Dickson <steved@redhat.com>
-Date:   Thu Feb 18 07:35:00 2010 -0500
+Date:   Tue Oct 19 15:54:35 2010 -0400
 
-    Release 1.2.2
+    Updated rpc.mountd man page
+    
+    Updated the rpc.mountd man page to no longer reference
+    v3 as the "newer" version and also mentioned v4 as
+    a supported version.
     
     Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 79e9079e9af4e5c2aa1d77815df1147b26876eb8
+Author: Steve Dickson <steved@redhat.com>
+Date:   Tue Oct 19 15:54:04 2010 -0400
+
+    Cleared up the sync option in exportfs man page
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 6f228ea26be06572de245aed5496aaa122cca5a8
+Author: Steve Dickson <steved@redhat.com>
+Date:   Fri Oct 15 17:20:28 2010 -0400
+
+    Removed duplicate entries in export man page
+    
+    The man page's paragraphs about "refer=" and "replicas="
+    each appear twice.
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 849b7072a04975bb5da09245fbcacb0cb754a909
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Thu Oct 14 10:33:25 2010 -0400
+
+    mountd: Clear mountd registrations at start up
+    
+    Clear stale MNT registrations before mountd tries to create fresh
+    listeners, to ensure that mountd starts.  This is also what statd does.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 93dcf64cc4a9e67f693aea35c8193428015f4a30
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 13:57:52 2010 -0400
+
+    behavior as file systems that use the monolithic /sbin/mount command.
+    See the MS_NOMTAB macro in utils-linux-ng/mount/mount.c.
+    
+    Note that mount(8) has MS_USERS and MS_USER in the "nomtab" category
+    as well, but mount.nfs needs to record those values so that unmounting
+    a user-mounted NFS file system can work.
+    
+    While we're here, fix some white space damage in fix_opts_string().
+    
+    This is a partial fix for:
+    
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=188
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit dc08c702a6c7f824f317af561f491635ee898a71
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 13:55:10 2010 -0400
+
+    umount.nfs: Distinguish between nfs4 and nfs mounts
+    
+    Neil Brown reports that umount.nfs is still confused by "-t nfs -o
+    vers=4" mounts.
+    
+    /etc/mtab can be confused.  /proc/mounts is authoritative on the
+    fstype of a mount.  Have umount.nfs consult it to determine which
+    mechanism to use for unmounting.  The code to read /proc/mounts was
+    lifted from the nfsstat command.
+    
+    The code introduced by this patch may look like belt-n-suspenders, but
+    we have two use cases to consider:
+    
+      1.  Old kernels don't support the "vers=4" mount option, so
+          umount.nfs must look for the "nfs4" fstype
+      2.  Upcoming kernels may eliminate support the "nfs4" fstype, so
+          umount.nfs must look for the "vers=4" mount option
+    
+    Thus this logic checks for "nfs4" first then looks for the NFS version
+    setting.
+    
+    Note that we could handle unmounting entirely in the kernel, but that
+    won't help older kernels that have this issue.
+    
+    See:
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=189
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 17962b82afb68ca8e6b0d3f432d36c6c7c4980ea
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 13:01:51 2010 -0400
+
+    mount.nfs: mountproto does not support RDMA
+    
+    Clean up.  Our client does not support the MNT protocol on RDMA.
+    
+    nfs_mount_protocol() isn't invoked for RDMA mounts (they are shunted
+    off before nfs_options2pmap() is invoked).  But in case it ever is,
+    it should return the expected response.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 73c61fa5cd114fa6eae0e095724ed63aa66a4a6b
+Author: NeilBrown <neilb@suse.de>
+Date:   Wed Oct 13 12:08:41 2010 -0400
+
+    gcc complained:
+    
+    client.c: In function 'init_netmask6':
+    client.c:181:1: warning: no return statement in function returning
+    non-void
+    
+    and Suse' build system complained
+    
+    I: Program returns random data in a function
+    E: nfs-utils no-return-in-nonvoid-function client.c:181
+    
+    when I built without --enable-ipv6
+    
+    Reviewed-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: NeilBrown <neilb@suse.de>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 7e90281b88c05b01c61152b54a0cf2faec45b09c
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 12:02:32 2010 -0400
+
+    mount.nfs: Eliminate compiler warnings in utils/mount/network.c
+    
+    Clean up.
+    
+    network.c: In function get_socket:
+    network.c:431: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    
+    network.c: In function probe_bothports:
+    network.c:759: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    network.c:762: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    
+    network.c: In function nfs_probe_statd:
+    network.c:775: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    
+    network.c: In function nfs_call_umount:
+    network.c:904: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    
+    network.c: In function nfs_ca_sockname:
+    network.c:1106: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    network.c:1112: warning: dereferencing type-punned pointer might break
+        strict-aliasing rules
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 57385cf87790c0cbdfddfccdde66bd2c8da45923
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:59:30 2010 -0400
+
+    mount.nfs: Eliminate compiler warning in utils/mount/parse_opt.c
+    
+    parse_opt.c: In function po_rightmost:
+    parse_opt.c:517: warning: conversion to int from unsigned int may
+        change the sign of the result
+    
+    "i" contains the function's result value, so it should be defined as
+    the same type as the function's return type.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 1ee10ef034cbca86da4df271ac4097a948e7ab59
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:58:27 2010 -0400
+
+    mount.nfs: Eliminate compiler warning in utils/mount/nfsumount.c
+    
+    Clean up.
+    
+    nfsumount.c:374: warning: ISO C forbids omitting the middle term of
+       a ?: expression
+    
+    This is also probably harmless, but let's make the code unambiguous.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit e9c97e4f7075e563d7a442ca8298ac56bafba0d5
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:56:58 2010 -0400
+
+    mount.nfs: Eliminate compiler warning in utils/mount/nfsumount.c
+    
+    Clean up.
+    
+    nfsumount.c:265: warning: no previous prototype for nfsumount
+    
+    It's also a good idea if the compiler can ensure that the prototype
+    in nfsmount.h matches the actual function defined in nfsumount.c.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit e2b6d9cbaf20df26dd371a715fce3ae158f37126
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:54:49 2010 -0400
+
+    mount.nfs: Eliminate compiler warnings in utils/mount/mount.c
+    
+    Clean up.
+    
+    mount.c: In function parse_opt:
+    mount.c:354: warning: conversion to size_t from int may change the
+        sign of the result
+    mount.c:354: warning: conversion to int from size_t may change the
+        sign of the result
+    mount.c:359: warning: conversion to size_t from int may change the
+        sign of the result
+    mount.c:359: warning: conversion to int from size_t may change the
+        sign of the result
+    mount.c: In function parse_opts:
+    mount.c:374: warning: conversion to int from size_t may change the
+        sign of the result
+    mount.c:377: warning: conversion to size_t from int may change the
+        sign of the result
+    
+    Character string lengths are usually size_t anyway.  We can easily
+    avoid the implicit type cast here.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 013e8ec9ffb9f28f97e58299719023faf846a029
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:53:44 2010 -0400
+
+    mount.nfs: Eliminate compiler warning in utils/mount/mount.c
+    
+    Clean up.
+    
+    mount.c: At top level:
+    mount.c:324: warning: no previous prototype for ?mount_usage?
+    
+    mount_usage() has no callers outside of utils/mount/mount.c and no
+    prototype is provided in a header file.  Make it static.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 47480475c99335c1203e81662f815b62573c19e8
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:50:57 2010 -0400
+
+    mount.nfs: Eliminate compiler warnings in utils/mount/version.h
+    
+    Clean up.
+    
+    In file included from mount.c:50:
+    version.h: In function linux_version_code:
+    version.h:48: warning: conversion to unsigned int from int may
+        change the sign of the result
+    version.h:48: warning: conversion to unsigned int from int may
+        change the sign of the result
+    version.h:48: warning: conversion to unsigned int from int may
+        change the sign of the result
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 00885013dccbe00f5cc4e19223cf18e85a8e616a
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:44:23 2010 -0400
+
+    mount.nfs: Eliminate compiler warning in utils/mount/mount.c
+    
+    Clean up.
+    
+    In file included from mount.c:41:
+    mount_config.h:35: warning: no previous prototype for mount_config_opts
+    
+    Functions defined in include files are usually declared as "static
+    inline," eliminating the need for a forward declaration.
+    
+    While I was there, I also fixed the macro that prevents including
+    mount_config.h multiple times, and fixed some white space damage.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit ffa577350b03ddd421d455a8cd4cff86e3718264
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:38:22 2010 -0400
+
+    mount.nfs: Eliminate compiler warnings
+    
+    Clean up.
+    
+    fstab.c: In function ?lock_mtab?:
+    fstab.c:385: warning: declaration of ?errsv? shadows a previous local
+    fstab.c:367: warning: shadowed declaration is here
+    fstab.c:407: warning: declaration of ?errsv? shadows a previous local
+    fstab.c:367: warning: shadowed declaration is here
+    fstab.c:417: warning: declaration of ?tries? shadows a previous local
+    fstab.c:325: warning: shadowed declaration is here
+    fstab.c:422: warning: declaration of ?errsv? shadows a previous local
+    fstab.c:367: warning: shadowed declaration is here
+    
+    These are probably harmless.  Reusing a variable name, however, is a
+    little confusing to follow when reading the code.
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 5fe118b838254023d83424c5010ae73a91ec267d
+Author: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date:   Wed Oct 13 11:27:21 2010 -0400
+
+    export: Ensure that we free struct exportent->e_uuid
+    
+    Currently, the exportent->e_uuid is initialised in
+    support/nfs/exports.c:parseopts(), but it is never freed.
+    
+    Also ensure that exportent->e_uuid is duplicated correctly in
+    dupexportent().
+    
+    Adjusted to account for the new export_free() helper.
+    
+    Also, e_uuid points to memory that is always allocated with strdup(3),
+    not with xstrdup().  Thus it must be freed via free(3) and not via
+    xfree().
+    
+    Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 656028f9925f5817c5a37565d27159973db84ec3
+Author: Chuck Lever <chuck.lever@oracle.com>
+Date:   Wed Oct 13 11:22:07 2010 -0400
+
+    libnfs.a: Allow multiple RPC listeners to share	listener port number
+    
+    Normally, when "-p" is not specified on the mountd command line, the
+    TI-RPC library chooses random port numbers for each listener.  If a
+    port number _is_ specified on the command line, all the listeners
+    will get the same port number, so SO_REUSEADDR needs to be set on
+    each socket.
+    
+    Thus we can't let TI-RPC create the listener sockets for us in this
+    case; we must create them ourselves and then set SO_REUSEADDR (and
+    other socket options) by hand.
+    
+    Different versions of the same RPC program have to share the same
+    listener and SVCXPRT, so we have to cache xprts we create, and re-use
+    them when additional requests for registration come from the
+    application.
+    
+    Though it doesn't look like it, this fix was "copied" from the legacy
+    rpc_init() function.  It's more complicated for TI-RPC, of course,
+    since a TI-RPC application can set up listeners with a nearly
+    arbitrary number of address families and socket types, not just the
+    two listeners that legacy RPC applications can set up (one for AF_INET
+    UDP and one for AF_INET TCP).
+    
+    See:
+      https://bugzilla.linux-nfs.org/show_bug.cgi?id=190
+    
+    Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 1296be71ebae4c0d7da61cc1077d97562d3bc549
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Oct 13 10:17:58 2010 -0400
+
+    nfs-utils: Fixed typo in NFS man page
+    
+    Chuck pointed out there was a grammar typo in addition to the spelling
+    typo.  Here is a revised version of the patch.
+    
+    Signed-off-by: Jim Rees <rees@umich.edu>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 9afbdbad4436df6f7a5a501c6e4db04c3a5bbb08
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Oct 13 10:15:12 2010 -0400
+
+    Fix style nits in atomicio.c
+    
+    Signed-off-by: Jim Rees <rees@umich.edu>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit c117b7a1f29db65d139824ba5bab2a58bf5609e2
+Author: Steve Dickson <steved@redhat.com>
+Date:   Wed Oct 13 10:09:53 2010 -0400
+
+    nfs-utils: Move common code into support
+    
+    There are several source files and headers present in the ./utils/idmapd
+    directory which are also usable in a doimapd daemon. Because of this we
+    move that support into the support directory such that it can be shared by
+    both daemons.
+    
+    Signed-off-by: Jim Rees <rees@umich.edu>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 8c217b9623c8304608196aeb2f7360abfdf987c8
+Author: Suresh Jayaraman <sjayaraman@suse.de>
+Date:   Wed Sep 29 07:14:14 2010 -0400
+
+    The kernel 2.6.37 has a add new mount option: local_lock.
+    Document the new option in the nfs(5) man page.
+    
+    Signed-off-by: Suresh Jayaraman <sjayaraman@suse.de>
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
+commit 554df6bc8456c6971c1c597f70d3b9131e4e5e11
+Author: Steve Dickson <steved@redhat.com>
+Date:   Tue Sep 28 08:24:16 2010 -0400
+
+    Revert "nfs-iostat.py: don't wait for an extra interval when given a count"
+    
+    This reverts commit 837796686ad8f9178c7b6855ada728a53ae511e3.
