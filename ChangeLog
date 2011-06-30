@@ -1,3 +1,14 @@
+commit 684cf4a5e0e84a1367690d7ecf4882cbdf4f3228
+Author: Prem Karat <prem.karat@linux.vnet.ibm.com>
+Date:   Thu Jun 30 07:29:20 2011 -0400
+
+    mount.nfs: Fix for the bug in v1.2.4 that breaks mount.nfs
+    
+    commit 30ebf047 failed to include these changes that breaks mount.nfs.
+    mount.nfs will continue to work fine with these changes
+    
+    Signed-off-by: Steve Dickson <steved@redhat.com>
+
 commit 057d2add27d1e05fed3ae7206ee043b6c1fda45a
 Author: NeilBrown <neilb@suse.de>
 Date:   Tue Jun 28 13:24:33 2011 -0400
