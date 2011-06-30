@@ -1,7 +1,7 @@
 dnl Checks librpcsec version
 AC_DEFUN([AC_RPCSEC_VERSION], [
 
-  PKG_CHECK_MODULES([GSSGLUE], [libgssglue >= 0.1])
+  PKG_CHECK_MODULES([GSSGLUE], [libgssglue >= 0.3])
 
   dnl TI-RPC replaces librpcsecgss
   if test "$enable_tirpc" = no; then
