@@ -385,14 +385,6 @@ int main(int argc, char *argv[])
 	if(!strncmp(progname, "umount", strlen("umount")))
 		exit(nfsumount(argc, argv));
 
-	if (argv[1] && argv[1][0] == '-') {
-		if(argv[1][1] == 'V')
-			printf("%s ("PACKAGE_STRING")\n", progname);
-		else
-			mount_usage();
-		exit(EX_SUCCESS);
-	}
-
 	if ((argc < 3)) {
 		mount_usage();
 		exit(EX_USAGE);
@@ -400,8 +392,7 @@ int main(int argc, char *argv[])
 
 	mount_config_init(progname);
 
-	argv[2] = argv[0]; /* so that getopt error messages are correct */
-	while ((c = getopt_long(argc - 2, argv + 2, "rvVwfno:hs",
+	while ((c = getopt_long(argc, argv, "rvVwfno:hs",
 				longopts, NULL)) != -1) {
 		switch (c) {
 		case 'r':
