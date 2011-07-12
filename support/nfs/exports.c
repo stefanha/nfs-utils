@@ -784,8 +784,9 @@ struct export_features *get_export_features(void)
 	fd = open(path, O_RDONLY);
 	if (fd == -1)
 		goto good;
-	fd = read(fd, buf, 50);
-	if (fd == -1)
+	c = read(fd, buf, 50);
+	close(fd);
+	if (c == -1)
 		goto err;
 	c = sscanf(buf, "%x %x", &ef.flags, &ef.secinfo_flags);
 	if (c != 2)
