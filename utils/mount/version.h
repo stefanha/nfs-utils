@@ -23,8 +23,8 @@
 #ifndef _NFS_UTILS_MOUNT_VERSION_H
 #define _NFS_UTILS_MOUNT_VERSION_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h>
+#include <limits.h>
 
 #include <sys/utsname.h>
 
@@ -37,14 +37,16 @@ static inline unsigned int MAKE_VERSION(unsigned int p, unsigned int q,
 static inline unsigned int linux_version_code(void)
 {
 	struct utsname my_utsname;
-	unsigned int p, q, r;
+	unsigned int p, q = 0, r = 0;
 
+	/* UINT_MAX as backward compatibility code should not be run */
 	if (uname(&my_utsname))
-		return 0;
+		return UINT_MAX;
 
-	p = (unsigned int)atoi(strtok(my_utsname.release, "."));
-	q = (unsigned int)atoi(strtok(NULL, "."));
-	r = (unsigned int)atoi(strtok(NULL, "."));
+	/* UINT_MAX as future versions might not start with an integer */
+	if (sscanf(my_utsname.release, "%u.%u.%u", &p, &q, &r) < 1)
+		return UINT_MAX;
+	
 	return MAKE_VERSION(p, q, r);
 }
 
