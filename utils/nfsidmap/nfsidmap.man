@@ -25,9 +25,9 @@ will need to be modified so
 can properly direct the upcall. The following line should be added before a call
 to keyctl negate:
 .PP
-create	nfs_idmap	*	*	/usr/sbin/nfsidmap %k %d 600
+create	id_resolver	*	*	/usr/sbin/nfsidmap %k %d 600
 .PP
-This will direct all nfs_idmap requests to the program
+This will direct all id_resolver requests to the program
 .I /usr/sbin/nfsidmap
 The last parameter, 600, defines how many seconds into the future the key will
 expire.  This is an optional parameter for
@@ -48,9 +48,9 @@ You can choose to handle any of these individually, rather than using the
 generic upcall program.  If you would like to use your own program for a uid
 lookup then you would edit your request-key.conf so it looks similar to this:
 .PP
-create	nfs_idmap	uid:*	*	/some/other/program %k %d 600
+create	id_resolver	uid:*	*	/some/other/program %k %d 600
 .br
-create	nfs_idmap	*		*	/usr/sbin/nfsidmap %k %d 600
+create	id_resolver	*		*	/usr/sbin/nfsidmap %k %d 600
 .PP
 Notice that the new line was added above the line for the generic program.
 request-key will find the first matching line and run the corresponding program.
