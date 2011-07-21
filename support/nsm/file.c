@@ -395,16 +395,16 @@ nsm_drop_privileges(const int pidfd)
 		return false;
 	}
 
-	if (st.st_uid == 0) {
-		xlog_warn("Running as root.  "
-			"chown %s to choose different user", nsm_base_dirname);
-		return true;
-	}
-
 	if (chdir(nsm_base_dirname) == -1) {
 		xlog(L_ERROR, "Failed to change working directory to %s: %m",
 				nsm_base_dirname);
 		return false;
+	}
+
+	if (st.st_uid == 0) {
+		xlog_warn("Running as root.  "
+			"chown %s to choose different user", nsm_base_dirname);
+		return true;
 	}
 
 	/*
