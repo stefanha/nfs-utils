@@ -45,6 +45,7 @@
 #include "gss_oids.h"
 #include "err_util.h"
 #include "svcgssd_krb5.h"
+#include "../mount/version.h"
 
 #define MYBUFLEN 1024
 
@@ -169,22 +170,44 @@ svcgssd_limit_krb5_enctypes(void)
 {
 #ifdef HAVE_SET_ALLOWABLE_ENCTYPES
 	u_int maj_stat, min_stat;
-	krb5_enctype default_enctypes[] = { ENCTYPE_DES_CBC_CRC,
-					    ENCTYPE_DES_CBC_MD5,
-					    ENCTYPE_DES_CBC_MD4 };
-	int default_num_enctypes =
-		sizeof(default_enctypes) / sizeof(default_enctypes[0]);
-	krb5_enctype *enctypes;
-	int num_enctypes;
+	krb5_enctype old_kernel_enctypes[] = {
+		ENCTYPE_DES_CBC_CRC,
+		ENCTYPE_DES_CBC_MD5,
+		ENCTYPE_DES_CBC_MD4 };
+	krb5_enctype new_kernel_enctypes[] = {
+		ENCTYPE_AES256_CTS_HMAC_SHA1_96,
+		ENCTYPE_AES128_CTS_HMAC_SHA1_96,
+		ENCTYPE_DES3_CBC_SHA1,
+		ENCTYPE_ARCFOUR_HMAC,
+		ENCTYPE_DES_CBC_CRC,
+		ENCTYPE_DES_CBC_MD5,
+		ENCTYPE_DES_CBC_MD4 };
+	krb5_enctype *default_enctypes, *enctypes;
+	int default_num_enctypes, num_enctypes;
+
+
+	if (linux_version_code() < MAKE_VERSION(2, 6, 35)) {
+		default_enctypes = old_kernel_enctypes;
+		default_num_enctypes =
+			sizeof(old_kernel_enctypes) / sizeof(old_kernel_enctypes[0]);
+	} else {
+		default_enctypes = new_kernel_enctypes;
+		default_num_enctypes =
+			sizeof(new_kernel_enctypes) / sizeof(new_kernel_enctypes[0]);
+	}
 
 	get_kernel_supported_enctypes();
 
 	if (parsed_enctypes != NULL) {
 		enctypes = parsed_enctypes;
 		num_enctypes = parsed_num_enctypes;
+		printerr(2, "%s: Calling gss_set_allowable_enctypes with %d "
+			"enctypes from the kernel\n", __func__, num_enctypes);
 	} else {
 		enctypes = default_enctypes;
 		num_enctypes = default_num_enctypes;
+		printerr(2, "%s: Calling gss_set_allowable_enctypes with %d "
+			"enctypes from defaults\n", __func__, num_enctypes);
 	}
 
 	maj_stat = gss_set_allowable_enctypes(&min_stat, gssd_creds,
