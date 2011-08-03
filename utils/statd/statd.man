@@ -219,7 +219,10 @@ for details.
 Specifies the port number used for RPC listener sockets.
 If this option is not specified,
 .B rpc.statd
-chooses a random ephemeral port for each listener socket.
+will try to consult
+.IR /etc/services ,
+if gets port succeed, set the same port for all listener socket,
+otherwise chooses a random ephemeral port for each listener socket.
 .IP
 This option can be used to fix the port value of its listeners when
 SM_NOTIFY requests must traverse a firewall between clients and servers.

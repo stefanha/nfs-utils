@@ -35,14 +35,43 @@
 # define __close(f)		close ((f))
 #endif
 
+int getservport(u_long number, const char *proto)
+{
+	char rpcdata[1024], servdata[1024];
+	struct rpcent rpcbuf, *rpcp;
+	struct servent servbuf, *servp = NULL;
+	int ret;
+
+	ret = getrpcbynumber_r(number, &rpcbuf, rpcdata, sizeof rpcdata,
+				&rpcp);
+	if (ret == 0 && rpcp != NULL) {
+		/* First try name.  */
+		ret = getservbyname_r(rpcp->r_name, proto, &servbuf, servdata,
+					sizeof servdata, &servp);
+		if ((ret != 0 || servp == NULL) && rpcp->r_aliases) {
+			const char **a;
+
+			/* Then we try aliases.  */
+			for (a = (const char **) rpcp->r_aliases; *a != NULL; a++) {
+				ret = getservbyname_r(*a, proto, &servbuf, servdata,
+							sizeof servdata, &servp);
+				if (ret == 0 && servp != NULL)
+					break;
+			}
+		}
+	}
+
+	if (ret == 0 && servp != NULL)
+		return ntohs(servp->s_port);
+
+	return 0;
+}
+
 static int
 svc_socket (u_long number, int type, int protocol, int reuse)
 {
   struct sockaddr_in addr;
   socklen_t len = sizeof (struct sockaddr_in);
-  char rpcdata [1024], servdata [1024];
-  struct rpcent rpcbuf, *rpcp;
-  struct servent servbuf, *servp = NULL;
   int sock, ret;
   const char *proto = protocol == IPPROTO_TCP ? "tcp" : "udp";
 
@@ -66,48 +95,13 @@ svc_socket (u_long number, int type, int protocol, int reuse)
 
   memset (&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
+  addr.sin_port = htons(getservport(number, proto));
 
-  ret = getrpcbynumber_r (number, &rpcbuf, rpcdata, sizeof rpcdata,
-			  &rpcp);
-  if (ret == 0 && rpcp != NULL)
+  if (bind(sock, (struct sockaddr *) &addr, len) < 0)
     {
-      /* First try name.  */
-      ret = getservbyname_r (rpcp->r_name, proto, &servbuf, servdata,
-			     sizeof servdata, &servp);
-      if ((ret != 0 || servp == NULL) && rpcp->r_aliases)
-	{
-	  const char **a;
-
-	  /* Then we try aliases.  */
-	  for (a = (const char **) rpcp->r_aliases; *a != NULL; a++) 
-	    {
-	      ret = getservbyname_r (*a, proto, &servbuf, servdata,
-				     sizeof servdata, &servp);
-	      if (ret == 0 && servp != NULL)
-		break;
-	    }
-	}
-    }
-
-  if (ret == 0 && servp != NULL)
-    {
-      addr.sin_port = servp->s_port;
-      if (bind (sock, (struct sockaddr *) &addr, len) < 0)
-	{
-	  perror (_("svc_socket: bind problem"));
-	  (void) __close (sock);
-	  sock = -1;
-	}
-    }
-  else
-    {
-	  addr.sin_port = 0;
-	  if (bind (sock, (struct sockaddr *) &addr, len) < 0)
-	    {
-	      perror (_("svc_socket: bind problem"));
-	      (void) __close (sock);
-	      sock = -1;
-	    }
+      perror (_("svc_socket: bind problem"));
+      (void) __close(sock);
+      sock = -1;
     }
 
   if (sock >= 0)

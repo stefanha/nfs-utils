@@ -393,7 +393,7 @@ nfs_svc_create(char *name, const rpcprog_t program, const rpcvers_t version,
 	const struct sigaction create_sigaction = {
 		.sa_handler	= SIG_IGN,
 	};
-	unsigned int visible, up;
+	unsigned int visible, up, servport;
 	struct netconfig *nconf;
 	void *handlep;
 
@@ -417,8 +417,13 @@ nfs_svc_create(char *name, const rpcprog_t program, const rpcvers_t version,
 		if (!(nconf->nc_flag & NC_VISIBLE))
 			continue;
 		visible++;
+		if (port == 0)
+			servport = getservport(program, nconf->nc_proto);
+		else
+			servport = port;
+
 		up += svc_create_nconf(name, program, version, dispatch,
-						port, nconf);
+						servport, nconf);
 	}
 
 	if (visible == 0)

@@ -53,6 +53,7 @@ void		rpc_init(char *name, int prog, int vers,
 void		rpc_dispatch(struct svc_req *rq, SVCXPRT *xprt,
 				struct rpc_dtable *dtable, int nvers,
 				void *argp, void *resp);
+int		getservport(u_long number, const char *proto);
 
 extern int	_rpcpmstart;
 extern int	_rpcfdtype;
