@@ -85,7 +85,7 @@ statd_get_socket(void)
 
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
-		sin.sin_addr.s_addr = INADDR_ANY;
+		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
 		if (bindresvport(sockfd, &sin) < 0) {
 			xlog(D_GENERAL, "%s: can't bind to reserved port",
