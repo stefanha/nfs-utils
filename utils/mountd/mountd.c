@@ -633,7 +633,7 @@ static void insert_group(struct exportnode *e, char *newname)
 	struct groupnode *g;
 
 	for (g = e->ex_groups; g; g = g->gr_next)
-		if (strcmp(g->gr_name, newname))
+		if (!strcmp(g->gr_name, newname))
 			return;
 
 	g = xmalloc(sizeof(*g));
