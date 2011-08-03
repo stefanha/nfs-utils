@@ -137,7 +137,7 @@ if test "$enable_mount" = yes; then
 	AC_ARG_ENABLE(libmount-mount,
 		[AC_HELP_STRING([--enable-libmount-mount],
 				[Link mount.nfs with libmount (EXPERIMENTAL)])],
-		enable_libmount=yes,
+		enable_libmount=$enableval,
 		enable_libmount=no)
 fi
 
