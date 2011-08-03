@@ -114,14 +114,14 @@ AC_ARG_WITH(rpcgen,
 	rpcgen_path=$withval,
 	rpcgen_path=yes )
 	RPCGEN_PATH=
-	if test "$rpcgen_path" == "yes"; then
+	if test "$rpcgen_path" = "yes"; then
 	    for p in /usr/local/bin/rpcgen /usr/bin/rpcgen /bin/rpcgen
 	    do if test -f $p ; then RPCGEN_PATH=$p ; break; fi ; done
 	elif test "$rpcgen_path" != "internal"; then
 	    RPCGEN_PATH=$rpcgen_path
 	fi
 	AC_SUBST(RPCGEN_PATH)
-	AM_CONDITIONAL(CONFIG_RPCGEN, [test "$RPCGEN_PATH" == ""])
+	AM_CONDITIONAL(CONFIG_RPCGEN, [test "$RPCGEN_PATH" = ""])
 AC_ARG_ENABLE(uuid,
 	[AC_HELP_STRING([--disable-uuid], [Exclude uuid support to avoid buggy libblkid])],
 	if test "$enableval" = "yes" ; then choose_blkid=yes; else choose_blkid=no; fi,
