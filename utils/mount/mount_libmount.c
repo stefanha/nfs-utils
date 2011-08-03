@@ -61,10 +61,19 @@ int nomtab;
  * managed by libmount at all. We have to use "mount attributes" that are
  * private for mount.<type> helpers.
  */
-static void store_mount_options(struct libmnt_fs *fs, const char *opts)
+static void store_mount_options(struct libmnt_fs *fs, const char *nfs_opts)
 {
-	mnt_fs_set_fs_options(fs, opts);	/* for mtab */
-	mnt_fs_set_attributes(fs, opts);	/* for non-mtab systems */
+	char *o = NULL;
+
+	mnt_fs_set_attributes(fs, nfs_opts);	/* for non-mtab systems */
+
+	/* for mtab create a new options list */
+	mnt_optstr_append_option(&o, mnt_fs_get_vfs_options(fs), NULL);
+	mnt_optstr_append_option(&o, nfs_opts, NULL);
+	mnt_optstr_append_option(&o, mnt_fs_get_user_options(fs), NULL);
+
+	mnt_fs_set_options(fs, o);
+	free(o);
 }
 
 /*
