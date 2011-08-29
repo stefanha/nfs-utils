@@ -18,6 +18,7 @@ struct mntentchn {
 
 struct mntentchn *getmntoptfile (const char *file);
 struct mntentchn *getmntdirbackward (const char *dir, struct mntentchn *mc);
+struct mntentchn *getprocmntdirbackward (const char *name, struct mntentchn *mc);
 struct mntentchn *getmntdevbackward (const char *dev, struct mntentchn *mc);
 
 struct mntentchn *getfsfile (const char *file);

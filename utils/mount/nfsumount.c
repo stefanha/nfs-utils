@@ -151,65 +151,50 @@ static int del_mtab(const char *spec, const char *node)
  */
 static int nfs_umount_is_vers4(const struct mntentchn *mc)
 {
-	char buffer[LINELEN], *next;
+	struct mntentchn *pmc;
+	struct mount_options *options;
 	int retval;
-	FILE *f;
-
-	if ((f = fopen(MOUNTSFILE, "r")) == NULL) {
-		fprintf(stderr, "%s: %s\n",
-			MOUNTSFILE, strerror(errno));
-		return -1;
-	}
 
 	retval = -1;
-	while (fgets(buffer, sizeof(buffer), f) != NULL) {
-		char *device, *mntdir, *type, *flags;
-		struct mount_options *options;
-		char *line = buffer;
+	pmc = getprocmntdirbackward(mc->m.mnt_dir, NULL);
+	if (!pmc)
+		goto not_found;
 
-		next = strchr(line, '\n');
-		if (next != NULL)
-			*next = '\0';
-
-		device = strtok(line, " \t");
-		if (device == NULL)
-			continue;
-		mntdir = strtok(NULL, " \t");
-		if (mntdir == NULL)
-			continue;
-		if (strcmp(device, mc->m.mnt_fsname) != 0 &&
-		    strcmp(mntdir, mc->m.mnt_dir) != 0)
+	do {
+		int nlen = strlen(pmc->m.mnt_fsname);
+		/*
+		 * It's possible the mount location string in /proc/mounts
+		 * ends with a '/'. In this case, if the entry came from
+		 * /etc/mtab, it won't have the trailing '/' so deal with
+		 * it.
+		 */
+		while (pmc->m.mnt_fsname[nlen - 1] == '/')
+			nlen--;
+		if (strncmp(pmc->m.mnt_fsname, mc->m.mnt_fsname, nlen) != 0)
 			continue;
 
-		type = strtok(NULL, " \t");
-		if (type == NULL)
-			continue;
-		if (strcmp(type, "nfs4") == 0)
+		if (strcmp(pmc->m.mnt_type, "nfs4") == 0)
 			goto out_nfs4;
 
-		flags = strtok(NULL, " \t");
-		if (flags == NULL)
-			continue;
-		options = po_split(flags);
+		options = po_split(pmc->m.mnt_opts);
 		if (options != NULL) {
 			unsigned long version;
-			int rc;
-
-			rc = nfs_nfs_version(options, &version);
+			int rc = nfs_nfs_version(options, &version);
 			po_destroy(options);
 			if (rc && version == 4)
 				goto out_nfs4;
 		}
 
-		goto out_nfs;
-	}
-	if (retval == -1)
+		if (strcmp(pmc->m.mnt_type, "nfs") == 0)
+			goto out_nfs;
+	} while ((pmc = getprocmntdirbackward(mc->m.mnt_dir, pmc)) != NULL);
+
+	if (retval == -1) {
+not_found:
 		fprintf(stderr, "%s was not found in %s\n",
 			mc->m.mnt_dir, MOUNTSFILE);
-
-out:
-	fclose(f);
-	return retval;
+		goto out;
+	}
 
 out_nfs4:
 	if (verbose)
@@ -221,7 +206,9 @@ out_nfs:
 	if (verbose)
 		fprintf(stderr, "Legacy NFS mount point detected\n");
 	retval = 0;
-	goto out;
+
+out:
+	return retval;
 }
 
 static struct option umount_longopts[] =

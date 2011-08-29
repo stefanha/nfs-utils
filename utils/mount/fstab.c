@@ -86,10 +86,13 @@ mtab_is_writable() {
 
 struct mntentchn mounttable;
 static int got_mtab = 0;
+struct mntentchn procmounts;
+static int got_procmounts = 0;
 struct mntentchn fstab;
 static int got_fstab = 0;
 
 static void read_mounttable(void);
+static void read_procmounts(void);
 static void read_fstab(void);
 
 static struct mntentchn *
@@ -98,6 +101,14 @@ mtab_head(void)
 	if (!got_mtab)
 		read_mounttable();
 	return &mounttable;
+}
+
+static struct mntentchn *
+procmounts_head(void)
+{
+	if (!got_procmounts)
+		read_procmounts();
+	return &procmounts;
 }
 
 static struct mntentchn *
@@ -186,6 +197,30 @@ read_mounttable() {
         read_mntentchn(mfp, fnam, mc);
 }
 
+/*
+ * Read /proc/mounts.
+ * This produces a linked list. The list head procmounts is a dummy.
+ * Return 0 on success.
+ */
+static void
+read_procmounts() {
+        mntFILE *mfp;
+        const char *fnam;
+        struct mntentchn *mc = &procmounts;
+
+        got_procmounts = 1;
+        mc->nxt = mc->prev = NULL;
+
+        fnam = PROC_MOUNTS;
+        mfp = nfs_setmntent(fnam, "r");
+        if (mfp == NULL || mfp->mntent_fp == NULL) {
+                nfs_error(_("warning: can't open %s: %s"),
+                          PROC_MOUNTS, strerror (errno));
+                return;
+        }
+        read_mntentchn(mfp, fnam, mc);
+}
+
 static void
 read_fstab()
 {
@@ -216,6 +251,23 @@ getmntdirbackward (const char *name, struct mntentchn *mcprev) {
 	struct mntentchn *mc, *mc0;
 
 	mc0 = mtab_head();
+	if (!mcprev)
+		mcprev = mc0;
+	for (mc = mcprev->prev; mc && mc != mc0; mc = mc->prev)
+		if (streq(mc->m.mnt_dir, name))
+			return mc;
+	return NULL;
+}
+
+/*
+ * Given the directory name NAME, and the place MCPREV we found it last time,
+ * try to find more occurrences.
+ */
+struct mntentchn *
+getprocmntdirbackward (const char *name, struct mntentchn *mcprev) {
+	struct mntentchn *mc, *mc0;
+
+	mc0 = procmounts_head();
 	if (!mcprev)
 		mcprev = mc0;
 	for (mc = mcprev->prev; mc && mc != mc0; mc = mc->prev)
