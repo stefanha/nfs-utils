@@ -448,6 +448,36 @@ is_hostname(const char *sp)
 	return true;
 }
 
+/*
+ * Take care to perform an explicit reverse lookup on presentation
+ * addresses.  Otherwise we don't get a real canonical name or a
+ * complete list of addresses.
+ */
+static struct addrinfo *
+address_list(const char *hostname)
+{
+	struct addrinfo *ai;
+	char *cname;
+
+	ai = host_pton(hostname);
+	if (ai != NULL) {
+		/* @hostname was a presentation address */
+		cname = host_canonname(ai->ai_addr);
+		freeaddrinfo(ai);
+		if (cname != NULL)
+			goto out;
+	}
+	/* @hostname was a hostname or had no reverse mapping */
+	cname = strdup(hostname);
+	if (cname == NULL)
+		return NULL;
+
+out:
+	ai = host_addrinfo(cname);
+	free(cname);
+	return ai;
+}
+
 static int
 matchhostname(const char *hostname1, const char *hostname2)
 {
@@ -464,10 +494,10 @@ matchhostname(const char *hostname1, const char *hostname2)
 	if (!is_hostname(hostname1) || !is_hostname(hostname2))
 		return 0;
 
-	results1 = host_addrinfo(hostname1);
+	results1 = address_list(hostname1);
 	if (results1 == NULL)
 		goto out;
-	results2 = host_addrinfo(hostname2);
+	results2 = address_list(hostname2);
 	if (results2 == NULL)
 		goto out;
 
