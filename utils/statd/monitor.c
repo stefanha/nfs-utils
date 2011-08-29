@@ -249,7 +249,7 @@ void load_state(void)
 
 	count = nsm_load_monitor_list(load_one_host);
 	if (count)
-		xlog(D_GENERAL, "Loaded %u previously monitored hosts");
+		xlog(D_GENERAL, "Loaded %u previously monitored hosts", count);
 }
 
 /*
