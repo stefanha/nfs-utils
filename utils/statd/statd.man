@@ -350,8 +350,7 @@ of the requesting lock manager.
 TI-RPC is a pre-requisite for supporting NFS on IPv6.
 If TI-RPC support is built into
 .BR rpc.statd ,
-it attempts to start listeners on network transports marked
-'visible' in
+it attempts to start listeners on network transports marked 'visible' in
 .IR /etc/netconfig .
 As long as at least one network transport listener starts successfully,
 .B rpc.statd
