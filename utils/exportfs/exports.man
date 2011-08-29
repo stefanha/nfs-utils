@@ -130,7 +130,7 @@ this way are ro, rw, no_root_squash, root_squash, and all_squash.
 .BR exportfs
 understands the following export options:
 .TP
-.IR secure "\*d
+.IR secure
 This option requires that requests originate on an Internet port less
 than IPPORT_RESERVED (1024). This option is on by default. To turn it
 off, specify
