@@ -395,12 +395,14 @@ usage:		fprintf(stderr,
 		exit(1);
 	}
 
-	xlog_syslog(1);
 	if (opt_debug) {
+		xlog_syslog(0);
 		xlog_stderr(1);
 		xlog_config(D_ALL, 1);
-	} else
+	} else {
+		xlog_syslog(1);
 		xlog_stderr(0);
+	}
 
 	xlog_open(progname);
 	xlog(L_NOTICE, "Version " VERSION " starting");
