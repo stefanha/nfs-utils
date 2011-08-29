@@ -225,6 +225,49 @@ statd_canonical_name(const char *hostname)
 	return strdup(buf);
 }
 
+/*
+ * Take care to perform an explicit reverse lookup on presentation
+ * addresses.  Otherwise we don't get a real canonical name or a
+ * complete list of addresses.
+ *
+ * Returns an addrinfo list that has ai_canonname filled in, or
+ * NULL if some error occurs.  Caller must free the returned
+ * list with freeaddrinfo(3).
+ */
+__attribute_malloc__
+static struct addrinfo *
+statd_canonical_list(const char *hostname)
+{
+	struct addrinfo hint = {
+#ifdef IPV6_SUPPORTED
+		.ai_family	= AF_UNSPEC,
+#else	/* !IPV6_SUPPORTED */
+		.ai_family	= AF_INET,
+#endif	/* !IPV6_SUPPORTED */
+		.ai_flags	= AI_NUMERICHOST,
+		.ai_protocol	= (int)IPPROTO_UDP,
+	};
+	char buf[NI_MAXHOST];
+	struct addrinfo *ai;
+
+	ai = get_addrinfo(hostname, &hint);
+	if (ai != NULL) {
+		/* @hostname was a presentation address */
+		_Bool result;
+		result = get_nameinfo(ai->ai_addr, ai->ai_addrlen,
+					buf, (socklen_t)sizeof(buf));
+		freeaddrinfo(ai);
+		if (result)
+			goto out;
+	}
+	/* @hostname was a hostname or had no reverse mapping */
+	strcpy(buf, hostname);
+
+out:
+	hint.ai_flags = AI_CANONNAME;
+	return get_addrinfo(buf, &hint);
+}
+
 /**
  * statd_matchhostname - check if two hostnames are equivalent
  * @hostname1: C string containing hostname
@@ -241,11 +284,6 @@ _Bool
 statd_matchhostname(const char *hostname1, const char *hostname2)
 {
 	struct addrinfo *ai1, *ai2, *results1 = NULL, *results2 = NULL;
-	struct addrinfo hint = {
-		.ai_family	= AF_UNSPEC,
-		.ai_flags	= AI_CANONNAME,
-		.ai_protocol	= (int)IPPROTO_UDP,
-	};
 	_Bool result = false;
 
 	if (strcasecmp(hostname1, hostname2) == 0) {
@@ -253,10 +291,10 @@ statd_matchhostname(const char *hostname1, const char *hostname2)
 		goto out;
 	}
 
-	results1 = get_addrinfo(hostname1, &hint);
+	results1 = statd_canonical_list(hostname1);
 	if (results1 == NULL)
 		goto out;
-	results2 = get_addrinfo(hostname2, &hint);
+	results2 = statd_canonical_list(hostname2);
 	if (results2 == NULL)
 		goto out;
 
@@ -276,7 +314,8 @@ out:
 	freeaddrinfo(results2);
 	freeaddrinfo(results1);
 
-	xlog(D_CALL, "%s: hostnames %s", __func__,
+	xlog(D_CALL, "%s: hostnames %s and %s %s", __func__,
+			hostname1, hostname2,
 			(result ? "matched" : "did not match"));
 	return result;
 }
