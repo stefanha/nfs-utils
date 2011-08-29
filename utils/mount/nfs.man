@@ -752,8 +752,8 @@ If
 is specified, the client assumes that POSIX locks are local and uses NLM
 sideband protocol to lock files when flock locks are used.
 .IP
-To support legacy flock behavior similar to that of NFS clients < 2.6.12, use
-'local_lock=flock'. This option is required when exporting NFS mounts via
+To support legacy flock behavior similar to that of NFS clients < 2.6.12, 
+use 'local_lock=flock'. This option is required when exporting NFS mounts via
 Samba as Samba maps Windows share mode locks as flock. Since NFS clients >
 2.6.12 implement flock by emulating POSIX locks, this will result in
 conflicting locks.
