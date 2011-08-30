@@ -112,12 +112,16 @@ option may mitigate some of the risks of using the
 option.
 .TP 1.5i
 .BI timeo= n
-The time (in tenths of a second) the NFS client waits for a
-response before it retries an NFS request. If this
-option is not specified, requests are retried every
-60 seconds for NFS over TCP.
-The NFS client does not perform any kind of timeout backoff
-for NFS over TCP.
+The time in deciseconds (tenths of a second) the NFS client waits for a
+response before it retries an NFS request.
+.IP
+For NFS over TCP the default
+.B timeo
+value is 600 (60 seconds).
+The NFS client performs linear backoff: After each retransmission the 
+timeout is increased by
+.BR timeo 
+up to the maximum of 600 seconds.
 .IP
 However, for NFS over UDP, the client uses an adaptive
 algorithm to estimate an appropriate timeout value for frequently used
