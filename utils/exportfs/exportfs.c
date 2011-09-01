@@ -401,7 +401,7 @@ validate_export(nfs_export *exp)
 	int fs_has_fsid = 0;
 
 	if (stat(path, &stb) < 0) {
-		xlog(L_ERROR, "Failed to stat %s: %m \n", path);
+		xlog(L_ERROR, "Failed to stat %s: %m", path);
 		return;
 	}
 	if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
@@ -530,7 +530,7 @@ export_d_read(const char *dname)
 
 	n = scandir(dname, &namelist, NULL, versionsort);
 	if (n < 0)
-		xlog(L_NOTICE, "scandir %s: %s\n", dname, strerror(errno));
+		xlog(L_NOTICE, "scandir %s: %s", dname, strerror(errno));
 	else if (n == 0)
 		return;
 
@@ -558,7 +558,7 @@ export_d_read(const char *dname)
 
 		fname_len = snprintf(fname, PATH_MAX +1, "%s/%s", dname, d->d_name);
 		if (fname_len > PATH_MAX) {
-			xlog(L_WARNING, "Too long file name: %s in %s\n", d->d_name, dname);
+			xlog(L_WARNING, "Too long file name: %s in %s", d->d_name, dname);
 			continue;
 		}
 
@@ -672,7 +672,7 @@ dump(int verbose)
 static void
 error(nfs_export *exp, int err)
 {
-	xlog(L_ERROR, "%s:%s: %s\n", exp->m_client->m_hostname,
+	xlog(L_ERROR, "%s:%s: %s", exp->m_client->m_hostname,
 		exp->m_export.e_path, strerror(err));
 }
 
