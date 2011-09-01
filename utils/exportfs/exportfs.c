@@ -529,9 +529,12 @@ export_d_read(const char *dname)
 
 
 	n = scandir(dname, &namelist, NULL, versionsort);
-	if (n < 0)
+	if (n < 0) {
+		if (errno == ENOENT)
+			/* Silently return */
+			return;
 		xlog(L_NOTICE, "scandir %s: %s", dname, strerror(errno));
-	else if (n == 0)
+	} else if (n == 0)
 		return;
 
 	for (i = 0; i < n; i++) {
