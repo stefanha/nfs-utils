@@ -6,6 +6,6 @@ AC_DEFUN([AC_KEYUTILS], [
   AC_CHECK_LIB([keyutils], [keyctl_instantiate], [LIBKEYUTILS=-lkeyutils], ,)
   AC_SUBST(LIBKEYUTILS)
 
-  AC_CHECK_HEADERS([keyutils.h], ,
-  		   [AC_MSG_ERROR([keyutils.h header not found.])])
+  AC_CHECK_HEADERS([keyutils.h])
+
 ])dnl

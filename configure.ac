@@ -266,7 +266,7 @@ if test "$enable_nfsv4" = yes; then
   fi
 fi
 dnl enable nfsidmap when its support by libnfsidmap
-AM_CONDITIONAL(CONFIG_NFSIDMAP, [test "$enable_nfsidmap" = "yes"])
+AM_CONDITIONAL(CONFIG_NFSIDMAP, [test "$ac_cv_header_keyutils_h$ac_cv_lib_nfsidmap_nfs4_owner_to_uid" = "yesyes"])
 
 
 if test "$knfsd_cv_glibc2" = no; then
