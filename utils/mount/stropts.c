@@ -437,8 +437,8 @@ static int nfs_construct_new_options(struct mount_options *options,
 	if (po_append(options, new_option) == PO_FAILED)
 		return 0;
 
-	po_remove_all(options, "port");
-	if (nfs_pmap->pm_port != NFS_PORT) {
+	if(po_remove_all(options, "port") == PO_FOUND ||
+	   nfs_pmap->pm_port != NFS_PORT) {
 		snprintf(new_option, sizeof(new_option) - 1,
 			 "port=%lu", nfs_pmap->pm_port);
 		if (po_append(options, new_option) == PO_FAILED)
