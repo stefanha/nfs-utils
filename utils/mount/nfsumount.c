@@ -161,7 +161,8 @@ static int nfs_umount_is_vers4(const struct mntentchn *mc)
 		goto not_found;
 
 	do {
-		int nlen = strlen(pmc->m.mnt_fsname);
+		size_t nlen = strlen(pmc->m.mnt_fsname);
+
 		/*
 		 * It's possible the mount location string in /proc/mounts
 		 * ends with a '/'. In this case, if the entry came from
