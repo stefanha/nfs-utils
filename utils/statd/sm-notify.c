@@ -45,8 +45,9 @@
 struct nsm_host {
 	struct nsm_host *	next;
 	char *			name;
-	char *			mon_name;
-	char *			my_name;
+	const char *		mon_name;
+	const char *		my_name;
+	char *			notify_arg;
 	struct addrinfo		*ai;
 	time_t			last_used;
 	time_t			send_next;
@@ -199,14 +200,23 @@ smn_alloc_host(const char *hostname, const char *mon_name,
 	if (host == NULL)
 		goto out_nomem;
 
+	/*
+	 * mon_name and my_name are preserved so sm-notify can
+	 * find the right monitor record to remove when it is
+	 * done processing this host.
+	 */
 	host->name = strdup(hostname);
-	host->mon_name = strdup(mon_name);
-	host->my_name = strdup(my_name);
+	host->mon_name = (const char *)strdup(mon_name);
+	host->my_name = (const char *)strdup(my_name);
+	host->notify_arg = strdup(opt_srcaddr != NULL ?
+					nsm_hostname : my_name);
 	if (host->name == NULL ||
 	    host->mon_name == NULL ||
-	    host->my_name == NULL) {
-		free(host->my_name);
-		free(host->mon_name);
+	    host->my_name == NULL ||
+	    host->notify_arg == NULL) {
+		free(host->notify_arg);
+		free((void *)host->my_name);
+		free((void *)host->mon_name);
 		free(host->name);
 		free(host);
 		goto out_nomem;
@@ -230,8 +240,9 @@ static void smn_forget_host(struct nsm_host *host)
 
 	nsm_delete_notified_host(host->name, host->mon_name, host->my_name);
 
-	free(host->my_name);
-	free(host->mon_name);
+	free(host->notify_arg);
+	free((void *)host->my_name);
+	free((void *)host->mon_name);
 	free(host->name);
 	if (host->ai)
 		freeaddrinfo(host->ai);
@@ -635,8 +646,6 @@ notify(const int sock)
 static int
 notify_host(int sock, struct nsm_host *host)
 {
-	const char *my_name = (opt_srcaddr != NULL ?
-					nsm_hostname : host->my_name);
 	struct sockaddr *sap;
 	socklen_t salen;
 
@@ -682,7 +691,7 @@ notify_host(int sock, struct nsm_host *host)
 		host->xid = nsm_xmit_rpcbind(sock, sap, SM_PROG, SM_VERS);
 	else
 		host->xid = nsm_xmit_notify(sock, sap, salen,
-					SM_PROG, my_name, nsm_state);
+					SM_PROG, host->notify_arg, nsm_state);
 
 	return 0;
 }
@@ -736,7 +745,7 @@ recv_rpcbind_reply(struct sockaddr *sap, struct nsm_host *host, XDR *xdr)
 static void
 recv_notify_reply(struct nsm_host *host)
 {
-	char *dot = strchr(host->my_name, '.');
+	char *dot = strchr(host->notify_arg, '.');
 
 	if (dot != NULL) {
 		*dot = '\0';
