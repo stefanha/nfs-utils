@@ -18,7 +18,8 @@ AC_ARG_WITH(release,
 	RELEASE=1)
 	AC_SUBST(RELEASE)
 AC_ARG_WITH(statedir,
-	[  --with-statedir=/foo    use state dir /foo [/var/lib/nfs]],
+	[AC_HELP_STRING([--with-statedir=/foo],
+			[use state dir /foo @<:@default=/var/lib/nfs@:>@])],
 	statedir=$withval,
 	statedir=/var/lib/nfs)
 	AC_SUBST(statedir)
