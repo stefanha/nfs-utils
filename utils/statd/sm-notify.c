@@ -701,8 +701,7 @@ smn_schedule(struct nsm_host *host)
 {
 	host->xid = 0;
 	host->send_next = time(NULL);
-	if (host->timeout >= NSM_MAX_TIMEOUT / 4)
-		host->timeout = NSM_MAX_TIMEOUT / 4;
+	host->timeout = NSM_TIMEOUT;
 	insert_host(host);
 }
 
