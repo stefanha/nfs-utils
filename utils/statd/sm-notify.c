@@ -699,6 +699,7 @@ smn_defer(struct nsm_host *host)
 static void
 smn_schedule(struct nsm_host *host)
 {
+	host->retries = 0;
 	host->xid = 0;
 	host->send_next = time(NULL);
 	host->timeout = NSM_TIMEOUT;
