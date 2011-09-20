@@ -94,14 +94,6 @@
 
 #define NSM_KERNEL_STATE_FILE	"/proc/sys/fs/nfs/nsm_local_state"
 
-/*
- * Some distributions place statd's files in a subdirectory
- */
-#define NSM_PATH_EXTENSION
-/* #define NSM_PATH_EXTENSION	"/statd" */
-
-#define NSM_DEFAULT_STATEDIR		NFS_STATEDIR NSM_PATH_EXTENSION
-
 static char nsm_base_dirname[PATH_MAX] = NSM_DEFAULT_STATEDIR;
 
 #define NSM_MONITOR_DIR	"sm"
