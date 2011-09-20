@@ -925,9 +925,9 @@ getfield(char **bpp, char *fld, size_t fldsz)
 		if (*bp == '\\') {
 			if ((n = sscanf(bp, "\\%03o", &val)) != 1)
 				return (-1);
-			if (val > (char)-1)
+			if (val > UCHAR_MAX)
 				return (-1);
-			*fld++ = (char)val;
+			*fld++ = val;
 			bp += 4;
 		} else {
 			*fld++ = *bp;
