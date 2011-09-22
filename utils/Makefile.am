@@ -9,6 +9,10 @@ OPTDIRS += nfsidmap
 endif
 endif
 
+if CONFIG_NFSV41
+OPTDIRS += blkmapd
+endif
+
 if CONFIG_GSS
 OPTDIRS += gssd
 endif

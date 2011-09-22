@@ -84,13 +84,15 @@ AC_ARG_ENABLE(nfsv4,
 
 AC_ARG_ENABLE(nfsv41,
 	[AC_HELP_STRING([--enable-nfsv41],
-                        [enable support for NFSv41 @<:@default=no@:>@])],
+                        [enable support for NFSv41 @<:@default=yes@:>@])],
 	enable_nfsv41=$enableval,
-	enable_nfsv41=no)
+	enable_nfsv41=yes)
 	if test "$enable_nfsv41" = yes; then
+		BLKMAPD=blkmapd
 		AC_DEFINE(NFS41_SUPPORTED, 1, [Define this if you want NFSv41 support compiled in])
 	else
 		enable_nfsv41=
+		BLKMAPD=
 	fi
 	AC_SUBST(enable_nfsv41)
 	AM_CONDITIONAL(CONFIG_NFSV41, [test "$enable_nfsv41" = "yes"])
@@ -460,6 +462,7 @@ AC_CONFIG_FILES([
 	tools/mountstats/Makefile
 	tools/nfs-iostat/Makefile
 	utils/Makefile
+	utils/blkmapd/Makefile
 	utils/exportfs/Makefile
 	utils/gssd/Makefile
 	utils/idmapd/Makefile

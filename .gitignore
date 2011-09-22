@@ -36,6 +36,7 @@ support/include/stamp-h1
 lib*.a
 tools/rpcgen/rpcgen
 tools/rpcdebug/rpcdebug
+utils/blkmapd/blkmapd
 utils/exportfs/exportfs
 utils/idmapd/idmapd
 utils/lockd/lockd
