@@ -55,17 +55,6 @@ AC_ARG_WITH(start-statd,
 	)
 	AC_SUBST(startstatd)
 	AC_DEFINE_UNQUOTED(START_STATD, "$startstatd", [Define this to a script which can start statd on mount])
-AC_ARG_ENABLE(nfsv3,
-	[AC_HELP_STRING([--enable-nfsv3],
-                        [enable support for NFSv3 @<:@default=yes@:>@])],
-	enable_nfsv3=$enableval,
-	enable_nfsv3=yes)
-	if test "$enable_nfsv3" = yes; then
-		AC_DEFINE(NFS3_SUPPORTED, 1, [Define this if you want NFSv3 support compiled in])
-	else
-		enable_nfsv3=
-	fi
-	AC_SUBST(enable_nfsv3)
 AC_ARG_ENABLE(nfsv4,
 	[AC_HELP_STRING([--enable-nfsv4],
                         [enable support for NFSv4 @<:@default=yes@:>@])],
