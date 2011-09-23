@@ -61,7 +61,6 @@ AC_ARG_ENABLE(nfsv4,
 	enable_nfsv4=$enableval,
 	enable_nfsv4=yes)
 	if test "$enable_nfsv4" = yes; then
-		AC_DEFINE(NFS4_SUPPORTED, 1, [Define this if you want NFSv4 support compiled in])
 		IDMAPD=idmapd
 	else
 		enable_nfsv4=
@@ -78,7 +77,6 @@ AC_ARG_ENABLE(nfsv41,
 	enable_nfsv41=yes)
 	if test "$enable_nfsv41" = yes; then
 		BLKMAPD=blkmapd
-		AC_DEFINE(NFS41_SUPPORTED, 1, [Define this if you want NFSv41 support compiled in])
 	else
 		enable_nfsv41=
 		BLKMAPD=
@@ -92,7 +90,6 @@ AC_ARG_ENABLE(gss,
 	enable_gss=$enableval,
 	enable_gss=yes)
 	if test "$enable_gss" = yes; then
-		AC_DEFINE(GSS_SUPPORTED, 1, [Define this if you want rpcsec_gss support compiled in])
 		GSSD=gssd
 		SVCGSSD=svcgssd
 	else
