@@ -265,6 +265,12 @@ if test "$enable_nfsv4" = yes; then
     AC_RPCSEC_VERSION
   fi
 fi
+
+if test "$enable_nfsv41" = yes; then
+  AC_CHECK_LIB([devmapper], [dm_task_create], [LIBDEVMAPPER="-ldevmapper"], AC_MSG_ERROR([libdevmapper needed]))
+  AC_CHECK_HEADER(libdevmapper.h, , AC_MSG_ERROR([Cannot find devmapper header file libdevmapper.h]))
+fi
+
 dnl enable nfsidmap when its support by libnfsidmap
 AM_CONDITIONAL(CONFIG_NFSIDMAP, [test "$ac_cv_header_keyutils_h$ac_cv_lib_nfsidmap_nfs4_owner_to_uid" = "yesyes"])
 
