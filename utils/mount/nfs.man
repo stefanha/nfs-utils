@@ -1561,10 +1561,10 @@ To ensure that the saved mount options are not erased during a remount,
 specify either the local mount directory, or the server hostname and
 export pathname, but not both, during a remount.  For example,
 .P
-.NF
-.TA 2.5i
+.nf
+.ta 8n
 	mount -o remount,ro /mnt
-.FI
+.fi
 .P
 merges the mount option
 .B ro
