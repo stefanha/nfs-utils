@@ -296,7 +296,7 @@ decode_blk_volume(uint32_t **pp, uint32_t *end, struct bl_volume *vols, int voln
 		off_t stripe_unit = vol->param.bv_stripe_unit;
 		/* Check limitations imposed by device-mapper */
 		if ((stripe_unit & (stripe_unit - 1)) != 0
-		    || stripe_unit < (off_t) (PAGE_SIZE >> 9))
+		    || stripe_unit < (off_t) (sysconf(_SC_PAGE_SIZE) >> 9))
 			return -EIO;
 		BLK_READBUF(p, end, 4);
 		READ32(vol->bv_vol_n);
