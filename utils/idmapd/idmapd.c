@@ -778,8 +778,8 @@ nfsopen(struct idmap_client *ic)
 	} else {
 		event_set(&ic->ic_event, ic->ic_fd, EV_READ, nfscb, ic);
 		event_add(&ic->ic_event, NULL);
-		fcntl(ic->ic_dirfd, F_SETSIG, 0);
 		fcntl(ic->ic_dirfd, F_NOTIFY, 0);
+		fcntl(ic->ic_dirfd, F_SETSIG, 0);
 		if (verbose > 0)
 			xlog_warn("Opened %s", ic->ic_path);
 	}
