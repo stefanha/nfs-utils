@@ -38,7 +38,7 @@ request on all known network addresses.  This may change in future
 releases of the Linux Kernel.
 .TP
 .B \-p " or " \-\-port  port
-specify a diferent port to listen on for NFS requests. By default,
+specify a different port to listen on for NFS requests. By default,
 .B rpc.nfsd
 will listen on port 2049.
 .TP

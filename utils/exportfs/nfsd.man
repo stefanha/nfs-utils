@@ -12,7 +12,7 @@ nfsd \- special filesystem for controlling Linux NFS server
 .SH DESCRIPTION
 The
 .B nfsd
-filesytem is a special filesystem which provides access to the Linux
+filesystem is a special filesystem which provides access to the Linux
 NFS server.  The filesystem consists of a single directory which
 contains a number of files.  These files are actually gateways into
 the NFS server.  Writing to them can affect the server.  Reading from
@@ -86,7 +86,7 @@ should be followed by a newline, with white-space separating the
 fields, and octal quoting of special characters.
 
 On writing this, the program will be able to read back a filehandle
-for that path as exported to the given client.  The filehandles length
+for that path as exported to the given client.  The filehandle's length
 will be at most the number of bytes given.
 
 The filehandle will be represented in hex with a leading '\ex'.
@@ -165,7 +165,7 @@ file.  The user-space program might then write
 .ti +5
 nfsd 127.0.0.1 1057206953 localhost
 .br
-to indicate that 127.0.0.1 should map to localhost, atleast for now.
+to indicate that 127.0.0.1 should map to localhost, at least for now.
 
 If the program uses select(2) or poll(2) to discover if it can read
 from the

@@ -177,7 +177,7 @@ In this way
 .B exportfs
 can be used to modify the export options of an already exported directory.
 .SS Unexporting Directories
-The third synopsis shows how to unexported a currently exported directory.
+The third synopsis shows how to unexport a currently exported directory.
 When using
 .BR "exportfs -ua" ,
 all entries listed in
