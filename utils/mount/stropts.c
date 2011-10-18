@@ -665,9 +665,10 @@ static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 		case EHOSTUNREACH:
 			continue;
 		default:
-			break;
+			goto out;
 		}
 	}
+out:
 	return ret;
 }
 
@@ -751,9 +752,10 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		case EHOSTUNREACH:
 			continue;
 		default:
-			break;
+			goto out;
 		}
 	}
+out:
 	return ret;
 }
 
