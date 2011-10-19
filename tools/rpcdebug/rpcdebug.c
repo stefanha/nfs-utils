@@ -167,6 +167,9 @@ static struct flagmap {
 	FLAG(NFS,       CALLBACK),
 	FLAG(NFS,       CLIENT),
 	FLAG(NFS,       MOUNT),
+	FLAG(NFS,       FSCACHE),
+	FLAG(NFS,       PNFS),
+	FLAG(NFS,       PNFS_LD),
 	FLAG(NFS,	ALL),
 
 	/* nfsd */
