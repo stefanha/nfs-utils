@@ -10,6 +10,7 @@
 #include <nfsidmap.h>
 
 #include <syslog.h>
+#include "xlog.h"
 
 /* gcc nfsidmap.c -o nfsidmap -l nfsidmap -l keyutils */
 
@@ -36,9 +37,15 @@ int id_lookup(char *name_at_domain, key_serial_t key, int type)
 		rc = nfs4_group_owner_to_gid(name_at_domain, &gid);
 		sprintf(id, "%u", gid);
 	}
+	if (rc < 0)
+		xlog_err("id_lookup: %s: failed: %m",
+			(type == USER ? "nfs4_owner_to_uid" : "nfs4_group_owner_to_gid"));
 
-	if (rc == 0)
+	if (rc == 0) {
 		rc = keyctl_instantiate(key, id, strlen(id) + 1, 0);
+		if (rc < 0)
+			xlog_err("id_lookup: keyctl_instantiate failed: %m");
+	}
 
 	return rc;
 }
@@ -57,6 +64,7 @@ int name_lookup(char *id, key_serial_t key, int type)
 	rc = nfs4_get_default_domain(NULL, domain, NFS4_MAX_DOMAIN_LEN);
 	if (rc != 0) {
 		rc = -1;
+		xlog_err("name_lookup: nfs4_get_default_domain failed: %m");
 		goto out;
 	}
 
@@ -67,10 +75,15 @@ int name_lookup(char *id, key_serial_t key, int type)
 		gid = atoi(id);
 		rc = nfs4_gid_to_name(gid, domain, name, IDMAP_NAMESZ);
 	}
+	if (rc < 0)
+		xlog_err("name_lookup: %s: failed: %m",
+			(type == USER ? "nfs4_uid_to_name" : "nfs4_gid_to_name"));
 
-	if (rc == 0)
+	if (rc == 0) {
 		rc = keyctl_instantiate(key, &name, strlen(name), 0);
-
+		if (rc < 0)
+			xlog_err("name_lookup: keyctl_instantiate failed: %m");
+	}
 out:
 	return rc;
 }
@@ -83,9 +96,22 @@ int main(int argc, char **argv)
 	int rc = 1;
 	int timeout = 600;
 	key_serial_t key;
+	char *progname;
 
-	if (argc < 3)
+	/* Set the basename */
+	if ((progname = strrchr(argv[0], '/')) != NULL)
+		progname++;
+	else
+		progname = argv[0];
+
+	xlog_open(progname);
+	xlog_syslog(1);
+	xlog_stderr(0);
+
+	if (argc < 3) {
+		xlog_err("Bad arg count. Check /etc/request-key.conf");
 		return 1;
+	}
 
 	arg = malloc(sizeof(char) * strlen(argv[2]) + 1);
 	strcpy(arg, argv[2]);

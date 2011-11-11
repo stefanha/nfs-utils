@@ -4,6 +4,6 @@ man8_MANS = nfsidmap.man
 
 sbin_PROGRAMS	= nfsidmap
 nfsidmap_SOURCES = nfsidmap.c
-nfsidmap_LDADD = -lnfsidmap -lkeyutils
+nfsidmap_LDADD = -lnfsidmap -lkeyutils ../../support/nfs/libnfs.a
 
 MAINTAINERCLEANFILES = Makefile.in
