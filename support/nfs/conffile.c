@@ -256,13 +256,14 @@ conf_parse_line(int trans, char *line, size_t sz)
 			val++, j++;
 		if (*val)
 			i = j;
-		section = malloc(i);
+		section = malloc(i+1);
 		if (!section) {
 			xlog_warn("conf_parse_line: %d: malloc (%lu) failed", ln,
 						(unsigned long)i);
 			return;
 		}
 		strncpy(section, line, i);
+		section[i] = '\0';
 
 		if (arg) 
 			free(arg);
