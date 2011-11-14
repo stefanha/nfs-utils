@@ -9,16 +9,16 @@
 #include <keyutils.h>
 #include <nfsidmap.h>
 
-#include <syslog.h>
+#include <unistd.h>
 #include "xlog.h"
 
-/* gcc nfsidmap.c -o nfsidmap -l nfsidmap -l keyutils */
+int verbose = 0;
+char *usage="Usage: %s [-v] [-t timeout] key desc";
 
 #define MAX_ID_LEN   11
 #define IDMAP_NAMESZ 128
 #define USER  1
 #define GROUP 0
-
 
 /*
  * Find either a user or group id based on the name@domain string
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	char *arg;
 	char *value;
 	char *type;
-	int rc = 1;
+	int rc = 1, opt;
 	int timeout = 600;
 	key_serial_t key;
 	char *progname;
@@ -108,23 +108,43 @@ int main(int argc, char **argv)
 	xlog_syslog(1);
 	xlog_stderr(0);
 
-	if (argc < 3) {
+	while ((opt = getopt(argc, argv, "t:v")) != -1) {
+		switch (opt) {
+		case 'v':
+			verbose++;
+			break;
+		case 't':
+			timeout = atoi(optarg);
+			break;
+		default:
+			xlog_warn(usage, progname);
+			break;
+		}
+	}
+
+	if ((argc - optind) != 2) {
 		xlog_err("Bad arg count. Check /etc/request-key.conf");
+		xlog_warn(usage, progname);
 		return 1;
 	}
 
-	arg = malloc(sizeof(char) * strlen(argv[2]) + 1);
-	strcpy(arg, argv[2]);
+	if (verbose)
+		nfs4_set_debug(verbose, NULL);
+
+	key = strtol(argv[optind++], NULL, 10);
+
+	arg = strdup(argv[optind]);
+	if (arg == NULL) {
+		xlog_err("strdup failed: %m");
+		return 1;
+	}
 	type = strtok(arg, ":");
 	value = strtok(NULL, ":");
 
-	if (argc == 4) {
-		timeout = atoi(argv[3]);
-		if (timeout < 0)
-			timeout = 0;
+	if (verbose) {
+		xlog_warn("key: %ld type: %s value: %s timeout %ld",
+			key, type, value, timeout);
 	}
-
-	key = strtol(argv[1], NULL, 10);
 
 	if (strcmp(type, "uid") == 0)
 		rc = id_lookup(value, key, USER);
@@ -135,7 +155,7 @@ int main(int argc, char **argv)
 	else if (strcmp(type, "group") == 0)
 		rc = name_lookup(value, key, GROUP);
 
-	/* Set timeout to 5 (600 seconds) minutes */
+	/* Set timeout to 10 (600 seconds) minutes */
 	if (rc == 0)
 		keyctl_set_timeout(key, timeout);
 
