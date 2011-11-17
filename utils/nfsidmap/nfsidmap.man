@@ -7,6 +7,8 @@
 nfsidmap \- The NFS idmapper upcall program
 .SH SYNOPSIS
 .B "nfsidmap [-v] [-t timeout] key desc"
+.br
+.B "nfsidmap [-v] [-c]"
 .SH DESCRIPTION
 The file
 .I /usr/sbin/nfsidmap
@@ -14,9 +16,17 @@ is used by the NFS idmapper to translate user and group ids into names, and to
 translate user and group names into ids. Idmapper uses request-key to perform
 the upcall and cache the result.
 .I /usr/sbin/nfsidmap
-should only be called by request-key, and will perform the translation and
+is called by /sbin/request-key, and will perform the translation and
 initialize a key with the resulting information.
+.PP
+.I nfsidmap
+can also used to clear the keyring of all the keys.  
+This is useful when all the mappings have failed to due to an DNS outage
+or some other error resulting in all the cached uid/gid to be invalid.
 .SH OPTIONS
+.TP
+.B -c 
+Clear the keyring of all the keys.
 .TP
 .B -t timeout
 Set the expiration timer, in seconds, on the key.

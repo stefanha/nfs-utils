@@ -13,12 +13,18 @@
 #include "xlog.h"
 
 int verbose = 0;
-char *usage="Usage: %s [-v] [-t timeout] key desc";
+char *usage="Usage: %s [-v] [-c || [-t timeout] key desc]";
 
 #define MAX_ID_LEN   11
 #define IDMAP_NAMESZ 128
 #define USER  1
 #define GROUP 0
+
+#define PROCKEYS "/proc/keys"
+#ifndef DEFAULT_KEYRING
+#define DEFAULT_KEYRING "id_resolver"
+#endif
+
 
 /*
  * Find either a user or group id based on the name@domain string
@@ -87,6 +93,50 @@ int name_lookup(char *id, key_serial_t key, int type)
 out:
 	return rc;
 }
+/*
+ * Clear all the keys on the given keyring
+ */
+static int keyring_clear(char *keyring)
+{
+	FILE *fp;
+	char buf[BUFSIZ];
+	key_serial_t key;
+
+	xlog_syslog(0);
+	if (keyring == NULL)
+		keyring = DEFAULT_KEYRING;
+
+	if ((fp = fopen(PROCKEYS, "r")) == NULL) {
+		xlog_err("fopen(%s) failed: %m", PROCKEYS);
+		return 1;
+	}
+
+	while(fgets(buf, BUFSIZ, fp) != NULL) {
+		if (strstr(buf, "keyring") == NULL)
+			continue;
+		if (strstr(buf, keyring) == NULL)
+			continue;
+		if (verbose) {
+			*(strchr(buf, '\n')) = '\0';
+			xlog_warn("clearing '%s'", buf);
+		}
+		/*
+		 * The key is the first arugment in the string
+		 */
+		*(strchr(buf, ' ')) = '\0';
+		sscanf(buf, "%x", &key);
+		if (keyctl_clear(key) < 0) {
+			xlog_err("keyctl_clear(0x%x) failed: %m", key);
+			fclose(fp);
+			return 1;
+		}
+		fclose(fp);
+		return 0;
+	}
+	xlog_err("'%s' keyring was not found.", keyring);
+	fclose(fp);
+	return 1;
+}
 
 int main(int argc, char **argv)
 {
@@ -97,6 +147,7 @@ int main(int argc, char **argv)
 	int timeout = 600;
 	key_serial_t key;
 	char *progname;
+	int clearring;
 
 	/* Set the basename */
 	if ((progname = strrchr(argv[0], '/')) != NULL)
@@ -105,11 +156,12 @@ int main(int argc, char **argv)
 		progname = argv[0];
 
 	xlog_open(progname);
-	xlog_syslog(1);
-	xlog_stderr(0);
 
-	while ((opt = getopt(argc, argv, "t:v")) != -1) {
+	while ((opt = getopt(argc, argv, "ct:v")) != -1) {
 		switch (opt) {
+		case 'c':
+			clearring++;
+			break;
 		case 'v':
 			verbose++;
 			break;
@@ -122,6 +174,12 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (clearring) {
+		rc = keyring_clear(DEFAULT_KEYRING);
+		return rc;		
+	}
+
+	xlog_stderr(0);
 	if ((argc - optind) != 2) {
 		xlog_err("Bad arg count. Check /etc/request-key.conf");
 		xlog_warn(usage, progname);
