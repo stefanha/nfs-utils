@@ -13,7 +13,7 @@
 #include "xlog.h"
 
 int verbose = 0;
-char *usage="Usage: %s [-v] [-c || [-t timeout] key desc]";
+char *usage="Usage: %s [-v] [-c || [-u|-g|-r key] || [-t timeout] key desc]";
 
 #define MAX_ID_LEN   11
 #define IDMAP_NAMESZ 128
@@ -25,6 +25,9 @@ char *usage="Usage: %s [-v] [-c || [-t timeout] key desc]";
 #define DEFAULT_KEYRING "id_resolver"
 #endif
 
+
+#define UIDKEYS 0x1
+#define GIDKEYS 0x2
 
 /*
  * Find either a user or group id based on the name@domain string
@@ -137,6 +140,67 @@ static int keyring_clear(char *keyring)
 	fclose(fp);
 	return 1;
 }
+/*
+ * Revoke a key 
+ */
+static int key_revoke(char *keystr, int keymask)
+{
+	FILE *fp;
+	char buf[BUFSIZ], *ptr;
+	key_serial_t key;
+	int mask;
+
+	xlog_syslog(0);
+
+	if ((fp = fopen(PROCKEYS, "r")) == NULL) {
+		xlog_err("fopen(%s) failed: %m", PROCKEYS);
+		return 1;
+	}
+
+	while(fgets(buf, BUFSIZ, fp) != NULL) {
+		if (strstr(buf, "keyring") != NULL)
+			continue;
+
+		mask = 0;
+		if ((ptr = strstr(buf, "uid:")) != NULL)
+			mask = UIDKEYS;
+		else if ((ptr = strstr(buf, "gid:")) != NULL)
+			mask = GIDKEYS;
+		else 
+			continue;
+
+		if ((keymask & mask) == 0)
+			continue;
+
+		if (strncmp(ptr+4, keystr, strlen(keystr)) != NULL)
+			continue;
+
+		if (verbose) {
+			*(strchr(buf, '\n')) = '\0';
+			xlog_warn("revoking '%s'", buf);
+		}
+		/*
+		 * The key is the first arugment in the string
+		 */
+		*(strchr(buf, ' ')) = '\0';
+		sscanf(buf, "%x", &key);
+
+		if (keyctl_revoke(key) < 0) {
+			xlog_err("keyctl_revoke(0x%x) failed: %m", key);
+			fclose(fp);
+			return 1;
+		}
+
+		keymask &= ~mask;
+		if (keymask == 0) {
+			fclose(fp);
+			return 0;
+		}
+	}
+	xlog_err("'%s' key was not found.", keystr);
+	fclose(fp);
+	return 1;
+}
 
 int main(int argc, char **argv)
 {
@@ -146,8 +210,8 @@ int main(int argc, char **argv)
 	int rc = 1, opt;
 	int timeout = 600;
 	key_serial_t key;
-	char *progname;
-	int clearring;
+	char *progname, *keystr = NULL;
+	int clearring, keymask = 0;
 
 	/* Set the basename */
 	if ((progname = strrchr(argv[0], '/')) != NULL)
@@ -157,8 +221,20 @@ int main(int argc, char **argv)
 
 	xlog_open(progname);
 
-	while ((opt = getopt(argc, argv, "ct:v")) != -1) {
+	while ((opt = getopt(argc, argv, "u:g:r:ct:v")) != -1) {
 		switch (opt) {
+		case 'u':
+			keymask = UIDKEYS;
+			keystr = strdup(optarg);
+			break;
+		case 'g':
+			keymask = GIDKEYS;
+			keystr = strdup(optarg);
+			break;
+		case 'r':
+			keymask = GIDKEYS|UIDKEYS;
+			keystr = strdup(optarg);
+			break;
 		case 'c':
 			clearring++;
 			break;
@@ -174,6 +250,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (keystr) {
+		rc = key_revoke(keystr, keymask);
+		return rc;		
+	}
 	if (clearring) {
 		rc = keyring_clear(DEFAULT_KEYRING);
 		return rc;		

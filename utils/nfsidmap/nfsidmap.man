@@ -9,6 +9,8 @@ nfsidmap \- The NFS idmapper upcall program
 .B "nfsidmap [-v] [-t timeout] key desc"
 .br
 .B "nfsidmap [-v] [-c]"
+.br
+.B "nfsidmap [-v] [-u|-g|-r user]"
 .SH DESCRIPTION
 The file
 .I /usr/sbin/nfsidmap
@@ -20,17 +22,28 @@ is called by /sbin/request-key, and will perform the translation and
 initialize a key with the resulting information.
 .PP
 .I nfsidmap
-can also used to clear the keyring of all the keys.  
-This is useful when all the mappings have failed to due to an DNS outage
-or some other error resulting in all the cached uid/gid to be invalid.
+can also used to clear the keyring of all the keys or 
+revoke one particular key.  
+This is useful when the id mappings have failed to due 
+to a lookup error resulting in all the cached uids/gids to be set 
+to the user id nobody.
 .SH OPTIONS
 .TP
 .B -c 
 Clear the keyring of all the keys.
 .TP
+.B -g user
+Revoke the gid key of the given user.
+.TP
+.B -r user
+Revoke both the uid and gid key of the given user.
+.TP
 .B -t timeout
 Set the expiration timer, in seconds, on the key.
 The default is 600 seconds (10 mins).
+.TP
+.B -u user
+Revoke the uid key of the given user.
 .TP
 .B -v
 Increases the verbosity of the output to syslog 
