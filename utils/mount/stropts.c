@@ -540,6 +540,8 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 			errno = EOPNOTSUPP;
 		else if (rpc_createerr.cf_stat == RPC_AUTHERROR)
 			errno = EACCES;
+		else if (rpc_createerr.cf_stat == RPC_TIMEDOUT)
+			errno = ETIMEDOUT;
 		else if (rpc_createerr.cf_error.re_errno != 0)
 			errno = rpc_createerr.cf_error.re_errno;
 		return 0;
