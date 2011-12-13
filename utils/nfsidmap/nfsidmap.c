@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 	int timeout = 600;
 	key_serial_t key;
 	char *progname, *keystr = NULL;
-	int clearring, keymask = 0;
+	int clearing = 0, keymask = 0;
 
 	/* Set the basename */
 	if ((progname = strrchr(argv[0], '/')) != NULL)
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 			keystr = strdup(optarg);
 			break;
 		case 'c':
-			clearring++;
+			clearing++;
 			break;
 		case 'v':
 			verbose++;
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 		rc = key_revoke(keystr, keymask);
 		return rc;		
 	}
-	if (clearring) {
+	if (clearing) {
 		rc = keyring_clear(DEFAULT_KEYRING);
 		return rc;		
 	}
