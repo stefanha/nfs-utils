@@ -58,7 +58,7 @@ svcgssd_SOURCES = \
 
 svcgssd_LDADD = \
 	../../support/nfs/libnfs.a \
-	$(RPCSECGSS_LIBS) $(GSSGLUE_LIBS) -lnfsidmap \
+	$(RPCSECGSS_LIBS) $(GSSGLUE_LIBS) $(LIBNFSIDMAP) \
 	$(KRBLIBS)
 
 svcgssd_LDFLAGS = $(KRBLDFLAGS)
