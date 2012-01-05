@@ -802,6 +802,229 @@ lookup_export(char *dom, char *path, struct addrinfo *ai)
 	return found;
 }
 
+#ifdef HAVE_NFS_PLUGIN_H
+#include <dlfcn.h>
+#include <nfs-plugin.h>
+
+/*
+ * Walk through a set of FS locations and build a set of export options.
+ * Returns true if all went to plan; otherwise, false.
+ */
+static _Bool
+locations_to_options(struct jp_ops *ops, nfs_fsloc_set_t locations,
+		char *options, size_t remaining, int *ttl)
+{
+	char *server, *last_path, *rootpath, *ptr;
+	_Bool seen = false;
+
+	last_path = NULL;
+	rootpath = NULL;
+	server = NULL;
+	ptr = options;
+	*ttl = 0;
+
+	for (;;) {
+		enum jp_status status;
+		int len;
+
+		status = ops->jp_get_next_location(locations, &server,
+							&rootpath, ttl);
+		if (status == JP_EMPTY)
+			break;
+		if (status != JP_OK) {
+			xlog(D_GENERAL, "%s: failed to parse location: %s",
+				__func__, ops->jp_error(status));
+			goto out_false;
+		}
+		xlog(D_GENERAL, "%s: Location: %s:%s",
+			__func__, server, rootpath);
+
+		if (last_path && strcmp(rootpath, last_path) == 0) {
+			len = snprintf(ptr, remaining, "+%s", server);
+			if (len < 0) {
+				xlog(D_GENERAL, "%s: snprintf: %m", __func__);
+				goto out_false;
+			}
+			if ((size_t)len >= remaining) {
+				xlog(D_GENERAL, "%s: options buffer overflow", __func__);
+				goto out_false;
+			}
+			remaining -= (size_t)len;
+			ptr += len;
+		} else {
+			if (last_path == NULL)
+				len = snprintf(ptr, remaining, "refer=%s@%s",
+							rootpath, server);
+			else
+				len = snprintf(ptr, remaining, ":%s@%s",
+							rootpath, server);
+			if (len < 0) {
+				xlog(D_GENERAL, "%s: snprintf: %m", __func__);
+				goto out_false;
+			}
+			if ((size_t)len >= remaining) {
+				xlog(D_GENERAL, "%s: options buffer overflow",
+					__func__);
+				goto out_false;
+			}
+			remaining -= (size_t)len;
+			ptr += len;
+			last_path = rootpath;
+		}
+
+		seen = true;
+		free(rootpath);
+		free(server);
+	}
+
+	xlog(D_CALL, "%s: options='%s', ttl=%d",
+		__func__, options, *ttl);
+	return seen;
+
+out_false:
+	free(rootpath);
+	free(server);
+	return false;
+}
+
+/*
+ * Walk through the set of FS locations and build an exportent.
+ * Returns pointer to an exportent if "junction" refers to a junction.
+ *
+ * Returned exportent points to static memory.
+ */
+static struct exportent *do_locations_to_export(struct jp_ops *ops,
+		nfs_fsloc_set_t locations, const char *junction,
+		char *options, size_t options_len)
+{
+	struct exportent *exp;
+	int ttl;
+
+	if (!locations_to_options(ops, locations, options, options_len, &ttl))
+		return NULL;
+
+	exp = mkexportent("*", (char *)junction, options);
+	if (exp == NULL) {
+		xlog(L_ERROR, "%s: Failed to construct exportent", __func__);
+		return NULL;
+	}
+
+	exp->e_uuid = NULL;
+	exp->e_ttl = ttl;
+	return exp;
+}
+
+/*
+ * Convert set of FS locations to an exportent.  Returns pointer to
+ * an exportent if "junction" refers to a junction.
+ *
+ * Returned exportent points to static memory.
+ */
+static struct exportent *locations_to_export(struct jp_ops *ops,
+		nfs_fsloc_set_t locations, const char *junction)
+{
+	struct exportent *exp;
+	char *options;
+
+	options = malloc(BUFSIZ);
+	if (options == NULL) {
+		xlog(D_GENERAL, "%s: failed to allocate options buffer",
+			__func__);
+		return NULL;
+	}
+	options[0] = '\0';
+
+	exp = do_locations_to_export(ops, locations, junction,
+						options, BUFSIZ);
+
+	free(options);
+	return exp;
+}
+
+/*
+ * Retrieve locations information in "junction" and dump it to the
+ * kernel.  Returns pointer to an exportent if "junction" refers
+ * to a junction.
+ *
+ * Returned exportent points to static memory.
+ */
+static struct exportent *invoke_junction_ops(void *handle,
+		const char *junction)
+{
+	nfs_fsloc_set_t locations;
+	struct exportent *exp;
+	enum jp_status status;
+	struct jp_ops *ops;
+	char *error;
+
+	ops = (struct jp_ops *)dlsym(handle, "nfs_junction_ops");
+	error = dlerror();
+	if (error != NULL) {
+		xlog(D_GENERAL, "%s: dlsym(jp_junction_ops): %s",
+			__func__, error);
+		return NULL;
+	}
+	if (ops->jp_api_version != JP_API_VERSION) {
+		xlog(D_GENERAL, "%s: unrecognized junction API version: %u",
+			__func__, ops->jp_api_version);
+		return NULL;
+	}
+
+	status = ops->jp_init(false);
+	if (status != JP_OK) {
+		xlog(D_GENERAL, "%s: failed to resolve %s: %s",
+			__func__, junction, ops->jp_error(status));
+		return NULL;
+	}
+
+	status = ops->jp_get_locations(junction, &locations);
+	if (status != JP_OK) {
+		xlog(D_GENERAL, "%s: failed to resolve %s: %s",
+			__func__, junction, ops->jp_error(status));
+		return NULL;
+	}
+
+	exp = locations_to_export(ops, locations, junction);
+
+	ops->jp_put_locations(locations);
+	ops->jp_done();
+	return exp;
+}
+
+/*
+ * Load the junction plug-in, then try to resolve "pathname".
+ * Returns pointer to an initialized exportent if "junction"
+ * refers to a junction, or NULL if not.
+ *
+ * Returned exportent points to static memory.
+ */
+static struct exportent *lookup_junction(const char *pathname)
+{
+	struct exportent *exp;
+	void *handle;
+
+	handle = dlopen("libnfsjunct.so", RTLD_NOW);
+	if (handle == NULL) {
+		xlog(D_GENERAL, "%s: dlopen: %s", __func__, dlerror());
+		return NULL;
+	}
+	(void)dlerror();	/* Clear any error */
+
+	exp = invoke_junction_ops(handle, pathname);
+
+	/* We could leave it loaded to make junction resolution
+	 * faster next time.  However, if we want to replace the
+	 * library, that would require restarting mountd. */
+	(void)dlclose(handle);
+	return exp;
+}
+#else	/* !HAVE_NFS_PLUGIN_H */
+static inline struct exportent *lookup_junction(const char *UNUSED(pathname))
+{
+	return NULL;
+}
+#endif	/* !HAVE_NFS_PLUGIN_H */
+
 static void nfsd_export(FILE *f)
 {
 	/* requests are:
@@ -854,7 +1077,7 @@ static void nfsd_export(FILE *f)
 			dump_to_cache(f, dom, path, NULL);
 		}
 	} else {
-		dump_to_cache(f, dom, path, NULL);
+		dump_to_cache(f, dom, path, lookup_junction(path));
 	}
  out:
 	xlog(D_CALL, "nfsd_export: found %p path %s", found, path ? path : NULL);
