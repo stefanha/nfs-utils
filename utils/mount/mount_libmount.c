@@ -346,6 +346,21 @@ static int mount_main(struct libmnt_context *cxt, int argc, char **argv)
 
 	if (chk_mountpoint(mount_point))
 		goto err;
+
+	/*
+	 * The libmount strictly uses only options from fstab if running in
+	 * restricted mode (suid, non-root user). This is done in
+	 * mnt_context_prepare_mount() by default.
+	 *
+	 * We have to read fstab before nfsmount.conf, otherwise the options
+	 * from nfsmount.conf will be ignored (overwrited).
+	 */
+	rc = mnt_context_apply_fstab(cxt);
+	if (rc) {
+		nfs_error(_("%s: failed to apply fstab options\n"), progname);
+		goto err;
+	}
+
 	/*
 	 * Concatenate mount options from the configuration file
 	 */
