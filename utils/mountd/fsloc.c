@@ -40,12 +40,12 @@ static void replicas_print(struct servers *sp)
 {
 	int i;
 	if (!sp) {
-		xlog(L_NOTICE, "NULL replicas pointer\n");
+		xlog(L_NOTICE, "NULL replicas pointer");
 		return;
 	}
-	xlog(L_NOTICE, "replicas listsize=%i\n", sp->h_num);
+	xlog(L_NOTICE, "replicas listsize=%i", sp->h_num);
 	for (i=0; i<sp->h_num; i++) {
-		xlog(L_NOTICE, "    %s:%s\n",
+		xlog(L_NOTICE, "    %s:%s",
 		       sp->h_mp[i]->h_host, sp->h_mp[i]->h_path);
 	}
 }
@@ -125,13 +125,13 @@ static struct servers *method_list(char *data)
 	int i, listsize;
 	struct servers *rv=NULL;
 
-	xlog(L_NOTICE, "method_list(%s)\n", data);
+	xlog(L_NOTICE, "method_list(%s)", data);
 	for (ptr--, listsize=1; ptr; ptr=index(ptr, ':'), listsize++)
 		ptr++;
 	list = malloc(listsize * sizeof(char *));
 	copy = strdup(data);
 	if (copy)
-		xlog(L_NOTICE, "converted to %s\n", copy);
+		xlog(L_NOTICE, "converted to %s", copy);
 	if (list && copy) {
 		ptr = copy;
 		for (i=0; i<listsize; i++) {
