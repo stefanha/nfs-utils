@@ -24,9 +24,8 @@ AC_ARG_WITH(statedir,
 	statedir=/var/lib/nfs)
 	AC_SUBST(statedir)
 AC_ARG_WITH(statdpath,
-	[AC_HELP_STRING([--with-statdpath=/foo @<:@default=/var/lib/nfs@:>@],
-		[define statd's state dir as /foo instead of the NFS statedir]
-	)],
+	[AC_HELP_STRING([--with-statdpath=/foo],
+			[define the statd state dir as /foo instead of the NFS statedir @<:@default=/var/lib/nfs@:>@])],
 	statdpath=$withval,
 	statdpath=$statedir
 	)
