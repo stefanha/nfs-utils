@@ -80,6 +80,7 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	uint32_t i;
 	char *skd, *dkd;
 	gss_buffer_desc fakeoid;
+	int err;
 
 	/*
 	 * The new Kerberos interface to get the gss context
@@ -138,11 +139,10 @@ prepare_krb5_rfc1964_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	dkd = (char *) enc_key.data;
 	for (i = 0; i < enc_key.length; i++)
 		dkd[i] = skd[i] ^ 0xf0;
-	if (write_lucid_keyblock(&p, end, &enc_key)) {
-		free(enc_key.data);
-		goto out_err;
-	}
+	err = write_lucid_keyblock(&p, end, &enc_key);
 	free(enc_key.data);
+	if (err)
+		goto out_err;
 
 	if (write_lucid_keyblock(&p, end, &lctx->rfc1964_kd.ctx_key))
 		goto out_err;
@@ -153,7 +153,6 @@ out_err:
 	printerr(0, "ERROR: failed serializing krb5 context for kernel\n");
 	if (buf->value) free(buf->value);
 	buf->length = 0;
-	if (enc_key.data) free(enc_key.data);
 	return -1;
 }
 
