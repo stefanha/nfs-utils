@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <pwd.h>
 #include <grp.h>
@@ -25,6 +26,7 @@ char *usage="Usage: %s [-v] [-c || [-u|-g|-r key] || [-t timeout] key desc]";
 #define DEFAULT_KEYRING "id_resolver"
 #endif
 
+static int keyring_clear(char *keyring);
 
 #define UIDKEYS 0x1
 #define GIDKEYS 0x2
@@ -52,6 +54,22 @@ int id_lookup(char *name_at_domain, key_serial_t key, int type)
 
 	if (rc == 0) {
 		rc = keyctl_instantiate(key, id, strlen(id) + 1, 0);
+		if (rc < 0) {
+			switch(rc) {
+			case -EDQUOT:
+			case -ENFILE:
+			case -ENOMEM:
+				/*
+			 	 * The keyring is full. Clear the keyring and try again
+			 	 */
+				rc = keyring_clear(DEFAULT_KEYRING);
+				if (rc == 0)
+					rc = keyctl_instantiate(key, id, strlen(id) + 1, 0);
+				break;
+			default:
+				break;
+			}
+		}
 		if (rc < 0)
 			xlog_err("id_lookup: keyctl_instantiate failed: %m");
 	}
@@ -105,7 +123,6 @@ static int keyring_clear(char *keyring)
 	char buf[BUFSIZ];
 	key_serial_t key;
 
-	xlog_syslog(0);
 	if (keyring == NULL)
 		keyring = DEFAULT_KEYRING;
 
@@ -172,7 +189,7 @@ static int key_revoke(char *keystr, int keymask)
 		if ((keymask & mask) == 0)
 			continue;
 
-		if (strncmp(ptr+4, keystr, strlen(keystr)) != NULL)
+		if (strncmp(ptr+4, keystr, strlen(keystr)) != 0)
 			continue;
 
 		if (verbose) {
@@ -255,6 +272,7 @@ int main(int argc, char **argv)
 		return rc;		
 	}
 	if (clearing) {
+		xlog_syslog(0);
 		rc = keyring_clear(DEFAULT_KEYRING);
 		return rc;		
 	}
@@ -280,7 +298,7 @@ int main(int argc, char **argv)
 	value = strtok(NULL, ":");
 
 	if (verbose) {
-		xlog_warn("key: %ld type: %s value: %s timeout %ld",
+		xlog_warn("key: 0x%lx type: %s value: %s timeout %ld",
 			key, type, value, timeout);
 	}
 
