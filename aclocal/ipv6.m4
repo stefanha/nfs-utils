@@ -10,9 +10,11 @@ AC_DEFUN([AC_IPV6], [
     fi
 
     dnl IPv6-enabled networking functions required for IPv6
-    AC_CHECK_FUNCS([getifaddrs getnameinfo bindresvport_sa], ,
+    AC_CHECK_FUNCS([getifaddrs getnameinfo], ,
                    [AC_MSG_ERROR([Missing library functions needed for IPv6.])])
 
+    AC_CHECK_LIB([tirpc], [bindresvport_sa], [:],
+		 [AC_MSG_ERROR([Missing library functions needed for IPv6.])])
   fi
 
 ])dnl

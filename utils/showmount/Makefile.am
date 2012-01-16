@@ -7,7 +7,8 @@ sbin_PROGRAMS	= showmount
 showmount_SOURCES = showmount.c
 showmount_LDADD = ../../support/export/libexport.a \
 		  ../../support/nfs/libnfs.a \
-	  	  ../../support/misc/libmisc.a
+		  ../../support/misc/libmisc.a \
+		  $(LIBTIRPC)
 showmount_CPPFLAGS = $(AM_CPPFLAGS) $(CPPFLAGS) \
 		   -I$(top_builddir)/support/export
 

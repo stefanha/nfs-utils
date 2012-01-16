@@ -40,7 +40,7 @@ gssd_SOURCES = \
 
 gssd_LDADD =	../../support/nfs/libnfs.a \
 		$(RPCSECGSS_LIBS) $(GSSGLUE_LIBS) $(KRBLIBS)
-gssd_LDFLAGS = $(KRBLDFLAGS)
+gssd_LDFLAGS = $(KRBLDFLAGS) $(LIBTIRPC)
 
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 	      $(RPCSECGSS_CFLAGS) $(GSSGLUE_CFLAGS) $(KRBCFLAGS)
@@ -59,7 +59,7 @@ svcgssd_SOURCES = \
 svcgssd_LDADD = \
 	../../support/nfs/libnfs.a \
 	$(RPCSECGSS_LIBS) $(GSSGLUE_LIBS) $(LIBNFSIDMAP) \
-	$(KRBLIBS)
+	$(KRBLIBS) $(LIBTIRPC)
 
 svcgssd_LDFLAGS = $(KRBLDFLAGS)
 

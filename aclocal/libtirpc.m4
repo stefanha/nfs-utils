@@ -13,8 +13,8 @@ AC_DEFUN([AC_LIBTIRPC], [
 
   if test "$enable_tirpc" != "no"; then
 
-    dnl look for the library; add to LIBS if found
-    AC_CHECK_LIB([tirpc], [clnt_tli_create], ,
+    dnl look for the library
+    AC_CHECK_LIB([tirpc], [clnt_tli_create], [:],
                  [if test "$enable_tirpc" = "yes"; then
 			AC_MSG_ERROR([libtirpc not found.])
 		  else
@@ -36,5 +36,16 @@ AC_DEFUN([AC_LIBTIRPC], [
 		       fi])
 
   fi
+
+  dnl now set $LIBTIRPC accordingly
+  if test "$enable_tirpc" != "no"; then
+    AC_DEFINE([HAVE_LIBTIRPC], 1,
+              [Define to 1 if you have and wish to use libtirpc.])
+    LIBTIRPC="-ltirpc"
+  else
+    LIBTIRPC=""
+  fi
+
+  AC_SUBST(LIBTIRPC)
 
 ])dnl
