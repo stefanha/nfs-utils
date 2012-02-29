@@ -293,24 +293,6 @@ be explicitly requested with either of the synonymous
 .IR auth_nlm ,
 or
 .IR secure_locks .
-.TP
-.IR no_acl
-On some specially patched kernels, and when exporting filesystems that
-support ACLs, this option tells
-.B nfsd
-not to reveal ACLs to clients, so
-they will see only a subset of actual permissions on the given file
-system.  This option is safe for filesystems used by NFSv2 clients and
-old NFSv3 clients that perform access decisions locally.  Current
-NFSv3 clients use the ACCESS RPC to perform all access decisions on
-the server.  Note that the
-.I no_acl
-option only has effect on kernels specially patched to support it, and
-when exporting filesystems with ACL support.  The default is to export
-with ACL support (i.e. by default,
-.I no_acl
-is off).
-
 .\".TP
 .\".I noaccess
 .\"This makes everything below the directory inaccessible for the named
