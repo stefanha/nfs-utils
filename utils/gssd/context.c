@@ -51,10 +51,6 @@ serialize_context_for_kernel(gss_ctx_id_t ctx,
 {
 	if (g_OID_equal(&krb5oid, mech))
 		return serialize_krb5_ctx(ctx, buf, endtime);
-#ifdef HAVE_SPKM3_H
-	else if (g_OID_equal(&spkm3oid, mech))
-		return serialize_spkm3_ctx(ctx, buf, endtime);
-#endif
 	else {
 		printerr(0, "ERROR: attempting to serialize context with "
 				"unknown/unsupported mechanism oid\n");
