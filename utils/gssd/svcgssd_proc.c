@@ -369,12 +369,8 @@ get_hostbased_client_name(gss_name_t client_name, gss_OID mech,
 	if (g_OID_equal(&krb5oid, mech)) {
 		if (get_krb5_hostbased_name(&name, &cname) == 0)
 			*hostbased_name = cname;
-	}
-
-	/* No support for SPKM3, just print a warning (for now) */
-	if (g_OID_equal(&spkm3oid, mech)) {
-		printerr(1, "WARNING: get_hostbased_client_name: "
-			 "no hostbased_name support for SPKM3\n");
+	} else {
+		printerr(1, "WARNING: unknown/unsupport mech OID\n");
 	}
 
 	res = 0;
