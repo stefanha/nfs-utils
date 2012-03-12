@@ -299,15 +299,11 @@ destroy_client(struct clnt_info *clp)
 	if (clp->krb5_poll_index != -1)
 		memset(&pollarray[clp->krb5_poll_index], 0,
 					sizeof(struct pollfd));
-	if (clp->spkm3_poll_index != -1)
-		memset(&pollarray[clp->spkm3_poll_index], 0,
-					sizeof(struct pollfd));
 	if (clp->gssd_poll_index != -1)
 		memset(&pollarray[clp->gssd_poll_index], 0,
 					sizeof(struct pollfd));
 	if (clp->dir_fd != -1) close(clp->dir_fd);
 	if (clp->krb5_fd != -1) close(clp->krb5_fd);
-	if (clp->spkm3_fd != -1) close(clp->spkm3_fd);
 	if (clp->gssd_fd != -1) close(clp->gssd_fd);
 	free(clp->dirname);
 	free(clp->servicename);
@@ -327,10 +323,8 @@ insert_new_clnt(void)
 		goto out;
 	}
 	clp->krb5_poll_index = -1;
-	clp->spkm3_poll_index = -1;
 	clp->gssd_poll_index = -1;
 	clp->krb5_fd = -1;
-	clp->spkm3_fd = -1;
 	clp->gssd_fd = -1;
 	clp->dir_fd = -1;
 
@@ -355,30 +349,22 @@ process_clnt_dir_files(struct clnt_info * clp)
 			snprintf(name, sizeof(name), "%s/krb5", clp->dirname);
 			clp->krb5_fd = open(name, O_RDWR);
 		}
-		if (clp->spkm3_fd == -1) {
-			snprintf(name, sizeof(name), "%s/spkm3", clp->dirname);
-			clp->spkm3_fd = open(name, O_RDWR);
-		}
 
 		/* If we opened a gss-specific pipe, let's try opening
 		 * the new upcall pipe again. If we succeed, close
 		 * gss-specific pipe(s).
 		 */
-		if (clp->krb5_fd != -1 || clp->spkm3_fd != -1) {
+		if (clp->krb5_fd != -1) {
 			clp->gssd_fd = open(gname, O_RDWR);
 			if (clp->gssd_fd != -1) {
 				if (clp->krb5_fd != -1)
 					close(clp->krb5_fd);
 				clp->krb5_fd = -1;
-				if (clp->spkm3_fd != -1)
-					close(clp->spkm3_fd);
-				clp->spkm3_fd = -1;
 			}
 		}
 	}
 
-	if ((clp->krb5_fd == -1) && (clp->spkm3_fd == -1) &&
-			(clp->gssd_fd == -1))
+	if ((clp->krb5_fd == -1) && (clp->gssd_fd == -1))
 		return -1;
 	snprintf(info_file_name, sizeof(info_file_name), "%s/info",
 			clp->dirname);
@@ -429,15 +415,6 @@ insert_clnt_poll(struct clnt_info *clp)
 		}
 		pollarray[clp->krb5_poll_index].fd = clp->krb5_fd;
 		pollarray[clp->krb5_poll_index].events |= POLLIN;
-	}
-
-	if ((clp->spkm3_fd != -1) && (clp->spkm3_poll_index == -1)) {
-		if (get_poll_index(&clp->spkm3_poll_index)) {
-			printerr(0, "ERROR: Too many spkm3 clients\n");
-			return -1;
-		}
-		pollarray[clp->spkm3_poll_index].fd = clp->spkm3_fd;
-		pollarray[clp->spkm3_poll_index].events |= POLLIN;
 	}
 
 	return 0;
@@ -839,13 +816,6 @@ int create_auth_rpc_client(struct clnt_info *clp,
 		sec.mech = (gss_OID)&krb5oid;
 		sec.req_flags = GSS_C_MUTUAL_FLAG;
 	}
-	else if (authtype == AUTHTYPE_SPKM3) {
-		sec.mech = (gss_OID)&spkm3oid;
-		/* XXX sec.req_flags = GSS_C_ANON_FLAG;
-		 * Need a way to switch....
-		 */
-		sec.req_flags = GSS_C_MUTUAL_FLAG;
-	}
 	else {
 		printerr(0, "ERROR: Invalid authentication type (%d) "
 			"in create_auth_rpc_client\n", authtype);
@@ -919,9 +889,8 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	auth = authgss_create_default(rpc_clnt, clp->servicename, &sec);
 	if (!auth) {
 		/* Our caller should print appropriate message */
-		printerr(2, "WARNING: Failed to create %s context for "
+		printerr(2, "WARNING: Failed to create krb5 context for "
 			    "user with uid %d for server %s\n",
-			(authtype == AUTHTYPE_KRB5 ? "krb5":"spkm3"),
 			 uid, clp->servername);
 		goto out_fail;
 	}
@@ -1103,59 +1072,6 @@ out_return_error:
 	goto out;
 }
 
-/*
- * this code uses the userland rpcsec gss library to create an spkm3
- * context on behalf of the kernel
- */
-static void
-process_spkm3_upcall(struct clnt_info *clp, uid_t uid, int fd)
-{
-	CLIENT			*rpc_clnt = NULL;
-	AUTH			*auth = NULL;
-	struct authgss_private_data pd;
-	gss_buffer_desc		token;
-
-	printerr(2, "handling spkm3 upcall (%s)\n", clp->dirname);
-
-	token.length = 0;
-	token.value = NULL;
-
-	if (create_auth_rpc_client(clp, &rpc_clnt, &auth, uid, AUTHTYPE_SPKM3)) {
-		printerr(0, "WARNING: Failed to create spkm3 context for "
-			    "user with uid %d\n", uid);
-		goto out_return_error;
-	}
-
-	if (!authgss_get_private_data(auth, &pd)) {
-		printerr(0, "WARNING: Failed to obtain authentication "
-			    "data for user with uid %d for server %s\n",
-			 uid, clp->servername);
-		goto out_return_error;
-	}
-
-	if (serialize_context_for_kernel(pd.pd_ctx, &token, &spkm3oid, NULL)) {
-		printerr(0, "WARNING: Failed to serialize spkm3 context for "
-			    "user with uid %d for server\n",
-			 uid, clp->servername);
-		goto out_return_error;
-	}
-
-	do_downcall(fd, uid, &pd, &token);
-
-out:
-	if (token.value)
-		free(token.value);
-	if (auth)
-		AUTH_DESTROY(auth);
-	if (rpc_clnt)
-		clnt_destroy(rpc_clnt);
-	return;
-
-out_return_error:
-	do_error_downcall(fd, uid, -1);
-	goto out;
-}
-
 void
 handle_krb5_upcall(struct clnt_info *clp)
 {
@@ -1168,20 +1084,6 @@ handle_krb5_upcall(struct clnt_info *clp)
 	}
 
 	return process_krb5_upcall(clp, uid, clp->krb5_fd, NULL, NULL);
-}
-
-void
-handle_spkm3_upcall(struct clnt_info *clp)
-{
-	uid_t			uid;
-
-	if (read(clp->spkm3_fd, &uid, sizeof(uid)) < (ssize_t)sizeof(uid)) {
-		printerr(0, "WARNING: failed reading uid from spkm3 "
-			 "upcall pipe: %s\n", strerror(errno));
-		return;
-	}
-
-	return process_spkm3_upcall(clp, uid, clp->spkm3_fd);
 }
 
 void
@@ -1292,8 +1194,6 @@ handle_gssd_upcall(struct clnt_info *clp)
 
 	if (strcmp(mech, "krb5") == 0)
 		process_krb5_upcall(clp, uid, clp->gssd_fd, target, service);
-	else if (strcmp(mech, "spkm3") == 0)
-		process_spkm3_upcall(clp, uid, clp->gssd_fd);
 	else
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "received unknown gss mech '%s'\n", mech);

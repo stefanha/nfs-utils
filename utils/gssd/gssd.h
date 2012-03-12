@@ -55,7 +55,7 @@
 /*
  * The gss mechanisms that we can handle
  */
-enum {AUTHTYPE_KRB5, AUTHTYPE_SPKM3, AUTHTYPE_LIPKEY};
+enum {AUTHTYPE_KRB5, AUTHTYPE_LIPKEY};
 
 
 
@@ -80,8 +80,6 @@ struct clnt_info {
 	char			*protocol;
 	int			krb5_fd;
 	int			krb5_poll_index;
-	int			spkm3_fd;
-	int			spkm3_poll_index;
 	int                     gssd_fd;
 	int                     gssd_poll_index;
 	struct sockaddr_storage addr;
@@ -98,7 +96,6 @@ struct topdirs_info {
 void init_client_list(void);
 int update_client_list(void);
 void handle_krb5_upcall(struct clnt_info *clp);
-void handle_spkm3_upcall(struct clnt_info *clp);
 void handle_gssd_upcall(struct clnt_info *clp);
 void gssd_run(void);
 

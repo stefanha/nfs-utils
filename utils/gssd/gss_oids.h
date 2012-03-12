@@ -34,7 +34,6 @@
 #include <sys/types.h>
 
 extern gss_OID_desc krb5oid;
-extern gss_OID_desc spkm3oid;
 
 #ifndef g_OID_equal
 #define g_OID_equal(o1,o2) \
