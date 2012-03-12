@@ -316,9 +316,6 @@ if test "$enable_gss" = yes; then
   dnl 'gss' also depends on nfsidmap.h - at least for svcgssd_proc.c
   AC_LIBNFSIDMAP
 
-  AC_CHECK_HEADERS([spkm3.h], ,
-                   [AC_MSG_WARN([Could not locate SPKM3 header; will not have SPKM3 support])])
-
   dnl Check for Kerberos V5
   AC_KERBEROS_V5
 
