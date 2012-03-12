@@ -32,6 +32,10 @@ enum {
 	FSLOC_STUB
 };
 
+#ifndef EXP_LOCKFILE
+#define EXP_LOCKFILE "/var/lib/nfs/export-lock"
+#endif
+
 typedef struct mclient {
 	struct mclient *	m_next;
 	char *			m_hostname;

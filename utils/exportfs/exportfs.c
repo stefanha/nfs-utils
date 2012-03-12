@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/vfs.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -43,6 +44,39 @@ static void	usage(const char *progname);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
 static void	export_d_read(const char *dname);
+
+static const char *lockfile = EXP_LOCKFILE;
+static int _lockfd = -1;
+
+/*
+ * If we aren't careful, changes made by exportfs can be lost
+ * when multiple exports process run at once:
+ *
+ *	exportfs process 1	exportfs process 2
+ *	------------------------------------------
+ *	reads etab version A	reads etab version A
+ *	adds new export B	adds new export C
+ *	writes A+B		writes A+C
+ *
+ * The locking in support/export/xtab.c will prevent mountd from
+ * seeing a partially written version of etab, and will prevent 
+ * the two writers above from writing simultaneously and
+ * corrupting etab, but to prevent problems like the above we
+ * need these additional lockfile() routines.
+ */
+void 
+grab_lockfile()
+{
+	_lockfd = open(lockfile, O_CREAT|O_RDWR, 0666);
+	if (_lockfd != -1) 
+		lockf(_lockfd, F_LOCK, 0);
+}
+void 
+release_lockfile()
+{
+	if (_lockfd != -1)
+		lockf(_lockfd, F_ULOCK, 0);
+}
 
 int
 main(int argc, char **argv)
@@ -129,6 +163,13 @@ main(int argc, char **argv)
 			return 0;
 		}
 	}
+
+	/*
+	 * Serialize things as best we can
+	 */
+	grab_lockfile();
+	atexit(release_lockfile);
+
 	if (f_export && ! f_ignore) {
 		export_read(_PATH_EXPORTS);
 		export_d_read(_PATH_EXPORTS_D);
