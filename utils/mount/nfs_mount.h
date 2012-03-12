@@ -75,9 +75,6 @@ struct nfs_mount_data {
 #define AUTH_GSS_LKEY		390006
 #define AUTH_GSS_LKEYI		390007
 #define AUTH_GSS_LKEYP		390008
-#define AUTH_GSS_SPKM		390009
-#define AUTH_GSS_SPKMI		390010
-#define AUTH_GSS_SPKMP		390011
 #endif
 
 int	nfsmount(const char *, const char *, int , char **, int, int);

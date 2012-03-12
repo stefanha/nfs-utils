@@ -375,11 +375,8 @@ Valid security flavors are
 .BR krb5p ,
 .BR lkey ,
 .BR lkeyi ,
-.BR lkeyp ,
-.BR spkm ,
-.BR spkmi ,
 and
-.BR spkmp .
+.BR lkeyp ,
 Refer to the SECURITY CONSIDERATIONS section for details.
 .TP 1.5i
 .BR sharecache " / " nosharecache
@@ -1416,7 +1413,7 @@ security flavor encrypts every RPC request
 to prevent data exposure during network transit; however,
 expect some performance impact
 when using integrity checking or encryption.
-Similar support for other forms of cryptographic security (such as lipkey and SPKM3)
+Similar support for other forms of cryptographic security (such as lipkey)
 is also available.
 .P
 The NFS version 4 protocol allows
