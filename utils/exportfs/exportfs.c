@@ -44,6 +44,8 @@ static void	usage(const char *progname);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
 static void	export_d_read(const char *dname);
+static void grab_lockfile(void);
+static void release_lockfile(void);
 
 static const char *lockfile = EXP_LOCKFILE;
 static int _lockfd = -1;
@@ -64,14 +66,14 @@ static int _lockfd = -1;
  * corrupting etab, but to prevent problems like the above we
  * need these additional lockfile() routines.
  */
-void 
+static void 
 grab_lockfile()
 {
 	_lockfd = open(lockfile, O_CREAT|O_RDWR, 0666);
 	if (_lockfd != -1) 
 		lockf(_lockfd, F_LOCK, 0);
 }
-void 
+static void 
 release_lockfile()
 {
 	if (_lockfd != -1)
