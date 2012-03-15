@@ -49,6 +49,8 @@
 #include "conffile.h"
 #include "xlog.h"
 
+#pragma GCC visibility push(hidden)
+
 static void conf_load_defaults(void);
 static int conf_set(int , char *, char *, char *, 
 	char *, int , int );
