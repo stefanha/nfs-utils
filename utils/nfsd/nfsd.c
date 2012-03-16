@@ -27,6 +27,10 @@
 #include "nfssvc.h"
 #include "xlog.h"
 
+#ifndef NFSD_NPROC
+#define NFSD_NPROC 8
+#endif
+
 static void	usage(const char *);
 
 static struct option longopts[] =
@@ -90,7 +94,7 @@ nfsd_enable_protos(unsigned int *proto4, unsigned int *proto6)
 int
 main(int argc, char **argv)
 {
-	int	count = 1, c, error = 0, portnum = 0, fd, found_one;
+	int	count = NFSD_NPROC, c, error = 0, portnum = 0, fd, found_one;
 	char *p, *progname, *port;
 	char *haddr = NULL;
 	int	socket_up = 0;
