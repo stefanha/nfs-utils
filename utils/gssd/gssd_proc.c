@@ -918,6 +918,23 @@ int create_auth_rpc_client(struct clnt_info *clp,
 	goto out;
 }
 
+static char *
+user_cachedir(char *dirname, uid_t uid)
+{
+	struct passwd *pw;
+	char *ptr;
+
+	if ((pw = getpwuid(uid)) == NULL) {
+		printerr(0, "user_cachedir: Failed to find '%d' uid"
+			    " for cache directory\n");
+		return NULL;
+	}
+	ptr = malloc(strlen(dirname)+strlen(pw->pw_name)+2);
+	if (ptr)
+		sprintf(ptr, "%s/%s", dirname, pw->pw_name);
+
+	return ptr;
+}
 /*
  * this code uses the userland rpcsec gss library to create a krb5
  * context on behalf of the kernel
@@ -932,7 +949,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	gss_buffer_desc		token;
 	char			**credlist = NULL;
 	char			**ccname;
-	char			**dirname;
+	char			**dirname, *dir, *userdir;
 	int			create_resp = -1;
 	int			err, downcall_err = -EACCES;
 
@@ -975,7 +992,22 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 				service == NULL)) {
 		/* Tell krb5 gss which credentials cache to use */
 		for (dirname = ccachesearch; *dirname != NULL; dirname++) {
-			err = gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname);
+			/* See if the user name is needed */
+			if (strncmp(*dirname, GSSD_USER_CRED_DIR, 
+					strlen(GSSD_USER_CRED_DIR)) == 0) {
+				userdir = user_cachedir(*dirname, uid);
+				if (userdir == NULL) 
+					continue;
+				dir = userdir;
+			} else
+				dir = *dirname;
+
+			err = gssd_setup_krb5_user_gss_ccache(uid, clp->servername, dir);
+
+			if (userdir) {
+				free(userdir);
+				userdir = NULL;
+			}
 			if (err == -EKEYEXPIRED)
 				downcall_err = -EKEYEXPIRED;
 			else if (!err)

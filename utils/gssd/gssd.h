@@ -45,6 +45,7 @@
 #define DNOTIFY_SIGNAL		(SIGRTMIN + 3)
 
 #define GSSD_DEFAULT_CRED_DIR			"/tmp"
+#define GSSD_USER_CRED_DIR			"/run/user"
 #define GSSD_DEFAULT_CRED_PREFIX		"krb5cc_"
 #define GSSD_DEFAULT_MACHINE_CRED_SUFFIX	"machine"
 #define GSSD_DEFAULT_KEYTAB_FILE		"/etc/krb5.keytab"
