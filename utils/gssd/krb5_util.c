@@ -129,6 +129,10 @@
 /* Global list of principals/cache file names for machine credentials */
 struct gssd_k5_kt_princ *gssd_k5_kt_princ_list = NULL;
 
+#ifdef HAVE_SET_ALLOWABLE_ENCTYPES
+int limit_to_legacy_enctypes = 0;
+#endif
+
 /*==========================*/
 /*===  Internal routines ===*/
 /*==========================*/
@@ -1342,7 +1346,7 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec)
 	 * If we failed for any reason to produce global
 	 * list of supported enctypes, use local default here.
 	 */
-	if (krb5_enctypes == NULL)
+	if (krb5_enctypes == NULL || limit_to_legacy_enctypes)
 		maj_stat = gss_set_allowable_enctypes(&min_stat, credh,
 					&krb5oid, num_enctypes, enctypes);
 	else

@@ -36,6 +36,7 @@ char *gssd_k5_err_msg(krb5_context context, krb5_error_code code);
 void gssd_k5_get_default_realm(char **def_realm);
 
 #ifdef HAVE_SET_ALLOWABLE_ENCTYPES
+extern int limit_to_legacy_enctypes;
 int limit_krb5_enctypes(struct rpc_gss_sec *sec);
 #endif
 

@@ -6,7 +6,7 @@
 .SH NAME
 rpc.gssd \- rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.gssd [-f] [-n] [-k keytab] [-p pipefsdir] [-v] [-r] [-d ccachedir]"
+.B "rpc.gssd [-f] [-n] [-k keytab] [-l] [-p pipefsdir] [-v] [-r] [-d ccachedir]"
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -69,6 +69,30 @@ for "machine credentials" is now:
 .IP
 If this search order does not use the correct key then provide a
 keytab file that contains only correct keys.
+.TP
+.B -l
+Tells
+.B rpc.gssd
+to limit session keys to Single DES even if the kernel supports stronger
+encryption types. Service ticket encryption is still governed by what
+the KDC believes the target server supports. This way the client can
+access a server that has strong keys in its keytab for ticket decryption
+but whose kernel only supports Single DES.
+.IP
+The alternative is to put only Single DES keys in the server's keytab
+and limit encryption types for its principal to Single DES on the KDC
+which will cause service tickets for this server to be encrypted using
+only Single DES and (as a side-effect) contain only Single DES session
+keys.
+.IP
+This legacy behaviour is only required for older servers
+(pre nfs-utils-1.2.4). If the server has a recent kernel, Kerberos
+implementation and nfs-utils it will work just fine with stronger
+encryption.
+.IP
+.B Note:
+This option is only available with Kerberos libraries that 
+support setable encryption types.
 .TP
 .B -p path
 Tells
