@@ -185,6 +185,12 @@ else
 	AM_CONDITIONAL(MOUNT_CONFIG, [test "$enable_mount" = "yes"])
 fi
 
+AC_ARG_ENABLE(nfsdcld,
+	[AC_HELP_STRING([--enable-nfsdcld],
+			[Create nfsdcld NFSv4 clientid tracking daemon. @<:@default=no@:>@])],
+	enable_nfsdcld=$enableval,
+	enable_nfsdcld="no")
+
 dnl Check for TI-RPC library and headers
 AC_LIBTIRPC
 
@@ -259,6 +265,8 @@ if test "$enable_nfsv4" = yes; then
 
   dnl check for the keyutils libraries and headers
   AC_KEYUTILS
+
+  AM_CONDITIONAL(CONFIG_NFSDCLD, [test "$enable_nfsdcld" = "yes" ])
 
   dnl librpcsecgss already has a dependency on libgssapi,
   dnl but we need to make sure we get the right version
@@ -457,6 +465,7 @@ AC_CONFIG_FILES([
 	tools/nfs-iostat/Makefile
 	utils/Makefile
 	utils/blkmapd/Makefile
+	utils/nfsdcld/Makefile
 	utils/exportfs/Makefile
 	utils/gssd/Makefile
 	utils/idmapd/Makefile

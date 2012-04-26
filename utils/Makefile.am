@@ -21,6 +21,10 @@ if CONFIG_MOUNT
 OPTDIRS += mount
 endif
 
+if CONFIG_NFSDCLD
+OPTDIRS += nfsdcld
+endif
+
 SUBDIRS = \
 	exportfs \
 	mountd \
