@@ -266,6 +266,15 @@ if test "$enable_nfsv4" = yes; then
   dnl check for the keyutils libraries and headers
   AC_KEYUTILS
 
+  dnl Check for sqlite3
+  AC_SQLITE3_VERS
+
+  if test "$enable_nfsdcld" = "yes"; then
+  	if test "$libsqlite3_cv_is_recent" != "yes" ; then
+		AC_MSG_ERROR([nfsdcld requires sqlite3])
+	fi
+  fi
+
   AM_CONDITIONAL(CONFIG_NFSDCLD, [test "$enable_nfsdcld" = "yes" ])
 
   dnl librpcsecgss already has a dependency on libgssapi,
