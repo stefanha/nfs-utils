@@ -38,6 +38,7 @@
 #include "xlog.h"
 #include "nfslib.h"
 #include "cld.h"
+#include "sqlite.h"
 
 #ifndef PIPEFS_DIR
 #define PIPEFS_DIR NFS_STATEDIR "/rpc_pipefs"
