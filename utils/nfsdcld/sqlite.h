@@ -22,5 +22,6 @@
 
 int sqlite_maindb_init(char *topdir);
 int sqlite_insert_client(const unsigned char *clname, const size_t namelen);
+int sqlite_remove_client(const unsigned char *clname, const size_t namelen);
 
 #endif /* _SQLITE_H */
