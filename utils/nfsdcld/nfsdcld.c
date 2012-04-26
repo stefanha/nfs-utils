@@ -61,6 +61,7 @@ static struct option longopts[] =
 	{ "foreground", 0, NULL, 'F' },
 	{ "debug", 0, NULL, 'd' },
 	{ "pipe", 1, NULL, 'p' },
+	{ "storagedir", 1, NULL, 's' },
 	{ NULL, 0, 0, 0 },
 };
 
@@ -70,7 +71,7 @@ static void cldcb(int UNUSED(fd), short which, void *data);
 static void
 usage(char *progname)
 {
-	printf("Usage: %s [ -hFd ] [ -p pipe ]\n", progname);
+	printf("%s [ -hFd ] [ -p pipe ] [ -s dir ]\n", progname);
 }
 
 static int
@@ -144,15 +145,16 @@ cld_create(struct cld_client *clnt)
 	ssize_t bsize, wsize;
 	struct cld_msg *cmsg = &clnt->cl_msg;
 
-	xlog(D_GENERAL, "%s: create client record", __func__);
+	xlog(D_GENERAL, "%s: create client record.", __func__);
 
-	/* FIXME: create client record on storage here */
+	ret = sqlite_insert_client(cmsg->cm_u.cm_name.cn_id,
+				   cmsg->cm_u.cm_name.cn_len);
 
-	/* set up reply */
-	cmsg->cm_status = 0;
+	cmsg->cm_status = ret ? -EREMOTEIO : ret;
 
 	bsize = sizeof(*cmsg);
 
+	xlog(D_GENERAL, "Doing downcall with status %d", cmsg->cm_status);
 	wsize = atomicio((void *)write, clnt->cl_fd, cmsg, bsize);
 	if (wsize != bsize) {
 		xlog(L_ERROR, "%s: problem writing to cld pipe (%ld): %m",
@@ -210,6 +212,7 @@ main(int argc, char **argv)
 	int rc = 0;
 	bool foreground = false;
 	char *progname;
+	char *storagedir = NULL;
 	struct cld_client clnt;
 
 	memset(&clnt, 0, sizeof(clnt));
@@ -225,7 +228,7 @@ main(int argc, char **argv)
 	xlog_stderr(1);
 
 	/* process command-line options */
-	while ((arg = getopt_long(argc, argv, "hdFp:", longopts,
+	while ((arg = getopt_long(argc, argv, "hdFp:s:", longopts,
 				  NULL)) != EOF) {
 		switch (arg) {
 		case 'd':
@@ -236,6 +239,9 @@ main(int argc, char **argv)
 			break;
 		case 'p':
 			pipepath = optarg;
+			break;
+		case 's':
+			storagedir = optarg;
 			break;
 		default:
 			usage(progname);
@@ -256,6 +262,11 @@ main(int argc, char **argv)
 	}
 
 	/* set up storage db */
+	rc = sqlite_maindb_init(storagedir);
+	if (rc) {
+		xlog(L_ERROR, "Failed to open main database: %d", rc);
+		goto out;
+	}
 
 	/* set up event handler */
 	rc = cld_pipe_init(&clnt);

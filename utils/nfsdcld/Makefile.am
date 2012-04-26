@@ -6,9 +6,9 @@
 AM_CFLAGS	+= -D_LARGEFILE64_SOURCE
 sbin_PROGRAMS	= nfsdcld
 
-nfsdcld_SOURCES = nfsdcld.c
+nfsdcld_SOURCES = nfsdcld.c sqlite.c
 
-nfsdcld_LDADD = ../../support/nfs/libnfs.a $(LIBEVENT)
+nfsdcld_LDADD = ../../support/nfs/libnfs.a $(LIBEVENT) $(LIBSQLITE)
 
 MAINTAINERCLEANFILES = Makefile.in
 
