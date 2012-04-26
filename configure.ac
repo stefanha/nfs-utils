@@ -270,6 +270,9 @@ if test "$enable_nfsv4" = yes; then
   AC_SQLITE3_VERS
 
   if test "$enable_nfsdcld" = "yes"; then
+	AC_CHECK_HEADERS([libgen.h sys/inotify.h], ,
+		AC_MSG_ERROR([Cannot find header needed for nfsdcld]))
+
   	if test "$libsqlite3_cv_is_recent" != "yes" ; then
 		AC_MSG_ERROR([nfsdcld requires sqlite3])
 	fi
