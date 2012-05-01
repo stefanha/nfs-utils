@@ -150,13 +150,13 @@ static int v4root_add_parents(nfs_export *exp)
 				"pseudo export for '%s'", exp->m_export.e_path);
 		return -ENOMEM;
 	}
-	for (ptr = path + 1; ptr; ptr = strchr(ptr, '/')) {
+	for (ptr = path; ptr; ptr = strchr(ptr, '/')) {
 		int ret;
 		char saved;
 
 		saved = *ptr;
 		*ptr = '\0';
-		ret = pseudofs_update(hostname, path, exp);
+		ret = pseudofs_update(hostname, *path ? path : "/", exp);
 		if (ret)
 			return ret;
 		*ptr = saved;
