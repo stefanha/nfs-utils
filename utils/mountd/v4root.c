@@ -192,6 +192,13 @@ v4root_set()
 				 */
 				continue;
 
+			if (strcmp(exp->m_export.e_path, "/") == 0 &&
+			    !(exp->m_export.e_flags & NFSEXP_FSID)) {
+				/* Force '/' to be exported as fsid == 0*/
+				exp->m_export.e_flags |= NFSEXP_FSID;
+				exp->m_export.e_fsid = 0;
+			}
+
 			v4root_add_parents(exp);
 			/* XXX: error handling! */
 		}
