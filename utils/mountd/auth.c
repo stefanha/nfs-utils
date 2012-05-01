@@ -159,6 +159,9 @@ auth_authenticate_newcache(const struct sockaddr *caller,
 				continue;
 			if (use_ipaddr && !client_check(exp->m_client, ai))
 				continue;
+			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
+				/* not acceptable for v[23] export */
+				continue;
 			break;
 		}
 	*error = not_exported;
@@ -186,10 +189,6 @@ auth_authenticate_internal(const struct sockaddr *caller, const char *path,
 			*error = no_entry;
 			return NULL;
 		}
-	}
-	if (exp->m_export.e_flags & NFSEXP_V4ROOT) {
-		*error = no_entry;
-		return NULL;
 	}
 	if (!(exp->m_export.e_flags & NFSEXP_INSECURE_PORT) &&
 		     nfs_get_port(caller) >= IPPORT_RESERVED) {
