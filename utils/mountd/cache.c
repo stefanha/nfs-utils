@@ -596,11 +596,20 @@ static void nfsd_fh(FILE *f)
 				found_path = strdup(path);
 				if (found_path == NULL)
 					goto out;
-			} else if (strcmp(found->e_path, exp->m_export.e_path)
+			} else if (strcmp(found->e_path, exp->m_export.e_path) != 0
 				   && !subexport(found, &exp->m_export))
 			{
 				xlog(L_WARNING, "%s and %s have same filehandle for %s, using first",
 				     found_path, path, dom);
+			} else {
+				/* same path, if one is V4ROOT, choose the other */
+				if (found->e_flags & NFSEXP_V4ROOT) {
+					found = &exp->m_export;
+					free(found_path);
+					found_path = strdup(path);
+					if (found_path == NULL)
+						goto out;
+				}
 			}
 		}
 	}
