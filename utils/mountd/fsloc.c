@@ -120,10 +120,11 @@ static struct servers *parse_list(char **list)
  */
 static struct servers *method_list(char *data)
 {
-	char *copy, *ptr=data;
+	char *copy, *ptr=data, *p;
 	char **list;
 	int i, listsize;
 	struct servers *rv=NULL;
+	bool v6esc = false;
 
 	xlog(L_NOTICE, "method_list(%s)", data);
 	for (ptr--, listsize=1; ptr; ptr=index(ptr, ':'), listsize++)
@@ -134,9 +135,22 @@ static struct servers *method_list(char *data)
 		xlog(L_NOTICE, "converted to %s", copy);
 	if (list && copy) {
 		ptr = copy;
-		for (i=0; i<listsize; i++) {
-			list[i] = strsep(&ptr, ":");
+		for (p = ptr, i = 0; *p && i < listsize; p++) {
+			if (*p == '[')
+				v6esc = true;
+			else if (*p == ']')
+				v6esc = false;
+
+			if (!v6esc && *p == ':') {
+				*p = '\0';
+				if (*ptr)
+					list[i++] = ptr;
+				ptr = p + 1;
+			}
 		}
+		if (*ptr)
+			list[i++] = ptr;
+		list[i] = NULL;
 		rv = parse_list(list);
 	}
 	free(copy);
