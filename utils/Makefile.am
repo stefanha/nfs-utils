@@ -32,6 +32,7 @@ SUBDIRS = \
 	nfsstat \
 	showmount \
 	statd \
+	osd_login \
 	$(OPTDIRS)
 
 MAINTAINERCLEANFILES = Makefile.in

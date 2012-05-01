@@ -488,6 +488,7 @@ AC_CONFIG_FILES([
 	utils/nfsidmap/Makefile
 	utils/showmount/Makefile
 	utils/statd/Makefile
+	utils/osd_login/Makefile
 	tests/Makefile
 	tests/nsm_client/Makefile])
 AC_OUTPUT
