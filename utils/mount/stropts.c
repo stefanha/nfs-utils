@@ -911,7 +911,8 @@ static int nfsmount_parent(struct nfsmount_info *mi)
 	if (nfs_try_mount(mi))
 		return EX_SUCCESS;
 
-	if (nfs_is_permanent_error(errno)) {
+	/* retry background mounts when the server is not up */
+	if (nfs_is_permanent_error(errno) && errno != EOPNOTSUPP) {
 		mount_error(mi->spec, mi->node, errno);
 		return EX_FAIL;
 	}
@@ -946,7 +947,8 @@ static int nfsmount_child(struct nfsmount_info *mi)
 		if (nfs_try_mount(mi))
 			return EX_SUCCESS;
 
-		if (nfs_is_permanent_error(errno))
+		/* retry background mounts when the server is not up */
+		if (nfs_is_permanent_error(errno) && errno != EOPNOTSUPP)
 			break;
 
 		if (time(NULL) > timeout)
