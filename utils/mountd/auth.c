@@ -131,6 +131,23 @@ get_client_hostname(const struct sockaddr *caller, struct addrinfo *ai,
 	return strdup("DEFAULT");
 }
 
+bool ipaddr_client_matches(nfs_export *exp, struct addrinfo *ai)
+{
+	return client_check(exp->m_client, ai);
+}
+
+bool namelist_client_matches(nfs_export *exp, char *dom)
+{
+	return client_member(dom, exp->m_client->m_hostname);
+}
+
+bool client_matches(nfs_export *exp, char *dom, struct addrinfo *ai)
+{
+	if (use_ipaddr)
+		return ipaddr_client_matches(exp, ai);
+	return namelist_client_matches(exp, dom);
+}
+
 /* return static nfs_export with details filled in */
 static nfs_export *
 auth_authenticate_newcache(const struct sockaddr *caller,
@@ -155,9 +172,7 @@ auth_authenticate_newcache(const struct sockaddr *caller,
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (strcmp(path, exp->m_export.e_path))
 				continue;
-			if (!use_ipaddr && !client_member(my_client.m_hostname, exp->m_client->m_hostname))
-				continue;
-			if (use_ipaddr && !client_check(exp->m_client, ai))
+			if (!client_matches(exp, my_client.m_hostname, ai))
 				continue;
 			if (exp->m_export.e_flags & NFSEXP_V4ROOT)
 				/* not acceptable for v[23] export */

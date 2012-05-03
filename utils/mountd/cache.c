@@ -587,7 +587,7 @@ static void nfsd_fh(FILE *f)
 				next_exp = exp->m_next;
 			}
 
-			if (!use_ipaddr && !client_member(dom, exp->m_client->m_hostname))
+			if (!use_ipaddr && !namelist_client_matches(exp, dom))
 				continue;
 			if (exp->m_export.e_mountpoint &&
 			    !is_mountpoint(exp->m_export.e_mountpoint[0]?
@@ -597,7 +597,7 @@ static void nfsd_fh(FILE *f)
 
 			if (!match_fsid(&parsed, exp, path))
 				continue;
-			if (use_ipaddr && !client_check(exp->m_client, ai))
+			if (use_ipaddr && !ipaddr_client_matches(exp, ai))
 				continue;
 			if (!found || subexport(&exp->m_export, found)) {
 				found = &exp->m_export;
@@ -757,14 +757,6 @@ static int path_matches(nfs_export *exp, char *path)
 	if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT)
 		return is_subdirectory(path, exp->m_export.e_path);
 	return strcmp(path, exp->m_export.e_path) == 0;
-}
-
-static int
-client_matches(nfs_export *exp, char *dom, struct addrinfo *ai)
-{
-	if (use_ipaddr)
-		return client_check(exp->m_client, ai);
-	return client_member(dom, exp->m_client->m_hostname);
 }
 
 static int
