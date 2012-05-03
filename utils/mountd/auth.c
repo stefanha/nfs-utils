@@ -112,15 +112,23 @@ auth_reload()
 	return counter;
 }
 
+static char *get_client_ipaddr_name(const struct sockaddr *caller)
+{
+	char buf[INET6_ADDRSTRLEN + 1];
+
+	buf[0] = '$';
+	host_ntop(caller, buf + 1, sizeof(buf) - 1);
+	return strdup(buf);
+}
+
 static char *
 get_client_hostname(const struct sockaddr *caller, struct addrinfo *ai,
 		enum auth_error *error)
 {
-	char buf[INET6_ADDRSTRLEN];
 	char *n;
 
 	if (use_ipaddr)
-		return strdup(host_ntop(caller, buf, sizeof(buf)));
+		return get_client_ipaddr_name(caller);
 	n = client_compose(ai);
 	*error = unknown_host;
 	if (!n)
@@ -143,7 +151,7 @@ bool namelist_client_matches(nfs_export *exp, char *dom)
 
 bool client_matches(nfs_export *exp, char *dom, struct addrinfo *ai)
 {
-	if (use_ipaddr)
+	if (is_ipaddr_client(dom))
 		return ipaddr_client_matches(exp, ai);
 	return namelist_client_matches(exp, dom);
 }

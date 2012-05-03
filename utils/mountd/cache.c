@@ -500,6 +500,8 @@ struct addrinfo *lookup_client_addr(char *dom)
 	struct addrinfo *ret;
 	struct addrinfo *tmp;
 
+	dom++; /* skip initial "$" */
+
 	tmp = host_pton(dom);
 	if (tmp == NULL)
 		return NULL;
@@ -551,7 +553,7 @@ static void nfsd_fh(FILE *f)
 
 	auth_reload();
 
-	if (use_ipaddr) {
+	if (is_ipaddr_client(dom)) {
 		ai = lookup_client_addr(dom);
 		if (!ai)
 			goto out;
@@ -587,7 +589,8 @@ static void nfsd_fh(FILE *f)
 				next_exp = exp->m_next;
 			}
 
-			if (!use_ipaddr && !namelist_client_matches(exp, dom))
+			if (!is_ipaddr_client(dom)
+					&& !namelist_client_matches(exp, dom))
 				continue;
 			if (exp->m_export.e_mountpoint &&
 			    !is_mountpoint(exp->m_export.e_mountpoint[0]?
@@ -597,7 +600,8 @@ static void nfsd_fh(FILE *f)
 
 			if (!match_fsid(&parsed, exp, path))
 				continue;
-			if (use_ipaddr && !ipaddr_client_matches(exp, ai))
+			if (is_ipaddr_client(dom)
+					&& !ipaddr_client_matches(exp, ai))
 				continue;
 			if (!found || subexport(&exp->m_export, found)) {
 				found = &exp->m_export;
@@ -1071,7 +1075,7 @@ static void nfsd_export(FILE *f)
 
 	auth_reload();
 
-	if (use_ipaddr) {
+	if (is_ipaddr_client(dom)) {
 		ai = lookup_client_addr(dom);
 		if (!ai)
 			goto out;
