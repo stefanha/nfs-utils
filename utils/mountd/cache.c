@@ -495,6 +495,19 @@ static bool match_fsid(struct parsed_fsid *parsed, nfs_export *exp, char *path)
 	return false;
 }
 
+struct addrinfo *lookup_client_addr(char *dom)
+{
+	struct addrinfo *ret;
+	struct addrinfo *tmp;
+
+	tmp = host_pton(dom);
+	if (tmp == NULL)
+		return NULL;
+	ret = client_resolve(tmp->ai_addr);
+	freeaddrinfo(tmp);
+	return ret;
+}
+
 static void nfsd_fh(FILE *f)
 {
 	/* request are:
@@ -538,6 +551,12 @@ static void nfsd_fh(FILE *f)
 
 	auth_reload();
 
+	if (use_ipaddr) {
+		ai = lookup_client_addr(dom);
+		if (!ai)
+			goto out;
+	}
+
 	/* Now determine export point for this fsid/domain */
 	for (i=0 ; i < MCL_MAXTYPES; i++) {
 		nfs_export *next_exp;
@@ -578,18 +597,8 @@ static void nfsd_fh(FILE *f)
 
 			if (!match_fsid(&parsed, exp, path))
 				continue;
-			if (use_ipaddr) {
-				if (ai == NULL) {
-					struct addrinfo *tmp;
-					tmp = host_pton(dom);
-					if (tmp == NULL)
-						goto out;
-					ai = client_resolve(tmp->ai_addr);
-					freeaddrinfo(tmp);
-				}
-				if (!client_check(exp->m_client, ai))
-					continue;
-			}
+			if (use_ipaddr && !client_check(exp->m_client, ai))
+				continue;
 			if (!found || subexport(&exp->m_export, found)) {
 				found = &exp->m_export;
 				free(found_path);
@@ -1071,12 +1080,7 @@ static void nfsd_export(FILE *f)
 	auth_reload();
 
 	if (use_ipaddr) {
-		struct addrinfo *tmp;
-		tmp = host_pton(dom);
-		if (tmp == NULL)
-			goto out;
-		ai = client_resolve(tmp->ai_addr);
-		freeaddrinfo(tmp);
+		ai = lookup_client_addr(dom);
 		if (!ai)
 			goto out;
 	}
