@@ -1077,6 +1077,7 @@ static void nfsd_export(FILE *f)
 			goto out;
 		ai = client_resolve(tmp->ai_addr);
 		freeaddrinfo(tmp);
+		if (!ai)
 			goto out;
 	}
 
