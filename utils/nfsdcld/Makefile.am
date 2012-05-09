@@ -8,7 +8,7 @@ sbin_PROGRAMS	= nfsdcld
 
 nfsdcld_SOURCES = nfsdcld.c sqlite.c
 
-nfsdcld_LDADD = ../../support/nfs/libnfs.a $(LIBEVENT) $(LIBSQLITE)
+nfsdcld_LDADD = ../../support/nfs/libnfs.a $(LIBEVENT) $(LIBSQLITE) $(LIBCAP)
 
 MAINTAINERCLEANFILES = Makefile.in
 

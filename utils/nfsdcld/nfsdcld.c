@@ -34,6 +34,10 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/inotify.h>
+#ifdef HAVE_SYS_CAPABILITY_H
+#include <sys/prctl.h>
+#include <sys/capability.h>
+#endif
 
 #include "xlog.h"
 #include "nfslib.h"
@@ -45,6 +49,10 @@
 #endif
 
 #define DEFAULT_CLD_PATH	PIPEFS_DIR "/nfsd/cld"
+
+#ifndef CLD_DEFAULT_STORAGEDIR
+#define CLD_DEFAULT_STORAGEDIR NFS_STATEDIR "/nfsdcld"
+#endif
 
 #define UPCALL_VERSION		1
 
@@ -77,6 +85,47 @@ static void
 usage(char *progname)
 {
 	printf("%s [ -hFd ] [ -p pipe ] [ -s dir ]\n", progname);
+}
+
+static int
+cld_set_caps(void)
+{
+	int ret = 0;
+#ifdef HAVE_SYS_CAPABILITY_H
+	unsigned long i;
+	cap_t caps;
+
+	if (getuid() != 0) {
+		xlog(L_ERROR, "Not running as root. Daemon won't be able to "
+			      "open the pipe after dropping capabilities!");
+		return -EINVAL;
+	}
+
+	/* prune the bounding set to nothing */
+	for (i = 0; i <= CAP_LAST_CAP; ++i) {
+		ret = prctl(PR_CAPBSET_DROP, i);
+		if (ret) {
+			xlog(L_ERROR, "Unable to prune capability %lu from "
+				      "bounding set: %m", i);
+			return -errno;
+		}
+	}
+
+	/* get a blank capset */
+	caps = cap_init();
+	if (caps == NULL) {
+		xlog(L_ERROR, "Unable to get blank capability set: %m");
+		return -errno;
+	}
+
+	/* reset the process capabilities */
+	if (cap_set_proc(caps) != 0) {
+		xlog(L_ERROR, "Unable to set process capabilities: %m");
+		ret = -errno;
+	}
+	cap_free(caps);
+#endif
+	return ret;
 }
 
 #define INOTIFY_EVENT_MAX (sizeof(struct inotify_event) + NAME_MAX)
@@ -453,7 +502,7 @@ main(int argc, char **argv)
 	int rc = 0;
 	bool foreground = false;
 	char *progname;
-	char *storagedir = NULL;
+	char *storagedir = CLD_DEFAULT_STORAGEDIR;
 	struct cld_client clnt;
 
 	memset(&clnt, 0, sizeof(clnt));
@@ -498,6 +547,37 @@ main(int argc, char **argv)
 		rc = daemon(0, 0);
 		if (rc) {
 			xlog(L_ERROR, "Unable to daemonize: %m");
+			goto out;
+		}
+	}
+
+	/* drop all capabilities */
+	rc = cld_set_caps();
+	if (rc)
+		goto out;
+
+	/*
+	 * now see if the storagedir is writable by root w/o CAP_DAC_OVERRIDE.
+	 * If it isn't then give the user a warning but proceed as if
+	 * everything is OK. If the DB has already been created, then
+	 * everything might still work. If it doesn't exist at all, then
+	 * assume that the maindb init will be able to create it. Fail on
+	 * anything else.
+	 */
+	if (access(storagedir, W_OK) == -1) {
+		switch (errno) {
+		case EACCES:
+			xlog(L_WARNING, "Storage directory %s is not writable. "
+					"Should be owned by root and writable "
+					"by owner!", storagedir);
+			break;
+		case ENOENT:
+			/* ignore and assume that we can create dir as root */
+			break;
+		default:
+			xlog(L_ERROR, "Unexpected error when checking access "
+				      "on %s: %m", storagedir);
+			rc = -errno;
 			goto out;
 		}
 	}

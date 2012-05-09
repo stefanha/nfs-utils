@@ -54,10 +54,6 @@
 
 #define CLD_SQLITE_SCHEMA_VERSION 1
 
-#ifndef CLD_SQLITE_TOPDIR
-#define CLD_SQLITE_TOPDIR NFS_STATEDIR "/nfsdcld"
-#endif
-
 /* in milliseconds */
 #define CLD_SQLITE_BUSY_TIMEOUT 10000
 
@@ -112,7 +108,7 @@ sqlite_maindb_init(char *topdir)
 	char *err = NULL;
 	sqlite3_stmt *stmt = NULL;
 
-	sqlite_topdir = topdir ? topdir : CLD_SQLITE_TOPDIR;
+	sqlite_topdir = topdir;
 
 	ret = mkdir_if_not_exist(sqlite_topdir);
 	if (ret)

@@ -160,7 +160,7 @@ Runs the daemon in the foreground and prints all output to stderr
 Location of the \*(L"cld\*(R" upcall pipe. The default value is
 \&\fI/var/lib/nfs/rpc_pipefs/nfsd/cld\fR. If the pipe does not exist when the
 daemon starts then it will wait for it to be created.
-.IP "\fB\-s\fR \fIstoragedir\fR, \fB\-\-storagedir\fR=\fIstorage_dir\fR" 4
+.IP "\fB\-s\fR \fIstorage_dir\fR, \fB\-\-storagedir\fR=\fIstorage_dir\fR" 4
 .IX Item "-s storagedir, --storagedir=storage_dir"
 Directory where stable storage information should be kept. The default
 value is \fI/var/lib/nfs/nfsdcld\fR.
@@ -175,6 +175,11 @@ This daemon requires a kernel that supports the nfsdcld upcall. If the
 kernel does not support the new upcall, or is using the legacy client
 name tracking code then it will not create the pipe that nfsdcld uses to
 talk to the kernel.
+.PP
+This daemon should be run as root, as the pipe that it uses to communicate
+with the kernel is only accessable by root. The daemon however does drop all
+superuser capabilities after starting. Because of this, the \fIstoragedir\fR
+should be owned by root, and be readable and writable by owner.
 .SH "AUTHORS"
 .IX Header "AUTHORS"
 The nfsdcld daemon was developed by Jeff Layton <jlayton@redhat.com>.
