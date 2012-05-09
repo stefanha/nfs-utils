@@ -89,7 +89,7 @@ cld_pipe_open(struct cld_client *clnt)
 	xlog(D_GENERAL, "%s: opening upcall pipe %s", __func__, pipepath);
 	fd = open(pipepath, O_RDWR, 0);
 	if (fd < 0) {
-		xlog(L_ERROR, "%s: open of %s failed: %m", __func__, pipepath);
+		xlog(D_GENERAL, "%s: open of %s failed: %m", __func__, pipepath);
 		return -errno;
 	}
 
