@@ -49,28 +49,6 @@
 
 #include "device-discovery.h"
 
-static char *pretty_sig(char *sig, uint32_t siglen)
-{
-	static char rs[100];
-	uint64_t sigval;
-	unsigned int i;
-
-	if (siglen <= sizeof(sigval)) {
-		sigval = 0;
-		for (i = 0; i < siglen; i++)
-			sigval |= ((unsigned char *)sig)[i] << (i * 8);
-		sprintf(rs, "0x%0llx", (unsigned long long) sigval);
-	} else {
-		if (siglen > sizeof rs - 4) {
-			siglen = sizeof rs - 4;
-			sprintf(&rs[siglen], "...");
-		} else
-			rs[siglen] = '\0';
-		memcpy(rs, sig, siglen);
-	}
-	return rs;
-}
-
 uint32_t *blk_overflow(uint32_t * p, uint32_t * end, size_t nbytes)
 {
 	uint32_t *q = p + ((nbytes + 3) >> 2);
@@ -109,9 +87,6 @@ static int decode_blk_signature(uint32_t **pp, uint32_t * end,
 		 * for mapping, then thrown away.
 		 */
 		comp->bs_string = (char *)p;
-		BL_LOG_INFO("%s: si_comps[%d]: bs_length %d, bs_string %s\n",
-			    __func__, i, siglen,
-			    pretty_sig(comp->bs_string, siglen));
 		p += ((siglen + 3) >> 2);
 	}
 	*pp = p;
@@ -152,10 +127,6 @@ read_cmp_blk_sig(struct bl_disk *disk, int fd, struct bl_sig_comp *comp)
 	}
 
 	ret = memcmp(sig, comp->bs_string, siglen);
-	if (!ret)
-		BL_LOG_INFO("%s: %s sig %s at %lld\n", __func__, dev_name,
-			    pretty_sig(sig, siglen),
-			    (long long)comp->bs_offset);
 
  out:
 	if (sig)
