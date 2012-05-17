@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # These binaries go in /sbin (not /usr/sbin), and that cannot be
-# overriden at config time.
+# overridden at config time.
 sbindir = /sbin
 
 man8_MANS	= mount.nfs.man umount.nfs.man
