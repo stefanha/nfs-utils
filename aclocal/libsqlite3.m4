@@ -29,5 +29,4 @@ AC_DEFUN([AC_SQLITE3_VERS], [
     LIBS="$saved_LIBS"])
 
   AC_MSG_RESULT($libsqlite3_cv_is_recent)
-  AM_CONDITIONAL(CONFIG_SQLITE3, [test "$libsqlite3_cv_is_recent" = "yes"])
 ])dnl
