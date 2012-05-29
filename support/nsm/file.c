@@ -338,10 +338,10 @@ nsm_is_default_parentdir(void)
  *
  * Returns true if successful, or false if some error occurred.
  */
+#ifdef HAVE_SYS_CAPABILITY_H
 static _Bool
 nsm_clear_capabilities(void)
 {
-#ifdef HAVE_SYS_CAPABILITY_H
 	cap_t caps;
 
 	caps = cap_from_text("cap_net_bind_service=ep");
@@ -357,9 +357,59 @@ nsm_clear_capabilities(void)
 	}
 
 	(void)cap_free(caps);
-#endif
 	return true;
 }
+
+#define CAP_BOUND_PROCFILE "/proc/sys/kernel/cap-bound"
+static _Bool
+prune_bounding_set(void)
+{
+#ifdef PR_CAPBSET_DROP
+	int ret;
+	unsigned long i;
+	struct stat st;
+
+	/*
+	 * Prior to kernel 2.6.25, the capabilities bounding set was a global
+	 * value. Check to see if /proc/sys/kernel/cap-bound exists and don't
+	 * bother to clear the bounding set if it does.
+	 */
+	ret = stat(CAP_BOUND_PROCFILE, &st);
+	if (!ret) {
+		xlog(L_WARNING, "%s exists. Not attempting to clear "
+				"capabilities bounding set.",
+				CAP_BOUND_PROCFILE);
+		return true;
+	} else if (errno != ENOENT) {
+		/* Warn, but attempt to clear the bounding set anyway. */
+		xlog(L_WARNING, "Unable to stat %s: %m", CAP_BOUND_PROCFILE);
+	}
+
+	/* prune the bounding set to nothing */
+	for (i = 0; i <= CAP_LAST_CAP; ++i) {
+		ret = prctl(PR_CAPBSET_DROP, i, 0, 0, 0);
+		if (ret) {
+			xlog(L_ERROR, "Unable to prune capability %lu from "
+				      "bounding set: %m", i);
+			return false;
+		}
+	}
+#endif /* PR_CAPBSET_DROP */
+	return true;
+}
+#else /* !HAVE_SYS_CAPABILITY_H */
+static _Bool
+nsm_clear_capabilities(void)
+{
+	return true;
+}
+
+static _Bool
+prune_bounding_set(void)
+{
+	return true;
+}
+#endif /* HAVE_SYS_CAPABILITY_H */
 
 /**
  * nsm_drop_privileges - drop root privileges
@@ -392,6 +442,9 @@ nsm_drop_privileges(const int pidfd)
 				nsm_base_dirname);
 		return false;
 	}
+
+	if (!prune_bounding_set())
+		return false;
 
 	if (st.st_uid == 0) {
 		xlog_warn("Running as root.  "
