@@ -13,7 +13,7 @@ nsm_client_SOURCES = $(GENFILES) nsm_client.c
 
 BUILT_SOURCES = $(GENFILES)
 nsm_client_LDADD = ../../support/nfs/libnfs.a \
-		   ../../support/nsm/libnsm.a $(LIBCAP)
+		   ../../support/nsm/libnsm.a $(LIBCAP) $(LIBTIRPC)
 
 if CONFIG_RPCGEN
 RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen
