@@ -12,6 +12,7 @@
 
 #include <unistd.h>
 #include "xlog.h"
+#include "conffile.h"
 
 int verbose = 0;
 char *usage="Usage: %s [-v] [-c || [-u|-g|-r key] || [-t timeout] key desc]";
@@ -26,10 +27,25 @@ char *usage="Usage: %s [-v] [-c || [-u|-g|-r key] || [-t timeout] key desc]";
 #define DEFAULT_KEYRING "id_resolver"
 #endif
 
+#ifndef PATH_IDMAPDCONF
+#define PATH_IDMAPDCONF "/etc/idmapd.conf"
+#endif
+
 static int keyring_clear(char *keyring);
 
 #define UIDKEYS 0x1
 #define GIDKEYS 0x2
+
+/*
+ * Check to the config file for the verbosity level
+ */
+int
+get_config_verbose(char *path)
+{
+	conf_path = path;
+	conf_init();
+	return conf_get_num("General", "Verbosity", 0);
+}
 
 /*
  * Find either a user or group id based on the name@domain string
@@ -266,7 +282,9 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-
+	if (!verbose) {
+		verbose = get_config_verbose(PATH_IDMAPDCONF);
+	}
 	if (keystr) {
 		rc = key_revoke(keystr, keymask);
 		return rc;		
