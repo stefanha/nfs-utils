@@ -3,7 +3,7 @@ dnl
 AC_DEFUN([AC_LIBCAP], [
 
   dnl look for prctl
-  AC_CHECK_FUNC([prctl], , )
+  AC_CHECK_FUNC([prctl], , AC_MSG_ERROR([prctl syscall is not available]))
 
   AC_ARG_ENABLE([caps],
     [AS_HELP_STRING([--disable-caps], [Disable capabilities support])])
