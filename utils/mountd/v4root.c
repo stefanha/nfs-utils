@@ -62,6 +62,8 @@ void set_pseudofs_security(struct exportent *pseudo, struct exportent *source)
 
 	if (source->e_flags & NFSEXP_INSECURE_PORT)
 		pseudo->e_flags |= NFSEXP_INSECURE_PORT;
+	if ((source->e_flags & NFSEXP_ROOTSQUASH) == 0)
+		pseudo->e_flags &= ~NFSEXP_ROOTSQUASH;
 	for (se = source->e_secinfo; se->flav; se++) {
 		struct sec_entry *new;
 
@@ -92,7 +94,8 @@ v4root_create(char *path, nfs_export *export)
 	exp = export_create(&eep, 0);
 	if (exp == NULL)
 		return NULL;
-	xlog(D_CALL, "v4root_create: path '%s'", exp->m_export.e_path);
+	xlog(D_CALL, "v4root_create: path '%s' flags 0x%x", 
+		exp->m_export.e_path, exp->m_export.e_flags);
 	return &exp->m_export;
 }
 
