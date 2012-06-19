@@ -386,7 +386,7 @@ prune_bounding_set(void)
 	}
 
 	/* prune the bounding set to nothing */
-	for (i = 0; i <= CAP_LAST_CAP; ++i) {
+	for (i = 0; prctl(PR_CAPBSET_READ, i, 0, 0, 0) >=0 ; ++i) {
 		ret = prctl(PR_CAPBSET_DROP, i, 0, 0, 0);
 		if (ret) {
 			xlog(L_ERROR, "Unable to prune capability %lu from "
