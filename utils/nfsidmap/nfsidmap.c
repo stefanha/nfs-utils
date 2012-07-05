@@ -37,17 +37,6 @@ static int keyring_clear(char *keyring);
 #define GIDKEYS 0x2
 
 /*
- * Check to the config file for the verbosity level
- */
-int
-get_config_verbose(char *path)
-{
-	conf_path = path;
-	conf_init();
-	return conf_get_num("General", "Verbosity", 0);
-}
-
-/*
  * Find either a user or group id based on the name@domain string
  */
 int id_lookup(char *name_at_domain, key_serial_t key, int type)
@@ -282,9 +271,14 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-	if (!verbose) {
-		verbose = get_config_verbose(PATH_IDMAPDCONF);
+
+	if (nfs4_init_name_mapping(PATH_IDMAPDCONF))  {
+		xlog_err("Unable to create name to user id mappings.");
+		return 1;
 	}
+	if (!verbose)
+		verbose = conf_get_num("General", "Verbosity", 0);
+
 	if (keystr) {
 		rc = key_revoke(keystr, keymask);
 		return rc;		
