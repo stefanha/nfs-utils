@@ -40,7 +40,7 @@ static void	unexportfs(char *arg, int verbose);
 static void	exports_update(int verbose);
 static void	dump(int verbose);
 static void	error(nfs_export *exp, int err);
-static void	usage(const char *progname);
+static void	usage(const char *progname, int n);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
 static void	export_d_read(const char *dname);
@@ -105,10 +105,16 @@ main(int argc, char **argv)
 
 	export_errno = 0;
 
-	while ((c = getopt(argc, argv, "aio:ruvf")) != EOF) {
+	while ((c = getopt(argc, argv, "afhio:ruv")) != EOF) {
 		switch(c) {
 		case 'a':
 			f_all = 1;
+			break;
+		case 'f':
+			force_flush = 1;
+			break;
+		case 'h':
+			usage(progname, 0);
 			break;
 		case 'i':
 			f_ignore = 1;
@@ -126,11 +132,8 @@ main(int argc, char **argv)
 		case 'v':
 			f_verbose = 1;
 			break;
-		case 'f':
-			force_flush = 1;
-			break;
 		default:
-			usage(progname);
+			usage(progname, 1);
 			break;
 		}
 	}
@@ -723,8 +726,8 @@ error(nfs_export *exp, int err)
 }
 
 static void
-usage(const char *progname)
+usage(const char *progname, int n)
 {
-	fprintf(stderr, "usage: %s [-aruv] [host:/path]\n", progname);
-	exit(1);
+	fprintf(stderr, "usage: %s [-afhioruv] [host:/path]\n", progname);
+	exit(n);
 }
