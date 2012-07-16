@@ -173,6 +173,7 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 {
 	int rc, c;
 	char *spec = NULL, *opts = NULL;
+	int ret = EX_FAIL;
 
 	static const struct option longopts[] = {
 		{ "force", 0, 0, 'f' },
@@ -243,7 +244,7 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 			/* strange, no entry in mtab or /proc not mounted */
 			nfs_umount23(spec, "tcp,v3");
 	}
-
+	ret = EX_FILEIO;
 	rc = mnt_context_do_umount(cxt);	/* call umount(2) syscall */
 	mnt_context_finalize_mount(cxt);	/* mtab update */
 
@@ -252,12 +253,10 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 		umount_error(rc, spec);
 		goto err;
 	}
-
-	free(opts);
-	return EX_SUCCESS;
+	ret = EX_SUCCESS;
 err:
 	free(opts);
-	return EX_FAIL;
+	return ret;
 }
 
 static int mount_main(struct libmnt_context *cxt, int argc, char **argv)
