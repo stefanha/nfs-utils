@@ -340,6 +340,25 @@ process_clnt_dir_files(struct clnt_info * clp)
 	char	gname[PATH_MAX];
 	char	info_file_name[PATH_MAX];
 
+	if (clp->gssd_close_me) {
+		printerr(2, "Closing 'gssd' pipe for %s\n", clp->dirname);
+		close(clp->gssd_fd);
+		memset(&pollarray[clp->gssd_poll_index], 0,
+			sizeof(struct pollfd));
+		clp->gssd_fd = -1;
+		clp->gssd_poll_index = -1;
+		clp->gssd_close_me = 0;
+	}
+	if (clp->krb5_close_me) {
+		printerr(2, "Closing 'krb5' pipe for %s\n", clp->dirname);
+		close(clp->krb5_fd);
+		memset(&pollarray[clp->krb5_poll_index], 0,
+			sizeof(struct pollfd));
+		clp->krb5_fd = -1;
+		clp->krb5_poll_index = -1;
+		clp->krb5_close_me = 0;
+	}
+
 	if (clp->gssd_fd == -1) {
 		snprintf(gname, sizeof(gname), "%s/gssd", clp->dirname);
 		clp->gssd_fd = open(gname, O_RDWR);

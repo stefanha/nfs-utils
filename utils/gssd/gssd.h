@@ -81,8 +81,10 @@ struct clnt_info {
 	char			*protocol;
 	int			krb5_fd;
 	int			krb5_poll_index;
+	int			krb5_close_me;
 	int                     gssd_fd;
 	int                     gssd_poll_index;
+	int			gssd_close_me;
 	struct sockaddr_storage addr;
 };
 

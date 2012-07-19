@@ -78,8 +78,10 @@ scan_poll_results(int ret)
 	{
 		i = clp->gssd_poll_index;
 		if (i >= 0 && pollarray[i].revents) {
-			if (pollarray[i].revents & POLLHUP)
+			if (pollarray[i].revents & POLLHUP) {
+				clp->gssd_close_me = 1;
 				dir_changed = 1;
+			}
 			if (pollarray[i].revents & POLLIN)
 				handle_gssd_upcall(clp);
 			pollarray[clp->gssd_poll_index].revents = 0;
@@ -89,8 +91,10 @@ scan_poll_results(int ret)
 		}
 		i = clp->krb5_poll_index;
 		if (i >= 0 && pollarray[i].revents) {
-			if (pollarray[i].revents & POLLHUP)
+			if (pollarray[i].revents & POLLHUP) {
+				clp->krb5_close_me = 1;
 				dir_changed = 1;
+			}
 			if (pollarray[i].revents & POLLIN)
 				handle_krb5_upcall(clp);
 			pollarray[clp->krb5_poll_index].revents = 0;
