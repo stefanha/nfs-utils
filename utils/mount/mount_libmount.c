@@ -210,14 +210,20 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 
 	if (mnt_context_set_target(cxt, spec))
 		goto err;
-	if (mnt_context_set_fstype_pattern(cxt, "nfs,nfs4"))	/* restrict filesystems */
-		goto err;
 
 	/* read mtab/fstab, evaluate permissions, etc. */
 	rc = mnt_context_prepare_umount(cxt);
 	if (rc) {
 		nfs_error(_("%s: failed to prepare umount: %s\n"),
 					progname, strerror(-rc));
+		goto err;
+	}
+
+	if (mnt_context_get_fstype(cxt) &&
+	    !mnt_match_fstype(mnt_context_get_fstype(cxt), "nfs,nfs4")) {
+
+		nfs_error(_("%s: %s: is not an NFS filesystem"), progname, spec);
+		ret = EX_USAGE;
 		goto err;
 	}
 
@@ -244,6 +250,7 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 			/* strange, no entry in mtab or /proc not mounted */
 			nfs_umount23(spec, "tcp,v3");
 	}
+
 	ret = EX_FILEIO;
 	rc = mnt_context_do_umount(cxt);	/* call umount(2) syscall */
 	mnt_context_finalize_mount(cxt);	/* mtab update */
