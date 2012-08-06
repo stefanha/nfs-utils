@@ -121,11 +121,13 @@ topdirs_add_entry(struct dirent *dent)
 	}
 	snprintf(tdi->dirname, PATH_MAX, "%s/%s", pipefs_dir, dent->d_name);
 	tdi->fd = open(tdi->dirname, O_RDONLY);
-	if (tdi->fd != -1) {
-		fcntl(tdi->fd, F_SETSIG, DNOTIFY_SIGNAL);
-		fcntl(tdi->fd, F_NOTIFY,
-		      DN_CREATE|DN_DELETE|DN_MODIFY|DN_MULTISHOT);
+	if (tdi->fd == -1) {
+		printerr(0, "ERROR: failed to open %s\n", tdi->dirname);
+		free(tdi);
+		return -1;
 	}
+	fcntl(tdi->fd, F_SETSIG, DNOTIFY_SIGNAL);
+	fcntl(tdi->fd, F_NOTIFY, DN_CREATE|DN_DELETE|DN_MODIFY|DN_MULTISHOT);
 
 	TAILQ_INSERT_HEAD(&topdirs_list, tdi, list);
 	return 0;
