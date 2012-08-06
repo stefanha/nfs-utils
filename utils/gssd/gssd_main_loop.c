@@ -61,10 +61,8 @@ extern int pollsize;
 
 static volatile int dir_changed = 1;
 
-static void dir_notify_handler(int sig)
+static void dir_notify_handler(__attribute__((unused))int sig)
 {
-	printerr(2, "dir_notify_handler: sig %d\n", sig);
-
 	dir_changed = 1;
 }
 
