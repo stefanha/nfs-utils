@@ -61,9 +61,9 @@ extern int pollsize;
 
 static volatile int dir_changed = 1;
 
-static void dir_notify_handler(int sig, siginfo_t *si, void *data)
+static void dir_notify_handler(int sig)
 {
-	printerr(2, "dir_notify_handler: sig %d si %p data %p\n", sig, si, data);
+	printerr(2, "dir_notify_handler: sig %d\n", sig);
 
 	dir_changed = 1;
 }
@@ -183,13 +183,12 @@ void
 gssd_run()
 {
 	int			ret;
-	struct sigaction	dn_act;
+	struct sigaction	dn_act = {
+		.sa_handler = dir_notify_handler
+	};
 	sigset_t		set;
 
-	/* Taken from linux/Documentation/dnotify.txt: */
-	dn_act.sa_sigaction = dir_notify_handler;
 	sigemptyset(&dn_act.sa_mask);
-	dn_act.sa_flags = SA_SIGINFO;
 	sigaction(DNOTIFY_SIGNAL, &dn_act, NULL);
 
 	/* just in case the signal is blocked... */
