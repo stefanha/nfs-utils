@@ -140,14 +140,14 @@ static int try_mount(struct libmnt_context *cxt, int bg)
 	return ret;
 }
 
-/* returns: error = -1, success = 0 , unknown = 1 */
+/* returns: error = -1, success = 1 , not vers4 == 0 */
 static int is_vers4(struct libmnt_context *cxt)
 {
 	struct libmnt_fs *fs = mnt_context_get_fs(cxt);
 	struct libmnt_table *tb = NULL;
 	const char *src = mnt_context_get_source(cxt),
 		   *tgt = mnt_context_get_target(cxt);
-	int rc = 1;
+	int rc = 0;
 
 	if (!src || !tgt)
 		return -1;
@@ -163,7 +163,7 @@ static int is_vers4(struct libmnt_context *cxt)
 	if (fs) {
 		const char *type = mnt_fs_get_fstype(fs);
 		if (type && strcmp(type, "nfs4") == 0)
-			rc = 0;
+			rc = 1;
 	}
 	mnt_free_table(tb);
 	return rc;
