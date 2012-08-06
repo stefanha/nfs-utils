@@ -104,7 +104,7 @@
 
 struct pollfd * pollarray;
 
-int pollsize;  /* the size of pollaray (in pollfd's) */
+unsigned long pollsize;  /* the size of pollaray (in pollfd's) */
 
 /*
  * convert a presentation address string to a sockaddr_storage struct. Returns

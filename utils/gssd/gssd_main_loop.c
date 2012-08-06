@@ -55,7 +55,7 @@
 #include "err_util.h"
 
 extern struct pollfd *pollarray;
-extern int pollsize;
+extern unsigned long pollsize;
 
 #define POLL_MILLISECS	500
 
@@ -101,7 +101,7 @@ scan_poll_results(int ret)
 				break;
 		}
 	}
-};
+}
 
 static int
 topdirs_add_entry(struct dirent *dent)
@@ -179,10 +179,46 @@ out_err:
 	return -1;
 }
 
+#ifdef HAVE_PPOLL
+static void gssd_poll(struct pollfd *fds, unsigned long nfds)
+{
+	sigset_t emptyset;
+	int ret;
+
+	sigemptyset(&emptyset);
+	ret = ppoll(fds, nfds, NULL, &emptyset);
+	if (ret < 0) {
+		if (errno != EINTR)
+			printerr(0, "WARNING: error return from poll\n");
+	} else if (ret == 0) {
+		printerr(0, "WARNING: unexpected timeout\n");
+	} else {
+		scan_poll_results(ret);
+	}
+}
+#else	/* !HAVE_PPOLL */
+static void gssd_poll(struct pollfd *fds, unsigned long nfds)
+{
+	int ret;
+
+	/* race condition here: dir_changed could be set before we
+	 * enter the poll, and we'd never notice if it weren't for the
+	 * timeout. */
+	ret = poll(fds, nfds, POLL_MILLISECS);
+	if (ret < 0) {
+		if (errno != EINTR)
+			printerr(0, "WARNING: error return from poll\n");
+	} else if (ret == 0) {
+		/* timeout */
+	} else { /* ret > 0 */
+		scan_poll_results(ret);
+	}
+}
+#endif	/* !HAVE_PPOLL */
+
 void
 gssd_run()
 {
-	int			ret;
 	struct sigaction	dn_act = {
 		.sa_handler = dir_notify_handler
 	};
@@ -210,19 +246,7 @@ gssd_run()
 				exit(1);
 			}
 		}
-		/* race condition here: dir_changed could be set before we
-		 * enter the poll, and we'd never notice if it weren't for the
-		 * timeout. */
-		ret = poll(pollarray, pollsize, POLL_MILLISECS);
-		if (ret < 0) {
-			if (errno != EINTR)
-				printerr(0,
-					 "WARNING: error return from poll\n");
-		} else if (ret == 0) {
-			/* timeout */
-		} else { /* ret > 0 */
-			scan_poll_results(ret);
-		}
+		gssd_poll(pollarray, pollsize);
 	}
 	topdirs_free_list();
 
