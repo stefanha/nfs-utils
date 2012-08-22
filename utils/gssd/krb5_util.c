@@ -1036,16 +1036,38 @@ err_cache:
  * Returns 0 if a ccache was found, and a non-zero error code otherwise.
  */
 int
-gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirname)
+gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirpattern)
 {
-	char			buf[MAX_NETOBJ_SZ];
+	char			buf[MAX_NETOBJ_SZ], dirname[PATH_MAX];
 	const char		*cctype;
 	struct dirent		*d;
-	int			err;
+	int			err, i, j;
 
 	printerr(2, "getting credentials for client with uid %u for "
 		    "server %s\n", uid, servername);
-	memset(buf, 0, sizeof(buf));
+
+	for (i = 0, j = 0; dirpattern[i] != '\0'; i++) {
+		switch (dirpattern[i]) {
+		case '%':
+			switch (dirpattern[i + 1]) {
+			case '%':
+				dirname[j++] = dirpattern[i];
+				i++;
+				break;
+			case 'U':
+				j += sprintf(dirname + j, "%lu",
+					     (unsigned long) uid);
+				i++;
+				break;
+			}
+			break;
+		default:
+			dirname[j++] = dirpattern[i];
+			break;
+		}
+	}
+	dirname[j] = '\0';
+
 	err = gssd_find_existing_krb5_ccache(uid, dirname, &cctype, &d);
 	if (err)
 		return err;

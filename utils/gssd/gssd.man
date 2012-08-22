@@ -103,9 +103,12 @@ where to look for the rpc_pipefs filesystem.  The default value is
 .B -d directory
 Tells
 .B rpc.gssd
-where to look for Kerberos credential files.  The default value is "/tmp".
-This can also be a colon separated list of directories to be searched
-for Kerberos credential files.  Note that if machine credentials are being
+where to look for Kerberos credential files.  The default value is
+"/tmp:/run/user/%U".
+This can also be a colon separated list of directories to be searched for
+Kerberos credential files.  The sequence "%U", if used, is replaced with
+the UID of the user for whom credentials are being searched.
+Note that if machine credentials are being
 stored in files, then the first directory on this list is where the
 machine credentials are stored.
 .TP
