@@ -460,6 +460,13 @@ by other clients, but can impact application and server performance.
 .IP
 The DATA AND METADATA COHERENCE section contains a
 detailed discussion of these trade-offs.
+.TP 1.5i
+.BR fsc " / " nofsc
+Enable/Disables the cache of (read-only) data pages to the local disk 
+using the FS-Cache facility. See cachefilesd(8) 
+and <kernel_soruce>/Documentation/filesystems/caching
+for detail on how to configure the FS-Cache facility.
+Default value is nofsc.
 .SS "Options for NFS versions 2 and 3 only"
 Use these options, along with the options in the above subsection,
 for NFS versions 2 and 3 only.
