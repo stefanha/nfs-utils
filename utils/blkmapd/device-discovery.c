@@ -36,6 +36,7 @@
 #include <scsi/scsi.h>
 #include <scsi/scsi_ioctl.h>
 #include <scsi/sg.h>
+#include <signal.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,6 +62,7 @@
 
 struct bl_disk *visible_disk_list;
 int    bl_watch_fd, bl_pipe_fd, nfs_pipedir_wfd, rpc_pipedir_wfd;
+int    pidfd = -1;
 
 struct bl_disk_path *bl_get_path(const char *filepath,
 				 struct bl_disk_path *paths)
@@ -431,10 +433,20 @@ static int bl_event_helper(void)
 	return ret;
 }
 
+void sig_die(int signal)
+{
+	if (pidfd >= 0) {
+		close(pidfd);
+		unlink(PID_FILE);
+	}
+	BL_LOG_ERR("exit on signal(%d)\n", signal);
+	exit(1);
+}
+
 /* Daemon */
 int main(int argc, char **argv)
 {
-	int pidfd = -1, opt, dflag = 0, fg = 0, ret = 1;
+	int opt, dflag = 0, fg = 0, ret = 1;
 	struct stat statbuf;
 	char pidbuf[64];
 
@@ -478,6 +490,10 @@ int main(int argc, char **argv)
 		sprintf(pidbuf, "%d\n", getpid());
 		write(pidfd, pidbuf, strlen(pidbuf));
 	}
+
+	signal(SIGINT, sig_die);
+	signal(SIGTERM, sig_die);
+	signal(SIGHUP, SIG_IGN);
 
 	if (dflag) {
 		bl_discover_devices();
