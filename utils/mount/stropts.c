@@ -680,6 +680,7 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 {
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
+	char *extra_opts = NULL;
 
 	if (!options) {
 		errno = ENOMEM;
@@ -715,19 +716,25 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 		goto out_fail;
 	}
 
-	/*
-	 * Update option string to be recorded in /etc/mtab.
-	 */
-	if (po_join(options, mi->extra_opts) == PO_FAILED) {
+	if (po_join(options, &extra_opts) == PO_FAILED) {
 		errno = ENOMEM;
 		goto out_fail;
 	}
 
 	if (verbose)
 		printf(_("%s: trying text-based options '%s'\n"),
-			progname, *mi->extra_opts);
+			progname, extra_opts);
 
 	result = nfs_sys_mount(mi, options);
+
+	/*
+	 * If success, update option string to be recorded in /etc/mtab.
+	 */
+	if (result) {
+	    free(*mi->extra_opts);
+	    *mi->extra_opts = extra_opts;
+	} else
+	    free(extra_opts);
 
 out_fail:
 	po_destroy(options);
