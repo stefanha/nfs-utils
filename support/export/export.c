@@ -357,7 +357,7 @@ strtoint(char *str)
 static int 
 export_hash(char *str)
 {
-	int num = strtoint(str);
+	unsigned int num = strtoint(str);
 
 	return num % HASH_TABLE_SIZE;
 }
