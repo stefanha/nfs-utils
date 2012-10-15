@@ -196,7 +196,8 @@ killer (int sig)
 		wait_for_workers();
 	}
 	cleanup_lockfiles();
-	xlog (L_FATAL, "Caught signal %d, un-registering and exiting.", sig);
+	xlog (L_NOTICE, "Caught signal %d, un-registering and exiting.", sig);
+	exit(0);
 }
 
 static void

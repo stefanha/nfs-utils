@@ -153,7 +153,7 @@ sig_die(int signal)
 {
 	/* destroy krb5 machine creds */
 	printerr(1, "exiting on signal %d\n", signal);
-	exit(1);
+	exit(0);
 }
 
 void

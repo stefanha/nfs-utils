@@ -71,7 +71,7 @@ sig_die(int signal)
 	if (root_uses_machine_creds)
 		gssd_destroy_krb5_machine_creds();
 	printerr(1, "exiting on signal %d\n", signal);
-	exit(1);
+	exit(0);
 }
 
 void

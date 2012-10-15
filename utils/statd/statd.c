@@ -99,7 +99,8 @@ static void
 killer (int sig)
 {
 	statd_unregister ();
-	xlog_err ("Caught signal %d, un-registering and exiting", sig);
+	xlog(D_GENERAL, "Caught signal %d, un-registering and exiting", sig);
+	exit(0);
 }
 
 static void
