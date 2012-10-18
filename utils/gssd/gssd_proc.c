@@ -659,19 +659,22 @@ parse_enctypes(char *enctypes)
 
 static int
 do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
-	    gss_buffer_desc *context_token)
+	    gss_buffer_desc *context_token, OM_uint32 lifetime_rec)
 {
 	char    *buf = NULL, *p = NULL, *end = NULL;
 	unsigned int timeout = context_timeout;
 	unsigned int buf_size = 0;
 
-	printerr(1, "doing downcall\n");
+	printerr(1, "doing downcall lifetime_rec %u\n", lifetime_rec);
 	buf_size = sizeof(uid) + sizeof(timeout) + sizeof(pd->pd_seq_win) +
 		sizeof(pd->pd_ctx_hndl.length) + pd->pd_ctx_hndl.length +
 		sizeof(context_token->length) + context_token->length;
 	p = buf = malloc(buf_size);
 	end = buf + buf_size;
 
+	/* context_timeout set by -t option overrides context lifetime */
+	if (timeout == 0)
+		timeout = lifetime_rec;
 	if (WRITE_BYTES(&p, end, uid)) goto out_err;
 	if (WRITE_BYTES(&p, end, timeout)) goto out_err;
 	if (WRITE_BYTES(&p, end, pd->pd_seq_win)) goto out_err;
@@ -954,6 +957,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	char			**dirname;
 	int			create_resp = -1;
 	int			err, downcall_err = -EACCES;
+	OM_uint32		maj_stat, min_stat, lifetime_rec;
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
 
@@ -1064,6 +1068,15 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		goto out_return_error;
 	}
 
+	/* Grab the context lifetime to pass to the kernel. lifetime_rec
+	 * is set to zero on error */
+	maj_stat = gss_inquire_context(&min_stat, pd.pd_ctx, NULL, NULL,
+				       &lifetime_rec, NULL, NULL, NULL, NULL);
+
+	if (maj_stat)
+		printerr(1, "WARNING: Failed to inquire context for lifetme "
+			    "maj_stat %u\n", maj_stat);
+
 	if (serialize_context_for_kernel(pd.pd_ctx, &token, &krb5oid, NULL)) {
 		printerr(0, "WARNING: Failed to serialize krb5 context for "
 			    "user with uid %d for server %s\n",
@@ -1071,7 +1084,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		goto out_return_error;
 	}
 
-	do_downcall(fd, uid, &pd, &token);
+	do_downcall(fd, uid, &pd, &token, lifetime_rec);
 
 out:
 	if (token.value)
