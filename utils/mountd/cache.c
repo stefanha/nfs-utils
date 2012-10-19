@@ -917,14 +917,15 @@ out_false:
  *
  * Returned exportent points to static memory.
  */
-static struct exportent *do_locations_to_export(struct jp_ops *ops,
-		nfs_fsloc_set_t locations, const char *junction,
-		char *options, size_t options_len)
+static struct exportent *locations_to_export(struct jp_ops *ops,
+		nfs_fsloc_set_t locations, const char *junction)
 {
+	static char options[BUFSIZ];
 	struct exportent *exp;
 	int ttl;
 
-	if (!locations_to_options(ops, locations, options, options_len, &ttl))
+	options[0] = '\0';
+	if (!locations_to_options(ops, locations, options, sizeof(options), &ttl))
 		return NULL;
 
 	exp = mkexportent("*", (char *)junction, options);
@@ -935,33 +936,6 @@ static struct exportent *do_locations_to_export(struct jp_ops *ops,
 
 	exp->e_uuid = NULL;
 	exp->e_ttl = ttl;
-	return exp;
-}
-
-/*
- * Convert set of FS locations to an exportent.  Returns pointer to
- * an exportent if "junction" refers to a junction.
- *
- * Returned exportent points to static memory.
- */
-static struct exportent *locations_to_export(struct jp_ops *ops,
-		nfs_fsloc_set_t locations, const char *junction)
-{
-	struct exportent *exp;
-	char *options;
-
-	options = malloc(BUFSIZ);
-	if (options == NULL) {
-		xlog(D_GENERAL, "%s: failed to allocate options buffer",
-			__func__);
-		return NULL;
-	}
-	options[0] = '\0';
-
-	exp = do_locations_to_export(ops, locations, junction,
-						options, BUFSIZ);
-
-	free(options);
 	return exp;
 }
 
