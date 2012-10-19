@@ -1109,11 +1109,24 @@ static struct exportent *lookup_junction(char *dom, const char *pathname,
 	(void)dlclose(handle);
 	return exp;
 }
-#else	/* !HAVE_NFS_PLUGIN_H */
-static inline struct exportent *lookup_junction(char *UNUSED(dom),
-		const char *UNUSED(pathname), struct addrinfo *UNUSED(ai))
+
+static void lookup_nonexport(FILE *f, char *dom, char *path,
+		struct addrinfo *ai)
 {
-	return NULL;
+	struct exportent *eep;
+
+	eep = lookup_junction(dom, path, ai);
+	dump_to_cache(f, dom, path, eep);
+	if (eep == NULL)
+		return;
+	exportent_release(eep);
+	free(eep);
+}
+#else	/* !HAVE_NFS_PLUGIN_H */
+static void lookup_nonexport(FILE *f, char *dom, char *path,
+		struct addrinfo *UNUSED(ai))
+{
+	dump_to_cache(f, dom, path, NULL);
 }
 #endif	/* !HAVE_NFS_PLUGIN_H */
 
@@ -1164,16 +1177,9 @@ static void nfsd_export(FILE *f)
 			     " or fsid= required", path);
 			dump_to_cache(f, dom, path, NULL);
 		}
-	} else {
-		struct exportent *eep;
+	} else
+		lookup_nonexport(f, dom, path, ai);
 
-		eep = lookup_junction(dom, path, ai);
-		dump_to_cache(f, dom, path, eep);
-		if (eep != NULL) {
-			exportent_release(eep);
-			free(eep);
-		}
-	}
  out:
 	xlog(D_CALL, "nfsd_export: found %p path %s", found, path ? path : NULL);
 	if (dom) free(dom);
