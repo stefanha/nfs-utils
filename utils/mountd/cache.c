@@ -975,8 +975,8 @@ static struct exportent *locations_to_export(struct jp_ops *ops,
 static struct exportent *invoke_junction_ops(void *handle,
 		const char *junction)
 {
+	struct exportent *exp = NULL;
 	nfs_fsloc_set_t locations;
-	struct exportent *exp;
 	enum jp_status status;
 	struct jp_ops *ops;
 	char *error;
@@ -1002,15 +1002,24 @@ static struct exportent *invoke_junction_ops(void *handle,
 	}
 
 	status = ops->jp_get_locations(junction, &locations);
-	if (status != JP_OK) {
-		xlog(D_GENERAL, "%s: failed to resolve %s: %s",
-			__func__, junction, ops->jp_error(status));
-		return NULL;
+	switch (status) {
+	case JP_OK:
+		break;
+	case JP_NOTJUNCTION:
+		xlog(D_GENERAL, "%s: %s is not a junction",
+			__func__, junction);
+		goto out;
+	default:
+		xlog(L_WARNING, "Dangling junction %s: %s",
+			junction, ops->jp_error(status));
+		goto out;
 	}
 
 	exp = locations_to_export(ops, locations, junction);
 
 	ops->jp_put_locations(locations);
+
+out:
 	ops->jp_done();
 	return exp;
 }
