@@ -141,6 +141,7 @@ nfs_export *			export_find(const struct addrinfo *ai,
 nfs_export *			export_allowed(const struct addrinfo *ai,
 						const char *path);
 nfs_export *			export_create(struct exportent *, int canonical);
+void				exportent_release(struct exportent *);
 void				export_freeall(void);
 int				export_export(nfs_export *);
 int				export_unexport(nfs_export *);

@@ -31,16 +31,21 @@ static nfs_export *
 		export_allowed_internal(const struct addrinfo *ai,
 				const char *path);
 
+void
+exportent_release(struct exportent *eep)
+{
+	xfree(eep->e_squids);
+	xfree(eep->e_sqgids);
+	free(eep->e_mountpoint);
+	free(eep->e_fslocdata);
+	free(eep->e_uuid);
+	xfree(eep->e_hostname);
+}
+
 static void
 export_free(nfs_export *exp)
 {
-	xfree(exp->m_export.e_squids);
-	xfree(exp->m_export.e_sqgids);
-	free(exp->m_export.e_mountpoint);
-	free(exp->m_export.e_fslocdata);
-	free(exp->m_export.e_uuid);
-
-	xfree(exp->m_export.e_hostname);
+	exportent_release(&exp->m_export);
 	xfree(exp);
 }
 
