@@ -968,30 +968,36 @@ out_false:
 /*
  * Duplicate the junction's parent's export options and graft in
  * the fslocdata we constructed from the locations list.
- *
- * Returned exportent points to static memory.
  */
 static struct exportent *create_junction_exportent(struct exportent *parent,
 		const char *junction, const char *fslocdata, int ttl)
 {
-	static struct exportent ee;
+	static struct exportent *eep;
 
-	dupexportent(&ee, parent);
-	strcpy(ee.e_path, junction);
-	ee.e_hostname = strdup(parent->e_hostname);
-	if (ee.e_hostname == NULL)
-		goto out_nomem;
-	free(ee.e_uuid);
-	ee.e_uuid = NULL;
-	ee.e_ttl = (unsigned int)ttl;
-
-	free(ee.e_fslocdata);
-	ee.e_fslocmethod = FSLOC_REFER;
-	ee.e_fslocdata = strdup(fslocdata);
-	if (ee.e_fslocdata == NULL)
+	eep = (struct exportent *)malloc(sizeof(*eep));
+	if (eep == NULL)
 		goto out_nomem;
 
-	return &ee;
+	dupexportent(eep, parent);
+	strcpy(eep->e_path, junction);
+	eep->e_hostname = strdup(parent->e_hostname);
+	if (eep->e_hostname == NULL) {
+		free(eep);
+		goto out_nomem;
+	}
+	free(eep->e_uuid);
+	eep->e_uuid = NULL;
+	eep->e_ttl = (unsigned int)ttl;
+
+	free(eep->e_fslocdata);
+	eep->e_fslocdata = strdup(fslocdata);
+	if (eep->e_fslocdata == NULL) {
+		free(eep->e_hostname);
+		free(eep);
+		goto out_nomem;
+	}
+	eep->e_fslocmethod = FSLOC_REFER;
+	return eep;
 
 out_nomem:
 	xlog(L_ERROR, "%s: No memory", __func__);
@@ -1001,8 +1007,6 @@ out_nomem:
 /*
  * Walk through the set of FS locations and build an exportent.
  * Returns pointer to an exportent if "junction" refers to a junction.
- *
- * Returned exportent points to static memory.
  */
 static struct exportent *locations_to_export(struct jp_ops *ops,
 		nfs_fsloc_set_t locations, const char *junction,
@@ -1022,8 +1026,6 @@ static struct exportent *locations_to_export(struct jp_ops *ops,
  * Retrieve locations information in "junction" and dump it to the
  * kernel.  Returns pointer to an exportent if "junction" refers
  * to a junction.
- *
- * Returned exportent points to static memory.
  */
 static struct exportent *invoke_junction_ops(void *handle, char *dom,
 		const char *junction, struct addrinfo *ai)
@@ -1085,8 +1087,6 @@ out:
  * Load the junction plug-in, then try to resolve "pathname".
  * Returns pointer to an initialized exportent if "junction"
  * refers to a junction, or NULL if not.
- *
- * Returned exportent points to static memory.
  */
 static struct exportent *lookup_junction(char *dom, const char *pathname,
 		struct addrinfo *ai)
@@ -1165,7 +1165,14 @@ static void nfsd_export(FILE *f)
 			dump_to_cache(f, dom, path, NULL);
 		}
 	} else {
-		dump_to_cache(f, dom, path, lookup_junction(dom, path, ai));
+		struct exportent *eep;
+
+		eep = lookup_junction(dom, path, ai);
+		dump_to_cache(f, dom, path, eep);
+		if (eep != NULL) {
+			exportent_release(eep);
+			free(eep);
+		}
 	}
  out:
 	xlog(D_CALL, "nfsd_export: found %p path %s", found, path ? path : NULL);
