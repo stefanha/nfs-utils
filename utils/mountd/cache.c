@@ -966,6 +966,39 @@ out_false:
 }
 
 /*
+ * Duplicate the junction's parent's export options and graft in
+ * the fslocdata we constructed from the locations list.
+ *
+ * Returned exportent points to static memory.
+ */
+static struct exportent *create_junction_exportent(struct exportent *parent,
+		const char *junction, const char *fslocdata, int ttl)
+{
+	static struct exportent ee;
+
+	dupexportent(&ee, parent);
+	strcpy(ee.e_path, junction);
+	ee.e_hostname = strdup(parent->e_hostname);
+	if (ee.e_hostname == NULL)
+		goto out_nomem;
+	free(ee.e_uuid);
+	ee.e_uuid = NULL;
+	ee.e_ttl = (unsigned int)ttl;
+
+	free(ee.e_fslocdata);
+	ee.e_fslocmethod = FSLOC_REFER;
+	ee.e_fslocdata = strdup(fslocdata);
+	if (ee.e_fslocdata == NULL)
+		goto out_nomem;
+
+	return &ee;
+
+out_nomem:
+	xlog(L_ERROR, "%s: No memory", __func__);
+	return NULL;
+}
+
+/*
  * Walk through the set of FS locations and build an exportent.
  * Returns pointer to an exportent if "junction" refers to a junction.
  *
@@ -973,34 +1006,16 @@ out_false:
  */
 static struct exportent *locations_to_export(struct jp_ops *ops,
 		nfs_fsloc_set_t locations, const char *junction,
-		struct exportent *UNUSED(parent))
+		struct exportent *parent)
 {
 	static char fslocdata[BUFSIZ];
-	struct exportent *exp;
 	int ttl;
 
 	fslocdata[0] = '\0';
 	if (!locations_to_fslocdata(ops, locations,
 					fslocdata, sizeof(fslocdata), &ttl))
 		return NULL;
-
-	exp = mkexportent("*", (char *)junction, "");
-	if (exp == NULL) {
-		xlog(L_ERROR, "%s: Failed to construct exportent", __func__);
-		return NULL;
-	}
-
-	exp->e_uuid = NULL;
-	exp->e_ttl = ttl;
-
-	free(exp->e_fslocdata);
-	exp->e_fslocmethod = FSLOC_REFER;
-	exp->e_fslocdata = strdup(fslocdata);
-	if (exp->e_fslocdata == NULL) {
-		xlog(L_ERROR, "%s: No memory", __func__);
-		return NULL;
-	}
-	return exp;
+	return create_junction_exportent(parent, junction, fslocdata, ttl);
 }
 
 /*
