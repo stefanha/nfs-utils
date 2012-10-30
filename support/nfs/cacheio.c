@@ -153,6 +153,11 @@ void qword_printuint(FILE *f, unsigned int num)
 	fprintf(f, "%u ", num);
 }
 
+void qword_printtimefrom(FILE *f, unsigned int num)
+{
+	fprintf(f, "%lu ", time(0) + num);
+}
+
 int qword_eol(FILE *f)
 {
 	int err;

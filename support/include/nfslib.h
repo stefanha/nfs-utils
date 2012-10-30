@@ -164,6 +164,7 @@ void qword_adduint(char **bpp, int *lp, unsigned int n);
 void qword_addeol(char **bpp, int *lp);
 int qword_get_uint(char **bpp, unsigned int *anint);
 void qword_printuint(FILE *f, unsigned int num);
+void qword_printtimefrom(FILE *f, unsigned int num);
 
 void closeall(int min);
 

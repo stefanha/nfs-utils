@@ -118,7 +118,7 @@ static void auth_unix_ip(FILE *f)
 	}
 	qword_print(f, "nfsd");
 	qword_print(f, ipaddr);
-	qword_printuint(f, time(0) + DEFAULT_TTL);
+	qword_printtimefrom(f, DEFAULT_TTL);
 	if (use_ipaddr)
 		qword_print(f, ipaddr);
 	else if (client)
@@ -183,7 +183,7 @@ static void auth_unix_gid(FILE *f)
 		}
 	}
 	qword_printuint(f, uid);
-	qword_printuint(f, time(0) + DEFAULT_TTL);
+	qword_printtimefrom(f, DEFAULT_TTL);
 	if (rv >= 0) {
 		qword_printuint(f, ngroups);
 		for (i=0; i<ngroups; i++)
@@ -730,7 +730,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 		int different_fs = strcmp(path, exp->e_path) != 0;
 		int flag_mask = different_fs ? ~NFSEXP_FSID : ~0;
 
-		qword_printuint(f, time(0) + exp->e_ttl);
+		qword_printtimefrom(f, exp->e_ttl);
 		qword_printint(f, exp->e_flags & flag_mask);
 		qword_printint(f, exp->e_anonuid);
 		qword_printint(f, exp->e_anongid);
@@ -750,7 +750,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
  			qword_printhex(f, u, 16);
  		}
 	} else
-		qword_printuint(f, time(0) + DEFAULT_TTL);
+		qword_printtimefrom(f, DEFAULT_TTL);
 	return qword_eol(f);
 }
 
@@ -1339,7 +1339,7 @@ int cache_export(nfs_export *exp, char *path)
 	qword_print(f, "nfsd");
 	qword_print(f,
 		host_ntop(get_addrlist(exp->m_client, 0), buf, sizeof(buf)));
-	qword_printuint(f, time(0) + exp->m_export.e_ttl);
+	qword_printtimefrom(f, exp->m_export.e_ttl);
 	qword_print(f, exp->m_client->m_hostname);
 	err = qword_eol(f);
 	
