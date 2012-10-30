@@ -238,13 +238,13 @@ static const char *get_uuid_blkdev(char *path)
 #define get_uuid_blkdev(path) (NULL)
 #endif
 
-static int get_uuid(const char *val, int uuidlen, char *u)
+static int get_uuid(const char *val, size_t uuidlen, char *u)
 {
 	/* extract hex digits from uuidstr and compose a uuid
 	 * of the given length (max 16), xoring bytes to make
 	 * a smaller uuid.
 	 */
-	int i = 0;
+	size_t i = 0;
 	
 	memset(u, 0, uuidlen);
 	for ( ; *val ; val++) {
@@ -268,7 +268,7 @@ static int get_uuid(const char *val, int uuidlen, char *u)
 	return 1;
 }
 
-static int uuid_by_path(char *path, int type, int uuidlen, char *uuid)
+static int uuid_by_path(char *path, int type, size_t uuidlen, char *uuid)
 {
 	/* get a uuid for the filesystem found at 'path'.
 	 * There are several possible ways of generating the
@@ -366,7 +366,7 @@ struct parsed_fsid {
 	unsigned int minor;
 	unsigned int major;
 	unsigned int fsidnum;
-	int uuidlen;
+	size_t uuidlen;
 	char *fhuuid;
 };
 
