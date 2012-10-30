@@ -248,7 +248,7 @@ static int get_uuid(const char *val, size_t uuidlen, char *u)
 	
 	memset(u, 0, uuidlen);
 	for ( ; *val ; val++) {
-		char c = *val;
+		int c = *val;
 		if (!isxdigit(c))
 			continue;
 		if (isalpha(c)) {
@@ -260,7 +260,7 @@ static int get_uuid(const char *val, size_t uuidlen, char *u)
 			c = c - '0' + 0;
 		if ((i&1) == 0)
 			c <<= 4;
-		u[i/2] ^= c;
+		u[i/2] ^= (char)c;
 		i++;
 		if (i == uuidlen*2)
 			i = 0;
