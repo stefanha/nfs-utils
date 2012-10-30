@@ -193,16 +193,14 @@ compare_sockaddr6(const struct sockaddr *sa1, const struct sockaddr *sa2)
 {
 	const struct sockaddr_in6 *sin1 = (const struct sockaddr_in6 *)sa1;
 	const struct sockaddr_in6 *sin2 = (const struct sockaddr_in6 *)sa2;
+	const struct in6_addr *saddr1 = &sin1->sin6_addr;
+	const struct in6_addr *saddr2 = &sin2->sin6_addr;
 
-	if ((IN6_IS_ADDR_LINKLOCAL((char *)&sin1->sin6_addr) &&
-	     IN6_IS_ADDR_LINKLOCAL((char *)&sin2->sin6_addr)) ||
-	    (IN6_IS_ADDR_SITELOCAL((char *)&sin1->sin6_addr) &&
-	     IN6_IS_ADDR_SITELOCAL((char *)&sin2->sin6_addr)))
+	if (IN6_IS_ADDR_LINKLOCAL(saddr1) && IN6_IS_ADDR_LINKLOCAL(saddr2))
 		if (sin1->sin6_scope_id != sin2->sin6_scope_id)
 			return false;
 
-	return IN6_ARE_ADDR_EQUAL((char *)&sin1->sin6_addr,
-					(char *)&sin2->sin6_addr);
+	return IN6_ARE_ADDR_EQUAL(saddr1, saddr2);
 }
 #else	/* !IPV6_SUPPORTED */
 static inline _Bool
