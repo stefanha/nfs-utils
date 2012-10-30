@@ -802,11 +802,12 @@ set_port:
  * Create an RPC connection and establish an authenticated
  * gss context with a server.
  */
-int create_auth_rpc_client(struct clnt_info *clp,
-			   CLIENT **clnt_return,
-			   AUTH **auth_return,
-			   uid_t uid,
-			   int authtype)
+static int
+create_auth_rpc_client(struct clnt_info *clp,
+		       CLIENT **clnt_return,
+		       AUTH **auth_return,
+		       uid_t uid,
+		       int authtype)
 {
 	CLIENT			*rpc_clnt = NULL;
 	struct rpc_gss_sec	sec;
