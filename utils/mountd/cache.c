@@ -329,7 +329,7 @@ static char *next_mnt(void **v, char *p)
 {
 	FILE *f;
 	struct mntent *me;
-	int l = strlen(p);
+	size_t l = strlen(p);
 	if (*v == NULL) {
 		f = setmntent("/etc/mtab", "r");
 		*v = f;
@@ -351,7 +351,7 @@ static char *next_mnt(void **v, char *p)
 static bool subexport(struct exportent *e1, struct exportent *e2)
 {
 	char *p1 = e1->e_path, *p2 = e2->e_path;
-	int l2 = strlen(p2);
+	size_t l2 = strlen(p2);
 
 	return e2->e_flags & NFSEXP_CROSSMOUNT
 	       && strncmp(p1, p2, l2) == 0
