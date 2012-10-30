@@ -95,7 +95,7 @@
 /* Global gssd_credentials handle */
 gss_cred_id_t gssd_creds;
 
-gss_OID g_mechOid = GSS_C_NULL_OID;;
+gss_OID g_mechOid = GSS_C_NULL_OID;
 
 #if 0
 static void
