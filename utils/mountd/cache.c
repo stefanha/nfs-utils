@@ -758,7 +758,7 @@ static int dump_to_cache(FILE *f, char *domain, char *path, struct exportent *ex
 
 static int is_subdirectory(char *child, char *parent)
 {
-	int l = strlen(parent);
+	size_t l = strlen(parent);
 
 	return strcmp(child, parent) == 0
 		|| (strncmp(child, parent, l) == 0 && child[l] == '/');
