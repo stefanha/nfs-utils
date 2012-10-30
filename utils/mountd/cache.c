@@ -370,11 +370,13 @@ struct parsed_fsid {
 	char *fhuuid;
 };
 
-int parse_fsid(int fsidtype, int fsidlen, char *fsid, struct parsed_fsid *parsed)
+static int parse_fsid(int fsidtype, int fsidlen, char *fsid,
+		struct parsed_fsid *parsed)
 {
 	unsigned int dev;
 	unsigned long long inode64;
 
+	memset(parsed, 0, sizeof(*parsed));
 	parsed->fsidtype = fsidtype;
 	switch(fsidtype) {
 	case FSID_DEV: /* 4 bytes: 2 major, 2 minor, 4 inode */
@@ -501,7 +503,7 @@ static bool match_fsid(struct parsed_fsid *parsed, nfs_export *exp, char *path)
 	return false;
 }
 
-struct addrinfo *lookup_client_addr(char *dom)
+static struct addrinfo *lookup_client_addr(char *dom)
 {
 	struct addrinfo *ret;
 	struct addrinfo *tmp;
