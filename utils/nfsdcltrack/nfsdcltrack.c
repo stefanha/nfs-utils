@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/inotify.h>
+#include <dirent.h>
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/prctl.h>
 #include <sys/capability.h>
@@ -296,6 +297,48 @@ cltrack_remove(const char *id)
 }
 
 static int
+cltrack_check_legacy(const unsigned char *blob, const ssize_t len)
+{
+	int ret;
+	struct stat st;
+	char *recdir = getenv("NFSDCLTRACK_LEGACY_RECDIR");
+
+	if (!recdir) {
+		xlog(D_GENERAL, "No NFSDCLTRACK_LEGACY_RECDIR env var");
+		return -EOPNOTSUPP;
+	}
+
+	/* fail recovery on any stat failure */
+	ret = stat(recdir, &st);
+	if (ret) {
+		xlog(D_GENERAL, "Unable to stat %s: %d", recdir, errno);
+		return -errno;
+	}
+
+	/* fail if it isn't a directory */
+	if (!S_ISDIR(st.st_mode)) {
+		xlog(D_GENERAL, "%s is not a directory: mode=0%o", recdir
+				, st.st_mode);
+		return -ENOTDIR;
+	}
+
+	/* Dir exists, try to insert record into db */
+	ret = sqlite_insert_client(blob, len);
+	if (ret) {
+		xlog(D_GENERAL, "Failed to insert client: %d", ret);
+		return -EREMOTEIO;
+	}
+
+	/* remove the legacy recoverydir */
+	ret = rmdir(recdir);
+	if (ret) {
+		xlog(D_GENERAL, "Failed to rmdir %s: %d", recdir, errno);
+		return -errno;
+	}
+	return 0;
+}
+
+static int
 cltrack_check(const char *id)
 {
 	int ret;
@@ -312,8 +355,48 @@ cltrack_check(const char *id)
 		return (int)len;
 
 	ret = sqlite_check_client(blob, len);
+	if (ret)
+		ret = cltrack_check_legacy(blob, len);
 
 	return ret ? -EPERM : ret;
+}
+
+/* Clean out the v4recoverydir -- best effort here */
+static void
+cltrack_legacy_gracedone(void)
+{
+	DIR *v4recovery;
+	struct dirent *entry;
+	char *dirname = getenv("NFSDCLTRACK_LEGACY_TOPDIR");
+
+	if (!dirname)
+		return;
+
+	v4recovery = opendir(dirname);
+	if (!v4recovery)
+		return;
+
+	while ((entry = readdir(v4recovery))) {
+		int len;
+
+		/* borrow the clientid blob for this */
+		len = snprintf((char *)blob, sizeof(blob), "%s/%s", dirname,
+				entry->d_name);
+
+		/* if there's a problem, then skip this entry */
+		if (len < 0 || (size_t)len >= sizeof(blob)) {
+			xlog(L_WARNING, "%s: unable to build filename for %s!",
+				__func__, entry->d_name);
+			continue;
+		}
+
+		len = rmdir((char *)blob);
+		if (len)
+			xlog(L_WARNING, "%s: unable to rmdir %s: %d", __func__,
+				(char *)blob, len);
+	}
+
+	closedir(v4recovery);
 }
 
 static int
@@ -342,6 +425,8 @@ cltrack_gracedone(const char *timestr)
 	xlog(D_GENERAL, "%s: grace done. gracetime=%ld", __func__, gracetime);
 
 	ret = sqlite_remove_unreclaimed(gracetime);
+
+	cltrack_legacy_gracedone();
 
 	return ret ? -EREMOTEIO : ret;
 }
