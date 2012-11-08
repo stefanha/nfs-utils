@@ -108,31 +108,12 @@ scripts can be written to work correctly.
        the lock.
        rpc.statd is only needed for NFSv2 and NFSv3 support.
 
-   E/ nfsdcld
-       This daemon is only needed on kernels that support the nfsdcld
-       upcall, and only if the legacy client ID tracking isn't used. It
-       is also not needed if the server does not support NFSv4.
-
-       To determine whether you need this or not, do the following:
-
-           # cat /proc/fs/nfsd/versions
-
-       That should yield a list of NFS versions that this kernel supports,
-       if "4" or later is not in that list, or they are prefixed with a "-"
-       then you don't need to run this daemon. Next:
-
-           # cat /proc/fs/nfsd/nfsv4recoverydir
-
-       If that file is not present, or the directory that the above command
-       outputs is not present, then this daemon is required in order to
-       support lock recovery by the clients when the server reboots.
-
-   F/ rpc.nfsd
+   E/ rpc.nfsd
        Starting nfsd will automatically start lockd.  The nfs server
        will now be fully active and respond to any requests from
        clients.
        
-   G/ sm-notify
+   F/ sm-notify
        This will notify any client which might have locks from before
        a reboot to try to reclaim their locks.  This should start
        immediately after rpc.nfsd is started so that clients have a
