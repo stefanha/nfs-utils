@@ -61,9 +61,6 @@
 
 /* global variables */
 
-/* top level DB directory */
-static char *sqlite_topdir;
-
 /* reusable pathname and sql command buffer */
 static char buf[PATH_MAX];
 
@@ -74,7 +71,7 @@ static sqlite3 *dbh;
 
 /* make a directory, ignoring EEXIST errors unless it's not a directory */
 static int
-mkdir_if_not_exist(char *dirname)
+mkdir_if_not_exist(const char *dirname)
 {
 	int ret;
 	struct stat statbuf;
@@ -102,19 +99,17 @@ mkdir_if_not_exist(char *dirname)
  * the "clients" table.
  */
 int
-sqlite_maindb_init(char *topdir)
+sqlite_maindb_init(const char *topdir)
 {
 	int ret;
 	char *err = NULL;
 	sqlite3_stmt *stmt = NULL;
 
-	sqlite_topdir = topdir;
-
-	ret = mkdir_if_not_exist(sqlite_topdir);
+	ret = mkdir_if_not_exist(topdir);
 	if (ret)
 		return ret;
 
-	ret = snprintf(buf, PATH_MAX - 1, "%s/main.sqlite", sqlite_topdir);
+	ret = snprintf(buf, PATH_MAX - 1, "%s/main.sqlite", topdir);
 	if (ret < 0)
 		return ret;
 
