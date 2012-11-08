@@ -21,8 +21,8 @@ if CONFIG_MOUNT
 OPTDIRS += mount
 endif
 
-if CONFIG_NFSDCLD
-OPTDIRS += nfsdcld
+if CONFIG_NFSDCLTRACK
+OPTDIRS += nfsdcltrack
 endif
 
 SUBDIRS = \
