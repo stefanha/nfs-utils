@@ -49,7 +49,7 @@ utils/rquotad/rquotad
 utils/rquotad/rquota.h
 utils/rquotad/rquota_xdr.c
 utils/showmount/showmount
-utils/nfsdcld/nfsdcld
+utils/nfsdcltrack/nfsdcltrack
 utils/statd/statd
 tools/locktest/testlk
 tools/getiversion/getiversion
