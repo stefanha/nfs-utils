@@ -278,11 +278,6 @@ if test "$enable_nfsv4" = yes; then
 	fi
   fi
 
-  dnl librpcsecgss already has a dependency on libgssapi,
-  dnl but we need to make sure we get the right version
-  if test "$enable_gss" = yes; then
-    AC_RPCSEC_VERSION
-  fi
 else
   enable_nfsdcltrack="no"
 fi
@@ -344,6 +339,11 @@ if test "$enable_gss" = yes; then
   dnl Invoked after AC_KERBEROS_V5; AC_LIBRPCSECGSS needs to have KRBLIBS set
   AC_LIBRPCSECGSS
 
+  dnl librpcsecgss already has a dependency on libgssapi,
+  dnl but we need to make sure we get the right version
+  if test "$enable_gss" = yes; then
+    AC_RPCSEC_VERSION
+  fi
 fi
 
 dnl Check for IPv6 support
