@@ -283,6 +283,8 @@ if test "$enable_nfsv4" = yes; then
   if test "$enable_gss" = yes; then
     AC_RPCSEC_VERSION
   fi
+else
+  enable_nfsdcltrack="no"
 fi
 
 if test "$enable_nfsv41" = yes; then
