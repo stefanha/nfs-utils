@@ -76,7 +76,8 @@ AC_ARG_ENABLE(nfsv41,
 	enable_nfsv41=yes)
 	if test "$enable_nfsv41" = yes; then
 		if test "$enable_nfsv4" != yes; then
-			AC_MSG_ERROR([NFS v4.1 is enabled but NFS v4 is not. Use --disable-nfsv41])
+			AC_MSG_WARN([NFS v4 is not enabled. Disabling NFS v4.1])
+			enable_nfsv41=no
 		fi
 		BLKMAPD=blkmapd
 	else
