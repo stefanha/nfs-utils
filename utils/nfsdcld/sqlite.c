@@ -320,7 +320,7 @@ sqlite_check_client(const unsigned char *clname, const size_t namelen)
 	}
 
 	ret = sqlite3_column_int(stmt, 0);
-	xlog(D_GENERAL, "%s: select returned %d rows", ret);
+	xlog(D_GENERAL, "%s: select returned %d rows", __func__, ret);
 	if (ret != 1) {
 		ret = -EACCES;
 		goto out_err;
