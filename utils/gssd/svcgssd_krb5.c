@@ -38,6 +38,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <ctype.h>
 #include <gssapi/gssapi.h>
 #include <krb5.h>
 
@@ -97,6 +98,12 @@ parse_enctypes(char *enctypes)
 	/* Empty string, return an error */
 	if (n == 0)
 		return ENOENT;
+
+	/* Skip pass any non digits */
+	while (*enctypes && isdigit(*enctypes) == 0)
+		enctypes++;
+	if (*enctypes == '\0')
+		return EINVAL;
 
 	/* Allocate space for enctypes array */
 	if ((parsed_enctypes = (int *) calloc(n, sizeof(int))) == NULL) {
