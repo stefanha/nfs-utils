@@ -225,7 +225,7 @@ void mount_error(const char *spec, const char *mount_point, int error)
 	case ENOENT:
 		if (spec)
 			nfs_error(_("%s: mounting %s failed, "
-				"reason given by server:\n  %s"),
+				"reason given by server: %s"),
 				progname, spec, strerror(error));
 		else
 			nfs_error(_("%s: mount point %s does not exist"),
