@@ -109,12 +109,10 @@ static void auth_unix_ip(FILE *f)
 		struct addrinfo *ai = NULL;
 
 		ai = client_resolve(tmp->ai_addr);
-		if (ai == NULL)
-			goto out;
-		client = client_compose(ai);
-		freeaddrinfo(ai);
-		if (!client)
-			goto out;
+		if (ai) {
+			client = client_compose(ai);
+			freeaddrinfo(ai);
+		}
 	}
 	qword_print(f, "nfsd");
 	qword_print(f, ipaddr);
@@ -127,7 +125,6 @@ static void auth_unix_ip(FILE *f)
 	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, client?client: "DEFAULT");
 
 	free(client);
-out:
 	freeaddrinfo(tmp);
 
 }
