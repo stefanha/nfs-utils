@@ -387,10 +387,10 @@ process_clnt_dir_files(struct clnt_info * clp)
 static int
 get_poll_index(int *ind)
 {
-	int i;
+	unsigned int i;
 
 	*ind = -1;
-	for (i=0; i<FD_ALLOC_BLOCK; i++) {
+	for (i=0; i<pollsize; i++) {
 		if (pollarray[i].events == 0) {
 			*ind = i;
 			break;
