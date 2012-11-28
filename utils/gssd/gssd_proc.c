@@ -250,20 +250,9 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	if ((p = strstr(buf, "port")) != NULL)
 		sscanf(p, "port: %127s\n", port);
 
-	/* check service, program, and version */
-	if (memcmp(service, "nfs", 3) != 0)
-		return -1;
+	/* get program, and version numbers */
 	*prog = atoi(program + 1); /* skip open paren */
 	*vers = atoi(version);
-
-	if (strlen(service) == 3 ) {
-		if ((*prog != 100003) || ((*vers != 2) && (*vers != 3) &&
-		    (*vers != 4)))
-			goto fail;
-	} else if (memcmp(service, "nfs4_cb", 7) == 0) {
-		if (*vers != 1)
-			goto fail;
-	}
 
 	if (!addrstr_to_sockaddr(addr, address, port))
 		goto fail;
