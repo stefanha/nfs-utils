@@ -666,6 +666,7 @@ static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
 		case EOPNOTSUPP:
 		case EHOSTUNREACH:
 		case ETIMEDOUT:
+		case EACCES:
 			continue;
 		default:
 			goto out;
@@ -761,6 +762,7 @@ static int nfs_try_mount_v4(struct nfsmount_info *mi)
 		case ECONNREFUSED:
 		case EHOSTUNREACH:
 		case ETIMEDOUT:
+		case EACCES:
 			continue;
 		default:
 			goto out;
