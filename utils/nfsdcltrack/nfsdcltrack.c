@@ -379,6 +379,17 @@ cltrack_legacy_gracedone(void)
 	while ((entry = readdir(v4recovery))) {
 		int len;
 
+		/* skip "." and ".." */
+		if (entry->d_name[0] == '.') {
+			switch (entry->d_name[1]) {
+			case '\0':
+				continue;
+			case '.':
+				if (entry->d_name[2] == '\0')
+					continue;
+			}
+		}
+
 		/* borrow the clientid blob for this */
 		len = snprintf((char *)blob, sizeof(blob), "%s/%s", dirname,
 				entry->d_name);
