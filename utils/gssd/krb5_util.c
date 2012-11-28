@@ -774,12 +774,16 @@ gssd_search_krb5_keytab(krb5_context context, krb5_keytab kt,
 }
 
 /*
- * Find a keytab entry to use for a given target hostname.
+ * Find a keytab entry to use for a given target realm.
  * Tries to find the most appropriate keytab to use given the
  * name of the host we are trying to connect with.
+ *
+ * Note: the tgtname contains a hostname in the realm that we
+ * are authenticating to. It may, or may not be the same as
+ * the server hostname.
  */
 static int
-find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
+find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 		  krb5_keytab_entry *kte, const char **svcnames)
 {
 	krb5_error_code code;
@@ -795,7 +799,7 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *hostname,
 
 
 	/* Get full target hostname */
-	retval = get_full_hostname(hostname, targethostname,
+	retval = get_full_hostname(tgtname, targethostname,
 				   sizeof(targethostname));
 	if (retval)
 		goto out;
@@ -1128,7 +1132,7 @@ gssd_get_krb5_machine_cred_list(char ***list)
 		if (ple->ccname) {
 			/* Make sure cred is up-to-date before returning it */
 			retval = gssd_refresh_krb5_machine_credential(NULL, ple,
-				NULL);
+				NULL, NULL);
 			if (retval)
 				continue;
 			if (i + 1 > listsize) {
@@ -1219,7 +1223,8 @@ gssd_destroy_krb5_machine_creds(void)
 int
 gssd_refresh_krb5_machine_credential(char *hostname,
 				     struct gssd_k5_kt_princ *ple, 
-					 char *service)
+					 char *service,
+					 char *tgtname)
 {
 	krb5_error_code code = 0;
 	krb5_context context;
@@ -1258,7 +1263,10 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 	if (ple == NULL) {
 		krb5_keytab_entry kte;
 
-		code = find_keytab_entry(context, kt, hostname, &kte, svcnames);
+		if (tgtname == NULL)
+			tgtname = hostname;
+
+		code = find_keytab_entry(context, kt, tgtname, &kte, svcnames);
 		if (code) {
 			printerr(0, "ERROR: %s: no usable keytab entry found "
 				 "in keytab %s for connection with host %s\n",

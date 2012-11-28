@@ -951,12 +951,6 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
 
-	if (tgtname) {
-		if (clp->servicename) {
-			free(clp->servicename);
-			clp->servicename = strdup(tgtname);
-		}
-	}
 	token.length = 0;
 	token.value = NULL;
 	memset(&pd, 0, sizeof(struct authgss_private_data));
@@ -1005,7 +999,8 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 			int success = 0;
 			do {
 				gssd_refresh_krb5_machine_credential(clp->servername,
-								     NULL, service);
+								     NULL, service,
+								     tgtname);
 				/*
 				 * Get a list of credential cache names and try each
 				 * of them until one works or we've tried them all
