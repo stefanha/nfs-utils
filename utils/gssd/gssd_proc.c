@@ -556,9 +556,8 @@ process_pipedir(char *pipe_name)
 
 	update_old_clients(namelist, j, pipe_name);
 	for (i=0; i < j; i++) {
-		if (i < FD_ALLOC_BLOCK
-				&& !strncmp(namelist[i]->d_name, "clnt", 4)
-				&& !find_client(namelist[i]->d_name, pipe_name))
+		if (!strncmp(namelist[i]->d_name, "clnt", 4)
+		    && !find_client(namelist[i]->d_name, pipe_name))
 			process_clnt_dir(namelist[i]->d_name, pipe_name);
 		free(namelist[i]);
 	}
