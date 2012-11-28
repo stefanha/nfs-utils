@@ -52,6 +52,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/fsuid.h>
+#include <sys/resource.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -472,9 +473,13 @@ fail_keep_client:
 void
 init_client_list(void)
 {
+	struct rlimit rlim;
 	TAILQ_INIT(&clnt_list);
 	/* Eventually plan to grow/shrink poll array: */
 	pollsize = FD_ALLOC_BLOCK;
+	if (getrlimit(RLIMIT_NOFILE, &rlim) < 0 &&
+	    rlim.rlim_cur != RLIM_INFINITY)
+		pollsize = rlim.rlim_cur;
 	pollarray = calloc(pollsize, sizeof(struct pollfd));
 }
 
