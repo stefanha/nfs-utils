@@ -10,10 +10,12 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include "sockaddr.h"
@@ -21,7 +23,6 @@
 #include "nfslib.h"
 #include "exportfs.h"
 #include "mountd.h"
-#include "xmalloc.h"
 #include "v4root.h"
 
 enum auth_error
