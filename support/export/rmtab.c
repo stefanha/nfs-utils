@@ -1,7 +1,7 @@
 /*
- * support/export/rmntab.c
+ * support/export/rmtab.c
  *
- * Interface to the rmnt file.
+ * Interface to the rmtab file.
  *
  */
 
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "xmalloc.h"
+
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
