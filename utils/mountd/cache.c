@@ -29,7 +29,6 @@
 #include "nfslib.h"
 #include "exportfs.h"
 #include "mountd.h"
-#include "xmalloc.h"
 #include "fsloc.h"
 #include "pseudoflavors.h"
 
