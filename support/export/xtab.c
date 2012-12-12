@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include "xmalloc.h"
+
 #include "nfslib.h"
 #include "exportfs.h"
 #include "xio.h"
