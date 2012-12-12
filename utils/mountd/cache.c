@@ -826,6 +826,7 @@ lookup_export(char *dom, char *path, struct addrinfo *ai)
 
 #ifdef HAVE_NFS_PLUGIN_H
 #include <dlfcn.h>
+#include <link.h>
 #include <nfs-plugin.h>
 
 /*
@@ -1090,6 +1091,7 @@ static struct exportent *lookup_junction(char *dom, const char *pathname,
 		struct addrinfo *ai)
 {
 	struct exportent *exp;
+	struct link_map *map;
 	void *handle;
 
 	handle = dlopen("libnfsjunct.so", RTLD_NOW);
@@ -1097,6 +1099,11 @@ static struct exportent *lookup_junction(char *dom, const char *pathname,
 		xlog(D_GENERAL, "%s: dlopen: %s", __func__, dlerror());
 		return NULL;
 	}
+
+	if (dlinfo(handle, RTLD_DI_LINKMAP, &map) == 0)
+		xlog(D_GENERAL, "%s: loaded plug-in %s",
+			__func__, map->l_name);
+
 	(void)dlerror();	/* Clear any error */
 
 	exp = invoke_junction_ops(handle, dom, pathname, ai);
