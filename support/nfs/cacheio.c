@@ -162,11 +162,16 @@ int qword_eol(FILE *f)
 {
 	int err;
 
-	fprintf(f,"\n");
-	err = fflush(f);
-	if (err) {
-		xlog_warn("qword_eol: fflush failed: errno %d (%s)",
+	err = fprintf(f,"\n");
+	if (err < 0) {
+		xlog_warn("qword_eol: fprintf failed: errno %d (%s)",
 			    errno, strerror(errno));
+	} else {
+		err = fflush(f);
+		if (err) {
+			xlog_warn("qword_eol: fflush failed: errno %d (%s)",
+				  errno, strerror(errno));
+		}
 	}
 	/*
 	 * We must send one line (and one line only) in a single write
