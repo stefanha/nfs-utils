@@ -145,7 +145,6 @@ static void svrreopen(int, short, void *);
 static int  nfsopen(struct idmap_client *);
 static void nfscb(int, short, void *);
 static void nfsdcb(int, short, void *);
-static int  validateascii(char *, u_int32_t);
 static int  addfield(char **, ssize_t *, char *);
 static int  getfield(char **, char *, size_t);
 
@@ -642,6 +641,8 @@ out:
 static void
 imconv(struct idmap_client *ic, struct idmap_msg *im)
 {
+	u_int32_t len;
+
 	switch (im->im_conv) {
 	case IDMAP_CONV_IDTONAME:
 		idtonameres(im);
@@ -652,10 +653,10 @@ imconv(struct idmap_client *ic, struct idmap_msg *im)
 			    im->im_id, im->im_name);
 		break;
 	case IDMAP_CONV_NAMETOID:
-		if (validateascii(im->im_name, sizeof(im->im_name)) == -1) {
-			im->im_status |= IDMAP_STATUS_INVALIDMSG;
+		len = strnlen(im->im_name, IDMAP_NAMESZ - 1);
+		/* Check for NULL termination just to be careful */
+		if (im->im_name[len+1] != '\0')
 			return;
-		}
 		nametoidres(im);
 		if (verbose > 1)
 			xlog_warn("%s %s: (%s) name \"%s\" -> id \"%d\"",
@@ -852,25 +853,6 @@ nametoidres(struct idmap_msg *im)
 		}
 		return;
 	}
-}
-
-static int
-validateascii(char *string, u_int32_t len)
-{
-	u_int32_t i;
-
-	for (i = 0; i < len; i++) {
-		if (string[i] == '\0')
-			break;
-
-		if (string[i] & 0x80)
-			return (-1);
-	}
-
-	if ((i >= len) || string[i] != '\0')
-		return (-1);
-
-	return (i + 1);
 }
 
 static int
