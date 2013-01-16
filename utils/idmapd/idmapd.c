@@ -424,7 +424,8 @@ dirscancb(int UNUSED(fd), short UNUSED(which), void *data)
 			    pipefsdir, ents[i]->d_name);
 
 			if ((ic->ic_dirfd = open(path, O_RDONLY, 0)) == -1) {
-				xlog_warn("dirscancb: open(%s): %s", path, strerror(errno));
+				if (verbose > 0)
+					xlog_warn("dirscancb: open(%s): %s", path, strerror(errno));
 				free(ic);
 				goto out;
 			}
