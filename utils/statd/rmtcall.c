@@ -68,20 +68,18 @@ statd_get_socket(void)
 {
 	struct sockaddr_in	sin;
 	struct servent *se;
-	int loopcnt = 100;
+	const int loopcnt = 100;
+	int i, tmp_sockets[loopcnt];
 
 	if (sockfd >= 0)
 		return sockfd;
 
-	while (loopcnt-- > 0) {
-
-		if (sockfd >= 0) close(sockfd);
+	for (i = 0; i < loopcnt; ++i) {
 
 		if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
 			xlog(L_ERROR, "%s: Can't create socket: %m", __func__);
-			return -1;
+			break;
 		}
-
 
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
@@ -96,7 +94,16 @@ statd_get_socket(void)
 		if (se == NULL)
 			break;
 		/* rather not use that port, try again */
+
+		tmp_sockets[i] = sockfd;
 	}
+
+	while (--i >= 0)
+		close(tmp_sockets[i]);
+
+	if (sockfd < 0)
+		return -1;
+
 	FD_SET(sockfd, &SVC_FDSET);
 	return sockfd;
 }
