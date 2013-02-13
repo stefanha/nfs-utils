@@ -1078,7 +1078,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 out:
 	if (token.value)
 		free(token.value);
-#ifndef HAVE_LIBTIRPC
+#ifdef HAVE_AUTHGSS_FREE_PRIVATE_DATA
 	if (pd.pd_ctx_hndl.length != 0)
 		authgss_free_private_data(&pd);
 #endif

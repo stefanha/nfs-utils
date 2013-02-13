@@ -24,6 +24,13 @@ AC_DEFUN([AC_LIBTIRPC], [
   fi
 
   if test "$enable_tirpc" != "no"; then
+
+    dnl Check if library contains authgss_free_private_data
+    AC_CHECK_LIB([tirpc], [authgss_free_private_data], [have_free_private_data=yes],
+			[have_free_private_data=no])
+  fi
+
+  if test "$enable_tirpc" != "no"; then
     dnl also must have the headers installed where we expect
     dnl look for headers; add -I compiler option if found
     AC_CHECK_HEADERS([${tirpc_header_dir}/netconfig.h],
@@ -42,6 +49,10 @@ AC_DEFUN([AC_LIBTIRPC], [
     AC_DEFINE([HAVE_LIBTIRPC], 1,
               [Define to 1 if you have and wish to use libtirpc.])
     LIBTIRPC="-ltirpc"
+    if test "$have_free_private_data" = "yes"; then
+      AC_DEFINE([HAVE_AUTHGSS_FREE_PRIVATE_DATA], 1,
+	      [Define to 1 if your rpcsec library provides authgss_free_private_data,])
+    fi
   else
     LIBTIRPC=""
   fi

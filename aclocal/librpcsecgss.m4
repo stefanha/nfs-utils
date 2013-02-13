@@ -14,6 +14,8 @@ AC_DEFUN([AC_LIBRPCSECGSS], [
                  [AC_DEFINE([HAVE_AUTHGSS_SET_DEBUG_LEVEL], 1,
                  [Define to 1 if you have the `authgss_set_debug_level' function.])])
 
+    AC_DEFINE([HAVE_AUTHGSS_FREE_PRIVATE_DATA], 1,
+	      [Define to 1 if your rpcsec library provides authgss_free_private_data,])
   fi
 
 ])dnl
