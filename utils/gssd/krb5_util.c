@@ -1212,9 +1212,9 @@ gssd_destroy_krb5_machine_creds(void)
 				    "cache '%s'\n", k5err, ple->ccname);
 		}
 	}
+	krb5_free_context(context);
   out:
 	free(k5err);
-	krb5_free_context(context);
 }
 
 /*
@@ -1257,7 +1257,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 		k5err = gssd_k5_err_msg(context, code);
 		printerr(0, "ERROR: %s: %s while resolving keytab '%s'\n",
 			 __func__, k5err, keytabfile);
-		goto out;
+		goto out_free_context;
 	}
 
 	if (ple == NULL) {
@@ -1272,7 +1272,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 				 "in keytab %s for connection with host %s\n",
 				 __FUNCTION__, keytabfile, hostname);
 			retval = code;
-			goto out;
+			goto out_free_kt;
 		}
 
 		ple = get_ple_by_princ(context, kte.principal);
@@ -1288,14 +1288,15 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 				 __FUNCTION__, pname ? pname : "<unparsable>",
 				 hostname);
 			if (pname) k5_free_unparsed_name(context, pname);
-			goto out;
+			goto out_free_kt;
 		}
 	}
 	retval = gssd_get_single_krb5_cred(context, kt, ple, 0);
-out:
-	if (kt)
-		krb5_kt_close(context, kt);
+out_free_kt:
+	krb5_kt_close(context, kt);
+out_free_context:
 	krb5_free_context(context);
+out:
 	free(k5err);
 	return retval;
 }
