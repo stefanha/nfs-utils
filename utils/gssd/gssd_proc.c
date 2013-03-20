@@ -477,7 +477,7 @@ init_client_list(void)
 	TAILQ_INIT(&clnt_list);
 	/* Eventually plan to grow/shrink poll array: */
 	pollsize = FD_ALLOC_BLOCK;
-	if (getrlimit(RLIMIT_NOFILE, &rlim) < 0 &&
+	if (getrlimit(RLIMIT_NOFILE, &rlim) == 0 &&
 	    rlim.rlim_cur != RLIM_INFINITY)
 		pollsize = rlim.rlim_cur;
 	pollarray = calloc(pollsize, sizeof(struct pollfd));
