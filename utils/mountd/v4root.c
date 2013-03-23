@@ -55,7 +55,8 @@ static nfs_export pseudo_root = {
 	.m_warned = 0,
 };
 
-void set_pseudofs_security(struct exportent *pseudo, struct exportent *source)
+static void
+set_pseudofs_security(struct exportent *pseudo, struct exportent *source)
 {
 	struct sec_entry *se;
 	int i;
@@ -121,7 +122,8 @@ v4root_support(void)
 	return 0;
 }
 
-int pseudofs_update(char *hostname, char *path, nfs_export *source)
+static int
+pseudofs_update(char *hostname, char *path, nfs_export *source)
 {
 	nfs_export *exp;
 
