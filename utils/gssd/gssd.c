@@ -147,7 +147,7 @@ main(int argc, char *argv[])
 #ifdef HAVE_SET_ALLOWABLE_ENCTYPES
 				limit_to_legacy_enctypes = 1;
 #else 
-				errx(1, "Setting encryption type not support by Kerberos libraries.");
+				errx(1, "Encryption type limits not supported by Kerberos libraries.");
 #endif
 				break;
 			default:

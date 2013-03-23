@@ -172,6 +172,27 @@ If
 .B rpc.gssd
 cannot obtain a machine credential (say, the local system has
 no keytab), NFSv4 operations that require machine credentials will fail.
+.SS Encryption types
+A realm administrator can choose to add keys encoded in a number of different
+encryption types to the local system's keytab.
+For instance, a host/ principal might have keys for the
+.BR aes256-cts-hmac-sha1-96 ,
+.BR aes128-cts-hmac-sha1-96 ,
+.BR des3-cbc-sha1 ", and"
+.BR arcfour-hmac " encryption types."
+This permits
+.B rpc.gssd
+to choose an appropriate encryption type that the target NFS server
+supports.
+.P
+These encryption types are stronger than legacy single-DES encryption types.
+To interoperate in environments where servers support
+only weak encryption types,
+you can restrict your client to use only single-DES encryption types
+by specifying the
+.B -l
+option when starting
+.BR rpc.gssd .
 .SH OPTIONS
 .TP
 .B -f
@@ -193,28 +214,12 @@ The default value is
 .IR /etc/krb5.keytab .
 .TP
 .B -l
-Tells
+When specified, restricts
 .B rpc.gssd
-to limit session keys to Single DES even if the kernel supports stronger
-encryption types. Service ticket encryption is still governed by what
-the KDC believes the target server supports. This way the client can
-access a server that has strong keys in its keytab for ticket decryption
-but whose kernel only supports Single DES.
-.IP
-The alternative is to put only Single DES keys in the server's keytab
-and limit encryption types for its principal to Single DES on the KDC
-which will cause service tickets for this server to be encrypted using
-only Single DES and (as a side-effect) contain only Single DES session
-keys.
-.IP
-This legacy behaviour is only required for older servers
-(pre nfs-utils-1.2.4). If the server has a recent kernel, Kerberos
-implementation and nfs-utils it will work just fine with stronger
-encryption.
-.IP
-.B Note:
-This option is only available with Kerberos libraries that 
-support setable encryption types.
+to sessions to weak encryption types such as
+.BR des-cbc-crc .
+This option is available only when the local system's Kerberos library
+supports settable encryption types.
 .TP
 .BI "-p " path
 Tells
