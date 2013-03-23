@@ -2,9 +2,10 @@
 .\" rpc.gssd(8)
 .\"
 .\" Copyright (C) 2003 J. Bruce Fields <bfields@umich.edu>
-.TH rpc.gssd 8 "14 Mar 2007"
+.\"
+.TH rpc.gssd 8 "20 Feb 2013"
 .SH NAME
-rpc.gssd \- rpcsec_gss daemon
+rpc.gssd \- RPCSEC_GSS daemon
 .SH SYNOPSIS
 .B rpc.gssd
 .RB [ \-fMnlvr ]
@@ -18,17 +19,58 @@ rpc.gssd \- rpcsec_gss daemon
 .IR timeout ]
 .RB [ \-R
 .IR realm ]
+.SH INTRODUCTION
+The RPCSEC_GSS protocol, defined in RFC 5403, is used to provide
+strong security for RPC-based protocols such as NFS.
+.P
+Before exchanging RPC requests using RPCSEC_GSS, an RPC client must
+establish a GSS
+.IR "security context" .
+A security context is shared state on each
+end of a network transport that enables GSS-API security services.
+.P
+Security contexts are established using
+.IR "security credentials" .
+A credential grants temporary access to a secure network service,
+much as a railway ticket grants temporary access to use a rail service.
+.P
+A user typically obtains a credential by providing a password to the
+.BR kinit (1)
+command, or via a PAM library at login time.
+A credential acquired with a
+.I user principal
+is known as a
+.I user credential
+(see
+.BR kerberos (1)
+for more on principals).
+.P
+For certain operations, a credential is required
+which represents no user,
+is otherwise unprivileged,
+and is always available.
+This is referred to as a
+.IR "machine credential" .
+.P
+Machine credentials are typically established using a
+.IR "service principal" ,
+whose encrypted password, called its
+.IR key ,
+is stored in a file, called a
+.IR keytab ,
+to avoid requiring a user prompt.
+A machine credential effectively does not expire because the system
+can renew it as needed without user intervention.
+.P
+Once obtained, credentials are typically stored in local temporary files
+with well-known pathnames.
 .SH DESCRIPTION
-The rpcsec_gss protocol gives a means of using the gss-api generic security
-api to provide security for protocols using rpc (in particular, nfs).  Before
-exchanging any rpc requests using rpcsec_gss, the rpc client must first
-establish a security context.  The linux kernel's implementation of rpcsec_gss
-depends on the userspace daemon
+To establish GSS security contexts using these credential files,
+the Linux kernel RPC client depends on a userspace daemon called
+.BR rpc.gssd .
+The
 .B rpc.gssd
-to establish security contexts.  The
-.B rpc.gssd
-daemon uses files in the rpc_pipefs filesystem to communicate with the kernel.
-
+daemon uses the rpc_pipefs filesystem to communicate with the kernel.
 .SH OPTIONS
 .TP
 .B -f
@@ -134,7 +176,7 @@ stores machine credentials in memory instead.
 Increases the verbosity of the output (can be specified multiple times).
 .TP
 .B -r
-If the rpcsec_gss library supports setting debug level,
+If the RPCSEC_GSS library supports setting debug level,
 increases the verbosity of the output (can be specified multiple times).
 .TP
 .BI "-R " realm
@@ -145,14 +187,17 @@ used to create a context.  By default, the default realm, as configured
 in the Kerberos configuration file, is preferred.
 .TP
 .BI "-t " timeout
-Timeout, in seconds, for kernel gss contexts. This option allows you to force 
+Timeout, in seconds, for kernel GSS contexts. This option allows you to force 
 new kernel contexts to be negotiated after
 .I timeout
 seconds, which allows changing Kerberos tickets and identities frequently.
 The default is no explicit timeout, which means the kernel context will live
 the lifetime of the Kerberos service ticket used in its creation.
 .SH SEE ALSO
-.BR rpc.svcgssd(8)
+.BR rpc.svcgssd (8),
+.BR kerberos (1),
+.BR kinit (1),
+.BR krb5.conf (5)
 .SH AUTHORS
 .br
 Dug Song <dugsong@umich.edu>
