@@ -810,8 +810,8 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 		goto out;
 
 	/* Get full local hostname */
-	retval = gethostname(myhostname, sizeof(myhostname));
-	if (retval) {
+	if (gethostname(myhostname, sizeof(myhostname)) == -1) {
+		retval = errno;
 		k5err = gssd_k5_err_msg(context, retval);
 		printerr(1, "%s while getting local hostname\n", k5err);
 		goto out;
