@@ -347,6 +347,13 @@ using an automounter (refer to
 .BR automount (8)
 for details).
 .TP 1.5i
+.BR rdirplus " / " nordirplus
+Selects whether to use NFS v3 or v4 READDIRPLUS requests.
+If this option is not specified, the NFS client uses READDIRPLUS requests
+on NFS v3 or v4 mounts to read small directories.
+Some applications perform better if the client uses only READDIR requests
+for all directories.
+.TP 1.5i
 .BI retry= n
 The number of minutes that the
 .BR mount (8)
@@ -707,13 +714,6 @@ and uses it if the server supports it.
 Disabling the NFSACL sideband protocol may be necessary
 if the negotiation causes problems on the client or server.
 Refer to the SECURITY CONSIDERATIONS section for more details.
-.TP 1.5i
-.BR rdirplus " / " nordirplus
-Selects whether to use NFS version 3 READDIRPLUS requests.
-If this option is not specified, the NFS client uses READDIRPLUS requests
-on NFS version 3 mounts to read small directories.
-Some applications perform better if the client uses only READDIR requests
-for all directories.
 .TP 1.5i
 .BR local_lock= mechanism
 Specifies whether to use local locking for any or both of the flock and the
