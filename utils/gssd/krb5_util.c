@@ -169,13 +169,13 @@ select_krb5_ccache(const struct dirent *d)
 
 /*
  * Look in directory "dirname" for files that look like they
- * are Kerberos Credential Cache files for a given UID.  Return
- * non-zero and the dirent pointer for the entry most likely to be
- * what we want. Otherwise, return zero and no dirent pointer.
- * The caller is responsible for freeing the dirent if one is returned.
+ * are Kerberos Credential Cache files for a given UID.
  *
- * Returns 0 if a valid-looking entry was found and a non-zero error
- * code otherwise.
+ * Returns 0 if a valid-looking entry is found.  "*cctype" is
+ * set to the name of the cache type.  A pointer to the dirent
+ * is planted in "*d".  Caller must free "*d" with free(3).
+ *
+ * Otherwise, a negative errno is returned.
  */
 static int
 gssd_find_existing_krb5_ccache(uid_t uid, char *dirname,
@@ -1042,7 +1042,7 @@ err_cache:
  * given only a UID.  We really need more information, but we
  * do the best we can.
  *
- * Returns 0 if a ccache was found, and a non-zero error code otherwise.
+ * Returns 0 if a ccache was found, or a negative errno otherwise.
  */
 int
 gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirpattern)
@@ -1087,7 +1087,7 @@ gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirpattern)
 	printerr(2, "using %s as credentials cache for client with "
 		    "uid %u for server %s\n", buf, uid, servername);
 	gssd_set_krb5_ccache_name(buf);
-	return err;
+	return 0;
 }
 
 /*
