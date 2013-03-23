@@ -371,8 +371,11 @@ export_matches(nfs_export *exp, char *dom, char *path, struct addrinfo *ai)
 static bool subexport(struct exportent *e1, struct exportent *e2)
 {
 	char *p1 = e1->e_path, *p2 = e2->e_path;
+	size_t l2 = strlen(p2);
+
 	return e2->e_flags & NFSEXP_CROSSMOUNT
-		&& is_subdirectory(p1, p2);
+		&& strncmp(p1, p2, l2) == 0
+		&& p1[l2] == '/';
 }
 
 struct parsed_fsid {
