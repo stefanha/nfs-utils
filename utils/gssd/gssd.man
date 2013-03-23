@@ -7,7 +7,7 @@
 rpc.gssd \- rpcsec_gss daemon
 .SH SYNOPSIS
 .B rpc.gssd
-.RB [ \-fnlvr ]
+.RB [ \-fMnlvr ]
 .RB [ \-k
 .IR keytab ]
 .RB [ \-p
@@ -112,17 +112,23 @@ Tells
 where to look for the rpc_pipefs filesystem.  The default value is
 .IR /var/lib/nfs/rpc_pipefs .
 .TP
-.BI "-d " directory
-Tells
+.BI "-d " search-path
+This option specifies a colon separated list of directories that
 .B rpc.gssd
-where to look for Kerberos credential files.  The default value is
+searches for credential files.  The default value is
 .IR /tmp:/run/user/%U .
-This can also be a colon separated list of directories to be searched for
-Kerberos credential files.  The sequence "%U", if used, is replaced with
-the UID of the user for whom credentials are being searched.
-Note that if machine credentials are being
-stored in files, then the first directory on this list is where the
-machine credentials are stored.
+The literal sequence "%U" can be specified to substitue the UID
+of the user for whom credentials are being searched.
+.TP
+.B -M
+By default, machine credentials are stored in files in the first
+directory in the credential directory search path (see the
+.B -d
+option).  When
+.B -M
+is set,
+.B rpc.gssd
+stores machine credentials in memory instead.
 .TP
 .B -v
 Increases the verbosity of the output (can be specified multiple times).
