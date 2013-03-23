@@ -643,6 +643,8 @@ bad_option:
 			cp++;
 	}
 
+	if (ep->e_secinfo[0].flav == NULL)
+		secinfo_addflavor(find_flavor("sys"), ep);
 	fix_pseudoflavor_flags(ep);
 	ep->e_squids = squids;
 	ep->e_sqgids = sqgids;
