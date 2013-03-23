@@ -6,7 +6,18 @@
 .SH NAME
 rpc.gssd \- rpcsec_gss daemon
 .SH SYNOPSIS
-.B "rpc.gssd [-f] [-n] [-k keytab] [-l] [-p pipefsdir] [-v] [-r] [-d ccachedir]"
+.B rpc.gssd
+.RB [ \-fnlvr ]
+.RB [ \-k
+.IR keytab ]
+.RB [ \-p
+.IR pipefsdir ]
+.RB [ \-d
+.IR ccachedir ]
+.RB [ \-t
+.IR timeout ]
+.RB [ \-R
+.IR realm ]
 .SH DESCRIPTION
 The rpcsec_gss protocol gives a means of using the gss-api generic security
 api to provide security for protocols using rpc (in particular, nfs).  Before
@@ -38,13 +49,14 @@ manually like all other users.  Use of this option means that
 attempting to mount an nfs filesystem requiring Kerberos
 authentication.
 .TP
-.B -k keytab
+.BI "-k " keytab
 Tells
 .B rpc.gssd
 to use the keys found in
 .I keytab
 to obtain "machine credentials".
-The default value is "/etc/krb5.keytab".
+The default value is
+.I /etc/krb5.keytab.
 .IP
 Previous versions of
 .B rpc.gssd
@@ -94,17 +106,17 @@ encryption.
 This option is only available with Kerberos libraries that 
 support setable encryption types.
 .TP
-.B -p path
+.BI "-p " path
 Tells
 .B rpc.gssd
 where to look for the rpc_pipefs filesystem.  The default value is
-"/var/lib/nfs/rpc_pipefs".
+.IR /var/lib/nfs/rpc_pipefs .
 .TP
-.B -d directory
+.BI "-d " directory
 Tells
 .B rpc.gssd
 where to look for Kerberos credential files.  The default value is
-"/tmp:/run/user/%U".
+.IR /tmp:/run/user/%U .
 This can also be a colon separated list of directories to be searched for
 Kerberos credential files.  The sequence "%U", if used, is replaced with
 the UID of the user for whom credentials are being searched.
@@ -119,14 +131,14 @@ Increases the verbosity of the output (can be specified multiple times).
 If the rpcsec_gss library supports setting debug level,
 increases the verbosity of the output (can be specified multiple times).
 .TP
-.B -R realm
+.BI "-R " realm
 Kerberos tickets from this
 .I realm
 will be preferred when scanning available credentials cache files to be
 used to create a context.  By default, the default realm, as configured
 in the Kerberos configuration file, is preferred.
 .TP
-.B -t timeout
+.BI "-t " timeout
 Timeout, in seconds, for kernel gss contexts. This option allows you to force 
 new kernel contexts to be negotiated after
 .I timeout
