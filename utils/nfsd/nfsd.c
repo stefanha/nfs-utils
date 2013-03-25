@@ -38,6 +38,7 @@ static struct option longopts[] =
 	{ "host", 1, 0, 'H' },
 	{ "help", 0, 0, 'h' },
 	{ "no-nfs-version", 1, 0, 'N' },
+	{ "nfs-version", 1, 0, 'V' },
 	{ "no-tcp", 0, 0, 'T' },
 	{ "no-udp", 0, 0, 'U' },
 	{ "port", 1, 0, 'P' },
@@ -119,7 +120,7 @@ main(int argc, char **argv)
 	xlog_syslog(0);
 	xlog_stderr(1);
 
-	while ((c = getopt_long(argc, argv, "dH:hN:p:P:sTU", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTU", longopts, NULL)) != EOF) {
 		switch(c) {
 		case 'd':
 			xlog_config(D_ALL, 1);
@@ -169,6 +170,27 @@ main(int argc, char **argv)
 			case 3:
 			case 2:
 				NFSCTL_VERUNSET(versbits, c);
+				break;
+			default:
+				fprintf(stderr, "%s: Unsupported version\n", optarg);
+				exit(1);
+			}
+			break;
+		case 'V':
+			switch((c = strtol(optarg, &p, 0))) {
+			case 4:
+				if (*p == '.') {
+					int i = atoi(p+1);
+					if (i != 1) {
+						fprintf(stderr, "%s: unsupported minor version\n", optarg);
+						exit(1);
+					}
+					minorvers41 = 1;
+					break;
+				}
+			case 3:
+			case 2:
+				NFSCTL_VERSET(versbits, c);
 				break;
 			default:
 				fprintf(stderr, "%s: Unsupported version\n", optarg);
@@ -312,7 +334,7 @@ static void
 usage(const char *prog)
 {
 	fprintf(stderr, "Usage:\n"
-		"%s [-d|--debug] [-H hostname] [-p|-P|--port port] [-N|--no-nfs-version version ] [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] nrservs\n", 
+		"%s [-d|--debug] [-H hostname] [-p|-P|--port port] [-N|--no-nfs-version version] [-V|--nfs-version version] [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] nrservs\n", 
 		prog);
 	exit(2);
 }

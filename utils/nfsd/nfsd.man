@@ -47,7 +47,7 @@ This option can be used to request that
 .B rpc.nfsd
 does not offer certain versions of NFS. The current version of
 .B rpc.nfsd
-can support both NFS version 2,3 and the newer version 4.
+can support NFS versions 2,3,4 and the newer version 4.1.
 .TP
 .B \-s " or " \-\-syslog
 By default,
@@ -66,6 +66,13 @@ from accepting TCP connections from clients.
 Disable
 .B rpc.nfsd
 from accepting UDP connections from clients.
+.TP
+.B \-V " or " \-\-nfs-version vers
+This option can be used to request that 
+.B rpc.nfsd
+offer certain versions of NFS. The current version of
+.B rpc.nfsd
+can support NFS versions 2,3,4 and the newer version 4.1.
 .TP
 .I nproc
 specify the number of NFS server threads. By default, just one
