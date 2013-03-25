@@ -358,7 +358,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h libintl.h limits.h \
                  stdlib.h string.h sys/file.h sys/ioctl.h sys/mount.h \
                  sys/param.h sys/socket.h sys/time.h sys/vfs.h \
                  syslog.h unistd.h com_err.h et/com_err.h \
-                 ifaddrs.h nfs-plugin.h])
+                 ifaddrs.h nfs-plugin.h libio.h])
 
 dnl *************************************************************
 dnl Checks for typedefs, structures, and compiler characteristics

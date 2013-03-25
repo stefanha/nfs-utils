@@ -20,7 +20,13 @@
 #ifndef NFS_UTILS_SOCKADDR_H
 #define NFS_UTILS_SOCKADDR_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_LIBIO_H
 #include <libio.h>
+#endif
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
