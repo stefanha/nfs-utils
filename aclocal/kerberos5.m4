@@ -92,6 +92,8 @@ AC_DEFUN([AC_KERBEROS_V5],[
     AC_DEFINE(HAVE_SET_ALLOWABLE_ENCTYPES, 1, [Define this if the Kerberos GSS library supports gss_krb5_set_allowable_enctypes]), ,$KRBLIBS)
   AC_CHECK_LIB($gssapi_lib, gss_krb5_ccache_name,
     AC_DEFINE(HAVE_GSS_KRB5_CCACHE_NAME, 1, [Define this if the Kerberos GSS library supports gss_krb5_ccache_name]), ,$KRBLIBS)
+  AC_CHECK_LIB($gssapi_lib, gss_krb5_free_lucid_sec_context,
+    AC_DEFINE(HAVE_GSS_KRB5_FREE_LUCID_SEC_CONTEXT, 1, [Define this if the Kerberos GSS library supports gss_krb5_free_lucid_sec_context]), ,$KRBLIBS)
 
   dnl Check for newer error message facility
   AC_CHECK_LIB($gssapi_lib, krb5_get_error_message,
