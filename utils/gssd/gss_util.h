@@ -42,4 +42,14 @@ void pgsserr(char *msg, u_int32_t maj_stat, u_int32_t min_stat,
 	const gss_OID mech);
 int gssd_check_mechs(void);
 
+#ifndef HAVE_LIBGSSGLUE
+#include <gssapi/gssapi_krb5.h>
+#define gss_free_lucid_sec_context(min, ctx, ret) \
+		gss_krb5_free_lucid_sec_context(min, ret)
+
+#define gss_export_lucid_sec_context gss_krb5_export_lucid_sec_context
+#define gss_set_allowable_enctypes(min, cred, oid, num, types) \
+		gss_krb5_set_allowable_enctypes(min, cred, num, types)
+#endif
+
 #endif /* _GSS_UTIL_H_ */

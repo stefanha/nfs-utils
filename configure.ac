@@ -344,6 +344,15 @@ if test "$enable_gss" = yes; then
   dnl but we need to make sure we get the right version
   if test "$enable_gss" = yes; then
     AC_RPCSEC_VERSION
+    if test x"$GSSGLUE_LIBS" != x""; then
+      GSSAPI_CFLAGS=$GSSGLUE_CFLAGS
+      GSSAPI_LIBS=$GSSGLUE_LIBS
+    else
+      GSSAPI_CFLAGS=$GSSKRB_CFLAGS
+      GSSAPI_LIBS=$GSSKRB_LIBS
+    fi
+    AC_SUBST([GSSAPI_CFLAGS])
+    AC_SUBST([GSSAPI_LIBS])
   fi
 fi
 
