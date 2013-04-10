@@ -366,21 +366,22 @@ If a value of zero is specified, the
 .BR mount (8)
 command exits immediately after the first failure.
 .TP 1.5i
-.BI sec= mode
-The RPCGSS security flavor to use for accessing files on this mount point.
-If the
-.B sec
-option is not specified, or if
-.B sec=sys
-is specified, the NFS client uses the AUTH_SYS security flavor
-for all NFS requests on this mount point.
-Valid security flavors are
+.BI sec= flavor
+The security flavor to use for accessing files on this mount point.
+If the server does not support this flavor, the mount operation fails.
+If
+.B sec=
+is not specified, the client attempts to find
+a security flavor that both the client and the server supports.
+Valid
+.I flavors
+are
 .BR none ,
 .BR sys ,
 .BR krb5 ,
 .BR krb5i ,
 and
-.BR krb5p ,
+.BR krb5p .
 Refer to the SECURITY CONSIDERATIONS section for details.
 .TP 1.5i
 .BR sharecache " / " nosharecache
@@ -1444,19 +1445,19 @@ These auxiliary protocols use no authentication.
 In addition to combining these sideband protocols with the main NFS protocol,
 NFS version 4 introduces more advanced forms of access control,
 authentication, and in-transit data protection.
-The NFS version 4 specification mandates NFSv4 ACLs,
-RPCGSS authentication, and RPCGSS security flavors
+The NFS version 4 specification mandates support for
+strong authentication and security flavors
 that provide per-RPC integrity checking and encryption.
 Because NFS version 4 combines the
 function of the sideband protocols into the main NFS protocol,
 the new security features apply to all NFS version 4 operations
 including mounting, file locking, and so on.
 RPCGSS authentication can also be used with NFS versions 2 and 3,
-but does not protect their sideband protocols.
+but it does not protect their sideband protocols.
 .P
 The
 .B sec
-mount option specifies the RPCGSS security mode
+mount option specifies the security flavor
 that is in effect on a given NFS mount point.
 Specifying
 .B sec=krb5
@@ -1487,13 +1488,14 @@ Similar support for other forms of cryptographic security
 is also available.
 .P
 The NFS version 4 protocol allows
-clients and servers to negotiate among multiple security flavors
-during mount processing.
-However, Linux does not yet implement such negotiation.
-The Linux client specifies a single security flavor at mount time
-which remains in effect for the lifetime of the mount.
-If the server does not support this flavor,
-the initial mount request is rejected by the server.
+a client to renegotiate the security flavor
+when the client crosses into a new filesystem on the server.
+The newly negotiated flavor effects only accesses of the new filesystem.
+.P
+Such negotiation typically occurs when a client crosses
+from a server's pseudo-fs
+into one of the server's exported physical filesystems,
+which often have more restrictive security settings than the pseudo-fs.
 .SS "Using non-privileged source ports"
 NFS clients usually communicate with NFS servers via network sockets.
 Each end of a socket is assigned a port value, which is simply a number
