@@ -203,9 +203,9 @@ int write_heimdal_seq_key(char **p, char *end, gss_ctx_id_t ctx)
  */
 
 int
-serialize_krb5_ctx(gss_ctx_id_t ctx, gss_buffer_desc *buf, int32_t *endtime)
+serialize_krb5_ctx(gss_ctx_id_t *_ctx, gss_buffer_desc *buf, int32_t *endtime)
 {
-
+	gss_ctx_id_t ctx = *_ctx;
 	char *p, *end;
 	static int constant_one = 1;
 	static int constant_zero = 0;

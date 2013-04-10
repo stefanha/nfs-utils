@@ -1066,7 +1066,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		printerr(1, "WARNING: Failed to inquire context for lifetme "
 			    "maj_stat %u\n", maj_stat);
 
-	if (serialize_context_for_kernel(pd.pd_ctx, &token, &krb5oid, NULL)) {
+	if (serialize_context_for_kernel(&pd.pd_ctx, &token, &krb5oid, NULL)) {
 		printerr(0, "WARNING: Failed to serialize krb5 context for "
 			    "user with uid %d for server %s\n",
 			 uid, clp->servername);
@@ -1079,7 +1079,7 @@ out:
 	if (token.value)
 		free(token.value);
 #ifdef HAVE_AUTHGSS_FREE_PRIVATE_DATA
-	if (pd.pd_ctx_hndl.length != 0)
+	if (pd.pd_ctx_hndl.length != 0 || pd.pd_ctx != 0)
 		authgss_free_private_data(&pd);
 #endif
 	if (auth)

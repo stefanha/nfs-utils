@@ -484,7 +484,7 @@ handle_nullreq(FILE *f) {
 
 	/* kernel needs ctx to calculate verifier on null response, so
 	 * must give it context before doing null call: */
-	if (serialize_context_for_kernel(ctx, &ctx_token, mech, &ctx_endtime)) {
+	if (serialize_context_for_kernel(&ctx, &ctx_token, mech, &ctx_endtime)) {
 		printerr(0, "WARNING: handle_nullreq: "
 			    "serialize_context_for_kernel failed\n");
 		maj_stat = GSS_S_FAILURE;
