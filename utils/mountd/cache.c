@@ -80,7 +80,7 @@ static void auth_unix_ip(FILE *f)
 	 */
 	char *cp;
 	char class[20];
-	char ipaddr[INET6_ADDRSTRLEN];
+	char ipaddr[INET6_ADDRSTRLEN + 1];
 	char *client = NULL;
 	struct addrinfo *tmp = NULL;
 	if (readline(fileno(f), &lbuf, &lbuflen) != 1)
@@ -94,7 +94,7 @@ static void auth_unix_ip(FILE *f)
 	    strcmp(class, "nfsd") != 0)
 		return;
 
-	if (qword_get(&cp, ipaddr, sizeof(ipaddr)) <= 0)
+	if (qword_get(&cp, ipaddr, sizeof(ipaddr) - 1) <= 0)
 		return;
 
 	tmp = host_pton(ipaddr);
@@ -116,9 +116,11 @@ static void auth_unix_ip(FILE *f)
 	qword_print(f, "nfsd");
 	qword_print(f, ipaddr);
 	qword_printtimefrom(f, DEFAULT_TTL);
-	if (use_ipaddr)
+	if (use_ipaddr) {
+		memmove(ipaddr + 1, ipaddr, strlen(ipaddr) + 1);
+		ipaddr[0] = '$';
 		qword_print(f, ipaddr);
-	else if (client)
+	} else if (client)
 		qword_print(f, *client?client:"DEFAULT");
 	qword_eol(f);
 	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, client?client: "DEFAULT");
