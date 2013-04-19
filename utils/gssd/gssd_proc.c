@@ -800,7 +800,8 @@ create_auth_rpc_client(struct clnt_info *clp,
 		       CLIENT **clnt_return,
 		       AUTH **auth_return,
 		       uid_t uid,
-		       int authtype)
+		       int authtype,
+		       gss_cred_id_t cred)
 {
 	CLIENT			*rpc_clnt = NULL;
 	struct rpc_gss_sec	sec;
@@ -826,7 +827,7 @@ create_auth_rpc_client(struct clnt_info *clp,
 
 	sec.qop = GSS_C_QOP_DEFAULT;
 	sec.svc = RPCSEC_GSS_SVC_NONE;
-	sec.cred = GSS_C_NO_CREDENTIAL;
+	sec.cred = cred;
 	sec.req_flags = 0;
 	if (authtype == AUTHTYPE_KRB5) {
 		sec.mech = (gss_OID)&krb5oid;
@@ -951,6 +952,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	char			**dirname;
 	int			create_resp = -1;
 	int			err, downcall_err = -EACCES;
+	gss_cred_id_t		gss_cred;
 	OM_uint32		maj_stat, min_stat, lifetime_rec;
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
@@ -985,15 +987,20 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0 &&
 				service == NULL)) {
 		/* Tell krb5 gss which credentials cache to use */
-		for (dirname = ccachesearch; *dirname != NULL; dirname++) {
+		/* Try first to acquire credentials directly via GSSAPI */
+		err = gssd_acquire_user_cred(uid, &gss_cred);
+		if (!err)
+			create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
+							     AUTHTYPE_KRB5, gss_cred);
+		/* if create_auth_rplc_client fails try the traditional method of
+		 * trolling for credentials */
+		for (dirname = ccachesearch; create_resp != 0 && *dirname != NULL; dirname++) {
 			err = gssd_setup_krb5_user_gss_ccache(uid, clp->servername, *dirname);
 			if (err == -EKEYEXPIRED)
 				downcall_err = -EKEYEXPIRED;
 			else if (!err)
 				create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
-							     AUTHTYPE_KRB5);
-			if (create_resp == 0)
-				break;
+							     AUTHTYPE_KRB5, GSS_C_NO_CREDENTIAL);
 		}
 	}
 	if (create_resp != 0) {
@@ -1019,7 +1026,8 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 					gssd_setup_krb5_machine_gss_ccache(*ccname);
 					if ((create_auth_rpc_client(clp, &rpc_clnt,
 								    &auth, uid,
-								    AUTHTYPE_KRB5)) == 0) {
+								    AUTHTYPE_KRB5,
+								    GSS_C_NO_CREDENTIAL)) == 0) {
 						/* Success! */
 						success++;
 						break;

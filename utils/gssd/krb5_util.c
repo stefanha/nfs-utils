@@ -1350,6 +1350,57 @@ gssd_k5_get_default_realm(char **def_realm)
 	krb5_free_context(context);
 }
 
+static int
+gssd_acquire_krb5_cred(gss_name_t name, gss_cred_id_t *gss_cred)
+{
+	OM_uint32 maj_stat, min_stat;
+	gss_OID_set_desc desired_mechs = { 1, &krb5oid };
+
+	maj_stat = gss_acquire_cred(&min_stat, name, GSS_C_INDEFINITE,
+				    &desired_mechs, GSS_C_INITIATE,
+				    gss_cred, NULL, NULL);
+
+	if (maj_stat != GSS_S_COMPLETE) {
+		if (get_verbosity() > 0)
+			pgsserr("gss_acquire_cred",
+				maj_stat, min_stat, &krb5oid);
+		return -1;
+	}
+
+	return 0;
+}
+
+int
+gssd_acquire_user_cred(uid_t uid, gss_cred_id_t *gss_cred)
+{
+	OM_uint32 maj_stat, min_stat;
+	gss_buffer_desc name_buf;
+	gss_name_t name;
+	char buf[11];
+	int ret;
+
+	ret = snprintf(buf, 11, "%u", uid);
+	if (ret < 1 || ret > 10) {
+		return -1;
+	}
+	name_buf.value = buf;
+	name_buf.length = ret + 1;
+
+	maj_stat = gss_import_name(&min_stat, &name_buf,
+				   GSS_C_NT_STRING_UID_NAME, &name);
+	if (maj_stat != GSS_S_COMPLETE) {
+		if (get_verbosity() > 0)
+			pgsserr("gss_import_name",
+				maj_stat, min_stat, &krb5oid);
+		return -1;
+	}
+
+	ret = gssd_acquire_krb5_cred(name, gss_cred);
+
+	maj_stat = gss_release_name(&min_stat, &name);
+	return ret;
+}
+
 #ifdef HAVE_SET_ALLOWABLE_ENCTYPES
 /*
  * this routine obtains a credentials handle via gss_acquire_cred()
@@ -1368,28 +1419,18 @@ int
 limit_krb5_enctypes(struct rpc_gss_sec *sec)
 {
 	u_int maj_stat, min_stat;
-	gss_cred_id_t credh;
-	gss_OID_set_desc  desired_mechs;
 	krb5_enctype enctypes[] = { ENCTYPE_DES_CBC_CRC,
 				    ENCTYPE_DES_CBC_MD5,
 				    ENCTYPE_DES_CBC_MD4 };
 	int num_enctypes = sizeof(enctypes) / sizeof(enctypes[0]);
 	extern int num_krb5_enctypes;
 	extern krb5_enctype *krb5_enctypes;
+	int err = -1;
 
-	/* We only care about getting a krb5 cred */
-	desired_mechs.count = 1;
-	desired_mechs.elements = &krb5oid;
-
-	maj_stat = gss_acquire_cred(&min_stat, NULL, 0,
-				    &desired_mechs, GSS_C_INITIATE,
-				    &credh, NULL, NULL);
-
-	if (maj_stat != GSS_S_COMPLETE) {
-		if (get_verbosity() > 0)
-			pgsserr("gss_acquire_cred",
-				maj_stat, min_stat, &krb5oid);
-		return -1;
+	if (sec->cred == GSS_C_NO_CREDENTIAL) {
+		err = gssd_acquire_krb5_cred(GSS_C_NO_NAME, &sec->cred);
+		if (err)
+			return -1;
 	}
 
 	/*
@@ -1397,19 +1438,17 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec)
 	 * list of supported enctypes, use local default here.
 	 */
 	if (krb5_enctypes == NULL || limit_to_legacy_enctypes)
-		maj_stat = gss_set_allowable_enctypes(&min_stat, credh,
+		maj_stat = gss_set_allowable_enctypes(&min_stat, sec->cred,
 					&krb5oid, num_enctypes, enctypes);
 	else
-		maj_stat = gss_set_allowable_enctypes(&min_stat, credh,
+		maj_stat = gss_set_allowable_enctypes(&min_stat, sec->cred,
 					&krb5oid, num_krb5_enctypes, krb5_enctypes);
 
 	if (maj_stat != GSS_S_COMPLETE) {
 		pgsserr("gss_set_allowable_enctypes",
 			maj_stat, min_stat, &krb5oid);
-		gss_release_cred(&min_stat, &credh);
 		return -1;
 	}
-	sec->cred = credh;
 
 	return 0;
 }
