@@ -737,6 +737,7 @@ static void write_secinfo(FILE *f, struct exportent *ep, int flag_mask)
 		/* There was no sec= option */
 		return;
 	}
+	fix_pseudoflavor_flags(ep);
 	qword_print(f, "secinfo");
 	qword_printint(f, p - ep->e_secinfo);
 	for (p = ep->e_secinfo; p->flav; p++) {

@@ -469,7 +469,7 @@ static void clearflags(int mask, unsigned int active, struct exportent *ep)
  * ensure that the export flags agree with the flags on each
  * pseudoflavor:
  */
-static void fix_pseudoflavor_flags(struct exportent *ep)
+void fix_pseudoflavor_flags(struct exportent *ep)
 {
 	struct export_features *ef;
 	struct sec_entry *p;
