@@ -67,6 +67,7 @@
 #include <errno.h>
 #include <gssapi/gssapi.h>
 #include <netdb.h>
+#include <ctype.h>
 
 #include "gssd.h"
 #include "err_util.h"
@@ -106,6 +107,9 @@
 struct pollfd * pollarray;
 
 unsigned long pollsize;  /* the size of pollaray (in pollfd's) */
+
+/* Avoid DNS reverse lookups on server names */
+int avoid_dns = 1;
 
 /*
  * convert a presentation address string to a sockaddr_storage struct. Returns
@@ -165,12 +169,31 @@ addrstr_to_sockaddr(struct sockaddr *sa, const char *node, const char *port)
  * convert a sockaddr to a hostname
  */
 static char *
-sockaddr_to_hostname(const struct sockaddr *sa, const char *addr)
+get_servername(const char *name, const struct sockaddr *sa, const char *addr)
 {
 	socklen_t		addrlen;
 	int			err;
 	char			*hostname;
 	char			hbuf[NI_MAXHOST];
+	unsigned char		buf[sizeof(struct in6_addr)];
+	int			servername = 0;
+
+	if (avoid_dns) {
+		/*
+		 * Determine if this is a server name, or an IP address.
+		 * If it is an IP address, do the DNS lookup otherwise
+		 * skip the DNS lookup.
+		 */
+		servername = 0;
+		if (strchr(name, '.') && inet_pton(AF_INET, name, buf) == 1)
+			servername = 1; /* IPv4 */
+		else if (strchr(name, ':') && inet_pton(AF_INET6, name, buf) == 1)
+			servername = 1; /* or IPv6 */
+
+		if (servername) {
+			return strdup(name);
+		}
+	}
 
 	switch (sa->sa_family) {
 	case AF_INET:
@@ -208,7 +231,7 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 		  struct sockaddr *addr) {
 #define INFOBUFLEN 256
 	char		buf[INFOBUFLEN + 1];
-	static char	dummy[128];
+	static char	server[128];
 	int		nbytes;
 	static char	service[128];
 	static char	address[128];
@@ -236,7 +259,7 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 		   "service: %127s %15s version %15s\n"
 		   "address: %127s\n"
 		   "protocol: %15s\n",
-		   dummy,
+		   server,
 		   service, program, version,
 		   address,
 		   protoname);
@@ -258,7 +281,7 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	if (!addrstr_to_sockaddr(addr, address, port))
 		goto fail;
 
-	*servername = sockaddr_to_hostname(addr, address);
+	*servername = get_servername(server, addr, address);
 	if (*servername == NULL)
 		goto fail;
 

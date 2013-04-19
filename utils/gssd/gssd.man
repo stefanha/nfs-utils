@@ -8,7 +8,7 @@
 rpc.gssd \- RPCSEC_GSS daemon
 .SH SYNOPSIS
 .B rpc.gssd
-.RB [ \-fMnlvr ]
+.RB [ \-DfMnlvr ]
 .RB [ \-k
 .IR keytab ]
 .RB [ \-p
@@ -194,6 +194,12 @@ by specifying the
 option when starting
 .BR rpc.gssd .
 .SH OPTIONS
+.TP
+.B -D
+DNS Reverse lookups are not used for determining the
+server names pass to GSSAPI. This option will reverses that and forces 
+the use of DNS Reverse resolution of the server's IP address to 
+retrieve the server name to use in GSAPI authentication.
 .TP
 .B -f
 Runs

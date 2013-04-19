@@ -85,7 +85,7 @@ sig_hup(int signal)
 static void
 usage(char *progname)
 {
-	fprintf(stderr, "usage: %s [-f] [-l] [-M] [-n] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir] [-t timeout] [-R preferred realm]\n",
+	fprintf(stderr, "usage: %s [-f] [-l] [-M] [-n] [-v] [-r] [-p pipefsdir] [-k keytab] [-d ccachedir] [-t timeout] [-R preferred realm] [-D]\n",
 		progname);
 	exit(1);
 }
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	char *progname;
 
 	memset(ccachesearch, 0, sizeof(ccachesearch));
-	while ((opt = getopt(argc, argv, "fvrlmnMp:k:d:t:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "DfvrlmnMp:k:d:t:R:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -149,6 +149,9 @@ main(int argc, char *argv[])
 #else 
 				errx(1, "Encryption type limits not supported by Kerberos libraries.");
 #endif
+				break;
+			case 'D':
+				avoid_dns = 0;
 				break;
 			default:
 				usage(argv[0]);
