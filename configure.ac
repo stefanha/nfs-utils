@@ -274,9 +274,14 @@ if test "$enable_nfsv4" = yes; then
 	AC_CHECK_HEADERS([libgen.h sys/inotify.h], ,
 		AC_MSG_ERROR([Cannot find header needed for nfsdcltrack]))
 
-  	if test "$libsqlite3_cv_is_recent" != "yes" ; then
-		AC_MSG_ERROR([nfsdcltrack requires sqlite-devel])
-	fi
+    case $libsqlite3_cv_is_recent in
+    yes) ;;
+    unknown)
+      dnl do not fail when cross-compiling
+      AC_MSG_WARN([assuming sqlite is at least v3.3]) ;;
+    *)
+      AC_MSG_ERROR([nfsdcltrack requires sqlite-devel]) ;;
+    esac
   fi
 
 else
