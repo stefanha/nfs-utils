@@ -155,9 +155,8 @@ static const unsigned long probe_nfs2_only[] = {
 	0,
 };
 
-static const unsigned long probe_nfs3_first[] = {
+static const unsigned long probe_nfs3_only[] = {
 	3,
-	2,
 	0,
 };
 
@@ -167,10 +166,8 @@ static const unsigned long probe_mnt1_first[] = {
 	0,
 };
 
-static const unsigned long probe_mnt3_first[] = {
+static const unsigned long probe_mnt3_only[] = {
 	3,
-	1,
-	2,
 	0,
 };
 
@@ -626,7 +623,7 @@ static int nfs_probe_nfsport(const struct sockaddr *sap, const socklen_t salen,
 		probe_proto = nfs_default_proto();
 
 		return nfs_probe_port(sap, salen, pmap,
-					probe_nfs3_first, probe_proto);
+					probe_nfs3_only, probe_proto);
 	} else
 		return nfs_probe_port(sap, salen, pmap,
 					probe_nfs2_only, probe_udp_only);
@@ -653,7 +650,7 @@ static int nfs_probe_mntport(const struct sockaddr *sap, const socklen_t salen,
 
 	if (nfs_mount_data_version >= 4)
 		return nfs_probe_port(sap, salen, pmap,
-					probe_mnt3_first, probe_udp_first);
+					probe_mnt3_only, probe_udp_first);
 	else
 		return nfs_probe_port(sap, salen, pmap,
 					probe_mnt1_first, probe_udp_only);
@@ -717,7 +714,7 @@ int nfs_probe_bothports(const struct sockaddr *mnt_saddr,
 	memcpy(&save_nfs, nfs_pmap, sizeof(save_nfs));
 	memcpy(&save_mnt, mnt_pmap, sizeof(save_mnt));
 	probe_vers = (nfs_mount_data_version >= 4) ?
-			probe_mnt3_first : probe_mnt1_first;
+			probe_mnt3_only : probe_mnt1_first;
 
 	for (; *probe_vers; probe_vers++) {
 		nfs_pmap->pm_vers = mntvers_to_nfs(*probe_vers);
