@@ -349,7 +349,7 @@ smn_bind_address(const char *srcaddr, const char *srcport)
 {
 	struct addrinfo *ai = NULL;
 	struct addrinfo hint = {
-		.ai_flags	= AI_NUMERICSERV,
+		.ai_flags	= AI_NUMERICSERV | AI_V4MAPPED,
 		.ai_family	= nsm_family,
 		.ai_protocol	= (int)IPPROTO_UDP,
 	};
