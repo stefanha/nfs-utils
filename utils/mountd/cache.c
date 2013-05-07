@@ -347,20 +347,26 @@ static char *next_mnt(void **v, char *p)
 
 static int is_subdirectory(char *child, char *parent)
 {
+	/* Check is child is strictly a subdirectory of
+	 * parent or a more distant descendant.
+	 */
 	size_t l = strlen(parent);
 
-	if (strcmp(parent, "/") == 0)
+	if (strcmp(parent, "/") == 0 && child[1] != 0)
 		return 1;
 
-	return strcmp(child, parent) == 0
-		|| (strncmp(child, parent, l) == 0 && child[l] == '/');
+	return (strncmp(child, parent, l) == 0 && child[l] == '/');
 }
 
 static int path_matches(nfs_export *exp, char *path)
 {
-	if (exp->m_export.e_flags & NFSEXP_CROSSMOUNT)
-		return is_subdirectory(path, exp->m_export.e_path);
-	return strcmp(path, exp->m_export.e_path) == 0;
+	/* Does the path match the export?  I.e. is it an
+	 * exact match, or does the export have CROSSMOUNT, and path
+	 * is a descendant?
+	 */
+	return strcmp(path, exp->m_export.e_path) == 0
+		|| ((exp->m_export.e_flags & NFSEXP_CROSSMOUNT)
+		    && is_subdirectory(path, exp->m_export.e_path));
 }
 
 static int
@@ -369,15 +375,13 @@ export_matches(nfs_export *exp, char *dom, char *path, struct addrinfo *ai)
 	return path_matches(exp, path) && client_matches(exp, dom, ai);
 }
 
-/* True iff e1 is a child of e2 and e2 has crossmnt set: */
+/* True iff e1 is a child of e2 (or descendant) and e2 has crossmnt set: */
 static bool subexport(struct exportent *e1, struct exportent *e2)
 {
 	char *p1 = e1->e_path, *p2 = e2->e_path;
-	size_t l2 = strlen(p2);
 
 	return e2->e_flags & NFSEXP_CROSSMOUNT
-		&& strncmp(p1, p2, l2) == 0
-		&& p1[l2] == '/';
+		&& is_subdirectory(p1, p2);
 }
 
 struct parsed_fsid {
