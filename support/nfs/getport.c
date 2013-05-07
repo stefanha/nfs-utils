@@ -1102,3 +1102,25 @@ unsigned long nfs_pmap_getport(const struct sockaddr_in *sin,
 
 	return port;
 }
+
+static const char *nfs_ns_pgmtbl[] = {
+        "status",
+        NULL,
+};
+
+/*
+ * nfs_probe_statd - use nfs_pmap_getport to see if statd is running locally
+ *
+ * Returns non-zero if statd is running locally.
+ */
+int nfs_probe_statd(void)
+{
+        struct sockaddr_in addr = {
+                .sin_family             = AF_INET,
+                .sin_addr.s_addr        = htonl(INADDR_LOOPBACK),
+        };
+        rpcprog_t program = nfs_getrpcbyname(NSMPROG, nfs_ns_pgmtbl);
+
+        return nfs_getport_ping((struct sockaddr *)(char *)&addr, sizeof(addr),
+                                program, (rpcvers_t)1, IPPROTO_UDP);
+}

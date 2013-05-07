@@ -28,6 +28,7 @@
 
 #include "statd.h"
 #include "nfslib.h"
+#include "nfsrpc.h"
 #include "nsm.h"
 
 /* Socket operations */
@@ -236,6 +237,12 @@ int main (int argc, char **argv)
 
 	/* Set hostname */
 	MY_NAME = NULL;
+
+	/* Refuse to start if another statd is running */
+	if (nfs_probe_statd()) {
+		fprintf(stderr, "Statd service already running!\n");
+		exit(1);
+	}
 
 	/* Process command line switches */
 	while ((arg = getopt_long(argc, argv, "h?vVFNH:dn:p:o:P:L", longopts, NULL)) != EOF) {

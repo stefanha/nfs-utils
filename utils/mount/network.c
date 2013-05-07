@@ -65,11 +65,6 @@ extern int nfs_mount_data_version;
 extern char *progname;
 extern int verbose;
 
-static const char *nfs_ns_pgmtbl[] = {
-	"status",
-	NULL,
-};
-
 static const char *nfs_mnt_pgmtbl[] = {
 	"mount",
 	"mountd",
@@ -759,18 +754,6 @@ int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 					&mnt_server->pmap,
 					nfs_addr, sizeof(nfs_server->saddr),
 					&nfs_server->pmap);
-}
-
-static int nfs_probe_statd(void)
-{
-	struct sockaddr_in addr = {
-		.sin_family		= AF_INET,
-		.sin_addr.s_addr	= htonl(INADDR_LOOPBACK),
-	};
-	rpcprog_t program = nfs_getrpcbyname(NSMPROG, nfs_ns_pgmtbl);
-
-	return nfs_getport_ping(SAFE_SOCKADDR(&addr), sizeof(addr),
-				program, (rpcvers_t)1, IPPROTO_UDP);
 }
 
 /**

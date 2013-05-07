@@ -156,6 +156,11 @@ extern unsigned long	nfs_pmap_getport(const struct sockaddr_in *,
 				const struct timeval *);
 
 /*
+ * Use nfs_pmap_getport to see if statd is running locally
+ */
+extern int nfs_probe_statd(void);
+
+/*
  * Contact a remote RPC service to discover whether it is responding
  * to requests.
  */
