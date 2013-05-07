@@ -84,6 +84,20 @@ in
 .SS "Options supported by all versions"
 These options are valid to use with any NFS version.
 .TP 1.5i
+.BI nfsvers= n
+The NFS protocol version number used to contact the server's NFS service.
+If the server does not support the requested version, the mount request 
+fails.
+If this option is not specified, the client negotiates a suitable version 
+with
+the server, trying version 4 first, version 3 second, and version 2 last.
+.TP 1.5i
+.BI vers= n
+This option is an alternative to the
+.B nfsvers
+option.
+It is included for compatibility with other operating systems
+.TP 1.5i
 .BR soft " / " hard
 Determines the recovery behavior of the NFS client
 after an NFS request times out.
@@ -620,18 +634,6 @@ Using this option ensures that
 .BR pathconf (3)
 reports the proper maximum component length to applications
 in such cases.
-.TP 1.5i
-.BI nfsvers= n
-The NFS protocol version number used to contact the server's NFS service.
-If the server does not support the requested version, the mount request fails.
-If this option is not specified, the client negotiates a suitable version with
-the server, trying version 4 first, version 3 second, and version 2 last.
-.TP 1.5i
-.BI vers= n
-This option is an alternative to the
-.B nfsvers
-option.
-It is included for compatibility with other operating systems.
 .TP 1.5i
 .BR lock " / " nolock
 Selects whether to use the NLM sideband protocol to lock files on the server.
