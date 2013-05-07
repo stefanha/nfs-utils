@@ -67,7 +67,6 @@
 #include <errno.h>
 #include <gssapi/gssapi.h>
 #include <netdb.h>
-#include <ctype.h>
 
 #include "gssd.h"
 #include "err_util.h"
