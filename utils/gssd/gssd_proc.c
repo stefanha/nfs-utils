@@ -175,7 +175,6 @@ get_servername(const char *name, const struct sockaddr *sa, const char *addr)
 	char			*hostname;
 	char			hbuf[NI_MAXHOST];
 	unsigned char		buf[sizeof(struct in6_addr)];
-	int			servername = 0;
 
 	if (avoid_dns) {
 		/*
@@ -183,15 +182,18 @@ get_servername(const char *name, const struct sockaddr *sa, const char *addr)
 		 * If it is an IP address, do the DNS lookup otherwise
 		 * skip the DNS lookup.
 		 */
-		servername = 0;
-		if (strchr(name, '.') && inet_pton(AF_INET, name, buf) == 1)
-			servername = 1; /* IPv4 */
-		else if (strchr(name, ':') && inet_pton(AF_INET6, name, buf) == 1)
-			servername = 1; /* or IPv6 */
+		int is_fqdn = 1;
+		if (strchr(name, '.') == NULL)
+			is_fqdn = 0; /* local name */
+		else if (inet_pton(AF_INET, name, buf) == 1)
+			is_fqdn = 0; /* IPv4 address */
+		else if (inet_pton(AF_INET6, name, buf) == 1)
+			is_fqdn = 0; /* IPv6 addrss */
 
-		if (servername) {
+		if (is_fqdn) {
 			return strdup(name);
 		}
+		/* Sorry, cannot avoid dns after all */
 	}
 
 	switch (sa->sa_family) {
