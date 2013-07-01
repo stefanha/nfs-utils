@@ -353,14 +353,14 @@ class DeviceData:
             exe_per_op = 0.0
 
         op += ':'
-        print('%s' % op.lower().ljust(15))
+        print('%s' % op.lower().ljust(15), end='')
         print('  ops/s\t\t   kB/s\t\t  kB/op\t\tretrans\t\tavg RTT (ms)\tavg exe (ms)')
 
-        print('\t\t%7.3f' % (ops / sample_time))
-        print('\t%7.3f' % (kilobytes / sample_time))
-        print('\t%7.3f' % kb_per_op)
-        print(' %7d (%3.1f%%)' % (retrans, retrans_percent))
-        print('\t%7.3f' % rtt_per_op)
+        print('\t\t%7.3f' % (ops / sample_time), end='')
+        print('\t%7.3f' % (kilobytes / sample_time), end='')
+        print('\t%7.3f' % kb_per_op, end='')
+        print(' %7d (%3.1f%%)' % (retrans, retrans_percent), end='')
+        print('\t%7.3f' % rtt_per_op, end='')
         print('\t%7.3f' % exe_per_op)
 
     def ops(self, sample_time):
@@ -392,7 +392,7 @@ class DeviceData:
         print()
 
         print('   op/s\t\trpc bklog')
-        print('%7.2f' % (sends / sample_time))
+        print('%7.2f' % (sends / sample_time), end='')
         print('\t%7.2f' % backlog)
 
         if which == 0:
