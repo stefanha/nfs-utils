@@ -1236,7 +1236,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 	krb5_keytab kt = NULL;;
 	int retval = 0;
 	char *k5err = NULL;
-	const char *svcnames[5] = { "$", "root", "nfs", "host", NULL };
+	const char *svcnames[] = { "$", "root", "nfs", "host", NULL };
 
 	/*
 	 * If a specific service name was specified, use it.
