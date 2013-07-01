@@ -852,11 +852,19 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 	}
 
 	/*
-	 * Try the "appropriate" realm first, and if nothing found for that
-	 * realm, try the default realm (if it hasn't already been tried).
+	 * Make sure the preferred_realm, which may have been explicitly set
+	 * on the command line, is tried first. If nothing is found go on with
+	 * the host and local default realm (if that hasn't already been tried).
 	 */
 	i = 0;
 	realm = realmnames[i];
+
+	if (strcmp (realm, preferred_realm) != 0) {
+		realm = preferred_realm;
+		/* resetting the realmnames index */
+		i = -1;
+	}
+
 	while (1) {
 		if (realm == NULL) {
 			tried_all = 1;
