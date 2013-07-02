@@ -825,8 +825,10 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 	myhostad[i+1] = 0;
 
 	retval = get_full_hostname(myhostname, myhostname, sizeof(myhostname));
-	if (retval)
-		goto out;
+	if (retval) {
+		/* Don't use myhostname */
+		myhostname[0] = 0;
+	}
 
 	code = krb5_get_default_realm(context, &default_realm);
 	if (code) {
@@ -891,6 +893,8 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 								myhostad,
 								NULL);
 			} else {
+				if (!myhostname[0])
+					continue;
 				snprintf(spn, sizeof(spn), "%s/%s@%s",
 					 svcnames[j], myhostname, realm);
 				code = krb5_build_principal_ext(context, &princ,
