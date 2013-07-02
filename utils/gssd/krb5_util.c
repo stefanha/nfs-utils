@@ -231,7 +231,7 @@ gssd_find_existing_krb5_ccache(uid_t uid, char *dirname,
 				continue;
 			}
 			if (uid == 0 && !root_uses_machine_creds && 
-				strstr(namelist[i]->d_name, "_machine_")) {
+				strstr(namelist[i]->d_name, "machine_")) {
 				printerr(3, "CC '%s' not available to root\n",
 					 statname);
 				free(namelist[i]);
