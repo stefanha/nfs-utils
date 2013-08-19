@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	char *haddr = NULL;
 	int	socket_up = 0;
 	int minorvers41 = 0;	/* nfsv4 minor version */
-	unsigned int versbits = NFSCTL_ALLBITS;
+	unsigned int versbits = NFSCTL_VERDEFAULT;
 	unsigned int protobits = NFSCTL_ALLBITS;
 	unsigned int proto4 = 0;
 	unsigned int proto6 = 0;
