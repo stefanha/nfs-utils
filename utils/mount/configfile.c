@@ -73,6 +73,8 @@ struct mnt_alias {
 };
 int mnt_alias_sz = (sizeof(mnt_alias_tab)/sizeof(mnt_alias_tab[0]));
 
+static int strict;
+
 /*
  * See if the option is an alias, if so return the 
  * real mount option along with the argument type.
@@ -310,7 +312,15 @@ conf_parse_mntopts(char *section, char *arg, char *opts)
 		if (strcasecmp(value, "false") == 0) {
 			if (argtype != MNT_NOARG)
 				snprintf(buf, BUFSIZ, "no%s", field);
+			else if (strcasecmp(field, "bg") == 0)
+				snprintf(buf, BUFSIZ, "fg");
+			else if (strcasecmp(field, "fg") == 0)
+				snprintf(buf, BUFSIZ, "bg");
+			else if (strcasecmp(field, "sloppy") == 0)
+				strict = 1;
 		} else if (strcasecmp(value, "true") == 0) {
+			if ((strcasecmp(field, "sloppy") == 0) && strict)
+				continue;
 			snprintf(buf, BUFSIZ, "%s", field);
 		} else {
 			nvalue = strdup(value);
@@ -345,6 +355,7 @@ char *conf_get_mntopts(char *spec, char *mount_point,
 	char *ptr, *server, *config_opts;
 	int optlen = 0;
 
+	strict = 0;
 	SLIST_INIT(&head);
 	list_size = 0;
 	/*
