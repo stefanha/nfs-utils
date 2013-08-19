@@ -502,7 +502,7 @@ nfsdcb(int UNUSED(fd), short which, void *data)
 	struct idmap_client *ic = data;
 	struct idmap_msg im;
 	u_char buf[IDMAP_MAXMSGSZ + 1];
-	size_t len;
+	ssize_t len;
 	ssize_t bsiz;
 	char *bp, typebuf[IDMAP_MAXMSGSZ],
 		buf1[IDMAP_MAXMSGSZ], authbuf[IDMAP_MAXMSGSZ], *p;
@@ -511,10 +511,14 @@ nfsdcb(int UNUSED(fd), short which, void *data)
 	if (which != EV_READ)
 		goto out;
 
-	if ((len = read(ic->ic_fd, buf, sizeof(buf))) <= 0) {
+	len = read(ic->ic_fd, buf, sizeof(buf));
+	if (len == 0)
+		/* No upcall to read; not necessarily a problem: */
+		return;
+	if (len < 0) {
 		xlog_warn("nfsdcb: read(%s) failed: errno %d (%s)",
-			     ic->ic_path, len?errno:0, 
-			     len?strerror(errno):"End of File");
+			     ic->ic_path, errno,
+			     strerror(errno));
 		nfsdreopen_one(ic);
 		return;
 	}
