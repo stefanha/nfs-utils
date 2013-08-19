@@ -565,7 +565,7 @@ cleanup:
 }
 
 struct conf_list *
-conf_get_tag_list(char *section)
+conf_get_tag_list(char *section, char *arg)
 {
 	struct conf_list *list = 0;
 	struct conf_list_node *node;
@@ -579,6 +579,8 @@ conf_get_tag_list(char *section)
 	cb = LIST_FIRST(&conf_bindings[conf_hash (section)]);
 	for (; cb; cb = LIST_NEXT(cb, link)) {
 		if (strcasecmp (section, cb->section) == 0) {
+			if (arg != NULL && strcasecmp(arg, cb->arg) != 0)
+				continue;
 			list->cnt++;
 			node = calloc(1, sizeof *node);
 			if (!node)

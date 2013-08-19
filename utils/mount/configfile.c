@@ -286,7 +286,7 @@ conf_parse_mntopts(char *section, char *arg, char *opts)
 	char *nvalue, *ptr;
 	int argtype;
 
-	list = conf_get_tag_list(section);
+	list = conf_get_tag_list(section, arg);
 	TAILQ_FOREACH(node, &list->fields, link) {
 		/*
 		 * Do not overwrite options if already exists 
