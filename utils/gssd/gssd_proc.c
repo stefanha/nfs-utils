@@ -467,8 +467,9 @@ process_clnt_dir(char *dir, char *pdir)
 	}
 	sprintf(clp->dirname, "%s/%s", pdir, dir);
 	if ((clp->dir_fd = open(clp->dirname, O_RDONLY)) == -1) {
-		printerr(0, "ERROR: can't open %s: %s\n",
-			 clp->dirname, strerror(errno));
+		if (errno != ENOENT)
+			printerr(0, "ERROR: can't open %s: %s\n",
+				 clp->dirname, strerror(errno));
 		goto fail_destroy_client;
 	}
 	fcntl(clp->dir_fd, F_SETSIG, DNOTIFY_SIGNAL);
