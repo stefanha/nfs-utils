@@ -39,7 +39,7 @@ the export name using a backslash followed by the character code as three
 octal digits.
 .PP
 To apply changes to this file, run
-.BR exportfs \-ra
+.BR "exportfs \-ra"
 or restart the NFS server.
 .PP
 .SS Machine Name Formats
