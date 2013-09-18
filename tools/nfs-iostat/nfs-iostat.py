@@ -413,6 +413,8 @@ class DeviceData:
             self.__print_rpc_op_stats('WRITE', sample_time)
             self.__print_page_stats(sample_time)
 
+        sys.stdout.flush()
+
 #
 # Functions
 #
