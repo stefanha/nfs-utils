@@ -95,7 +95,7 @@ class DeviceData:
             if words[6] == 'nfs':
                 self.__nfs_data['statvers'] = words[7]
         elif words[0] == 'age:':
-            self.__nfs_data['age'] = long(words[1])
+            self.__nfs_data['age'] = int(words[1])
         elif words[0] == 'opts:':
             self.__nfs_data['mountoptions'] = ''.join(words[1:]).split(',')
         elif words[0] == 'caps:':
@@ -116,7 +116,7 @@ class DeviceData:
         elif words[0] == 'bytes:':
             i = 1
             for key in NfsByteCounters:
-                self.__nfs_data[key] = long(words[i])
+                self.__nfs_data[key] = int(words[i])
                 i += 1
 
     def __parse_rpc_line(self, words):
@@ -131,8 +131,8 @@ class DeviceData:
                 self.__rpc_data['rpcsends'] = int(words[4])
                 self.__rpc_data['rpcreceives'] = int(words[5])
                 self.__rpc_data['badxids'] = int(words[6])
-                self.__rpc_data['inflightsends'] = long(words[7])
-                self.__rpc_data['backlogutil'] = long(words[8])
+                self.__rpc_data['inflightsends'] = int(words[7])
+                self.__rpc_data['backlogutil'] = int(words[8])
             elif words[1] == 'tcp':
                 self.__rpc_data['port'] = words[2]
                 self.__rpc_data['bind_count'] = int(words[3])
@@ -142,8 +142,8 @@ class DeviceData:
                 self.__rpc_data['rpcsends'] = int(words[7])
                 self.__rpc_data['rpcreceives'] = int(words[8])
                 self.__rpc_data['badxids'] = int(words[9])
-                self.__rpc_data['inflightsends'] = long(words[10])
-                self.__rpc_data['backlogutil'] = long(words[11])
+                self.__rpc_data['inflightsends'] = int(words[10])
+                self.__rpc_data['backlogutil'] = int(words[11])
             elif words[1] == 'rdma':
                 self.__rpc_data['port'] = words[2]
                 self.__rpc_data['bind_count'] = int(words[3])
@@ -169,7 +169,7 @@ class DeviceData:
         else:
             op = words[0][:-1]
             self.__rpc_data['ops'] += [op]
-            self.__rpc_data[op] = [long(word) for word in words[1:]]
+            self.__rpc_data[op] = [int(word) for word in words[1:]]
 
     def parse_stats(self, lines):
         """Turn a list of lines from a mount stat file into a 
@@ -271,7 +271,7 @@ class DeviceData:
         nfs_stats = self.__nfs_data
         lookup_ops = self.__rpc_data['LOOKUP'][0]
         readdir_ops = self.__rpc_data['READDIR'][0]
-        if self.__rpc_data.has_key('READDIRPLUS'):
+        if 'READDIRPLUS' in self.__rpc_data:
             readdir_ops += self.__rpc_data['READDIRPLUS'][0]
 
         dentry_revals = nfs_stats['dentryrevalidates']
@@ -330,7 +330,7 @@ class DeviceData:
     def __print_rpc_op_stats(self, op, sample_time):
         """Print generic stats for one RPC op
         """
-        if not self.__rpc_data.has_key(op):
+        if op not in self.__rpc_data:
             return
 
         rpc_stats = self.__rpc_data[op]
@@ -405,7 +405,7 @@ class DeviceData:
         elif which == 2:
             self.__print_rpc_op_stats('LOOKUP', sample_time)
             self.__print_rpc_op_stats('READDIR', sample_time)
-            if self.__rpc_data.has_key('READDIRPLUS'):
+            if 'READDIRPLUS' in self.__rpc_data:
                 self.__print_rpc_op_stats('READDIRPLUS', sample_time)
             self.__print_dir_cache_stats(sample_time)
         elif which == 3:
@@ -452,7 +452,7 @@ def print_iostat_summary(old, new, devices, time, options):
     if old:
         # Trim device list to only include intersection of old and new data,
         # this addresses umounts due to autofs mountpoints
-        devicelist = filter(lambda x:x in devices,old)
+        devicelist = [x for x in old if x in devices]
     else:
         devicelist = devices
 
