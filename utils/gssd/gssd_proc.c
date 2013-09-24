@@ -525,7 +525,7 @@ update_old_clients(struct dirent **namelist, int size, char *pdir)
 		/* only compare entries in the global list that are from the
 		 * same pipefs parent directory as "pdir"
 		 */
-		if (strncmp(clp->dirname, pdir, strlen(pdir)) != 0) continue;
+		if (strcmp(clp->dirname, pdir) != 0) continue;
 
 		stillhere = 0;
 		for (i=0; i < size; i++) {
