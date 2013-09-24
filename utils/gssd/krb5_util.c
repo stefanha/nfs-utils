@@ -1149,7 +1149,7 @@ gssd_get_krb5_machine_cred_list(char ***list)
 		if (ple->ccname) {
 			/* Make sure cred is up-to-date before returning it */
 			retval = gssd_refresh_krb5_machine_credential(NULL, ple,
-				NULL, NULL);
+				NULL);
 			if (retval)
 				continue;
 			if (i + 1 > listsize) {
@@ -1240,8 +1240,7 @@ gssd_destroy_krb5_machine_creds(void)
 int
 gssd_refresh_krb5_machine_credential(char *hostname,
 				     struct gssd_k5_kt_princ *ple, 
-					 char *service,
-					 char *tgtname)
+					 char *service)
 {
 	krb5_error_code code = 0;
 	krb5_context context;
@@ -1280,10 +1279,7 @@ gssd_refresh_krb5_machine_credential(char *hostname,
 	if (ple == NULL) {
 		krb5_keytab_entry kte;
 
-		if (tgtname == NULL)
-			tgtname = hostname;
-
-		code = find_keytab_entry(context, kt, tgtname, &kte, svcnames);
+		code = find_keytab_entry(context, kt, hostname, &kte, svcnames);
 		if (code) {
 			printerr(0, "ERROR: %s: no usable keytab entry found "
 				 "in keytab %s for connection with host %s\n",
