@@ -63,6 +63,7 @@ static int	parsesquash(char *list, int **idp, int *lenp, char **ep);
 static int	parsenum(char **cpp);
 static void	freesquash(void);
 static void	syntaxerr(char *msg);
+static struct flav_info *find_flavor(char *name);
 
 void
 setexportent(char *fname, char *type)
@@ -226,6 +227,8 @@ void secinfo_show(FILE *fp, struct exportent *ep)
 
 	ef = get_export_features();
 
+	if (ep->e_secinfo[0].flav == NULL)
+		secinfo_addflavor(find_flavor("sys"), ep);
 	for (p1=ep->e_secinfo; p1->flav; p1=p2) {
 
 		fprintf(fp, ",sec=%s", p1->flav->flavour);
@@ -663,8 +666,6 @@ bad_option:
 			cp++;
 	}
 
-	if (ep->e_secinfo[0].flav == NULL)
-		secinfo_addflavor(find_flavor("sys"), ep);
 	fix_pseudoflavor_flags(ep);
 	ep->e_squids = squids;
 	ep->e_sqgids = sqgids;
