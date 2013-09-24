@@ -420,7 +420,7 @@ static int test_export(char *path, int with_fsid)
 	char buf[1024];
 	int fd, n;
 
-	sprintf(buf, "-test-client- %s 3 %d -1 -1 0\n",
+	sprintf(buf, "-test-client- %s 3 %d 65534 65534 0\n",
 		path,
 		with_fsid ? NFSEXP_FSID : 0);
 	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
