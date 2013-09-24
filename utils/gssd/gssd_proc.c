@@ -822,6 +822,7 @@ set_port:
  */
 static int
 create_auth_rpc_client(struct clnt_info *clp,
+		       char *tgtname,
 		       CLIENT **clnt_return,
 		       AUTH **auth_return,
 		       uid_t uid,
@@ -926,14 +927,16 @@ create_auth_rpc_client(struct clnt_info *clp,
 			 clnt_spcreateerror(rpc_errmsg));
 		goto out_fail;
 	}
+	if (!tgtname)
+		tgtname = clp->servicename;
 
-	printerr(2, "creating context with server %s\n", clp->servicename);
-	auth = authgss_create_default(rpc_clnt, clp->servicename, &sec);
+	printerr(2, "creating context with server %s\n", tgtname);
+	auth = authgss_create_default(rpc_clnt, tgtname, &sec);
 	if (!auth) {
 		/* Our caller should print appropriate message */
 		printerr(2, "WARNING: Failed to create krb5 context for "
 			    "user with uid %d for server %s\n",
-			 uid, clp->servername);
+			 uid, tgtname);
 		goto out_fail;
 	}
 
@@ -1015,7 +1018,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		/* Try first to acquire credentials directly via GSSAPI */
 		err = gssd_acquire_user_cred(uid, &gss_cred);
 		if (!err)
-			create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
+			create_resp = create_auth_rpc_client(clp, tgtname, &rpc_clnt, &auth, uid,
 							     AUTHTYPE_KRB5, gss_cred);
 		/* if create_auth_rplc_client fails try the traditional method of
 		 * trolling for credentials */
@@ -1024,7 +1027,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 			if (err == -EKEYEXPIRED)
 				downcall_err = -EKEYEXPIRED;
 			else if (!err)
-				create_resp = create_auth_rpc_client(clp, &rpc_clnt, &auth, uid,
+				create_resp = create_auth_rpc_client(clp, tgtname, &rpc_clnt, &auth, uid,
 							     AUTHTYPE_KRB5, GSS_C_NO_CREDENTIAL);
 		}
 	}
@@ -1048,7 +1051,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 				}
 				for (ccname = credlist; ccname && *ccname; ccname++) {
 					gssd_setup_krb5_machine_gss_ccache(*ccname);
-					if ((create_auth_rpc_client(clp, &rpc_clnt,
+					if ((create_auth_rpc_client(clp, tgtname, &rpc_clnt,
 								    &auth, uid,
 								    AUTHTYPE_KRB5,
 								    GSS_C_NO_CREDENTIAL)) == 0) {
