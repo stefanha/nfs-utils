@@ -1004,6 +1004,7 @@ static int nfs_remount(struct nfsmount_info *mi)
 {
 	if (nfs_sys_mount(mi, mi->options))
 		return EX_SUCCESS;
+	mount_error(mi->spec, mi->node, errno);
 	return EX_FAIL;
 }
 
