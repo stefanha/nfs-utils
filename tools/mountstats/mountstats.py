@@ -3,6 +3,8 @@
 """Parse /proc/self/mountstats and display it in human readable form
 """
 
+from __future__ import print_function
+
 __copyright__ = """
 Copyright (C) 2005, Chuck Lever <cel@netapp.com>
 
