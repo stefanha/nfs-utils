@@ -67,6 +67,8 @@
 #include <errno.h>
 #include <gssapi/gssapi.h>
 #include <netdb.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "gssd.h"
 #include "err_util.h"
@@ -982,6 +984,26 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	int			err, downcall_err = -EACCES;
 	gss_cred_id_t		gss_cred;
 	OM_uint32		maj_stat, min_stat, lifetime_rec;
+	pid_t			pid;
+
+	pid = fork();
+	switch(pid) {
+	case 0:
+		/* Child: fall through to rest of function */
+		break;
+	case -1:
+		/* fork() failed! */
+		printerr(0, "WARNING: unable to fork() to handle upcall: %s\n",
+				strerror(errno));
+		return;
+	default:
+		/* Parent: just wait on child to exit and return */
+		wait(&err);
+		if (WIFSIGNALED(err))
+			printerr(0, "WARNING: forked child was killed with signal %d\n",
+					WTERMSIG(err));
+		return;
+	}
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
 
@@ -1121,7 +1143,7 @@ out:
 		AUTH_DESTROY(auth);
 	if (rpc_clnt)
 		clnt_destroy(rpc_clnt);
-	return;
+	exit(0);
 
 out_return_error:
 	do_error_downcall(fd, uid, downcall_err);
