@@ -164,6 +164,20 @@ add_entry(char *opt)
 	SLIST_INSERT_HEAD(&head, entry, entries);
 }
 /*
+ * Check the alias list to see if the given 
+ * opt is a alias
+ */
+char *is_alias(char *opt)
+{
+	int i;
+
+	for (i=0; i < mnt_alias_sz; i++) {
+		if (strcasecmp(opt, mnt_alias_tab[i].alias) == 0)
+			return mnt_alias_tab[i].opt; 
+	}
+	return NULL;
+}
+/*
  * See if the given entry exists if the link list,
  * if so return that entry
  */
@@ -171,10 +185,21 @@ inline static
 char *lookup_entry(char *opt)
 {
 	struct entry *entry;
+	char *alias = is_alias(opt);
 
 	SLIST_FOREACH(entry, &head, entries) {
 		if (strcasecmp(entry->opt, opt) == 0)
 			return opt;
+		if (alias && strcasecmp(entry->opt, alias) == 0)
+			return opt;
+		if (alias && strcasecmp(alias, "fg") == 0) {
+			if (strcasecmp(entry->opt, "bg") == 0)
+				return opt;
+		}
+		if (alias && strcasecmp(alias, "bg") == 0) {
+			if (strcasecmp(entry->opt, "fg") == 0)
+				return opt;
+		}
 	}
 	return NULL;
 }
