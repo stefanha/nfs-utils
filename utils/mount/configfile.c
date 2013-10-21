@@ -186,8 +186,18 @@ char *lookup_entry(char *opt)
 {
 	struct entry *entry;
 	char *alias = is_alias(opt);
+	char *ptr;
 
 	SLIST_FOREACH(entry, &head, entries) {
+		/*
+		 * Only check the left side or options that use '='
+		 */
+		if ((ptr = strchr(entry->opt, '=')) != 0) {
+			int len = (int) (ptr - entry->opt);
+
+			if (strncasecmp(entry->opt, opt, len) == 0)
+				return opt;
+		}
 		if (strcasecmp(entry->opt, opt) == 0)
 			return opt;
 		if (alias && strcasecmp(entry->opt, alias) == 0)
