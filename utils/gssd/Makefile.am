@@ -5,8 +5,7 @@ man8_MANS	= gssd.man svcgssd.man
 RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PREFIXED	= gssd svcgssd
-sbin_PROGRAMS	= $(sbin_PREFIXED) gss_clnt_send_err
-sbin_SCRIPTS	= gss_destroy_creds
+sbin_PROGRAMS	= $(sbin_PREFIXED)
 
 EXTRA_DIST = \
 	gss_destroy_creds \
@@ -63,11 +62,6 @@ svcgssd_LDADD = \
 svcgssd_LDFLAGS = $(KRBLDFLAGS)
 
 svcgssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
-		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS) $(GSSAPI_CFLAGS)
-
-gss_clnt_send_err_SOURCES = gss_clnt_send_err.c
-
-gss_clnt_send_err_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 		 $(RPCSECGSS_CFLAGS) $(KRBCFLAGS) $(GSSAPI_CFLAGS)
 
 MAINTAINERCLEANFILES = Makefile.in
