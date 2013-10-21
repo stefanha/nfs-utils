@@ -3,7 +3,7 @@
 .\" Copyright (C) 1995 Olaf Kirch <okir@monad.swb.de>
 .\" Modifications 1999-2003 Neil Brown <neilb@cse.unsw.edu.au>
 .\"
-.TH exportfs 8 "31 December 2009"
+.TH exportfs 8 "30 September 2013"
 .SH NAME
 exportfs \- maintain table of exported NFS file systems
 .SH SYNOPSIS
@@ -16,6 +16,8 @@ exportfs \- maintain table of exported NFS file systems
 .BI "/usr/sbin/exportfs [-v]
 .br
 .BI "/usr/sbin/exportfs -f"
+.br
+.BI "/usr/sbin/exportfs -s"
 .br
 .SH DESCRIPTION
 An NFS server maintains a table of local physical file systems
@@ -133,6 +135,9 @@ when they make their next NFS mount request.
 Be verbose. When exporting or unexporting, show what's going on. When
 displaying the current export list, also display the list of export
 options.
+.TP
+.B -s
+Display the current export list suitable for /etc/exports.
 .SH DISCUSSION
 .SS Exporting Directories
 The first synopsis shows how to invoke

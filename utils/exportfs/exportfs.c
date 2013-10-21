@@ -38,7 +38,7 @@ static void	export_all(int verbose);
 static void	exportfs(char *arg, char *options, int verbose);
 static void	unexportfs(char *arg, int verbose);
 static void	exports_update(int verbose);
-static void	dump(int verbose);
+static void	dump(int verbose, int export_format);
 static void	error(nfs_export *exp, int err);
 static void	usage(const char *progname, int n);
 static void	validate_export(nfs_export *exp);
@@ -88,6 +88,7 @@ main(int argc, char **argv)
 	int	f_export = 1;
 	int	f_all = 0;
 	int	f_verbose = 0;
+	int	f_export_format = 0;
 	int	f_reexport = 0;
 	int	f_ignore = 0;
 	int	i, c;
@@ -105,7 +106,7 @@ main(int argc, char **argv)
 
 	export_errno = 0;
 
-	while ((c = getopt(argc, argv, "afhio:ruv")) != EOF) {
+	while ((c = getopt(argc, argv, "afhio:ruvs")) != EOF) {
 		switch(c) {
 		case 'a':
 			f_all = 1;
@@ -131,6 +132,9 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			f_verbose = 1;
+			break;
+		case 's':
+			f_export_format = 1;
 			break;
 		default:
 			usage(progname, 1);
@@ -164,7 +168,7 @@ main(int argc, char **argv)
 			return 0;
 		} else {
 			xtab_export_read();
-			dump(f_verbose);
+			dump(f_verbose, f_export_format);
 			return 0;
 		}
 	}
@@ -634,7 +638,7 @@ dumpopt(char c, char *fmt, ...)
 }
 
 static void
-dump(int verbose)
+dump(int verbose, int export_format)
 {
 	nfs_export	*exp;
 	struct exportent *ep;
@@ -647,14 +651,15 @@ dump(int verbose)
 			if (!exp->m_xtabent)
 			    continue; /* neilb */
 			if (htype == MCL_ANONYMOUS)
-				hname = "<world>";
+				hname = (export_format) ? "*" : "<world>";
 			else
 				hname = ep->e_hostname;
-			if (strlen(ep->e_path) > 14)
+			if (strlen(ep->e_path) > 14 && !export_format)
 				printf("%-14s\n\t\t%s", ep->e_path, hname);
 			else
-				printf("%-14s\t%s", ep->e_path, hname);
-			if (!verbose) {
+				printf(((export_format)? "%s %s" : "%-14s\t%s"), ep->e_path, hname);
+
+			if (!verbose && !export_format) {
 				printf("\n");
 				continue;
 			}
@@ -728,6 +733,6 @@ error(nfs_export *exp, int err)
 static void
 usage(const char *progname, int n)
 {
-	fprintf(stderr, "usage: %s [-afhioruv] [host:/path]\n", progname);
+	fprintf(stderr, "usage: %s [-afhioruvs] [host:/path]\n", progname);
 	exit(n);
 }
