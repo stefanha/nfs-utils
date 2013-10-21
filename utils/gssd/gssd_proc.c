@@ -834,7 +834,6 @@ create_auth_rpc_client(struct clnt_info *clp,
 	CLIENT			*rpc_clnt = NULL;
 	struct rpc_gss_sec	sec;
 	AUTH			*auth = NULL;
-	uid_t			save_uid = -1;
 	int			retval = -1;
 	OM_uint32		min_stat;
 	char			rpc_errmsg[1024];
@@ -842,16 +841,6 @@ create_auth_rpc_client(struct clnt_info *clp,
 	struct timeval		timeout = {5, 0};
 	struct sockaddr		*addr = (struct sockaddr *) &clp->addr;
 	socklen_t		salen;
-
-	/* Create the context as the user (not as root) */
-	save_uid = geteuid();
-	if (setfsuid(uid) != 0) {
-		printerr(0, "WARNING: Failed to setfsuid for "
-			    "user with uid %d\n", uid);
-		goto out_fail;
-	}
-	printerr(2, "creating context using fsuid %d (save_uid %d)\n",
-			uid, save_uid);
 
 	sec.qop = GSS_C_QOP_DEFAULT;
 	sec.svc = RPCSEC_GSS_SVC_NONE;
@@ -951,11 +940,6 @@ create_auth_rpc_client(struct clnt_info *clp,
   out:
 	if (sec.cred != GSS_C_NO_CREDENTIAL)
 		gss_release_cred(&min_stat, &sec.cred);
-	/* Restore euid to original value */
-	if (((int)save_uid != -1) && (setfsuid(save_uid) != (int)uid)) {
-		printerr(0, "WARNING: Failed to restore fsuid"
-			    " to uid %d from %d\n", save_uid, uid);
-	}
 	return retval;
 
   out_fail:
@@ -963,6 +947,64 @@ create_auth_rpc_client(struct clnt_info *clp,
 	if (rpc_clnt) clnt_destroy(rpc_clnt);
 
 	goto out;
+}
+
+/*
+ * Create the context as the user (not as root).
+ *
+ * Note that we change the *real* uid here, as changing the effective uid is
+ * not sufficient. This is due to an unfortunate historical error in the MIT
+ * krb5 libs, where they used %{uid} in the default_ccache_name. Changing that
+ * now might break some applications so we're sort of stuck with it.
+ *
+ * Unfortunately, doing this leaves the forked child vulnerable to signals and
+ * renicing, but this is the best we can do. In the event that a child is
+ * signalled before downcalling, the kernel will just eventually time out the
+ * upcall attempt.
+ */
+static int
+change_identity(uid_t uid)
+{
+	struct passwd	*pw;
+
+	/* drop list of supplimentary groups first */
+	if (setgroups(0, NULL) != 0) {
+		printerr(0, "WARNING: unable to drop supplimentary groups!");
+		return errno;
+	}
+
+	/* try to get pwent for user */
+	pw = getpwuid(uid);
+	if (!pw) {
+		/* if that doesn't work, try to get one for "nobody" */
+		errno = 0;
+		pw = getpwnam("nobody");
+		if (!pw) {
+			printerr(0, "WARNING: unable to determine gid for uid %u\n", uid);
+			return errno ? errno : ENOENT;
+		}
+	}
+
+	/*
+	 * Switch the GIDs. Note that we leave the saved-set-gid alone in an
+	 * attempt to prevent attacks via ptrace()
+	 */
+	if (setresgid(pw->pw_gid, pw->pw_gid, -1) != 0) {
+		printerr(0, "WARNING: failed to set gid to %u!\n", pw->pw_gid);
+		return errno;
+	}
+
+	/*
+	 * Switch UIDs, but leave saved-set-uid alone to prevent ptrace() by
+	 * other processes running with this uid.
+	 */
+	if (setresuid(uid, uid, -1) != 0) {
+		printerr(0, "WARNING: Failed to setuid for user with uid %u\n",
+				uid);
+		return errno;
+	}
+
+	return 0;
 }
 
 /*
@@ -1036,6 +1078,14 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		 service ? service : "<null>");
 	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0 &&
 				service == NULL)) {
+
+		err = change_identity(uid);
+		if (err) {
+			printerr(0, "WARNING: failed to change identity: %s",
+				 strerror(err));
+			goto out_return_error;
+		}
+
 		/* Tell krb5 gss which credentials cache to use */
 		/* Try first to acquire credentials directly via GSSAPI */
 		err = gssd_acquire_user_cred(uid, &gss_cred);
