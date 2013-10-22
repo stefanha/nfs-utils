@@ -35,8 +35,8 @@
 #include "xlog.h"
 
 static void	export_all(int verbose);
-static void	exportfs(char *arg, char *options, int verbose);
-static void	unexportfs(char *arg, int verbose);
+static int	exportfs(char *arg, char *options, int verbose);
+static int	unexportfs(char *arg, int verbose);
 static void	exports_update(int verbose);
 static void	dump(int verbose, int export_format);
 static void	error(nfs_export *exp, int err);
@@ -187,8 +187,12 @@ main(int argc, char **argv)
 		if (f_all)
 			export_all(f_verbose);
 		else
-			for (i = optind; i < argc ; i++)
-				exportfs(argv[i], options, f_verbose);
+			for (i = optind; i < argc ; i++) {
+				if(!exportfs(argv[i], options, f_verbose)) {
+					/* Only flag a generic EINVAL if no errno is set */
+					export_errno = (export_errno) ? export_errno : EINVAL;
+				}
+			}
 	}
 	/* If we are unexporting everything, then
 	 * don't care about what should be exported, as that
@@ -201,8 +205,12 @@ main(int argc, char **argv)
 		if (!f_reexport)
 			xtab_export_read();
 		if (!f_export)
-			for (i = optind ; i < argc ; i++)
-				unexportfs(argv[i], f_verbose);
+			for (i = optind ; i < argc ; i++) {
+				if (!unexportfs(argv[i], f_verbose)) {
+					/* Only flag a generic EINVAL if no errno is set */
+					export_errno = (export_errno) ? export_errno : EINVAL;
+				}
+			}
 		if (!new_cache)
 			rmtab_read();
 	}
@@ -296,9 +304,10 @@ export_all(int verbose)
 }
 
 
-static void
+static int
 exportfs(char *arg, char *options, int verbose)
 {
+	int rc = 0;
 	struct exportent *eep;
 	nfs_export	*exp = NULL;
 	struct addrinfo	*ai = NULL;
@@ -311,7 +320,8 @@ exportfs(char *arg, char *options, int verbose)
 
 	if (!path || *path != '/') {
 		xlog(L_ERROR, "Invalid exporting option: %s", arg);
-		return;
+		export_errno = EINVAL;
+		return rc;
 	}
 
 	if ((htype = client_gettype(hname)) == MCL_FQDN) {
@@ -339,13 +349,16 @@ exportfs(char *arg, char *options, int verbose)
 	exp->m_warned = 0;
 	validate_export(exp);
 
+	rc = 1;
 out:
 	freeaddrinfo(ai);
+	return rc;
 }
 
-static void
+static int
 unexportfs(char *arg, int verbose)
 {
+	int rc = 0;
 	nfs_export	*exp;
 	struct addrinfo *ai = NULL;
 	char		*path;
@@ -357,7 +370,8 @@ unexportfs(char *arg, int verbose)
 
 	if (!path || *path != '/') {
 		xlog(L_ERROR, "Invalid unexporting option: %s", arg);
-		return;
+		export_errno = EINVAL;
+		return rc;
 	}
 
 	if ((htype = client_gettype(hname)) == MCL_FQDN) {
@@ -397,9 +411,11 @@ unexportfs(char *arg, int verbose)
 #endif
 		exp->m_xtabent = 0;
 		exp->m_mayexport = 0;
+		rc = 1;
 	}
 
 	freeaddrinfo(ai);
+	return rc;
 }
 
 static int can_test(void)
@@ -728,6 +744,7 @@ error(nfs_export *exp, int err)
 {
 	xlog(L_ERROR, "%s:%s: %s", exp->m_client->m_hostname,
 		exp->m_export.e_path, strerror(err));
+	export_errno = (export_errno) ? export_errno : err;
 }
 
 static void
