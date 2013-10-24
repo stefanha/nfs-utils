@@ -745,7 +745,6 @@ client_check(const nfs_client *clp, const struct addrinfo *ai)
 int
 client_gettype(char *ident)
 {
-	struct addrinfo *ai;
 	char *sp;
 
 	if (ident[0] == '\0' || strcmp(ident, "*")==0)
@@ -765,16 +764,6 @@ client_gettype(char *ident)
 			return MCL_SUBNETWORK;
 		if (*sp == '\\' && sp[1])
 			sp++;
-	}
-
-	/*
-	 * Treat unadorned IP addresses as MCL_SUBNETWORK.
-	 * Everything else is MCL_FQDN.
-	 */
-	ai = host_pton(ident);
-	if (ai != NULL) {
-		freeaddrinfo(ai);
-		return MCL_SUBNETWORK;
 	}
 
 	return MCL_FQDN;
