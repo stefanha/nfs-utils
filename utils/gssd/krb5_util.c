@@ -1405,6 +1405,13 @@ gssd_acquire_user_cred(uid_t uid, gss_cred_id_t *gss_cred)
 
 	ret = gssd_acquire_krb5_cred(name, gss_cred);
 
+	/* force validation of cred to check for expiry */
+	if (ret == 0) {
+		if (gss_inquire_cred(&min_stat, *gss_cred, NULL, NULL,
+				     NULL, NULL) != GSS_S_COMPLETE)
+			ret = -1;
+	}
+
 	maj_stat = gss_release_name(&min_stat, &name);
 	return ret;
 }
