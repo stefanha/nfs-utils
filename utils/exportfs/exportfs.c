@@ -413,6 +413,8 @@ unexportfs(char *arg, int verbose)
 		exp->m_mayexport = 0;
 		rc = 1;
 	}
+	if (!rc && verbose)
+		xlog(L_ERROR, "Could not find '%s:%s' to unexport.", arg, path);
 
 	freeaddrinfo(ai);
 	return rc;
