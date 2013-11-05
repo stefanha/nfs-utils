@@ -47,8 +47,6 @@ struct flav_info flav_map[] = {
 
 const int flav_map_size = sizeof(flav_map)/sizeof(flav_map[0]);
 
-int export_errno;
-
 static char	*efname = NULL;
 static XFILE	*efp = NULL;
 static int	first;
@@ -133,7 +131,6 @@ getexportent(int fromkernel, int fromexports)
 	}
 	if (ok < 0) {
 		xlog(L_ERROR, "expected client(options...)");
-		export_errno = EINVAL;
 		return NULL;
 	}
 	first = 0;
@@ -153,7 +150,6 @@ getexportent(int fromkernel, int fromexports)
 		ok = getexport(exp, sizeof(exp));
 		if (ok < 0) {
 			xlog(L_ERROR, "expected client(options...)");
-			export_errno = EINVAL;
 			return NULL;
 		}
 	}
@@ -173,7 +169,6 @@ getexportent(int fromkernel, int fromexports)
 		*opt++ = '\0';
 		if (!(sp = strchr(opt, ')')) || sp[1] != '\0') {
 			syntaxerr("bad option list");
-			export_errno = EINVAL;
 			return NULL;
 		}
 		*sp = '\0';
@@ -590,7 +585,6 @@ parseopts(char *cp, struct exportent *ep, int warn, int *had_subtree_opt_ptr)
 				     flname, flline, opt);	
 bad_option:
 				free(opt);
-				export_errno = EINVAL;
 				return -1;
 			}
 		} else if (strncmp(opt, "anongid=", 8) == 0) {

@@ -175,12 +175,10 @@ host_addrinfo(const char *hostname)
 	case 0:
 		return ai;
 	case EAI_SYSTEM:
-		export_errno = errno;
 		xlog(D_GENERAL, "%s: failed to resolve %s: (%d) %m",
 				__func__, hostname, errno);
 		break;
 	default:
-		export_errno = EINVAL;
 		xlog(D_GENERAL, "%s: failed to resolve %s: %s",
 				__func__, hostname, gai_strerror(error));
 		break;

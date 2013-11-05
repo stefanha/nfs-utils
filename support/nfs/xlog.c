@@ -38,6 +38,8 @@ static int  logmask = 0;		/* What will be logged		*/
 static char log_name[256];		/* name of this program		*/
 static int  log_pid = -1;		/* PID of this program		*/
 
+int export_errno = 0;
+
 static void	xlog_toggle(int sig);
 static struct xlog_debugfac	debugnames[] = {
 	{ "general",	D_GENERAL, },
@@ -189,6 +191,9 @@ void
 xlog(int kind, const char* fmt, ...)
 {
 	va_list args;
+
+	if (kind & (L_ERROR|D_GENERAL))
+		export_errno = 1;
 
 	va_start(args, fmt);
 	xlog_backend(kind, fmt, args);

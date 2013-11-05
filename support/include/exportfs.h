@@ -179,7 +179,4 @@ struct export_features {
 struct export_features *get_export_features(void);
 void fix_pseudoflavor_flags(struct exportent *ep);
 
-/* Record export error.  */
-extern int export_errno;
-
 #endif /* EXPORTFS_H */

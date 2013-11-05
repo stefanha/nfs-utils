@@ -35,6 +35,7 @@ struct xlog_debugfac {
 	int		df_fac;
 };
 
+extern int export_errno;
 void			xlog_open(char *progname);
 void			xlog_stderr(int on);
 void			xlog_syslog(int on);
