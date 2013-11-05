@@ -380,9 +380,10 @@ If a value of zero is specified, the
 .BR mount (8)
 command exits immediately after the first failure.
 .TP 1.5i
-.BI sec= flavor
-The security flavor to use for accessing files on this mount point.
-If the server does not support this flavor, the mount operation fails.
+.BI sec= flavors
+A colon-separated list of one or more security flavors to use for accessing
+files on the mounted export. If the server does not support any of these
+flavors, the mount operation fails.
 If
 .B sec=
 is not specified, the client attempts to find
@@ -908,12 +909,20 @@ Here is an example from an /etc/fstab file for an NFS version 2 mount over UDP.
 	server:/export	/mnt	nfs	nfsvers=2,proto=udp	0 0
 .fi
 .P
-Try this example to mount using NFS version 4 over TCP
+This example shows how to mount using NFS version 4 over TCP
 with Kerberos 5 mutual authentication.
 .P
 .nf
 .ta 8n +16n +6n +6n +30n
 	server:/export	/mnt	nfs4	sec=krb5	0 0
+.fi
+.P
+This example shows how to mount using NFS version 4 over TCP
+with Kerberos 5 privacy or data integrity mode.
+.P
+.nf
+.ta 8n +16n +6n +6n +30n
+	server:/export	/mnt	nfs4	sec=krb5p:krb5i	0 0
 .fi
 .P
 This example can be used to mount /usr over NFS.
