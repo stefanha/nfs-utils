@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <netdb.h>
+#include "nfslib.h"
 
 #include <netinet/in.h>
 
@@ -417,6 +418,10 @@ nfs_svc_create(char *name, const rpcprog_t program, const rpcvers_t version,
 		if (!(nconf->nc_flag & NC_VISIBLE))
 			continue;
 		visible++;
+
+		if (!strcmp(nconf->nc_proto, NC_TCP) && !NFSCTL_TCPISSET(_rpcprotobits))
+			continue;
+
 		if (port == 0)
 			servport = getservport(program, nconf->nc_proto);
 		else

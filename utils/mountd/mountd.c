@@ -755,7 +755,7 @@ main(int argc, char **argv)
 			nfs_version &= ~NFSVERSBIT(vers);
 			break;
 		case 'n':
-			_rpcfdtype = SOCK_DGRAM;
+			NFSCTL_TCPUNSET(_rpcprotobits);
 			break;
 		case 'r':
 			reverse_resolve = 1;

@@ -56,7 +56,7 @@ void		rpc_dispatch(struct svc_req *rq, SVCXPRT *xprt,
 int		getservport(u_long number, const char *proto);
 
 extern int	_rpcpmstart;
-extern int	_rpcfdtype;
+extern unsigned int	_rpcprotobits;
 extern int	_rpcsvcdirty;
 
 static inline struct sockaddr_in *nfs_getrpccaller_in(SVCXPRT *xprt)
