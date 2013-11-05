@@ -58,6 +58,7 @@
 #define PMAP_TIMEOUT	(10)
 #define CONNECT_TIMEOUT	(20)
 #define MOUNT_TIMEOUT	(30)
+#define STATD_TIMEOUT	(10)
 
 #define SAFE_SOCKADDR(x)	(struct sockaddr *)(char *)(x)
 
@@ -773,6 +774,11 @@ int start_statd(void)
 #ifdef START_STATD
 	if (stat(START_STATD, &stb) == 0) {
 		if (S_ISREG(stb.st_mode) && (stb.st_mode & S_IXUSR)) {
+			int cnt = STATD_TIMEOUT * 10;
+			const struct timespec ts = {
+				.tv_sec = 0,
+				.tv_nsec = 100000000,
+			};
 			pid_t pid = fork();
 			switch (pid) {
 			case 0: /* child */
@@ -786,8 +792,13 @@ int start_statd(void)
 				waitpid(pid, NULL,0);
 				break;
 			}
-			if (nfs_probe_statd())
-				return 1;
+			while (1) {
+				if (nfs_probe_statd())
+					return 1;
+				if (! cnt--)
+					return 0;
+				nanosleep(&ts, NULL);
+			}
 		}
 	}
 #endif
