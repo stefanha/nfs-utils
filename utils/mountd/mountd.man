@@ -181,6 +181,9 @@ threads are usually only needed for NFS servers which need to handle
 mount storms of hundreds of NFS mounts in a few seconds, or when
 your DNS server is slow or unreliable.
 .TP
+.B  \-u " or " \-\-no-udp
+Don't advertise UDP for mounting
+.TP
 .B \-V " or " \-\-nfs-version
 This option can be used to request that
 .B rpc.mountd

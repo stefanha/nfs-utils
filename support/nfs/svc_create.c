@@ -419,6 +419,9 @@ nfs_svc_create(char *name, const rpcprog_t program, const rpcvers_t version,
 			continue;
 		visible++;
 
+		if (!strcmp(nconf->nc_proto, NC_UDP) && !NFSCTL_UDPISSET(_rpcprotobits))
+			continue;
+
 		if (!strcmp(nconf->nc_proto, NC_TCP) && !NFSCTL_TCPISSET(_rpcprotobits))
 			continue;
 

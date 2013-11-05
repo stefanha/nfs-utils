@@ -68,6 +68,7 @@ static struct option longopts[] =
 	{ "num-threads", 1, 0, 't' },
 	{ "reverse-lookup", 0, 0, 'r' },
 	{ "manage-gids", 0, 0, 'g' },
+	{ "no-udp", 0, 0, 'u' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -708,7 +709,7 @@ main(int argc, char **argv)
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;
-	while ((c = getopt_long(argc, argv, "o:nFd:f:p:P:hH:N:V:vrs:t:g", longopts, NULL)) != EOF)
+	while ((c = getopt_long(argc, argv, "o:nFd:f:p:P:hH:N:V:vurs:t:g", longopts, NULL)) != EOF)
 		switch (c) {
 		case 'g':
 			manage_gids = 1;
@@ -782,6 +783,9 @@ main(int argc, char **argv)
 		case 'v':
 			printf("%s version " VERSION "\n", progname);
 			exit(0);
+		case 'u':
+			NFSCTL_UDPUNSET(_rpcprotobits);
+			break;
 		case 0:
 			break;
 		case '?':
@@ -849,7 +853,7 @@ main(int argc, char **argv)
 		listeners += nfs_svc_create("mountd", MOUNTPROG,
 					MOUNTVERS_NFSV3, mount_dispatch, port);
 	if (version23() && listeners == 0)
-		xlog(L_FATAL, "mountd: could not create listeners\n");
+		xlog(L_WARNING, "mountd: No V2 or V3 listeners created!");
 
 	sa.sa_handler = killer;
 	sigaction(SIGINT, &sa, NULL);
@@ -907,6 +911,6 @@ usage(const char *prog, int n)
 "	[-p|--port port] [-V version|--nfs-version version]\n"
 "	[-N version|--no-nfs-version version] [-n|--no-tcp]\n"
 "	[-H ha-callout-prog] [-s|--state-directory-path path]\n"
-"	[-g|--manage-gids] [-t num|--num-threads=num]\n", prog);
+"	[-g|--manage-gids] [-t num|--num-threads=num] [-u|--no-udp]\n", prog);
 	exit(n);
 }
