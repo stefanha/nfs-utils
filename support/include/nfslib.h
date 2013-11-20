@@ -128,6 +128,10 @@ void			fputrmtabent(FILE *fp, struct rmtabent *xep, long *pos);
 void			fendrmtabent(FILE *fp);
 void			frewindrmtabent(FILE *fp);
 
+/* mydaemon */
+void mydaemon(int nochdir, int noclose, int *pipefds);
+void release_parent(int *pipefds);
+
 /*
  * wildmat borrowed from INN
  */

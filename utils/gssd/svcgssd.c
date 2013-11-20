@@ -62,91 +62,7 @@
 #include "gss_util.h"
 #include "err_util.h"
 
-/*
- * mydaemon creates a pipe between the partent and child
- * process. The parent process will wait until the
- * child dies or writes a '1' on the pipe signaling
- * that it started successfully.
- */
-int pipefds[2] = { -1, -1};
-
-static void
-mydaemon(int nochdir, int noclose)
-{
-	int pid, status, tempfd;
-
-	if (pipe(pipefds) < 0) {
-		printerr(1, "mydaemon: pipe() failed: errno %d (%s)\n",
-			errno, strerror(errno));
-		exit(1);
-	}
-	if ((pid = fork ()) < 0) {
-		printerr(1, "mydaemon: fork() failed: errno %d (%s)\n",
-			errno, strerror(errno));
-		exit(1);
-	}
-
-	if (pid != 0) {
-		/*
-		 * Parent. Wait for status from child.
-		 */
-		close(pipefds[1]);
-		if (read(pipefds[0], &status, 1) != 1)
-			exit(1);
-		exit (0);
-	}
-	/* Child.	*/
-	close(pipefds[0]);
-	setsid ();
-	if (nochdir == 0) {
-		if (chdir ("/") == -1) {
-			printerr(1, "mydaemon: chdir() failed: errno %d (%s)\n",
-				errno, strerror(errno));
-			exit(1);
-		}
-	}
-
-	while (pipefds[1] <= 2) {
-		pipefds[1] = dup(pipefds[1]);
-		if (pipefds[1] < 0) {
-			printerr(1, "mydaemon: dup() failed: errno %d (%s)\n",
-				errno, strerror(errno));
-			exit(1);
-		}
-	}
-
-	if (noclose == 0) {
-		tempfd = open("/dev/null", O_RDWR);
-		if (tempfd >= 0) {
-			dup2(tempfd, 0);
-			dup2(tempfd, 1);
-			dup2(tempfd, 2);
-			close(tempfd);
-		} else {
-			printerr(1, "mydaemon: can't open /dev/null: errno %d "
-				    "(%s)\n", errno, strerror(errno));
-			exit(1);
-		}
-	}
-
-	return;
-}
-
-static void
-release_parent(void)
-{
-	int status;
-
-	if (pipefds[1] > 0) {
-		if (write(pipefds[1], &status, 1) != 1) {
-			printerr(1, 
-				"WARN: writing to parent pipe failed: errno %d (%s)\n",
-				errno, strerror(errno));
-		}
-		close(pipefds[1]);
-		pipefds[1] = -1;
-	}
-}
+static int pipefds[2] = { -1, -1 };
 
 void
 sig_die(int signal)
@@ -242,7 +158,7 @@ main(int argc, char *argv[])
 	}
 
 	if (!fg)
-		mydaemon(0, 0);
+		mydaemon(0, 0, pipefds);
 
 	signal(SIGINT, sig_die);
 	signal(SIGTERM, sig_die);
@@ -272,7 +188,7 @@ main(int argc, char *argv[])
 	}
 
 	if (!fg)
-		release_parent();
+		release_parent(pipefds);
 
 	nfs4_init_name_mapping(NULL); /* XXX: should only do this once */
 	gssd_run();

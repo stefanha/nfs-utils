@@ -157,9 +157,6 @@ static int nfsdopenone(struct idmap_client *);
 static void nfsdreopen_one(struct idmap_client *);
 static void nfsdreopen(void);
 
-void    mydaemon(int, int);
-void    release_parent(void);
-
 static int verbose = 0;
 #define DEFAULT_IDMAP_CACHE_EXPIRY 600 /* seconds */
 static int cache_entry_expiration = 0;
@@ -167,6 +164,7 @@ static char pipefsdir[PATH_MAX];
 static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
 static gid_t nobodygid;
+static int pipefds[2] = { -1, -1 };
 
 /* Used by conffile.c in libnfs.a */
 char *conf_path;
@@ -305,7 +303,7 @@ main(int argc, char **argv)
 		errx(1, "Unable to create name to user id mappings.");
 
 	if (!fg)
-		mydaemon(0, 0);
+		mydaemon(0, 0, pipefds);
 
 	event_init();
 
@@ -382,7 +380,7 @@ main(int argc, char **argv)
 	if (nfsdret != 0 && fd == 0)
 		xlog_err("main: Neither NFS client nor NFSd found");
 
-	release_parent();
+	release_parent(pipefds);
 
 	if (event_dispatch() < 0)
 		xlog_err("main: event_dispatch returns errno %d (%s)",
@@ -928,78 +926,4 @@ getfield(char **bpp, char *fld, size_t fldsz)
 	*fld = '\0';
 
 	return (0);
-}
-/*
- * mydaemon creates a pipe between the partent and child
- * process. The parent process will wait until the
- * child dies or writes a '1' on the pipe signaling
- * that it started successfully.
- */
-int pipefds[2] = { -1, -1};
-
-void
-mydaemon(int nochdir, int noclose)
-{
-	int pid, status, tempfd;
-
-	if (pipe(pipefds) < 0)
-		err(1, "mydaemon: pipe() failed: errno %d", errno);
-
-	if ((pid = fork ()) < 0)
-		err(1, "mydaemon: fork() failed: errno %d", errno);
-
-	if (pid != 0) {
-		/*
-		 * Parent. Wait for status from child.
-		 */
-		close(pipefds[1]);
-		if (read(pipefds[0], &status, 1) != 1)
-			exit(1);
-		exit (0);
-	}
-	/* Child.	*/
-	close(pipefds[0]);
-	setsid ();
-	if (nochdir == 0) {
-		if (chdir ("/") == -1)
-			err(1, "mydaemon: chdir() failed: errno %d", errno);
-	}
-
-	while (pipefds[1] <= 2) {
-		pipefds[1] = dup(pipefds[1]);
-		if (pipefds[1] < 0)
-			err(1, "mydaemon: dup() failed: errno %d", errno);
-	}
-
-	if (noclose == 0) {
-		tempfd = open("/dev/null", O_RDWR);
-		if (tempfd < 0)
-			tempfd = open("/", O_RDONLY);
-		if (tempfd >= 0) {
-			dup2(tempfd, 0);
-			dup2(tempfd, 1);
-			dup2(tempfd, 2);
-			close(tempfd);
-		} else {
-			err(1, "mydaemon: can't open /dev/null: errno %d",
-			       errno);
-			exit(1);
-		}
-	}
-
-	return;
-}
-void
-release_parent(void)
-{
-	int status;
-
-	if (pipefds[1] > 0) {
-		if (write(pipefds[1], &status, 1) != 1) {
-			err(1, "Writing to parent pipe failed: errno %d (%s)\n",
-				errno, strerror(errno));
-		}
-		close(pipefds[1]);
-		pipefds[1] = -1;
-	}
 }
