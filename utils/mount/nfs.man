@@ -856,6 +856,26 @@ In the presence of multiple client network interfaces,
 special routing policies,
 or atypical network topologies,
 the exact address to use for callbacks may be nontrivial to determine.
+.TP 1.5i
+.BR migration " / " nomigration
+Selects whether the client uses an identification string that is compatible
+with NFSv4 Transparent State Migration (TSM).
+If the mounted server supports NFSv4 migration with TSM, specify the
+.B migration
+option.
+.IP
+Some server features misbehave in the face of a migration-compatible
+identification string.
+The
+.B nomigration
+option retains the use of a traditional client indentification string
+which is compatible with legacy NFS servers.
+This is also the behavior if neither option is specified.
+A client's open and lock state cannot be migrated transparently
+when it identifies itself via a traditional identification string.
+.IP
+This mount option has no effect with NFSv4 minor versions newer than zero,
+which always use TSM-compatible client identification strings.
 .SH nfs4 FILE SYSTEM TYPE
 The
 .BR nfs4
