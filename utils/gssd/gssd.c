@@ -54,6 +54,7 @@
 #include "err_util.h"
 #include "gss_util.h"
 #include "krb5_util.h"
+#include "nfslib.h"
 
 char pipefs_dir[PATH_MAX] = GSSD_PIPEFS_DIR;
 char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
@@ -63,6 +64,7 @@ int  use_memcache = 0;
 int  root_uses_machine_creds = 1;
 unsigned int  context_timeout = 0;
 char *preferred_realm = NULL;
+int pipefds[2] = { -1, -1 };
 
 void
 sig_die(int signal)
@@ -187,8 +189,8 @@ main(int argc, char *argv[])
 	if (gssd_check_mechs() != 0)
 		errx(1, "Problem with gssapi library");
 
-	if (!fg && daemon(0, 0) < 0)
-		errx(1, "fork");
+	if (!fg)
+		mydaemon(0, 0, pipefds);
 
 	signal(SIGINT, sig_die);
 	signal(SIGTERM, sig_die);

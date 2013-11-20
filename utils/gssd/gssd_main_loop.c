@@ -53,6 +53,7 @@
 
 #include "gssd.h"
 #include "err_util.h"
+#include "nfslib.h"
 
 extern struct pollfd *pollarray;
 extern unsigned long pollsize;
@@ -245,6 +246,9 @@ gssd_run()
 				/* Error msg is already printed */
 				exit(1);
 			}
+
+			/* release the parent after the initial dir scan */
+			release_parent(pipefds);
 		}
 		gssd_poll(pollarray, pollsize);
 	}
