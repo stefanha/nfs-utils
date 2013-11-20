@@ -1247,6 +1247,65 @@ If absolute cache coherence among clients is required,
 applications should use file locking. Alternatively, applications
 can also open their files with the O_DIRECT flag
 to disable data caching entirely.
+.SS "File timestamp maintainence"
+NFS servers are responsible for managing file and directory timestamps
+.RB ( atime ,
+.BR ctime ", and"
+.BR mtime ).
+When a file is accessed or updated on an NFS server,
+the file's timestamps are updated just like they would be on a filesystem
+local to an application.
+.P
+NFS clients cache file attributes, including timestamps.
+A file's timestamps are updated on NFS clients when its attributes
+are retrieved from the NFS server.
+Thus there may be some delay before timestamp updates
+on an NFS server appear to applications on NFS clients.
+.P
+To comply with the POSIX filesystem standard, the Linux NFS client
+relies on NFS servers to keep a file's
+.B mtime
+and
+.B ctime
+timestamps properly up to date.
+It does this by flushing local data changes to the server
+before reporting
+.B mtime
+to applications via system calls such as
+.BR stat (2).
+.P
+The Linux client handles
+.B atime
+updates more loosely, however.
+NFS clients maintain good performance by caching data,
+but that means that application reads, which normally update
+.BR atime ,
+are not reflected to the server where a file's
+.B atime
+is actually maintained.
+.P
+Because of this caching behavior,
+the Linux NFS client does not support generic atime-related mount options.
+See
+.BR mount (8)
+for details on these options.
+.P
+In particular, the
+.BR atime / noatime ,
+.BR diratime / nodiratime ,
+.BR relatime / norelatime ,
+and
+.BR strictatime / nostrictatime
+mount options have no effect on NFS mounts.
+.P
+.I /proc/mounts
+may report that the
+.B relatime
+mount option is set on NFS mounts, but in fact the
+.B atime
+semantics are always as described here, and are not like
+.B relatime
+semantics.
 .SS "Directory entry caching"
 The Linux NFS client caches the result of all NFS LOOKUP requests.
 If the requested directory entry exists on the server,
