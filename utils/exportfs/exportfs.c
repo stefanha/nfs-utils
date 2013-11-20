@@ -27,6 +27,10 @@
 #include <netdb.h>
 #include <errno.h>
 #include <dirent.h>
+#include <limits.h>
+#include <time.h>
+
+#define INT_TO_LONG_THRESHOLD_SECS (INT_MAX - (60 * 60 * 24))
 
 #include "sockaddr.h"
 #include "misc.h"
@@ -406,17 +410,33 @@ unexportfs(char *arg, int verbose)
 
 static int can_test(void)
 {
+	char buf[1024];
 	int fd;
 	int n;
-	char *setup = "nfsd 0.0.0.0 2147483647 -test-client-\n";
+
 	fd = open("/proc/net/rpc/auth.unix.ip/channel", O_WRONLY);
-	if ( fd < 0) return 0;
-	n = write(fd, setup, strlen(setup));
+	if (fd < 0)
+		return 0;
+
+	/*
+	 * We introduce tolerance of 1 day to ensure that we use a
+	 * LONG_MAX for the expiry timestamp before it is actually
+	 * needed. To use LONG_MAX, the kernel code must have 
+	 * commit 2f74f972  (sunrpc: prepare NFS for 2038).
+	 */
+	if (time(NULL) > INT_TO_LONG_THRESHOLD_SECS)
+		sprintf(buf, "nfsd 0.0.0.0 %ld -test-client-\n", LONG_MAX);
+	else
+		sprintf(buf, "nfsd 0.0.0.0 %d -test-client-\n", INT_MAX);
+
+	n = write(fd, buf, strlen(buf));
 	close(fd);
 	if (n < 0)
 		return 0;
+
 	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
-	if ( fd < 0) return 0;
+	if (fd < 0)
+		return 0;
 	close(fd);
 	return 1;
 }
