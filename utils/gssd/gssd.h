@@ -73,6 +73,7 @@ TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 struct clnt_info {
 	TAILQ_ENTRY(clnt_info)	list;
 	char			*dirname;
+	char			*pdir;
 	int			dir_fd;
 	char			*servicename;
 	char			*servername;

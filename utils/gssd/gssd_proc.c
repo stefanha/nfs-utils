@@ -323,6 +323,7 @@ destroy_client(struct clnt_info *clp)
 	if (clp->krb5_fd != -1) close(clp->krb5_fd);
 	if (clp->gssd_fd != -1) close(clp->gssd_fd);
 	free(clp->dirname);
+	free(clp->pdir);
 	free(clp->servicename);
 	free(clp->servername);
 	free(clp->protocol);
@@ -463,6 +464,9 @@ process_clnt_dir(char *dir, char *pdir)
 	if (!(clp = insert_new_clnt()))
 		goto fail_destroy_client;
 
+	if (!(clp->pdir = strdup(pdir)))
+		goto fail_destroy_client;
+
 	/* An extra for the '/', and an extra for the null */
 	if (!(clp->dirname = calloc(strlen(dir) + strlen(pdir) + 2, 1))) {
 		goto fail_destroy_client;
@@ -527,7 +531,7 @@ update_old_clients(struct dirent **namelist, int size, char *pdir)
 		/* only compare entries in the global list that are from the
 		 * same pipefs parent directory as "pdir"
 		 */
-		if (strcmp(clp->dirname, pdir) != 0) continue;
+		if (strcmp(clp->pdir, pdir) != 0) continue;
 
 		stillhere = 0;
 		for (i=0; i < size; i++) {
