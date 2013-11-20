@@ -1044,7 +1044,10 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		return;
 	default:
 		/* Parent: just wait on child to exit and return */
-		wait(&err);
+		do {
+			pid = wait(&err);
+		} while(pid == -1 && errno != -ECHILD);
+
 		if (WIFSIGNALED(err))
 			printerr(0, "WARNING: forked child was killed with signal %d\n",
 					WTERMSIG(err));
