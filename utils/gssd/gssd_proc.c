@@ -256,6 +256,7 @@ read_service_info(char *info_file_name, char **servicename, char **servername,
 	if ((nbytes = read(fd, buf, INFOBUFLEN)) == -1)
 		goto fail;
 	close(fd);
+	fd = -1;
 	buf[nbytes] = '\0';
 
 	numfields = sscanf(buf,"RPC server: %127s\n"
@@ -403,11 +404,10 @@ process_clnt_dir_files(struct clnt_info * clp)
 		return -1;
 	snprintf(info_file_name, sizeof(info_file_name), "%s/info",
 			clp->dirname);
-	if ((clp->servicename == NULL) &&
-	     read_service_info(info_file_name, &clp->servicename,
-				&clp->servername, &clp->prog, &clp->vers,
-				&clp->protocol, (struct sockaddr *) &clp->addr))
-		return -1;
+	if (clp->prog == 0)
+		read_service_info(info_file_name, &clp->servicename,
+				  &clp->servername, &clp->prog, &clp->vers,
+				  &clp->protocol, (struct sockaddr *) &clp->addr);
 	return 0;
 }
 
@@ -1320,11 +1320,14 @@ handle_gssd_upcall(struct clnt_info *clp)
 		}
 	}
 
-	if (strcmp(mech, "krb5") == 0)
+	if (strcmp(mech, "krb5") == 0 && clp->servername)
 		process_krb5_upcall(clp, uid, clp->gssd_fd, target, service);
-	else
-		printerr(0, "WARNING: handle_gssd_upcall: "
-			    "received unknown gss mech '%s'\n", mech);
+	else {
+		if (clp->servername)
+			printerr(0, "WARNING: handle_gssd_upcall: "
+				 "received unknown gss mech '%s'\n", mech);
+		do_error_downcall(clp->gssd_fd, uid, -EACCES);
+	}
 
 out:
 	free(lbuf);
