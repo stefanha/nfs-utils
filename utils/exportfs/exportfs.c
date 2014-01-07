@@ -666,6 +666,9 @@ dumpopt(char c, char *fmt, ...)
 static void
 dump(int verbose, int export_format)
 {
+	char buf[1024];
+	char *bp;
+	int len;
 	nfs_export	*exp;
 	struct exportent *ep;
 	int		htype;
@@ -683,7 +686,15 @@ dump(int verbose, int export_format)
 			if (strlen(ep->e_path) > 14 && !export_format)
 				printf("%-14s\n\t\t%s", ep->e_path, hname);
 			else
-				printf(((export_format)? "%s %s" : "%-14s\t%s"), ep->e_path, hname);
+				if (export_format) {
+					bp = buf;
+					len = sizeof(buf) - 1;
+					qword_add(&bp, &len, ep->e_path);
+					*bp = '\0';
+					printf("%s %s", buf, hname);
+				} else {
+					printf("%-14s\t%s", ep->e_path, hname);
+				}
 
 			if (!verbose && !export_format) {
 				printf("\n");
