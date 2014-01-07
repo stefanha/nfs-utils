@@ -444,11 +444,15 @@ static int can_test(void)
 static int test_export(char *path, int with_fsid)
 {
 	char buf[1024];
+	char *bp = buf;
+	int len = sizeof(buf);
 	int fd, n;
 
-	sprintf(buf, "-test-client- %s 3 %d 65534 65534 0\n",
-		path,
-		with_fsid ? NFSEXP_FSID : 0);
+	n = snprintf(buf, len, "-test-client- ");
+	bp += n;
+	len -= n;
+	qword_add(&bp, &len, path);
+	snprintf(bp, len, " 3 %d 65534 65534 0\n", with_fsid ? NFSEXP_FSID : 0);
 	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
 	if (fd < 0)
 		return 0;
