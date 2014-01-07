@@ -1245,6 +1245,8 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 				*version = tmp;
 				return 1;
 			}
+			nfs_error(_("%s: parsing error on 'vers=' option\n"),
+					progname);
 			return 0;
 		case PO_NOT_FOUND:
 			nfs_error(_("%s: parsing error on 'vers=' option\n"),
@@ -1262,6 +1264,8 @@ nfs_nfs_version(struct mount_options *options, unsigned long *version)
 				*version = tmp;
 				return 1;
 			}
+			nfs_error(_("%s: parsing error on 'nfsvers=' option\n"),
+					progname);
 			return 0;
 		case PO_NOT_FOUND:
 			nfs_error(_("%s: parsing error on 'nfsvers=' option\n"),
