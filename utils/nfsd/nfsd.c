@@ -99,7 +99,7 @@ main(int argc, char **argv)
 	char *p, *progname, *port;
 	char *haddr = NULL;
 	int	socket_up = 0;
-	int minorvers = NFS4_VERDEFAULT;	/* nfsv4 minor version */
+	int minorvers[NFS4_MAXMINOR + 1] = {0};
 	unsigned int versbits = NFSCTL_VERDEFAULT;
 	unsigned int protobits = NFSCTL_ALLBITS;
 	unsigned int proto4 = 0;
@@ -164,7 +164,7 @@ main(int argc, char **argv)
 						fprintf(stderr, "%s: unsupported minor version\n", optarg);
 						exit(1);
 					}
-					NFSCTL_VERUNSET(minorvers, i);
+					minorvers[i] = -1;
 					break;
 				}
 			case 3:
@@ -185,7 +185,7 @@ main(int argc, char **argv)
 						fprintf(stderr, "%s: unsupported minor version\n", optarg);
 						exit(1);
 					}
-					NFSCTL_VERSET(minorvers, i);
+					minorvers[i] = 1;
 					break;
 				}
 			case 3:

@@ -17,7 +17,6 @@
 
 #define NFS4_MINMINOR 1
 #define NFS4_MAXMINOR 2
-#define NFS4_VERDEFAULT  0x1  /* minor verion 1 */
 
 struct nfs_fh_len {
 	int		fh_size;
