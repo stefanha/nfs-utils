@@ -366,7 +366,7 @@ mkexportent(char *hname, char *path, char *options)
 	ee.e_hostname = xstrdup(hname);
 
 	if (strlen(path) >= sizeof(ee.e_path)) {
-		xlog(L_WARNING, "path name %s too long", path);
+		xlog(L_ERROR, "path name %s too long", path);
 		return NULL;
 	}
 	strncpy(ee.e_path, path, sizeof (ee.e_path));
