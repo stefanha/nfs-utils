@@ -452,6 +452,8 @@ static int test_export(char *path, int with_fsid)
 	bp += n;
 	len -= n;
 	qword_add(&bp, &len, path);
+	if (len < 1)
+		return 0;
 	snprintf(bp, len, " 3 %d 65534 65534 0\n", with_fsid ? NFSEXP_FSID : 0);
 	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
 	if (fd < 0)
