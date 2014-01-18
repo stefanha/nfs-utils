@@ -1381,29 +1381,10 @@ gssd_acquire_krb5_cred(gss_name_t name, gss_cred_id_t *gss_cred)
 int
 gssd_acquire_user_cred(uid_t uid, gss_cred_id_t *gss_cred)
 {
-	OM_uint32 maj_stat, min_stat;
-	gss_buffer_desc name_buf;
-	gss_name_t name;
-	char buf[11];
+	OM_uint32 min_stat;
 	int ret;
 
-	ret = snprintf(buf, 11, "%u", uid);
-	if (ret < 1 || ret > 10) {
-		return -1;
-	}
-	name_buf.value = buf;
-	name_buf.length = ret + 1;
-
-	maj_stat = gss_import_name(&min_stat, &name_buf,
-				   GSS_C_NT_STRING_UID_NAME, &name);
-	if (maj_stat != GSS_S_COMPLETE) {
-		if (get_verbosity() > 0)
-			pgsserr("gss_import_name",
-				maj_stat, min_stat, &krb5oid);
-		return -1;
-	}
-
-	ret = gssd_acquire_krb5_cred(name, gss_cred);
+	ret = gssd_acquire_krb5_cred(GSS_C_NO_NAME, gss_cred);
 
 	/* force validation of cred to check for expiry */
 	if (ret == 0) {
@@ -1412,7 +1393,6 @@ gssd_acquire_user_cred(uid_t uid, gss_cred_id_t *gss_cred)
 			ret = -1;
 	}
 
-	maj_stat = gss_release_name(&min_stat, &name);
 	return ret;
 }
 
