@@ -1095,7 +1095,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 
 		/* Tell krb5 gss which credentials cache to use */
 		/* Try first to acquire credentials directly via GSSAPI */
-		err = gssd_acquire_user_cred(uid, &gss_cred);
+		err = gssd_acquire_user_cred(&gss_cred);
 		if (!err)
 			create_resp = create_auth_rpc_client(clp, tgtname, &rpc_clnt, &auth, uid,
 							     AUTHTYPE_KRB5, gss_cred);

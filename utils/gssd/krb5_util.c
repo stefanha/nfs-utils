@@ -1359,12 +1359,12 @@ gssd_k5_get_default_realm(char **def_realm)
 }
 
 static int
-gssd_acquire_krb5_cred(gss_name_t name, gss_cred_id_t *gss_cred)
+gssd_acquire_krb5_cred(gss_cred_id_t *gss_cred)
 {
 	OM_uint32 maj_stat, min_stat;
 	gss_OID_set_desc desired_mechs = { 1, &krb5oid };
 
-	maj_stat = gss_acquire_cred(&min_stat, name, GSS_C_INDEFINITE,
+	maj_stat = gss_acquire_cred(&min_stat, GSS_C_NO_NAME, GSS_C_INDEFINITE,
 				    &desired_mechs, GSS_C_INITIATE,
 				    gss_cred, NULL, NULL);
 
@@ -1379,12 +1379,12 @@ gssd_acquire_krb5_cred(gss_name_t name, gss_cred_id_t *gss_cred)
 }
 
 int
-gssd_acquire_user_cred(uid_t uid, gss_cred_id_t *gss_cred)
+gssd_acquire_user_cred(gss_cred_id_t *gss_cred)
 {
 	OM_uint32 min_stat;
 	int ret;
 
-	ret = gssd_acquire_krb5_cred(GSS_C_NO_NAME, gss_cred);
+	ret = gssd_acquire_krb5_cred(gss_cred);
 
 	/* force validation of cred to check for expiry */
 	if (ret == 0) {
@@ -1423,7 +1423,7 @@ limit_krb5_enctypes(struct rpc_gss_sec *sec)
 	int err = -1;
 
 	if (sec->cred == GSS_C_NO_CREDENTIAL) {
-		err = gssd_acquire_krb5_cred(GSS_C_NO_NAME, &sec->cred);
+		err = gssd_acquire_krb5_cred(&sec->cred);
 		if (err)
 			return -1;
 	}
