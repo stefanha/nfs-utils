@@ -12,10 +12,7 @@
 .Nm rpc.idmapd
 .Op Fl v
 .Op Fl f
-.Op Fl d Ar domain
 .Op Fl p Ar path
-.Op Fl U Ar username
-.Op Fl G Ar groupname
 .Op Fl c Ar path
 .Sh DESCRIPTION
 .Nm
@@ -31,25 +28,10 @@ Increases the verbosity level (can be specified multiple times).
 Runs
 .Nm
 in the foreground and prints all output to the terminal.
-.It Fl d Ar domain
-Set domain to
-.Ar domain .
-This is used internally by NFSv4 and is typically assigned by the
-system administrator.  By default,
-.Ar domain
-is set to be the FQDN of the host, minus the hostname.
 .It Fl p Ar path
 Specifies the location of the RPC pipefs to be
 .Ar path .
 The default value is \&"/var/lib/nfs/rpc_pipefs\&".
-.It Fl U Ar username
-Specifies the NFSv4 nobody user to be
-.Ar username .
-The default value is \&"nobody\&".
-.It Fl G Ar groupname
-Specifies the NFSv4 nobody group to be
-.Ar groupname .
-The default value is \&"nobody\&".
 .It Fl c Ar path
 Use configuration file
 .Ar path .
@@ -59,11 +41,11 @@ Client-only: perform no idmapping for any NFS server, even if one is detected.
 Server-only: perform no idmapping for any NFS client, even if one is detected.
 .El
 .Sh EXAMPLES
-.Cm rpc.idmapd -d \&"citi.umich.edu\&" -f -vvv
+.Cm rpc.idmapd -f -vvv
 .Pp
 Runs
 .Nm
-with the domain \&"citi.umich.edu\&" in the foreground, printing all
+printing all
 messages to console, and with a verbosity level of 3.
 .\" This next request is for sections 2 and 3 function return values only.
 .\" .Sh RETURN VALUES
