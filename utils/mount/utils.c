@@ -93,7 +93,7 @@ void print_one(char *spec, char *node, char *type, char *opts)
 
 void mount_usage(void)
 {
-	printf(_("usage: %s remotetarget dir [-rvVwfnsih] [-o nfsoptions]\n"),
+	printf(_("usage: %s remotetarget dir [-rvVwfnsh] [-o nfsoptions]\n"),
 		progname);
 	printf(_("options:\n"));
 	printf(_("\t-r\t\tMount file system readonly\n"));
