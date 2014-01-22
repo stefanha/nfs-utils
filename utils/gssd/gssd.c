@@ -46,6 +46,7 @@
 
 #include <unistd.h>
 #include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -159,6 +160,18 @@ main(int argc, char *argv[])
 				usage(argv[0]);
 				break;
 		}
+	}
+
+	/*
+	 * Some krb5 routines try to scrape info out of files in the user's
+	 * home directory. This can easily deadlock when that homedir is on a
+	 * kerberized NFS mount. By setting $HOME unconditionally to "/", we
+	 * prevent this behavior in routines that use $HOME in preference to
+	 * the results of getpw*.
+	 */
+	if (setenv("HOME", "/", 1)) {
+		printerr(1, "Unable to set $HOME: %s\n", strerror(errno));
+		exit(1);
 	}
 
 	i = 0;
