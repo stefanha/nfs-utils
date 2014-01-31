@@ -1,0 +1,8 @@
+[Unit]
+Description=Secure NFS client/server services
+# If this target is enabled, then rpc.gssd and rpc.svcgssd will be started
+# as required.  If it is not enabled they won't.
+
+[Install]
+WantedBy=remote-fs.target
+WantedBy=multi-user.target
