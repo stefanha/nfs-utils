@@ -1,0 +1,17 @@
+[Unit]
+Description=Notify NFS peers of a restart
+DefaultDependencies=no
+Requires=network-online.target
+After=network-online.target nss-lookup.target
+
+# if we run an nfs server, it needs to be running before we
+# tell clients that it has restarted.
+After=nfs-server.service
+
+[Service]
+EnvironmentFile=-/run/sysconfig/nfs-utils
+ExecStartPre=/usr/lib/systemd/scritps/nfs-utils_env.sh
+
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=-/usr/sbin/sm-notify -d $SMNOTIFYARGS
