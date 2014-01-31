@@ -1,0 +1,14 @@
+[Unit]
+Description=RPC security service for NFS client and server
+Requires=var-lib-nfs-rpc_pipefs.mount
+After=var-lib-nfs-rpc_pipefs.mount
+
+Requisite=nfs-secure.target
+After=nfs-secure.target
+
+[Service]
+EnvironmentFile=-/run/sysconfig/nfs-utils
+ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh
+
+Type=forking
+ExecStart=/usr/sbin/rpc.gssd $GSSDARGS
