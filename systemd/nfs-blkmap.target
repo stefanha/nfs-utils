@@ -1,0 +1,8 @@
+[Unit]
+Description= PNFS blkmaping enablement.
+# If this target is enabled, then blkmapd will be started
+# as required.  If it is not enabled it won't.
+
+[Install]
+WantedBy=remote-fs.target
+WantedBy=multi-user.target
