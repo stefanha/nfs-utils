@@ -1,0 +1,9 @@
+[Unit]
+Description=NFSv4 ID-name mapping service
+
+[Service]
+EnvironmentFile=-/run/sysconfig/nfs-utils
+ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh
+
+Type=forking
+ExecStart=/usr/sbin/rpc.idmapd $RPCIDMAPDARGS
