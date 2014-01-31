@@ -1,0 +1,12 @@
+[Unit]
+Description=NFS status monitor for NFSv2/3 locking.
+DefaultDependencies=no
+Requires=nss-lookup.target rpcbind.target
+After=network.target nss-lookup.target rpcbind.target
+
+[Service]
+EnvironmentFile=-/run/sysconfig/nfs-utils
+ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh
+
+Type=forking
+ExecStart=/usr/sbin/rpc.statd --no-notify $STATDARGS
