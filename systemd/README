@@ -1,0 +1,50 @@
+
+Notes about systemd unit files for nfs-utils.
+
+The unit files provided here should be sufficient for systemd
+to manage all daemons and related services provides by nfs-utils.
+
+They do *not* include any unit files for separate services such as
+rpc.rquotad (in the 'quota' package) or rpcbind.
+
+There are 4 units that can be 'enabled' or 'disabled' by systemctl, or
+by a suitable 'preset' setting:
+
+ nfs-server.target
+    If enabled, nfs service is started together with dependencies
+    such as mountd, statd, rpc.idmapd
+
+ nfs-client.target
+    If enabled, daemons needs for an nfs client are enabled.
+    This does *not* include rpc.statd.  the rpc-statd.service unit
+    is started by /usr/sbin/start-statd which mount.nfs will run
+    if statd is needed.
+
+ nfs-secure.target
+    If enabled, then rpc.gssd will be run when either -client or
+    -server is started, and rpc.svcgssd will be run when -server
+    is started
+
+ nfs-blkmap.target
+    If enabled, then blkmapd will be run when nfs-client.target is
+    started.
+
+
+It is possible that we should have an nfs-statd.target which can
+selectively enable statd being stared by -server and sm-notify
+being started by -server or -client.  That way it could be disabled
+completely on V4-only configurations.  Currently statd is always
+started on the server and sm-notify is always run if server or
+client is enabled.
+
+Stopping nfs-server will also stop rpc.mountd, and rpc.svcgssd.
+It cannot stop rpc.statd or rpc.gssd as they may be in use by the
+client and systemd cannot specify is two-pronged reverse dependency.
+(i.e. stop this unit if none of these units are running)
+
+Distro specific commandline configuration can be provided by
+installing a script /usr/lib/systemd/scripts/nfs-utils_env.sh
+This should write /run/sysconfig/nfs-utils based on configuration
+information such as in /etc/sysconfig/nfs or /etc/defaults/nfs.
+It should write to a tmp file and rename to the target to
+avoid parallel units seeing incomplete copies of the file.
