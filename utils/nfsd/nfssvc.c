@@ -269,7 +269,7 @@ nfssvc_set_sockets(const int family, const unsigned int protobits,
 }
 
 void
-nfssvc_setvers(unsigned int ctlbits, int minorvers[])
+nfssvc_setvers(unsigned int ctlbits, unsigned int minorvers, unsigned int minorversset)
 {
 	int fd, n, off;
 	char *ptr;
@@ -281,10 +281,12 @@ nfssvc_setvers(unsigned int ctlbits, int minorvers[])
 		return;
 
 	for (n = NFS4_MINMINOR; n <= NFS4_MAXMINOR; n++) {
-		if (minorvers[n] == 1)
-			off += snprintf(ptr+off, sizeof(buf) - off, "+4.%d ", n);
-		else if (minorvers[n] == -1)
-			off += snprintf(ptr+off, sizeof(buf) - off, "-4.%d ", n);
+		if (NFSCTL_VERISSET(minorversset, n)) {
+			if (NFSCTL_VERISSET(minorvers, n))
+				off += snprintf(ptr+off, sizeof(buf) - off, "+4.%d ", n);
+			else
+				off += snprintf(ptr+off, sizeof(buf) - off, "-4.%d ", n);
+		}
 	}
 	for (n = NFSD_MINVERS; n <= NFSD_MAXVERS; n++) {
 		if (NFSCTL_VERISSET(ctlbits, n))

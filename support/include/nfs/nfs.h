@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <rpcsvc/nfs_prot.h>
 #include <nfs/export.h>
+#include <limits.h>
 
 #define	NFS3_FHSIZE	64
 #define	NFS_FHSIZE	32
@@ -16,7 +17,7 @@
 #define NFSD_MAXVERS 4
 
 #define NFS4_MINMINOR 1
-#define NFS4_MAXMINOR 2
+#define NFS4_MAXMINOR WORD_BIT
 
 struct nfs_fh_len {
 	int		fh_size;

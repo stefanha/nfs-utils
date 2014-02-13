@@ -99,7 +99,8 @@ main(int argc, char **argv)
 	char *p, *progname, *port;
 	char *haddr = NULL;
 	int	socket_up = 0;
-	int minorvers[NFS4_MAXMINOR + 1] = {0};
+	unsigned int minorvers = 0;
+	unsigned int minorversset = 0;
 	unsigned int versbits = NFSCTL_VERDEFAULT;
 	unsigned int protobits = NFSCTL_ALLBITS;
 	unsigned int proto4 = 0;
@@ -160,11 +161,12 @@ main(int argc, char **argv)
 			case 4:
 				if (*p == '.') {
 					int i = atoi(p+1);
-					if (i > 2) {
+					if (i > NFS4_MAXMINOR) {
 						fprintf(stderr, "%s: unsupported minor version\n", optarg);
 						exit(1);
 					}
-					minorvers[i] = -1;
+					NFSCTL_VERSET(minorversset, i);
+					NFSCTL_VERUNSET(minorvers, i);
 					break;
 				}
 			case 3:
@@ -181,11 +183,12 @@ main(int argc, char **argv)
 			case 4:
 				if (*p == '.') {
 					int i = atoi(p+1);
-					if (i > 2) {
+					if (i > NFS4_MAXMINOR) {
 						fprintf(stderr, "%s: unsupported minor version\n", optarg);
 						exit(1);
 					}
-					minorvers[i] = 1;
+					NFSCTL_VERSET(minorversset, i);
+					NFSCTL_VERSET(minorvers, i);
 					break;
 				}
 			case 3:
@@ -282,7 +285,7 @@ main(int argc, char **argv)
 	 * registered with rpcbind. Note that on older kernels w/o the right
 	 * interfaces, these are a no-op.
 	 */
-	nfssvc_setvers(versbits, minorvers);
+	nfssvc_setvers(versbits, minorvers, minorversset);
  
 	error = nfssvc_set_sockets(AF_INET, proto4, haddr, port);
 	if (!error)
