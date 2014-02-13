@@ -1,6 +1,5 @@
 [Unit]
 Description=NFSD configuration filesystem
-DefaultDependencies=no
 
 [Mount]
 What=nfsd

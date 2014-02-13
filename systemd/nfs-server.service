@@ -1,6 +1,5 @@
 [Unit]
-Description=NFS server
-DefaultDependencies=no
+Description=NFS server and services
 Requires= network.target proc-fs-nfsd.mount rpcbind.target
 PartOf=nfs-server.target
 

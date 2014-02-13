@@ -1,5 +1,7 @@
 [Unit]
 Description=RPC security service for NFS client and server
+DefaultDependencies=no
+Conflicts=umount.target
 Requires=var-lib-nfs-rpc_pipefs.mount
 After=var-lib-nfs-rpc_pipefs.mount
 
