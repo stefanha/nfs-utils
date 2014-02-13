@@ -1,6 +1,8 @@
 [Unit]
 Description=NFSv4 ID-name mapping service
 
+PartOf=nfs-utils.service
+
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
 ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh

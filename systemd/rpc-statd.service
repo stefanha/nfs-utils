@@ -4,6 +4,8 @@ DefaultDependencies=no
 Requires=nss-lookup.target rpcbind.target
 After=network.target nss-lookup.target rpcbind.target
 
+PartOf=nfs-utils.service
+
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
 ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh

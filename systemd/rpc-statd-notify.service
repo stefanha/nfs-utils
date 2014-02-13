@@ -8,6 +8,8 @@ After=network-online.target nss-lookup.target
 # tell clients that it has restarted.
 After=nfs-server.service
 
+PartOf=nfs-utils.service
+
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
 ExecStartPre=/usr/lib/systemd/scritps/nfs-utils_env.sh

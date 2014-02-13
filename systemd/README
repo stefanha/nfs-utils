@@ -29,6 +29,17 @@ by a suitable 'preset' setting:
     If enabled, then blkmapd will be run when nfs-client.target is
     started.
 
+Another special unit is "nfs-utils.service".  This doesn't really do
+anything, but exists so that other units may declare themselves as
+"PartOf" nfs-utils.service.
+The effect of this is that
+     systemctl restart nfs-utils
+will restart all nfs-utils daemons as maybe be required during
+software update.  It isn't possible to make
+     systemctl try-restart nfs-server nfs-client.target
+do this as some daemon are included in both, and rpc.statd would
+not be restarted if nfs-server were not active (as nfs-client doesn't
+Want it - it is started by mount.nfs running start-statd).
 
 It is possible that we should have an nfs-statd.target which can
 selectively enable statd being stared by -server and sm-notify

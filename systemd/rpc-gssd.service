@@ -6,6 +6,8 @@ After=var-lib-nfs-rpc_pipefs.mount
 Requisite=nfs-secure.target
 After=nfs-secure.target
 
+PartOf=nfs-utils.service
+
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
 ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh

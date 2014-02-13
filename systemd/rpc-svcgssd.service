@@ -3,6 +3,7 @@ Description=RPC security service for NFS server
 Requires=var-lib-nfs-rpc_pipefs.mount
 After=var-lib-nfs-rpc_pipefs.mount
 PartOf=nfs-server.service
+PartOf=nfs-utils.service
 
 Requisite=nfs-secure.target
 After=nfs-secure.target

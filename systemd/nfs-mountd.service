@@ -4,6 +4,7 @@ Requires=proc-fs-nfsd.mount
 After=proc-fs-nfsd.mount
 After=network.target
 PartOf=nfs-server.service
+PartOf=nfs-utils.service
 
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils

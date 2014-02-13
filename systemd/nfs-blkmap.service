@@ -6,6 +6,8 @@ Requires=var-lib-nfs-rpc_pipefs.mount
 Requisite=nfs-blkmap.target
 After=nfs-blkmap.target
 
+PartOf=nfs-utils.service
+
 [Service]
 Type=forking
 ExecStart=/usr/sbin/blkmapd
