@@ -24,11 +24,6 @@ by a suitable 'preset' setting:
     is started by /usr/sbin/start-statd which mount.nfs will run
     if statd is needed.
 
- nfs-secure.target
-    If enabled, then rpc.gssd will be run when either -client or
-    -server is started, and rpc.svcgssd will be run when -server
-    is started
-
  nfs-blkmap.target
     If enabled, then blkmapd will be run when nfs-client.target is
     started.
@@ -63,3 +58,15 @@ This should write /run/sysconfig/nfs-utils based on configuration
 information such as in /etc/sysconfig/nfs or /etc/defaults/nfs.
 It should write to a tmp file and rename to the target to
 avoid parallel units seeing incomplete copies of the file.
+
+rpc.gssd and rpc.svcgssd are assumed to be needed if /etc/krb5.keytab
+is present.
+If a site needs this file present but does not want the gss daemons
+running, it should create
+   /etc/systemd/system/rpc-gssd.service.d/01-disable.conf
+and
+   /etc/systemd/system/rpc-svcgssd.service.d/01-disable.conf
+
+containing
+   [Unit]
+   ConditionNull=false

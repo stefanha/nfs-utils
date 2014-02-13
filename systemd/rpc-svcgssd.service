@@ -5,8 +5,10 @@ After=var-lib-nfs-rpc_pipefs.mount
 PartOf=nfs-server.service
 PartOf=nfs-utils.service
 
-Requisite=nfs-secure.target
-After=nfs-secure.target
+After=gssproxy.service
+ConditionPathExists=|!@localstatedir@/run/gssproxy.pid
+ConditionPathExists=|!/proc/net/rpc/use-gss-proxy
+ConditionPathExists=/etc/krb5.keytab
 
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
