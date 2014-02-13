@@ -2,6 +2,9 @@
 Description=NFS server and services
 Requires= network.target proc-fs-nfsd.mount rpcbind.target
 PartOf=nfs-server.target
+Requires= nfs-mountd.service
+Wants=rpc-statd.service nfs-idmapd.service rpc-gssd.service rpc-svcgssd.service
+Wants=rpc-statd-notify.service
 
 After= network.target proc-fs-nfsd.mount rpcbind.target nfs-mountd.service
 After= nfs-idmapd.service rpc-statd.service
@@ -21,3 +24,6 @@ ExecStopPost=/usr/sbin/exportfs -au
 ExecStopPost=/usr/sbin/exportfs -f
 
 ExecReload=/usr/sbin/exportfs -r
+
+[Install]
+WantedBy=multi-user.target

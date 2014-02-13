@@ -10,9 +10,13 @@ rpc.rquotad (in the 'quota' package) or rpcbind.
 There are 4 units that can be 'enabled' or 'disabled' by systemctl, or
 by a suitable 'preset' setting:
 
- nfs-server.target
+ nfs-server.service
     If enabled, nfs service is started together with dependencies
     such as mountd, statd, rpc.idmapd
+    This is a "service" file rather than a "target" (which is the
+    normal grouping construct) so that
+        systemctl start nfs-server
+    can work (if no type is given, ".service" is assumed).
 
  nfs-client.target
     If enabled, daemons needs for an nfs client are enabled.

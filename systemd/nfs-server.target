@@ -1,8 +1,0 @@
-[Unit]
-Description=NFS server services
-Requires=nfs-server.service nfs-mountd.service
-Wants=rpc-statd.service nfs-idmapd.service rpc-gssd.service rpc-svcgssd.service
-Wants=rpc-statd-notify.service
-
-[Install]
-WantedBy=multi-user.target
