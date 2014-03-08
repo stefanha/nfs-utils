@@ -89,7 +89,8 @@ clients need to confirm their state with the server. Valid range is
 from 10 to 3600 seconds.
 .TP
 .B \-G " or " \-\-grace-time seconds
-Set the grace-time used for NFSv4.  New file open requests will not be
+Set the grace-time used for NFSv4 and NLM (for NFSv2 and NFSv3).
+New file open requests (NFSv4) and new file locks (NLM) will not be
 allowed until after this time has passed to allow clients to recover state.
 .TP
 .I nproc

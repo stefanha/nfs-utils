@@ -317,6 +317,14 @@ nfssvc_set_time(const char *type, const int seconds)
 			xlog(L_ERROR, "Unable to set nfsv4%stime: %m", type);
 		close(fd);
 	}
+	if (strcmp(type, "grace") == 0) {
+		/* set same value for lockd */
+		fd = open("/proc/sys/fs/nfs/nlm_grace_period", O_WRONLY);
+		if (fd >= 0) {
+			write(fd, nbuf, strlen(nbuf));
+			close(fd);
+		}
+	}
 }
 
 void
