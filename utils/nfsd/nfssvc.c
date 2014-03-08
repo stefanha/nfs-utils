@@ -268,6 +268,40 @@ nfssvc_set_sockets(const int family, const unsigned int protobits,
 	return nfssvc_setfds(&hints, host, port);
 }
 
+int
+nfssvc_set_rdmaport(const char *port)
+{
+	struct servent *sv = getservbyname(port, "tcp");
+	int nport;
+	char buf[20];
+	int ret;
+	int fd;
+
+	if (sv)
+		nport = sv->s_port;
+	else {
+		char *ep;
+		nport = strtol(port, &ep, 10);
+		if (!*port || *ep) {
+			xlog(L_ERROR, "unable to interpret port name %s",
+			     port);
+			return 1;
+		}
+	}
+
+	fd = open(NFSD_PORTS_FILE, O_WRONLY);
+	if (fd < 0)
+		return 1;
+	snprintf(buf, sizeof(buf), "rdma %d", nport);
+	ret = 0;
+	if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
+		ret= errno;
+		xlog(L_ERROR, "Unable to request RDMA services: %m");
+	}
+	close(fd);
+	return ret;
+}
+
 void
 nfssvc_setvers(unsigned int ctlbits, unsigned int minorvers, unsigned int minorversset)
 {

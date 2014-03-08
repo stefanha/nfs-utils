@@ -45,6 +45,7 @@ static struct option longopts[] =
 	{ "port", 1, 0, 'p' },
 	{ "debug", 0, 0, 'd' },
 	{ "syslog", 0, 0, 's' },
+	{ "rdma", 2, 0, 'R' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -96,7 +97,7 @@ int
 main(int argc, char **argv)
 {
 	int	count = NFSD_NPROC, c, error = 0, portnum = 0, fd, found_one;
-	char *p, *progname, *port;
+	char *p, *progname, *port, *rdma_port = NULL;
 	char *haddr = NULL;
 	int	socket_up = 0;
 	unsigned int minorvers = 0;
@@ -121,7 +122,7 @@ main(int argc, char **argv)
 	xlog_syslog(0);
 	xlog_stderr(1);
 
-	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTU", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTUr", longopts, NULL)) != EOF) {
 		switch(c) {
 		case 'd':
 			xlog_config(D_ALL, 1);
@@ -156,6 +157,16 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			break;
+		case 'r':
+			rdma_port = "nfsrdma";
+			break;
+		case 'R': /* --rdma */
+			if (optarg)
+				rdma_port = optarg;
+			else
+				rdma_port = "nfsrdma";
+			break;
+
 		case 'N':
 			switch((c = strtol(optarg, &p, 0))) {
 			case 4:
@@ -296,7 +307,11 @@ main(int argc, char **argv)
 	if (!error)
 		socket_up = 1;
 #endif /* IPV6_SUPPORTED */
-
+	if (rdma_port) {
+		error = nfssvc_set_rdmaport(rdma_port);
+		if (!error)
+			socket_up = 1;
+	}
 set_threads:
 	/* don't start any threads if unable to hand off any sockets */
 	if (!socket_up) {
@@ -337,7 +352,7 @@ static void
 usage(const char *prog)
 {
 	fprintf(stderr, "Usage:\n"
-		"%s [-d|--debug] [-H hostname] [-p|-P|--port port] [-N|--no-nfs-version version] [-V|--nfs-version version] [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] nrservs\n", 
+		"%s [-d|--debug] [-H hostname] [-p|-P|--port port] [-N|--no-nfs-version version] [-V|--nfs-version version] [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] [-r|--rdma=] nrservs\n", 
 		prog);
 	exit(2);
 }

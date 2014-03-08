@@ -42,6 +42,15 @@ specify a different port to listen on for NFS requests. By default,
 .B rpc.nfsd
 will listen on port 2049.
 .TP
+.B \-r " or " \-\-rdma
+specify that NFS requests on the standard RDMA port ("nfsrdma", port
+20049) should be honored.
+.TP
+.BI \-\-rdma= port
+Listen for RDMA requests on an alternate port - may be a number or a
+name listed in
+.BR /etc/services .
+.TP
 .B \-N " or " \-\-no-nfs-version vers
 This option can be used to request that 
 .B rpc.nfsd
