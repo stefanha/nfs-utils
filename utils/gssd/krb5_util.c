@@ -819,8 +819,10 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 
 	/* Compute the active directory machine name HOST$ */
 	strcpy(myhostad, myhostname);
-	for (i = 0; myhostad[i] != 0; ++i)
+	for (i = 0; myhostad[i] != 0; ++i) {
+		if (myhostad[i] == '.') break;
 		myhostad[i] = toupper(myhostad[i]);
+	}
 	myhostad[i] = '$';
 	myhostad[i+1] = 0;
 
