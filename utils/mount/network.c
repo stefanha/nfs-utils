@@ -611,18 +611,33 @@ out_ok:
  * returned; rpccreateerr.cf_stat is set to reflect the nature of the error.
  */
 static int nfs_probe_nfsport(const struct sockaddr *sap, const socklen_t salen,
-				struct pmap *pmap)
+			     struct pmap *pmap, int checkv4)
 {
 	if (pmap->pm_vers && pmap->pm_prot && pmap->pm_port)
 		return 1;
 
 	if (nfs_mount_data_version >= 4) {
 		const unsigned int *probe_proto;
+		int ret;
+		struct sockaddr_storage save_sa;
 
 		probe_proto = nfs_default_proto();
+		memcpy(&save_sa, sap, salen);
 
-		return nfs_probe_port(sap, salen, pmap,
-					probe_nfs3_only, probe_proto);
+		ret = nfs_probe_port(sap, salen, pmap,
+				     probe_nfs3_only, probe_proto);
+		if (!ret || !checkv4 || probe_proto != probe_tcp_first)
+			return ret;
+
+		nfs_set_port((struct sockaddr *)&save_sa, NFS_PORT);
+		ret =  nfs_rpc_ping((struct sockaddr *)&save_sa, salen, 
+			NFS_PROGRAM, 4, IPPROTO_TCP, NULL);
+		if (ret) {
+			rpc_createerr.cf_stat = RPC_FAILED;
+			rpc_createerr.cf_error.re_errno = EAGAIN;
+			return 0;
+		}
+		return 1;
 	} else
 		return nfs_probe_port(sap, salen, pmap,
 					probe_nfs2_only, probe_udp_only);
@@ -671,7 +686,7 @@ static int nfs_probe_version_fixed(const struct sockaddr *mnt_saddr,
 			const socklen_t nfs_salen,
 			struct pmap *nfs_pmap)
 {
-	if (!nfs_probe_nfsport(nfs_saddr, nfs_salen, nfs_pmap))
+	if (!nfs_probe_nfsport(nfs_saddr, nfs_salen, nfs_pmap, 0))
 		return 0;
 	return nfs_probe_mntport(mnt_saddr, mnt_salen, mnt_pmap);
 }
@@ -686,6 +701,8 @@ static int nfs_probe_version_fixed(const struct sockaddr *mnt_saddr,
  * @nfs_salen:	length of NFS server's address
  * @nfs_pmap:	IN: partially filled-in NFS RPC service tuple;
  *		OUT: fully filled-in NFS RPC service tuple
+ * @checkv4:	Flag indicating that if v3 is available we must also
+ *		check v4, and if that is available, set re_errno to EAGAIN.
  *
  * Returns 1 and fills in both @pmap structs if the requested service
  * ports are unambiguous and pingable.  Otherwise zero is returned;
@@ -696,7 +713,8 @@ int nfs_probe_bothports(const struct sockaddr *mnt_saddr,
 			struct pmap *mnt_pmap,
 			const struct sockaddr *nfs_saddr,
 			const socklen_t nfs_salen,
-			struct pmap *nfs_pmap)
+			struct pmap *nfs_pmap,
+			int checkv4)
 {
 	struct pmap save_nfs, save_mnt;
 	const unsigned long *probe_vers;
@@ -717,7 +735,7 @@ int nfs_probe_bothports(const struct sockaddr *mnt_saddr,
 
 	for (; *probe_vers; probe_vers++) {
 		nfs_pmap->pm_vers = mntvers_to_nfs(*probe_vers);
-		if (nfs_probe_nfsport(nfs_saddr, nfs_salen, nfs_pmap) != 0) {
+		if (nfs_probe_nfsport(nfs_saddr, nfs_salen, nfs_pmap, checkv4) != 0) {
 			mnt_pmap->pm_vers = *probe_vers;
 			if (nfs_probe_mntport(mnt_saddr, mnt_salen, mnt_pmap) != 0)
 				return 1;
@@ -757,7 +775,7 @@ int probe_bothports(clnt_addr_t *mnt_server, clnt_addr_t *nfs_server)
 	return nfs_probe_bothports(mnt_addr, sizeof(mnt_server->saddr),
 					&mnt_server->pmap,
 					nfs_addr, sizeof(nfs_server->saddr),
-					&nfs_server->pmap);
+					&nfs_server->pmap, 0);
 }
 
 /**

@@ -484,7 +484,7 @@ static int nfs_construct_new_options(struct mount_options *options,
  * FALSE is returned if some failure occurred.
  */
 static int
-nfs_rewrite_pmap_mount_options(struct mount_options *options)
+nfs_rewrite_pmap_mount_options(struct mount_options *options, int checkv4)
 {
 	union nfs_sockaddr nfs_address;
 	struct sockaddr *nfs_saddr = &nfs_address.sa;
@@ -534,7 +534,7 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options)
 	 * negotiate.  Bail now if we can't contact it.
 	 */
 	if (!nfs_probe_bothports(mnt_saddr, mnt_salen, &mnt_pmap,
-				 nfs_saddr, nfs_salen, &nfs_pmap)) {
+				 nfs_saddr, nfs_salen, &nfs_pmap, checkv4)) {
 		errno = ESPIPE;
 		if (rpc_createerr.cf_stat == RPC_PROGNOTREGISTERED)
 			errno = EOPNOTSUPP;
@@ -595,7 +595,8 @@ static int nfs_sys_mount(struct nfsmount_info *mi, struct mount_options *opts)
 }
 
 static int nfs_do_mount_v3v2(struct nfsmount_info *mi,
-		struct sockaddr *sap, socklen_t salen)
+			     struct sockaddr *sap, socklen_t salen,
+			     int checkv4)
 {
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
@@ -637,7 +638,7 @@ static int nfs_do_mount_v3v2(struct nfsmount_info *mi,
 		printf(_("%s: trying text-based options '%s'\n"),
 			progname, *mi->extra_opts);
 
-	if (!nfs_rewrite_pmap_mount_options(options))
+	if (!nfs_rewrite_pmap_mount_options(options, checkv4))
 		goto out_fail;
 
 	result = nfs_sys_mount(mi, options);
@@ -653,13 +654,13 @@ out_fail:
  * Returns TRUE if successful, otherwise FALSE.
  * "errno" is set to reflect the individual error.
  */
-static int nfs_try_mount_v3v2(struct nfsmount_info *mi)
+static int nfs_try_mount_v3v2(struct nfsmount_info *mi, int checkv4)
 {
 	struct addrinfo *ai;
 	int ret = 0;
 
 	for (ai = mi->address; ai != NULL; ai = ai->ai_next) {
-		ret = nfs_do_mount_v3v2(mi, ai->ai_addr, ai->ai_addrlen);
+		ret = nfs_do_mount_v3v2(mi, ai->ai_addr, ai->ai_addrlen, checkv4);
 		if (ret != 0)
 			return ret;
 
@@ -793,7 +794,8 @@ static int nfs_autonegotiate(struct nfsmount_info *mi)
 	result = nfs_try_mount_v4(mi);
 	if (result)
 		return result;
-		
+
+check_errno:
 	switch (errno) {
 	case EPROTONOSUPPORT:
 		/* A clear indication that the server or our
@@ -807,12 +809,24 @@ static int nfs_autonegotiate(struct nfsmount_info *mi)
 		/* Linux servers prior to 2.6.25 may return
 		 * EPERM when NFS version 4 is not supported. */
 		goto fall_back;
+	case ECONNREFUSED:
+		/* UDP-Only servers won't support v4, but maybe it
+		 * just isn't ready yet.  So try v3, but double-check
+		 * with rpcbind for v4. */
+		result = nfs_try_mount_v3v2(mi, TRUE);
+		if (result == 0 && errno == EAGAIN) {
+			/* v4 server seems to be registered now. */
+			result = nfs_try_mount_v4(mi);
+			if (result == 0 && errno != ECONNREFUSED)
+				goto check_errno;
+		}
+		return result;
 	default:
 		return result;
 	}
 
 fall_back:
-	return nfs_try_mount_v3v2(mi);
+	return nfs_try_mount_v3v2(mi, FALSE);
 }
 
 /*
@@ -831,7 +845,7 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 		break;
 	case 2:
 	case 3:
-		result = nfs_try_mount_v3v2(mi);
+		result = nfs_try_mount_v3v2(mi, FALSE);
 		break;
 	case 4:
 		result = nfs_try_mount_v4(mi);
