@@ -303,6 +303,23 @@ nfssvc_set_rdmaport(const char *port)
 }
 
 void
+nfssvc_set_time(const char *type, const int seconds)
+{
+	char pathbuf[40];
+	char nbuf[10];
+	int fd;
+
+	snprintf(pathbuf, sizeof(pathbuf), NFSD_FS_DIR "/nfsv4%stime", type);
+	snprintf(nbuf, sizeof(nbuf), "%d", seconds);
+	fd = open(pathbuf, O_WRONLY);
+	if (fd >= 0) {
+		if (write(fd, nbuf, strlen(nbuf)) != (ssize_t)strlen(nbuf))
+			xlog(L_ERROR, "Unable to set nfsv4%stime: %m", type);
+		close(fd);
+	}
+}
+
+void
 nfssvc_setvers(unsigned int ctlbits, unsigned int minorvers, unsigned int minorversset)
 {
 	int fd, n, off;

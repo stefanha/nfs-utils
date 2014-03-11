@@ -46,6 +46,8 @@ static struct option longopts[] =
 	{ "debug", 0, 0, 'd' },
 	{ "syslog", 0, 0, 's' },
 	{ "rdma", 2, 0, 'R' },
+	{ "grace-time", 1, 0, 'G'},
+	{ "lease-time", 1, 0, 'L'},
 	{ NULL, 0, 0, 0 }
 };
 
@@ -106,6 +108,8 @@ main(int argc, char **argv)
 	unsigned int protobits = NFSCTL_ALLBITS;
 	unsigned int proto4 = 0;
 	unsigned int proto6 = 0;
+	int grace = -1;
+	int lease = -1;
 
 	progname = strdup(basename(argv[0]));
 	if (!progname) {
@@ -122,7 +126,7 @@ main(int argc, char **argv)
 	xlog_syslog(0);
 	xlog_stderr(1);
 
-	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTUr", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTUrG:L:", longopts, NULL)) != EOF) {
 		switch(c) {
 		case 'd':
 			xlog_config(D_ALL, 1);
@@ -221,6 +225,20 @@ main(int argc, char **argv)
 		case 'U':
 			NFSCTL_UDPUNSET(protobits);
 			break;
+		case 'G':
+			grace = strtol(optarg, &p, 0);
+			if (*p || grace <= 0) {
+				fprintf(stderr, "%s: Unrecognized grace time.\n", optarg);
+				exit(1);
+			}
+			break;
+		case 'L':
+			lease = strtol(optarg, &p, 0);
+			if (*p || lease <= 0) {
+				fprintf(stderr, "%s: Unrecognized lease time.\n", optarg);
+				exit(1);
+			}
+			break;
 		default:
 			fprintf(stderr, "Invalid argument: '%c'\n", c);
 		case 'h':
@@ -268,7 +286,7 @@ main(int argc, char **argv)
 	if (!found_one) {
 		xlog(L_ERROR, "no version specified");
 		exit(1);
-	}			
+	}
 
 	if (NFSCTL_VERISSET(versbits, 4) &&
 	    !NFSCTL_TCPISSET(proto4) &&
@@ -292,12 +310,18 @@ main(int argc, char **argv)
 	}
 
 	/*
-	 * must set versions before the fd's so that the right versions get
+	 * Must set versions before the fd's so that the right versions get
 	 * registered with rpcbind. Note that on older kernels w/o the right
 	 * interfaces, these are a no-op.
+	 * Timeouts must also be set before ports are created else we get
+	 * EBUSY.
 	 */
 	nfssvc_setvers(versbits, minorvers, minorversset);
- 
+	if (grace > 0)
+		nfssvc_set_time("grace", grace);
+	if (lease  > 0)
+		nfssvc_set_time("lease", lease);
+
 	error = nfssvc_set_sockets(AF_INET, proto4, haddr, port);
 	if (!error)
 		socket_up = 1;
@@ -352,7 +376,10 @@ static void
 usage(const char *prog)
 {
 	fprintf(stderr, "Usage:\n"
-		"%s [-d|--debug] [-H hostname] [-p|-P|--port port] [-N|--no-nfs-version version] [-V|--nfs-version version] [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] [-r|--rdma=] nrservs\n", 
+		"%s [-d|--debug] [-H hostname] [-p|-P|--port port]\n"
+		"     [-N|--no-nfs-version version] [-V|--nfs-version version]\n"
+		"     [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] [-r|--rdma=]\n"
+		"     [-G|--grace-time secs] [-L|--leasetime secs] nrservs\n",
 		prog);
 	exit(2);
 }

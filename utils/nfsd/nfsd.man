@@ -2,7 +2,7 @@
 .\" nfsd(8)
 .\"
 .\" Copyright (C) 1999 Olaf Kirch <okir@monad.swb.de>
-.TH rpc.nfsd 8 "7 Aug 2006"
+.TH rpc.nfsd 8 "20 Feb 2014"
 .SH NAME
 rpc.nfsd \- NFS server process
 .SH SYNOPSIS
@@ -82,6 +82,15 @@ This option can be used to request that
 offer certain versions of NFS. The current version of
 .B rpc.nfsd
 can support NFS versions 2,3,4 and the newer version 4.1.
+.TP
+.B \-L " or " \-\-lease-time seconds
+Set the lease-time used for NFSv4.  This corresponds to how often
+clients need to confirm their state with the server. Valid range is
+from 10 to 3600 seconds.
+.TP
+.B \-G " or " \-\-grace-time seconds
+Set the grace-time used for NFSv4.  New file open requests will not be
+allowed until after this time has passed to allow clients to recover state.
 .TP
 .I nproc
 specify the number of NFS server threads. By default, just one
