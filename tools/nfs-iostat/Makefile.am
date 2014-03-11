@@ -8,6 +8,6 @@ EXTRA_DIST	= $(man8_MANS) $(PYTHON_FILES)
 all-local: $(PYTHON_FILES)
 
 install-data-hook:
-	$(INSTALL) --mode 755 nfs-iostat.py $(DESTDIR)$(sbindir)/nfsiostat
+	$(INSTALL) -m 755 nfs-iostat.py $(DESTDIR)$(sbindir)/nfsiostat
 
 MAINTAINERCLEANFILES=Makefile.in

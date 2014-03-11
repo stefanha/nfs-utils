@@ -8,6 +8,6 @@ EXTRA_DIST	= $(man8_MANS) $(PYTHON_FILES)
 all-local: $(PYTHON_FILES)
 
 install-data-hook:
-	$(INSTALL) --mode 755 mountstats.py $(DESTDIR)$(sbindir)/mountstats
+	$(INSTALL) -m 755 mountstats.py $(DESTDIR)$(sbindir)/mountstats
 
 MAINTAINERCLEANFILES=Makefile.in
