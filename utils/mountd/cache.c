@@ -1087,12 +1087,13 @@ static struct exportent *invoke_junction_ops(void *handle, char *dom,
 			__func__, error);
 		return NULL;
 	}
+#ifdef JP_API_VERSION
 	if (ops->jp_api_version != JP_API_VERSION) {
 		xlog(D_GENERAL, "%s: unrecognized junction API version: %u",
 			__func__, ops->jp_api_version);
 		return NULL;
 	}
-
+#endif
 	status = ops->jp_init(false);
 	if (status != JP_OK) {
 		xlog(D_GENERAL, "%s: failed to resolve %s: %s",
@@ -1139,7 +1140,11 @@ static struct exportent *lookup_junction(char *dom, const char *pathname,
 	struct link_map *map;
 	void *handle;
 
-	handle = dlopen("libnfsjunct.so", RTLD_NOW);
+#ifdef JP_NFSPLUGIN_SONAME
+	handle = dlopen(JP_NFSPLUGIN_SONAME, RTLD_NOW);
+#else
+	handle = dlopen("libnfsjunct.so.0", RTLD_NOW);
+#endif
 	if (handle == NULL) {
 		xlog(D_GENERAL, "%s: dlopen: %s", __func__, dlerror());
 		return NULL;
