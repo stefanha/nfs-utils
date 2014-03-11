@@ -54,7 +54,7 @@ int id_lookup(char *name_at_domain, key_serial_t key, int type)
 		sprintf(id, "%u", gid);
 	}
 	if (rc < 0)
-		xlog_err("id_lookup: %s: failed: %m",
+		xlog_errno(rc, "id_lookup: %s: failed: %m",
 			(type == USER ? "nfs4_owner_to_uid" : "nfs4_group_owner_to_gid"));
 
 	if (rc == 0) {
@@ -95,8 +95,9 @@ int name_lookup(char *id, key_serial_t key, int type)
 
 	rc = nfs4_get_default_domain(NULL, domain, NFS4_MAX_DOMAIN_LEN);
 	if (rc != 0) {
+		xlog_errno(rc,
+			"name_lookup: nfs4_get_default_domain failed: %m");
 		rc = -1;
-		xlog_err("name_lookup: nfs4_get_default_domain failed: %m");
 		goto out;
 	}
 
@@ -108,7 +109,7 @@ int name_lookup(char *id, key_serial_t key, int type)
 		rc = nfs4_gid_to_name(gid, domain, name, IDMAP_NAMESZ);
 	}
 	if (rc < 0)
-		xlog_err("name_lookup: %s: failed: %m",
+		xlog_errno(rc, "name_lookup: %s: failed: %m",
 			(type == USER ? "nfs4_uid_to_name" : "nfs4_gid_to_name"));
 
 	if (rc == 0) {
@@ -272,8 +273,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (nfs4_init_name_mapping(PATH_IDMAPDCONF))  {
-		xlog_err("Unable to create name to user id mappings.");
+	if (rc = nfs4_init_name_mapping(PATH_IDMAPDCONF))  {
+		xlog_errno(rc, "Unable to create name to user id mappings.");
 		return 1;
 	}
 	if (!verbose)

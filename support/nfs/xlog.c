@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <syslog.h>
+#include <errno.h>
 #include "nfslib.h"
 
 #undef	VERBOSE_PRINTF
@@ -216,6 +217,17 @@ xlog_err(const char* fmt, ...)
 {
 	va_list args;
 
+	va_start(args, fmt);
+	xlog_backend(L_FATAL, fmt, args);
+	va_end(args);
+}
+
+void
+xlog_errno(int err, const char *fmt, ...)
+{
+	va_list args;
+
+	errno = err;
 	va_start(args, fmt);
 	xlog_backend(L_FATAL, fmt, args);
 	va_end(args);
