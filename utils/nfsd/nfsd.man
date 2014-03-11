@@ -35,7 +35,8 @@ Note that
 .B lockd
 (which performs file locking services for NFS) may still accept
 request on all known network addresses.  This may change in future
-releases of the Linux Kernel.
+releases of the Linux Kernel. This option can be used multiple time 
+to listen to more than one interface.
 .TP
 .B \-p " or " \-\-port  port
 specify a different port to listen on for NFS requests. By default,

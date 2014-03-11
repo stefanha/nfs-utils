@@ -98,9 +98,10 @@ nfsd_enable_protos(unsigned int *proto4, unsigned int *proto6)
 int
 main(int argc, char **argv)
 {
-	int	count = NFSD_NPROC, c, error = 0, portnum = 0, fd, found_one;
+	int	count = NFSD_NPROC, c, i, error = 0, portnum = 0, fd, found_one;
 	char *p, *progname, *port, *rdma_port = NULL;
-	char *haddr = NULL;
+	char **haddr = NULL;
+	unsigned int hcounter = 0;
 	int	socket_up = 0;
 	unsigned int minorvers = 0;
 	unsigned int minorversset = 0;
@@ -123,6 +124,13 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	haddr = malloc(sizeof(char *));
+	if (!haddr) {
+		fprintf(stderr, "%s: unable to allocate memory.\n", progname);
+		exit(1);
+	}
+	haddr[0] = NULL;
+
 	xlog_syslog(0);
 	xlog_stderr(1);
 
@@ -132,17 +140,21 @@ main(int argc, char **argv)
 			xlog_config(D_ALL, 1);
 			break;
 		case 'H':
-			/*
-			 * for now, this only handles one -H option. Use the
-			 * last one specified.
-			 */
-			free(haddr);
-			haddr = strdup(optarg);
-			if (!haddr) {
+			if (hcounter) {
+				haddr = realloc(haddr, sizeof(char*) * hcounter+1);
+				if(!haddr) {
+					fprintf(stderr, "%s: unable to allocate "
+							"memory.\n", progname);
+					exit(1);
+				}
+			}
+			haddr[hcounter] = strdup(optarg);
+			if (!haddr[hcounter]) {
 				fprintf(stderr, "%s: unable to allocate "
 					"memory.\n", progname);
 				exit(1);
 			}
+			hcounter++;
 			break;
 		case 'P':	/* XXX for nfs-server compatibility */
 		case 'p':
@@ -322,15 +334,18 @@ main(int argc, char **argv)
 	if (lease  > 0)
 		nfssvc_set_time("lease", lease);
 
-	error = nfssvc_set_sockets(AF_INET, proto4, haddr, port);
-	if (!error)
-		socket_up = 1;
-
+	i = 0;
+	do {
+		error = nfssvc_set_sockets(AF_INET, proto4, haddr[i], port);
+		if (!error)
+			socket_up = 1;
 #ifdef IPV6_SUPPORTED
-	error = nfssvc_set_sockets(AF_INET6, proto6, haddr, port);
-	if (!error)
-		socket_up = 1;
+		error = nfssvc_set_sockets(AF_INET6, proto6, haddr[i], port);
+		if (!error)
+			socket_up = 1;
 #endif /* IPV6_SUPPORTED */
+	} while (++i < hcounter); 
+
 	if (rdma_port) {
 		error = nfssvc_set_rdmaport(rdma_port);
 		if (!error)
@@ -367,6 +382,8 @@ set_threads:
 		xlog(L_ERROR, "error starting threads: errno %d (%m)", errno);
 out:
 	free(port);
+	for(i=0; i < hcounter; i++)
+		free(haddr[i]);
 	free(haddr);
 	free(progname);
 	return (error != 0);
