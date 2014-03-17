@@ -299,22 +299,12 @@ export_all(int verbose)
 
 
 static void
-exportfs(char *arg, char *options, int verbose)
+exportfs_parsed(char *hname, char *path, char *options, int verbose)
 {
 	struct exportent *eep;
 	nfs_export	*exp = NULL;
 	struct addrinfo	*ai = NULL;
-	char		*path;
-	char		*hname = arg;
 	int		htype;
-
-	if ((path = strchr(arg, ':')) != NULL)
-		*path++ = '\0';
-
-	if (!path || *path != '/') {
-		xlog(L_ERROR, "Invalid exporting option: %s", arg);
-		return;
-	}
 
 	if ((htype = client_gettype(hname)) == MCL_FQDN) {
 		ai = host_addrinfo(hname);
@@ -345,23 +335,37 @@ out:
 	freeaddrinfo(ai);
 }
 
-static void
-unexportfs(char *arg, int verbose)
+static int exportfs_generic(char *arg, char *options, int verbose)
 {
-	nfs_export	*exp;
-	struct addrinfo *ai = NULL;
-	char		*path;
-	char		*hname = arg;
-	int		htype;
-	int		success = 0;
+	char *path;
 
 	if ((path = strchr(arg, ':')) != NULL)
 		*path++ = '\0';
 
-	if (!path || *path != '/') {
-		xlog(L_ERROR, "Invalid unexporting option: %s", arg);
-		return;
-	}
+	if (!path || *path != '/')
+		return 1;
+
+	exportfs_parsed(arg, path, options, verbose);
+	return 0;
+}
+
+static void
+exportfs(char *arg, char *options, int verbose)
+{
+	int failed;
+
+	failed = exportfs_generic(arg, options, verbose);
+	if (failed)
+		xlog(L_ERROR, "Invalid export syntax: %s", arg);
+}
+
+static void
+unexportfs_parsed(char *hname, char *path, int verbose)
+{
+	nfs_export	*exp;
+	struct addrinfo *ai = NULL;
+	int		htype;
+	int		success = 0;
 
 	if ((htype = client_gettype(hname)) == MCL_FQDN) {
 		ai = host_addrinfo(hname);
@@ -403,9 +407,33 @@ unexportfs(char *arg, int verbose)
 		success = 1;
 	}
 	if (!success)
-		xlog(L_ERROR, "Could not find '%s:%s' to unexport.", arg, path);
+		xlog(L_ERROR, "Could not find '%s:%s' to unexport.", hname, path);
 
 	freeaddrinfo(ai);
+}
+
+static int unexportfs_generic(char *arg, int verbose)
+{
+	char *path;
+
+	if ((path = strchr(arg, ':')) != NULL)
+		*path++ = '\0';
+
+	if (!path || *path != '/')
+		return 1;
+
+	unexportfs_parsed(arg, path, verbose);
+	return 0;
+}
+
+static void
+unexportfs(char *arg, int verbose)
+{
+	int failed;
+
+	failed = unexportfs_generic(arg, verbose);
+	if (failed)
+		xlog(L_ERROR, "Invalid export syntax: %s", arg);
 }
 
 static int can_test(void)
