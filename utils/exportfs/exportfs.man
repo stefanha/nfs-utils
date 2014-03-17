@@ -159,6 +159,14 @@ along with the client or clients who are permitted to access it.
 See
 .B exports(5)
 for a description of supported options and access list formats.
+.PP
+IPv6 presentation addresses contain colons, which are already used
+to separate the "host" and "path" command line arguments.
+When specifying a client using a raw IPv6 address,
+enclose the address in square brackets.
+For IPv6 network addresses, place the prefix just after the closing
+bracket.
+.PP
 To export a directory to the world, simply specify
 .IR :/path .
 .PP
@@ -243,6 +251,14 @@ and files under
 .PP
 .nf
 .B "# exportfs -au
+.fi
+.PP
+To export the
+.I /usr/tmp
+directory to IPv6 link-local clients:
+.PP
+.nf
+.B "# exportfs [fe80::]/64:/usr/tmp
 .fi
 .SH USAGE NOTES
 Exporting to IP networks or DNS and NIS domains does not enable clients

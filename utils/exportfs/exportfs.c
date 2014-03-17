@@ -349,12 +349,42 @@ static int exportfs_generic(char *arg, char *options, int verbose)
 	return 0;
 }
 
+static int exportfs_ipv6(char *arg, char *options, int verbose)
+{
+	char *path, *c, hname[NI_MAXHOST + strlen("/128")];
+
+	arg++;
+	c = strchr(arg, ']');
+	if (c == NULL)
+		return 1;
+	strncpy(hname, arg, c - arg);
+
+	/* no colon means this is a wildcarded DNS hostname */
+	if (strchr(hname, ':') == NULL)
+		return exportfs_generic(--arg, options, verbose);
+
+	path = strstr(c, ":/");
+	if (path == NULL)
+		return 1;
+	*path++ = '\0';
+
+	/* if there's anything between the closing brace and the
+	 * path separator, it's probably a prefix length */
+	strcat(hname, ++c);
+
+	exportfs_parsed(hname, path, options, verbose);
+	return 0;
+}
+
 static void
 exportfs(char *arg, char *options, int verbose)
 {
 	int failed;
 
-	failed = exportfs_generic(arg, options, verbose);
+	if (*arg == '[')
+		failed = exportfs_ipv6(arg, options, verbose);
+	else
+		failed = exportfs_generic(arg, options, verbose);
 	if (failed)
 		xlog(L_ERROR, "Invalid export syntax: %s", arg);
 }
@@ -426,12 +456,42 @@ static int unexportfs_generic(char *arg, int verbose)
 	return 0;
 }
 
+static int unexportfs_ipv6(char *arg, int verbose)
+{
+	char *path, *c, hname[NI_MAXHOST + strlen("/128")];
+
+	arg++;
+	c = strchr(arg, ']');
+	if (c == NULL)
+		return 1;
+	strncpy(hname, arg, c - arg);
+
+	/* no colon means this is a wildcarded DNS hostname */
+	if (strchr(hname, ':') == NULL)
+		return unexportfs_generic(--arg, verbose);
+
+	path = strstr(c, ":/");
+	if (path == NULL)
+		return 1;
+	*path++ = '\0';
+
+	/* if there's anything between the closing brace and the
+	 * path separator, it's probably a prefix length */
+	strcat(hname, ++c);
+
+	unexportfs_parsed(hname, path, verbose);
+	return 0;
+}
+
 static void
 unexportfs(char *arg, int verbose)
 {
 	int failed;
 
-	failed = unexportfs_generic(arg, verbose);
+	if (*arg == '[')
+		failed = unexportfs_ipv6(arg, verbose);
+	else
+		failed = unexportfs_generic(arg, verbose);
 	if (failed)
 		xlog(L_ERROR, "Invalid export syntax: %s", arg);
 }
