@@ -1,7 +1,6 @@
 [Unit]
 Description=NFS server and services
 Requires= network.target proc-fs-nfsd.mount rpcbind.target
-PartOf=nfs-server.target
 Requires= nfs-mountd.service
 Wants=rpc-statd.service nfs-idmapd.service rpc-gssd.service rpc-svcgssd.service
 Wants=rpc-statd-notify.service
