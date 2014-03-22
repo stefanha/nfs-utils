@@ -130,7 +130,7 @@ int chk_mountpoint(const char *mount_point)
 		mount_error(NULL, mount_point, ENOTDIR);
 		return 1;
 	}
-	if (access(mount_point, X_OK) < 0) {
+	if (getuid() != 0 && geteuid() != 0 && access(mount_point, X_OK) < 0) {
 		mount_error(NULL, mount_point, errno);
 		return 1;
 	}
