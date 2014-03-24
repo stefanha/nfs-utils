@@ -6,7 +6,7 @@ PartOf=nfs-server.service
 PartOf=nfs-utils.service
 
 After=gssproxy.service
-ConditionPathExists=|!@localstatedir@/run/gssproxy.pid
+ConditionPathExists=|!/run/gssproxy.pid
 ConditionPathExists=|!/proc/net/rpc/use-gss-proxy
 ConditionPathExists=/etc/krb5.keytab
 
