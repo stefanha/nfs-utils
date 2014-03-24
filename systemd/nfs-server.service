@@ -10,9 +10,11 @@ After= nfs-idmapd.service rpc-statd.service
 After= rpc-gssd.service rpc-svcgssd.service
 Before= rpc-statd-notify.service
 
+Wants=nfs-config.service
+After=nfs-config.service
+
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
-ExecStartPre=-/usr/lib/systemd/scritps/nfs-utils_env.sh
 
 Type=oneshot
 RemainAfterExit=yes

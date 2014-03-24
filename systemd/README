@@ -56,8 +56,7 @@ Distro specific commandline configuration can be provided by
 installing a script /usr/lib/systemd/scripts/nfs-utils_env.sh
 This should write /run/sysconfig/nfs-utils based on configuration
 information such as in /etc/sysconfig/nfs or /etc/defaults/nfs.
-It should write to a tmp file and rename to the target to
-avoid parallel units seeing incomplete copies of the file.
+It is run once by nfs-config.service.
 
 rpc.gssd and rpc.svcgssd are assumed to be needed if /etc/krb5.keytab
 is present.
