@@ -166,7 +166,7 @@ static int keyring_clear(char *keyring)
 /*
  * Revoke a key 
  */
-static int key_revoke(char *keystr, int keymask)
+static int key_invalidate(char *keystr, int keymask)
 {
 	FILE *fp;
 	char buf[BUFSIZ], *ptr;
@@ -200,7 +200,7 @@ static int key_revoke(char *keystr, int keymask)
 
 		if (verbose) {
 			*(strchr(buf, '\n')) = '\0';
-			xlog_warn("revoking '%s'", buf);
+			xlog_warn("invalidating '%s'", buf);
 		}
 		/*
 		 * The key is the first arugment in the string
@@ -208,8 +208,8 @@ static int key_revoke(char *keystr, int keymask)
 		*(strchr(buf, ' ')) = '\0';
 		sscanf(buf, "%x", &key);
 
-		if (keyctl_revoke(key) < 0) {
-			xlog_err("keyctl_revoke(0x%x) failed: %m", key);
+		if (keyctl_invalidate(key) < 0) {
+			xlog_err("keyctl_invalidate(0x%x) failed: %m", key);
 			fclose(fp);
 			return 1;
 		}
@@ -273,7 +273,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (rc = nfs4_init_name_mapping(PATH_IDMAPDCONF))  {
+	if ((rc = nfs4_init_name_mapping(PATH_IDMAPDCONF)))  {
 		xlog_errno(rc, "Unable to create name to user id mappings.");
 		return 1;
 	}
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 		verbose = conf_get_num("General", "Verbosity", 0);
 
 	if (keystr) {
-		rc = key_revoke(keystr, keymask);
+		rc = key_invalidate(keystr, keymask);
 		return rc;		
 	}
 	if (clearing) {
