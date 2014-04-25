@@ -4,7 +4,7 @@
 # /var/run/rpc.statd.pid).
 # It should run statd with whatever flags are apropriate for this
 # site.
-PATH=/sbin:/usr/sbin
+PATH="/sbin:/usr/sbin:/bin:/usr/bin"
 if systemctl start statd.service
 then :
 else
