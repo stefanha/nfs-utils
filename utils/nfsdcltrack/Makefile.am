@@ -1,5 +1,9 @@
 ## Process this file with automake to produce Makefile.in
 
+# These binaries go in /sbin (not /usr/sbin), and that cannot be
+# overridden at config time. The kernel "knows" the /sbin name.
+sbindir = /sbin
+
 man8_MANS	= nfsdcltrack.man
 EXTRA_DIST	= $(man8_MANS)
 
