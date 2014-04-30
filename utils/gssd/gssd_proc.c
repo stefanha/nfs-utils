@@ -1174,14 +1174,15 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		goto out_return_error;
 	}
 
-	/* Grab the context lifetime to pass to the kernel. lifetime_rec
-	 * is set to zero on error */
+	/* Grab the context lifetime to pass to the kernel. */
 	maj_stat = gss_inquire_context(&min_stat, pd.pd_ctx, NULL, NULL,
 				       &lifetime_rec, NULL, NULL, NULL, NULL);
 
-	if (maj_stat)
+	if (maj_stat) {
 		printerr(1, "WARNING: Failed to inquire context for lifetme "
 			    "maj_stat %u\n", maj_stat);
+		lifetime_rec = 0;
+	}
 
 	if (serialize_context_for_kernel(&pd.pd_ctx, &token, &krb5oid, NULL)) {
 		printerr(0, "WARNING: Failed to serialize krb5 context for "
