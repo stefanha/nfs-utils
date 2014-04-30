@@ -18,11 +18,13 @@ COMMON_SRCS = \
 	context_lucid.c \
 	gss_util.c \
 	gss_oids.c \
+	gss_names.c \
 	err_util.c \
 	\
 	context.h \
 	err_util.h \
 	gss_oids.h \
+	gss_names.h \
 	gss_util.h
 
 gssd_SOURCES = \

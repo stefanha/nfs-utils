@@ -59,6 +59,7 @@
 #include "misc.h"
 #include "gss_oids.h"
 #include "svcgssd_krb5.h"
+#include "gss_names.h"
 
 extern char * mech2file(gss_OID mech);
 #define SVCGSSD_CONTEXT_CHANNEL "/proc/net/rpc/auth.rpcsec.context/channel"
@@ -314,71 +315,6 @@ print_hexl(const char *description, unsigned char *cp, int length)
 	}
 }
 #endif
-
-static int
-get_krb5_hostbased_name (gss_buffer_desc *name, char **hostbased_name)
-{
-	char *p, *sname = NULL;
-	if (strchr(name->value, '@') && strchr(name->value, '/')) {
-		if ((sname = calloc(name->length, 1)) == NULL) {
-			printerr(0, "ERROR: get_krb5_hostbased_name failed "
-				 "to allocate %d bytes\n", name->length);
-			return -1;
-		}
-		/* read in name and instance and replace '/' with '@' */
-		sscanf(name->value, "%[^@]", sname);
-		p = strrchr(sname, '/');
-		if (p == NULL) {    /* The '@' preceeded the '/' */
-			free(sname);
-			return -1;
-		}
-		*p = '@';
-	}
-	*hostbased_name = sname;
-	return 0;
-}
-
-static int
-get_hostbased_client_name(gss_name_t client_name, gss_OID mech,
-			  char **hostbased_name)
-{
-	u_int32_t	maj_stat, min_stat;
-	gss_buffer_desc	name;
-	gss_OID		name_type = GSS_C_NO_OID;
-	char		*cname;
-	int		res = -1;
-
-	*hostbased_name = NULL;	    /* preset in case we fail */
-
-	/* Get the client's gss authenticated name */
-	maj_stat = gss_display_name(&min_stat, client_name, &name, &name_type);
-	if (maj_stat != GSS_S_COMPLETE) {
-		pgsserr("get_hostbased_client_name: gss_display_name",
-			maj_stat, min_stat, mech);
-		goto out_err;
-	}
-	if (name.length >= 0xffff) {	    /* don't overflow */
-		printerr(0, "ERROR: get_hostbased_client_name: "
-			 "received gss_name is too long (%d bytes)\n",
-			 name.length);
-		goto out_rel_buf;
-	}
-
-	/* For Kerberos, transform the NT_KRB5_PRINCIPAL name to
-	 * an NT_HOSTBASED_SERVICE name */
-	if (g_OID_equal(&krb5oid, mech)) {
-		if (get_krb5_hostbased_name(&name, &cname) == 0)
-			*hostbased_name = cname;
-	} else {
-		printerr(1, "WARNING: unknown/unsupport mech OID\n");
-	}
-
-	res = 0;
-out_rel_buf:
-	gss_release_buffer(&min_stat, &name);
-out_err:
-	return res;
-}
 
 void
 handle_nullreq(FILE *f) {
