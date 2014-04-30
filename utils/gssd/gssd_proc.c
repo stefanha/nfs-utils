@@ -681,7 +681,7 @@ parse_enctypes(char *enctypes)
 	return 0;
 }
 
-static int
+static void
 do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	    gss_buffer_desc *context_token, OM_uint32 lifetime_rec)
 {
@@ -710,11 +710,11 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 
 	if (write(k5_fd, buf, p - buf) < p - buf) goto out_err;
 	free(buf);
-	return 0;
+	return;
 out_err:
 	free(buf);
 	printerr(1, "Failed to write downcall!\n");
-	return -1;
+	return;
 }
 
 static int
