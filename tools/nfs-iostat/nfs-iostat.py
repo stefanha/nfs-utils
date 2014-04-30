@@ -243,27 +243,15 @@ class DeviceData:
         """Print attribute cache efficiency stats
         """
         nfs_stats = self.__nfs_data
-        getattr_stats = self.__rpc_data['GETATTR']
 
-        if nfs_stats['inoderevalidates'] != 0:
-            getattr_ops = float(getattr_stats[1])
-            opens = float(nfs_stats['vfsopen'])
-            revalidates = float(nfs_stats['inoderevalidates']) - opens
-            if revalidates != 0:
-                ratio = ((revalidates - getattr_ops) * 100) / revalidates
-            else:
-                ratio = 0.0
-
-            data_invalidates = float(nfs_stats['datainvalidates'])
-            attr_invalidates = float(nfs_stats['attrinvalidates'])
-
-            print()
-            print('%d inode revalidations, hitting in cache %4.2f%% of the time' % \
-                (revalidates, ratio))
-            print('%d open operations (mandatory GETATTR requests)' % opens)
-            if getattr_ops != 0:
-                print('%4.2f%% of GETATTRs resulted in data cache invalidations' % \
-                   ((data_invalidates * 100) / getattr_ops))
+        print()
+        print('%d VFS opens' % (nfs_stats['vfsopen']))
+        print('%d inoderevalidates (forced GETATTRs)' % \
+            (nfs_stats['inoderevalidates']))
+        print('%d page cache invalidations' % \
+            (nfs_stats['datainvalidates']))
+        print('%d attribute cache invalidations' % \
+            (nfs_stats['attrinvalidates']))
 
     def __print_dir_cache_stats(self, sample_time):
         """Print directory stats
