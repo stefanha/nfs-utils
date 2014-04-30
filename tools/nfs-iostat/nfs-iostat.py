@@ -353,15 +353,21 @@ class DeviceData:
             exe_per_op = 0.0
 
         op += ':'
-        print('%s' % op.lower().ljust(15), end='')
-        print('  ops/s\t\t   kB/s\t\t  kB/op\t\tretrans\t\tavg RTT (ms)\tavg exe (ms)')
+        print(format(op.lower(), '<16s'), end='')
+        print(format('ops/s', '>8s'), end='')
+        print(format('kB/s', '>16s'), end='')
+        print(format('kB/op', '>16s'), end='')
+        print(format('retrans', '>16s'), end='')
+        print(format('avg RTT (ms)', '>16s'), end='')
+        print(format('avg exe (ms)', '>16s'))
 
-        print('\t\t%7.3f' % (ops / sample_time), end='')
-        print('\t%7.3f' % (kilobytes / sample_time), end='')
-        print('\t%7.3f' % kb_per_op, end='')
-        print(' %7d (%3.1f%%)' % (retrans, retrans_percent), end='')
-        print('\t%7.3f' % rtt_per_op, end='')
-        print('\t%7.3f' % exe_per_op)
+        print(format((ops / sample_time), '>24.3f'), end='')
+        print(format((kilobytes / sample_time), '>16.3f'), end='')
+        print(format(kb_per_op, '>16.3f'), end='')
+        retransmits = '{0:>10.0f} ({1:>3.1f}%)'.format(retrans, retrans_percent).strip()
+        print(format(retransmits, '>16'), end='')
+        print(format(rtt_per_op, '>16.3f'), end='')
+        print(format(exe_per_op, '>16.3f'))
 
     def ops(self, sample_time):
         sends = float(self.__rpc_data['rpcsends'])
@@ -391,9 +397,10 @@ class DeviceData:
             (self.__nfs_data['export'], self.__nfs_data['mountpoint']))
         print()
 
-        print('   op/s\t\trpc bklog')
-        print('%7.2f' % (sends / sample_time), end='')
-        print('\t%7.2f' % backlog)
+        print(format('ops/s', '>16') + format('rpc bklog', '>16'))
+        print(format((sends / sample_time), '>16.3f'), end='')
+        print(format(backlog, '>16.3f'))
+        print()
 
         if which == 0:
             self.__print_rpc_op_stats('READ', sample_time)
