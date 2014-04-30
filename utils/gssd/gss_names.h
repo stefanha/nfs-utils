@@ -32,3 +32,5 @@
 
 extern int get_hostbased_client_name(gss_name_t client_name, gss_OID mech,
 					char **hostbased_name);
+extern void get_hostbased_client_buffer(gss_name_t client_name,
+			gss_OID mech, gss_buffer_t buf);

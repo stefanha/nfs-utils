@@ -121,3 +121,18 @@ out_rel_buf:
 out_err:
 	return res;
 }
+
+void
+get_hostbased_client_buffer(gss_name_t client_name, gss_OID mech,
+			    gss_buffer_t buf)
+{
+	char *hname;
+
+	if (!get_hostbased_client_name(client_name, mech, &hname)) {
+		buf->length = strlen(hname) + 1;
+		buf->value = hname;
+	} else {
+		buf->length = 0;
+		buf->value = NULL;
+	}
+}
