@@ -694,6 +694,9 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 		sizeof(pd->pd_ctx_hndl.length) + pd->pd_ctx_hndl.length +
 		sizeof(context_token->length) + context_token->length;
 	p = buf = malloc(buf_size);
+	if (!buf)
+		goto out_err;
+
 	end = buf + buf_size;
 
 	/* context_timeout set by -t option overrides context lifetime */
@@ -706,10 +709,10 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	if (write_buffer(&p, end, context_token)) goto out_err;
 
 	if (write(k5_fd, buf, p - buf) < p - buf) goto out_err;
-	if (buf) free(buf);
+	free(buf);
 	return 0;
 out_err:
-	if (buf) free(buf);
+	free(buf);
 	printerr(1, "Failed to write downcall!\n");
 	return -1;
 }
