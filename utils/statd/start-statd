@@ -5,7 +5,7 @@
 # It should run statd with whatever flags are apropriate for this
 # site.
 PATH="/sbin:/usr/sbin:/bin:/usr/bin"
-if systemctl start statd.service
+if systemctl start rpc-statd.service
 then :
 else
     exec rpc.statd --no-notify
