@@ -696,7 +696,7 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	buf_size = sizeof(uid) + sizeof(timeout) + sizeof(pd->pd_seq_win) +
 		sizeof(pd->pd_ctx_hndl.length) + pd->pd_ctx_hndl.length +
 		sizeof(context_token->length) + context_token->length +
-		acceptor->length;
+		sizeof(acceptor->length) + acceptor->length;
 	p = buf = malloc(buf_size);
 	if (!buf)
 		goto out_err;
