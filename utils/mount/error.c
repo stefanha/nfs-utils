@@ -215,8 +215,12 @@ void mount_error(const char *spec, const char *mount_point, int error)
 				progname);
 		break;
 	case ENOTDIR:
-		nfs_error(_("%s: mount point %s is not a directory"),
-				progname, mount_point);
+		if (spec)
+			nfs_error(_("%s: mount spec %s or point %s is not a "
+				  "directory"),	progname, spec, mount_point);
+		else
+			nfs_error(_("%s: mount point %s is not a directory"),
+				  progname, mount_point);
 		break;
 	case EBUSY:
 		nfs_error(_("%s: %s is busy or already mounted"),
