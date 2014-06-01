@@ -346,7 +346,8 @@ points due to inactivity.
 .SS High-availability callouts
 .B rpc.statd
 can exec a special callout program during processing of
-successful SM_MON, SM_UNMON, and SM_UNMON_ALL requests.
+successful SM_MON, SM_UNMON, and SM_UNMON_ALL requests,
+or when it receives SM_NOTIFY.
 Such a program may be used in High Availability NFS (HA-NFS)
 environments to track lock state that may need to be migrated after
 a system reboot.
@@ -357,15 +358,26 @@ option.
 The program is run with 3 arguments:
 The first is either
 .B add-client
-or
 .B del-client
+or
+.B sm-notify
 depending on the reason for the callout.
 The second is the
 .I mon_name
 of the monitored peer.
 The third is the
-.I caller_name
-of the requesting lock manager.
+.I caller_name 
+of the requesting lock manager for
+.B add-client
+or
+.B del-client
+, otherwise it is
+.I IP_address 
+of the caller sending SM_NOTIFY.
+The forth is the
+.I state_value
+in the SM_NOTIFY request.
+
 .SS IPv6 and TI-RPC support
 TI-RPC is a pre-requisite for supporting NFS on IPv6.
 If TI-RPC support is built into

@@ -10,11 +10,13 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
 #include <netdb.h>
 
 #include "rpcmisc.h"
 #include "statd.h"
 #include "notlist.h"
+#include "ha-callout.h"
 
 /* Callback notify list. */
 /* notify_list *cbnl = NULL; ... never used */
@@ -87,15 +89,17 @@ sm_notify_1_svc(struct stat_chge *argp, struct svc_req *rqstp)
 	xlog(D_CALL, "Received SM_NOTIFY from %s, state: %d",
 				argp->mon_name, argp->state);
 
+	if (!statd_present_address(sap, ip_addr, sizeof(ip_addr))) {
+		xlog_warn("Unrecognized sender address");
+		return ((void *) &result);
+	}
+
+	ha_callout("sm-notify", argp->mon_name, ip_addr, argp->state);
+
 	/* quick check - don't bother if we're not monitoring anyone */
 	if (rtnl == NULL) {
 		xlog_warn("SM_NOTIFY from %s while not monitoring any hosts",
 				argp->mon_name);
-		return ((void *) &result);
-	}
-
-	if (!statd_present_address(sap, ip_addr, sizeof(ip_addr))) {
-		xlog_warn("Unrecognized sender address");
 		return ((void *) &result);
 	}
 
