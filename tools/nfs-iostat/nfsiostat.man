@@ -38,6 +38,61 @@ If one or more
 .I <mount point> 
 names are specified, statistics for only these mount points will
 be displayed.  Otherwise, all NFS mount points on the client are listed.
+.TP
+The meaning of each column of \fBnfsiostat\fR's output is the following:
+.RS 8
+- \fBop/s\fR
+.RS
+This is the number of operations per second.
+.RS
+.RE
+.RE
+.RE
+.RS 8
+- \fBrpc bklog\fR
+.RS
+This is the length of the backlog queue.
+.RE
+.RE
+.RE
+.RS 8
+- \fBkB/s\fR
+.RS
+This is the number of kB written/read per second.
+.RE
+.RE
+.RE
+.RS 8
+- \fBkB/op\fR
+.RS
+This is the number of kB written/read per each operation.
+.RE
+.RE
+.RE
+.RS 8
+- \fBretrans\fR
+.RS
+This is the number of retransmissions.
+.RE
+.RE
+.RE
+.RS 8
+- \fBavg RTT (ms)\fR
+.RS
+This is the duration from the time that client's kernel sends the RPC request until the time it receives the reply.
+.RE
+.RE
+.RE
+.RS 8
+- \fBavg exe (ms)\fR
+.RS
+This is the duration from the time that NFS client does the RPC request to its kernel until the RPC request is completed, this includes the RTT time above.
+.RE
+.RE
+.RE
+.TP
+Note that if an interval is used as argument to \fBnfsiostat\fR, then the diffrence from previous interval will be displayed, otherwise the results will be from the time that the share was mounted.
+
 .SH OPTIONS
 .TP
 .B \-a " or " \-\-attr
