@@ -411,7 +411,7 @@ AC_CHECK_FUNCS([alarm atexit dup2 fdatasync ftruncate getcwd \
                getnameinfo getrpcbyname getifaddrs \
                gettimeofday hasmntopt inet_ntoa innetgr memset mkdir pathconf \
                ppoll realpath rmdir select socket strcasecmp strchr strdup \
-               strerror strrchr strtol strtoul sigprocmask])
+               strerror strrchr strtol strtoul sigprocmask name_to_handle_at])
 
 
 dnl *************************************************************

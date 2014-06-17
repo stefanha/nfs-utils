@@ -377,6 +377,86 @@ static char *next_mnt(void **v, char *p)
 	return me->mnt_dir;
 }
 
+/* same_path() check is two paths refer to the same directory.
+ * We don't rely on 'strcmp()' as some filesystems support case-insensitive
+ * names and we might have two different names for the one directory.
+ * Theoretically the lengths of the names could be different, but the
+ * number of components must be the same.
+ * So if the paths have the same number of components (but aren't identical)
+ * we ask the kernel if they are the same thing.
+ * By preference we use name_to_handle_at(), as the mntid it returns
+ * will distinguish between bind-mount points.  If that isn't available
+ * we fall back on lstat, which is usually good enough.
+ */
+static inline int count_slashes(char *p)
+{
+	int cnt = 0;
+	while (*p)
+		if (*p++ == '/')
+			cnt++;
+	return cnt;
+}
+
+static int same_path(char *child, char *parent, int len)
+{
+	static char p[PATH_MAX];
+	struct stat sc, sp;
+
+	if (len <= 0)
+		len = strlen(child);
+	strncpy(p, child, len);
+	p[len] = 0;
+	if (strcmp(p, parent) == 0)
+		return 1;
+
+	/* If number of '/' are different, they must be different */
+	if (count_slashes(p) != count_slashes(parent))
+		return 0;
+
+#if HAVE_NAME_TO_HANDLE_AT
+	struct {
+		struct file_handle fh;
+		unsigned char handle[128];
+	} fchild, fparent;
+	int mnt_child, mnt_parent;
+
+	fchild.fh.handle_bytes = 128;
+	fparent.fh.handle_bytes = 128;
+	if (name_to_handle_at(AT_FDCWD, p, &fchild.fh, &mnt_child, 0) != 0) {
+		if (errno == ENOSYS)
+			goto fallback;
+		return 0;
+	}
+	if (name_to_handle_at(AT_FDCWD, parent, &fparent.fh, &mnt_parent, 0) != 0)
+		return 0;
+
+	if (mnt_child != mnt_parent ||
+	    fchild.fh.handle_bytes != fparent.fh.handle_bytes ||
+	    fchild.fh.handle_type != fparent.fh.handle_type ||
+	    memcmp(fchild.handle, fparent.handle,
+		   fchild.fh.handle_bytes) != 0)
+		return 0;
+
+	return 1;
+fallback:
+#endif
+
+	/* This is nearly good enough.  However if a directory is
+	 * bind-mounted in two places and both are exported, it
+	 * could give a false positive
+	 */
+	if (lstat(p, &sc) != 0)
+		return 0;
+	if (lstat(parent, &sp) != 0)
+		return 0;
+	if (sc.st_dev != sp.st_dev)
+		return 0;
+	if (sc.st_ino != sp.st_ino)
+		return 0;
+
+	return 1;
+}
+
 static int is_subdirectory(char *child, char *parent)
 {
 	/* Check is child is strictly a subdirectory of
@@ -387,7 +467,7 @@ static int is_subdirectory(char *child, char *parent)
 	if (strcmp(parent, "/") == 0 && child[1] != 0)
 		return 1;
 
-	return (strncmp(child, parent, l) == 0 && child[l] == '/');
+	return (same_path(child, parent, l) && child[l] == '/');
 }
 
 static int path_matches(nfs_export *exp, char *path)
@@ -396,7 +476,7 @@ static int path_matches(nfs_export *exp, char *path)
 	 * exact match, or does the export have CROSSMOUNT, and path
 	 * is a descendant?
 	 */
-	return strcmp(path, exp->m_export.e_path) == 0
+	return same_path(path, exp->m_export.e_path, 0)
 		|| ((exp->m_export.e_flags & NFSEXP_CROSSMOUNT)
 		    && is_subdirectory(path, exp->m_export.e_path));
 }
