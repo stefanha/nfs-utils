@@ -173,6 +173,10 @@ topdirs_init_list(void)
 		if (ret)
 			goto out_err;
 	}
+	if (TAILQ_EMPTY(&topdirs_list)) {
+		printerr(0, "ERROR: rpc_pipefs directory '%s' is empty!\n", pipefs_dir);
+		return -1;
+	}
 	closedir(pipedir);
 	return 0;
 out_err:
@@ -233,9 +237,10 @@ gssd_run()
 	sigaddset(&set, DNOTIFY_SIGNAL);
 	sigprocmask(SIG_UNBLOCK, &set, NULL);
 
-	if (topdirs_init_list() != 0)
-		return;
-
+	if (topdirs_init_list() != 0) {
+		/* Error msg is already printed */
+		exit(1);
+	}
 	init_client_list();
 
 	printerr(1, "beginning poll\n");
