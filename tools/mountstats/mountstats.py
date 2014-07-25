@@ -371,7 +371,7 @@ def parse_stats_file(filename):
     ms_dict = dict()
     key = ''
 
-    f = file(filename)
+    f = open(filename)
     for line in f.readlines():
         words = line.split()
         if len(words) == 0:
