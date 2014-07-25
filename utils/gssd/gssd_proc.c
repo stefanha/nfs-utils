@@ -218,7 +218,7 @@ get_servername(const char *name, const struct sockaddr *sa, const char *addr)
 			  NI_NAMEREQD);
 	if (err) {
 		printerr(0, "ERROR: unable to resolve %s to hostname: %s\n",
-			 addr, err == EAI_SYSTEM ? strerror(err) :
+			 addr, err == EAI_SYSTEM ? strerror(errno) :
 						   gai_strerror(err));
 		return NULL;
 	}
