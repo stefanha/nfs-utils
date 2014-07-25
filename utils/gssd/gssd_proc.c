@@ -850,7 +850,7 @@ create_auth_rpc_client(struct clnt_info *clp,
 	OM_uint32		min_stat;
 	char			rpc_errmsg[1024];
 	int			protocol;
-	struct timeval		timeout = {5, 0};
+	struct timeval	timeout;
 	struct sockaddr		*addr = (struct sockaddr *) &clp->addr;
 	socklen_t		salen;
 
@@ -917,6 +917,10 @@ create_auth_rpc_client(struct clnt_info *clp,
 
 	if (!populate_port(addr, salen, clp->prog, clp->vers, protocol))
 		goto out_fail;
+
+	/* set the timeout according to the requested valued */
+	timeout.tv_sec = (long) rpc_timeout;
+	timeout.tv_usec = (long) 0;
 
 	rpc_clnt = nfs_get_rpcclient(addr, salen, protocol, clp->prog,
 				     clp->vers, &timeout);

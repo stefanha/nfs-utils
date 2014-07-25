@@ -289,6 +289,14 @@ new kernel contexts to be negotiated after
 seconds, which allows changing Kerberos tickets and identities frequently.
 The default is no explicit timeout, which means the kernel context will live
 the lifetime of the Kerberos service ticket used in its creation.
+.TP
+.B -T timeout
+Timeout, in seconds, to create an RPC connection with a server while
+establishing an authenticated gss context for a user.
+The default timeout is set to 5 seconds.
+If you get messages like "WARNING: can't create tcp rpc_clnt to server
+%servername% for user with uid %uid%: RPC: Remote system error -
+Connection timed out", you should consider an increase of this timeout.
 .SH SEE ALSO
 .BR rpc.svcgssd (8),
 .BR kerberos (1),

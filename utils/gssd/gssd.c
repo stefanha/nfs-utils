@@ -64,6 +64,7 @@ char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
 int  use_memcache = 0;
 int  root_uses_machine_creds = 1;
 unsigned int  context_timeout = 0;
+unsigned int  rpc_timeout = 5;
 char *preferred_realm = NULL;
 int pipefds[2] = { -1, -1 };
 
@@ -105,7 +106,7 @@ main(int argc, char *argv[])
 	char *progname;
 
 	memset(ccachesearch, 0, sizeof(ccachesearch));
-	while ((opt = getopt(argc, argv, "DfvrlmnMp:k:d:t:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "DfvrlmnMp:k:d:t:T:R:")) != -1) {
 		switch (opt) {
 			case 'f':
 				fg = 1;
@@ -142,6 +143,9 @@ main(int argc, char *argv[])
 				break;
 			case 't':
 				context_timeout = atoi(optarg);
+				break;
+			case 'T':
+				rpc_timeout = atoi(optarg);
 				break;
 			case 'R':
 				preferred_realm = strdup(optarg);
