@@ -400,6 +400,8 @@ uint64_t dm_device_create(struct bl_volume *vols, int num_vols)
 			}
 			dev = node->bv_vols[0]->param.bv_dev;
 			tmp = table->params;
+			BL_LOG_INFO("%s: major %lu minor %lu", __func__,
+					MAJOR(dev), MINOR(dev));
 			if (!dm_format_dev(tmp, DM_PARAMS_LEN,
 					   MAJOR(dev), MINOR(dev))) {
 				free(table);
@@ -459,6 +461,8 @@ uint64_t dm_device_create(struct bl_volume *vols, int num_vols)
 				strcpy(table->target_type, "linear");
 				tmp = table->params;
 				dev = node->bv_vols[i]->param.bv_dev;
+				BL_LOG_INFO("%s: major %lu minor %lu", __func__,
+					MAJOR(dev), MINOR(dev));
 				if (!dm_format_dev(tmp, DM_PARAMS_LEN,
 						   MAJOR(dev), MINOR(dev))) {
 					free(table);

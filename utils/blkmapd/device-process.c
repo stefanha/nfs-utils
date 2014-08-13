@@ -181,6 +181,8 @@ static int map_sig_to_device(struct bl_sig *sig, struct bl_volume *vol)
 		/* FIXME: should we use better algorithm for disk scan? */
 		mapped = verify_sig(disk, sig);
 		if (mapped) {
+			BL_LOG_INFO("%s: using device %s\n",
+					__func__, disk->valid_path->full_path);
 			vol->param.bv_dev = disk->dev;
 			vol->bv_size = disk->size;
 			break;

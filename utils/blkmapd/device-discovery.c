@@ -148,7 +148,11 @@ void bl_add_disk(char *filepath)
 
 	dev = sb.st_rdev;
 	serial = bldev_read_serial(fd, filepath);
-	if (dm_is_dm_major(major(dev)))
+	if (!serial) {
+		BL_LOG_ERR("%s: no serial found for %s\n",
+				 __func__, filepath);
+		ap_state = BL_PATH_STATE_PASSIVE;
+	} else if (dm_is_dm_major(major(dev)))
 		ap_state = BL_PATH_STATE_PSEUDO;
 	else
 		ap_state = bldev_read_ap_state(fd);
