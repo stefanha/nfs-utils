@@ -77,16 +77,6 @@ struct bl_disk_path *bl_get_path(const char *filepath,
 	return tmp;
 }
 
-/* Check whether valid_path is a substring(partition) of path */
-int bl_is_partition(struct bl_disk_path *valid_path, struct bl_disk_path *path)
-{
-	if (!strncmp(valid_path->full_path, path->full_path,
-		     strlen(valid_path->full_path)))
-		return 1;
-
-	return 0;
-}
-
 /*
  * For multipath devices, devices state could be PASSIVE/ACTIVE/PSEUDO,
  * where PSEUDO > ACTIVE > PASSIVE. Device with highest state is used to
@@ -95,19 +85,13 @@ int bl_is_partition(struct bl_disk_path *valid_path, struct bl_disk_path *path)
  * If device-mapper multipath support is a must, pseudo devices should
  * exist for each multipath device. If not, active device path will be
  * chosen for device creation.
- * Treat partition as invalid path.
  */
-int bl_update_path(struct bl_disk_path *path, enum bl_path_state_e state,
-		   struct bl_disk *disk)
+int bl_update_path(enum bl_path_state_e state, struct bl_disk *disk)
 {
 	struct bl_disk_path *valid_path = disk->valid_path;
 
-	if (valid_path) {
-		if (valid_path->state >= state) {
-			if (bl_is_partition(valid_path, path))
-				return 0;
-		}
-	}
+	if (valid_path && valid_path->state >= state)
+		return 0;
 	return 1;
 }
 
@@ -170,9 +154,6 @@ void bl_add_disk(char *filepath)
 		ap_state = bldev_read_ap_state(fd);
 	close(fd);
 
-	if (ap_state != BL_PATH_STATE_ACTIVE)
-		return;
-
 	for (disk = visible_disk_list; disk != NULL; disk = disk->next) {
 		/* Already scanned or a partition?
 		 * XXX: if released each time, maybe not need to compare
@@ -216,7 +197,7 @@ void bl_add_disk(char *filepath)
 		path->next = disk->paths;
 		disk->paths = path;
 		/* check whether we need to update disk info */
-		if (bl_update_path(path, path->state, disk)) {
+		if (bl_update_path(path->state, disk)) {
 			disk->dev = dev;
 			disk->size = size;
 			disk->valid_path = path;
