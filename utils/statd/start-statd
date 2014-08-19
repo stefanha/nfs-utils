@@ -1,12 +1,16 @@
-#!/bin/bash -p
+#!/bin/sh
 # nfsmount calls this script when mounting a filesystem with locking
 # enabled, but when statd does not seem to be running (based on
 # /var/run/rpc.statd.pid).
 # It should run statd with whatever flags are apropriate for this
 # site.
 PATH="/sbin:/usr/sbin:/bin:/usr/bin"
-if systemctl start rpc-statd.service
-then :
-else
-    exec rpc.statd --no-notify
+
+# First try systemd if it's installed.
+if systemctl --help >/dev/null 2>&1; then
+    # Quit only if the call worked.
+    systemctl start rpc-statd.service && exit
 fi
+
+# Fall back to launching it ourselves.
+exec rpc.statd --no-notify
