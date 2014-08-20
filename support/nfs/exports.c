@@ -273,6 +273,8 @@ putexportent(struct exportent *ep)
 		"in" : "");
 	fprintf(fp, "%sacl,", (ep->e_flags & NFSEXP_NOACL)?
 		"no_" : "");
+	if (ep->e_flags & NFSEXP_NOREADDIRPLUS)
+		fprintf(fp, "nordirplus,");
 	if (ep->e_flags & NFSEXP_FSID) {
 		fprintf(fp, "fsid=%d,", ep->e_fsid);
 	}
@@ -539,6 +541,8 @@ parseopts(char *cp, struct exportent *ep, int warn, int *had_subtree_opt_ptr)
 			clearflags(NFSEXP_ASYNC, active, ep);
 		else if (!strcmp(opt, "async"))
 			setflags(NFSEXP_ASYNC, active, ep);
+		else if (!strcmp(opt, "nordirplus"))
+			setflags(NFSEXP_NOREADDIRPLUS, active, ep);
 		else if (!strcmp(opt, "nohide"))
 			setflags(NFSEXP_NOHIDE, active, ep);
 		else if (!strcmp(opt, "hide"))

@@ -360,6 +360,11 @@ supported so the same configuration can be made to work on old and new
 kernels alike.
 
 .TP
+.IR nordirplus
+This option will disable READDIRPLUS request handling.  When set,
+READDIRPLUS requests from NFS clients return NFS3ERR_NOTSUPP, and
+clients fall back on READDIR.  This option affects only NFSv3 clients.
+.TP
 .IR refer= path@host[+host][:path@host[+host]]
 A client referencing the export point will be directed to choose from
 the given list an alternative location for the filesystem.
