@@ -115,6 +115,11 @@ host_pton(const char *paddr)
 	 * have a real AF_INET presentation address, before invoking
 	 * getaddrinfo(3) to generate the full addrinfo list.
 	 */
+	if (paddr == NULL) {
+		xlog(D_GENERAL, "%s: passed a NULL presentation address",
+			__func__);
+		return NULL;
+	}
 	inet4 = 1;
 	if (inet_pton(AF_INET, paddr, &sin.sin_addr) == 0)
 		inet4 = 0;
@@ -123,15 +128,12 @@ host_pton(const char *paddr)
 	switch (error) {
 	case 0:
 		if (!inet4 && ai->ai_addr->sa_family == AF_INET) {
+			xlog(D_GENERAL, "%s: failed to convert %s",
+					__func__, paddr);
 			freeaddrinfo(ai);
 			break;
 		}
 		return ai;
-	case EAI_NONAME:
-		if (paddr == NULL)
-			xlog(D_GENERAL, "%s: passed a NULL presentation address",
-				__func__);
-		break;
 	case EAI_SYSTEM:
 		xlog(D_GENERAL, "%s: failed to convert %s: (%d) %m",
 				__func__, paddr, errno);
