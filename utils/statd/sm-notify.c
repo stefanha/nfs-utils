@@ -74,7 +74,7 @@ static int		record_pid(void);
 
 static struct nsm_host *	hosts = NULL;
 
-__attribute_malloc__
+__attribute__((__malloc__))
 static struct addrinfo *
 smn_lookup(const char *name)
 {
@@ -149,7 +149,7 @@ smn_get_hostname(const struct sockaddr *sap,
  * if the canonical name doesn't exist or cannot be determined.
  * The caller must free the result with free(3).
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static char *
 smn_verify_my_name(const char *name)
 {
@@ -189,7 +189,7 @@ smn_verify_my_name(const char *name)
 	return retval;
 }
 
-__attribute_malloc__
+__attribute__((__malloc__))
 static struct nsm_host *
 smn_alloc_host(const char *hostname, const char *mon_name,
 		const char *my_name, const time_t timestamp)
@@ -343,7 +343,7 @@ static int smn_socket(void)
  * If admin specified a source address or srcport, then convert those
  * to a sockaddr and return it.   Otherwise, return an ANYADDR address.
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static struct addrinfo *
 smn_bind_address(const char *srcaddr, const char *srcport)
 {

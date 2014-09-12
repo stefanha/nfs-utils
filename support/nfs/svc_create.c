@@ -113,7 +113,7 @@ svc_create_find_xprt(const struct sockaddr *bindaddr, const struct netconfig *nc
  *
  * Otherwise NULL is returned if an error occurs.
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static struct addrinfo *
 svc_create_bindaddr(struct netconfig *nconf, const uint16_t port)
 {

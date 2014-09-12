@@ -105,7 +105,7 @@ statd_present_address(const struct sockaddr *sap, char *buf, const size_t buflen
  * Look up the hostname; report exceptional errors.  Caller must
  * call freeaddrinfo(3) if a valid addrinfo is returned.
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static struct addrinfo *
 get_addrinfo(const char *hostname, const struct addrinfo *hint)
 {
@@ -184,7 +184,7 @@ get_nameinfo(const struct sockaddr *sap,
  * We won't monitor peers that don't have a reverse map.  The canonical
  * name gives us a key for our monitor list.
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 char *
 statd_canonical_name(const char *hostname)
 {
@@ -234,7 +234,7 @@ statd_canonical_name(const char *hostname)
  * NULL if some error occurs.  Caller must free the returned
  * list with freeaddrinfo(3).
  */
-__attribute_malloc__
+__attribute__((__malloc__))
 static struct addrinfo *
 statd_canonical_list(const char *hostname)
 {
