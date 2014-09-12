@@ -248,9 +248,6 @@ AC_CHECK_FUNC([connect], ,
 AC_CHECK_FUNC([getaddrinfo], ,
               [AC_MSG_ERROR([Function 'getaddrinfo' not found.])])
 
-AC_CHECK_FUNC([getrpcbynumber], ,
-              [AC_MSG_ERROR([Function 'getrpcbynumber' not found.])])
-
 AC_CHECK_FUNC([getservbyname], ,
               [AC_MSG_ERROR([Function 'getservbyname' not found.])])
 
@@ -409,11 +406,10 @@ AC_FUNC_STAT
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit dup2 fdatasync ftruncate getcwd \
                gethostbyaddr gethostbyname gethostname getmntent \
-               getnameinfo getrpcbyname getifaddrs \
+               getnameinfo getrpcbyname getrpcbynumber getrpcbynumber_r getifaddrs \
                gettimeofday hasmntopt inet_ntoa innetgr memset mkdir pathconf \
                ppoll realpath rmdir select socket strcasecmp strchr strdup \
                strerror strrchr strtol strtoul sigprocmask name_to_handle_at])
-
 
 dnl *************************************************************
 dnl Check for data sizes

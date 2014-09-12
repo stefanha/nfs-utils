@@ -25,6 +25,8 @@
 #include <sys/fcntl.h>
 #include <errno.h>
 
+#include "config.h"
+
 #ifdef _LIBC
 # include <libintl.h>
 #else
@@ -37,13 +39,20 @@
 
 int getservport(u_long number, const char *proto)
 {
-	char rpcdata[1024], servdata[1024];
-	struct rpcent rpcbuf, *rpcp;
+	char servdata[1024];
+	struct rpcent *rpcp;
 	struct servent servbuf, *servp = NULL;
-	int ret;
+	int ret = 0;
+#if HAVE_GETRPCBYNUMBER_R
+	char rpcdata[1024];
+	struct rpcent rpcbuf;
 
 	ret = getrpcbynumber_r(number, &rpcbuf, rpcdata, sizeof rpcdata,
 				&rpcp);
+#else
+	rpcp = getrpcbynumber(number);
+#endif
+
 	if (ret == 0 && rpcp != NULL) {
 		/* First try name.  */
 		ret = getservbyname_r(rpcp->r_name, proto, &servbuf, servdata,
