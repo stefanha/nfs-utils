@@ -35,6 +35,7 @@
 
 #include <sys/queue.h>
 #include <ctype.h>
+#include <stdint.h>
 
 struct conf_list_node {
 	TAILQ_ENTRY(conf_list_node) link;
@@ -49,7 +50,7 @@ struct conf_list {
 extern char    *conf_path;
 
 extern int      conf_begin(void);
-extern int      conf_decode_base64(u_int8_t *, u_int32_t *, u_char *);
+extern int      conf_decode_base64(uint8_t *, uint32_t *, unsigned char *);
 extern int      conf_end(int, int);
 extern void     conf_free_list(struct conf_list *);
 extern struct sockaddr *conf_get_address(char *, char *);

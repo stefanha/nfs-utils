@@ -72,10 +72,10 @@ TAILQ_HEAD (conf_trans_head, conf_trans) conf_trans_queue;
 /*
  * Radix-64 Encoding.
  */
-static const u_int8_t bin2asc[]
+static const uint8_t bin2asc[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static const u_int8_t asc2bin[] =
+static const uint8_t asc2bin[] =
 {
   255, 255, 255, 255, 255, 255, 255, 255,
   255, 255, 255, 255, 255, 255, 255, 255,
@@ -109,10 +109,10 @@ LIST_HEAD (conf_bindings, conf_binding) conf_bindings[256];
 
 static char *conf_addr;
 
-static __inline__ u_int8_t
+static __inline__ uint8_t
 conf_hash(char *s)
 {
-	u_int8_t hash = 0;
+	uint8_t hash = 0;
 
 	while (*s) {
 		hash = ((hash << 1) | (hash >> 7)) ^ tolower (*s);
@@ -603,10 +603,10 @@ cleanup:
 
 /* Decode a PEM encoded buffer.  */
 int
-conf_decode_base64 (u_int8_t *out, u_int32_t *len, u_char *buf)
+conf_decode_base64 (uint8_t *out, uint32_t *len, unsigned char *buf)
 {
-	u_int32_t c = 0;
-	u_int8_t c1, c2, c3, c4;
+	uint32_t c = 0;
+	uint8_t c1, c2, c3, c4;
 
 	while (*buf) {
 		if (*buf > 127 || (c1 = asc2bin[*buf]) == 255)
