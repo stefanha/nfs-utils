@@ -60,7 +60,7 @@
 void cache_set_fds(fd_set *fdset);
 int cache_process_req(fd_set *readfds);
 
-#if LONG_MAX != INT_MAX	
+#if defined(__GLIBC__) && LONG_MAX != INT_MAX
 /* bug in glibc 2.3.6 and earlier, we need
  * our own svc_getreqset
  */
