@@ -876,7 +876,7 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 	i = 0;
 	realm = realmnames[i];
 
-	if (strcmp (realm, preferred_realm) != 0) {
+	if (preferred_realm && strcmp (realm, preferred_realm) != 0) {
 		realm = preferred_realm;
 		/* resetting the realmnames index */
 		i = -1;
