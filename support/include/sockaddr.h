@@ -27,6 +27,7 @@
 #ifdef HAVE_LIBIO_H
 #include <libio.h>
 #endif
+#include <stdlib.h>
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
