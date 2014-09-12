@@ -8,6 +8,7 @@ AM_INIT_AUTOMAKE
 AC_PREREQ(2.59)
 AC_PREFIX_DEFAULT(/usr)
 AM_MAINTAINER_MODE
+AC_USE_SYSTEM_EXTENSIONS
 
 dnl *************************************************************
 dnl * Define the set of applicable options
