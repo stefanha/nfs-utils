@@ -26,6 +26,7 @@
 #include <malloc.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <libgen.h>
 /* RPC debug flags
    #include <sunrpc/debug.h> */
 /* NFS debug flags

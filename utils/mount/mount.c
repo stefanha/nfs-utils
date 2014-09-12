@@ -33,6 +33,7 @@
 #include <getopt.h>
 #include <mntent.h>
 #include <pwd.h>
+#include <libgen.h>
 
 #include "fstab.h"
 #include "xcommon.h"

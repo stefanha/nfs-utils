@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <netdb.h>
+#include <libgen.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
