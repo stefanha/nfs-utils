@@ -336,7 +336,7 @@ main(int argc, char **argv)
 
 	struct sigaction act = {
 		.sa_handler = unpause,
-		.sa_flags = SA_ONESHOT,
+		.sa_flags = SA_RESETHAND,
 	};
 
 	if ((progname = strrchr(argv[0], '/')))
