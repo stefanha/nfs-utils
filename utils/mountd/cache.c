@@ -1419,7 +1419,7 @@ static int cache_export_ent(char *domain, struct exportent *exp, char *path)
 		 */
 		struct stat stb;
 		size_t l = strlen(exp->e_path);
-		__dev_t dev;
+		dev_t dev;
 
 		if (strlen(path) <= l || path[l] != '/' ||
 		    strncmp(exp->e_path, path, l) != 0)
