@@ -569,7 +569,7 @@ print_server_stats(int opt_prt)
 			
 			print_numbers(
 				LABEL_srvfh
-				"lookup     anon       ncachedir  ncachedir  stale\n",
+				"lookup     anon       ncachedir  ncachenondir  stale\n",
 				srvfhinfo + 1, 5);
 		} else					/* < 2.4 */
 			print_numbers(
