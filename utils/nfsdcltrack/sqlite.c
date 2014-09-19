@@ -88,6 +88,129 @@ mkdir_if_not_exist(const char *dirname)
 	return ret;
 }
 
+static int
+sqlite_query_schema_version(void)
+{
+	int ret;
+	sqlite3_stmt *stmt = NULL;
+
+	/* prepare select query */
+	ret = sqlite3_prepare_v2(dbh,
+		"SELECT value FROM parameters WHERE key == \"version\";",
+		 -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "Unable to prepare select statement: %s",
+			sqlite3_errstr(ret));
+		ret = 0;
+		goto out;
+	}
+
+	/* query schema version */
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		xlog(L_ERROR, "Select statement execution failed: %s",
+				sqlite3_errstr(ret));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_column_int(stmt, 0);
+out:
+	sqlite3_finalize(stmt);
+	return ret;
+}
+
+/*
+ * Start an exclusive transaction and recheck the DB schema version. If it's
+ * still zero (indicating a new database) then set it up. If that all works,
+ * then insert schema version into the parameters table and commit the
+ * transaction. On any error, rollback the transaction.
+ */
+int
+sqlite_maindb_init_v1(void)
+{
+	int ret;
+	char *err = NULL;
+
+	/* Start a transaction */
+	ret = sqlite3_exec(dbh, "BEGIN EXCLUSIVE TRANSACTION;", NULL, NULL,
+				&err);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "Unable to begin transaction: %s", err);
+		return ret;
+	}
+
+	/*
+	 * Check schema version again. This time, under an exclusive
+	 * transaction to guard against racing DB setup attempts
+	 */
+	ret = sqlite_query_schema_version();
+	switch (ret) {
+	case 0:
+		/* Query failed again -- set up DB */
+		break;
+	case CLTRACK_SQLITE_LATEST_SCHEMA_VERSION:
+		/* Someone else raced in and set it up */
+		ret = 0;
+		goto rollback;
+	default:
+		/* Something went wrong -- fail! */
+		ret = -EINVAL;
+		goto rollback;
+	}
+
+	ret = sqlite3_exec(dbh, "CREATE TABLE parameters "
+				"(key TEXT PRIMARY KEY, value TEXT);",
+				NULL, NULL, &err);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "Unable to create parameter table: %s", err);
+		goto rollback;
+	}
+
+	/* create the "clients" table */
+	ret = sqlite3_exec(dbh, "CREATE TABLE clients (id BLOB PRIMARY KEY, "
+				"time INTEGER);",
+				NULL, NULL, &err);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "Unable to create clients table: %s", err);
+		goto rollback;
+	}
+
+
+	/* insert version into parameters table */
+	ret = snprintf(buf, sizeof(buf), "INSERT OR FAIL INTO parameters "
+			"values (\"version\", \"%d\");",
+			CLTRACK_SQLITE_LATEST_SCHEMA_VERSION);
+	if (ret < 0) {
+		xlog(L_ERROR, "sprintf failed!");
+		goto rollback;
+	} else if ((size_t)ret >= sizeof(buf)) {
+		xlog(L_ERROR, "sprintf output too long! (%d chars)", ret);
+		ret = -EINVAL;
+		goto rollback;
+	}
+
+	ret = sqlite3_exec(dbh, (const char *)buf, NULL, NULL, &err);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "Unable to insert into parameter table: %s", err);
+		goto rollback;
+	}
+
+	ret = sqlite3_exec(dbh, "COMMIT TRANSACTION;", NULL, NULL, &err);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "Unable to commit transaction: %s", err);
+		goto rollback;
+	}
+out:
+	sqlite3_free(err);
+	return ret;
+
+rollback:
+	/* Attempt to rollback the transaction */
+	sqlite3_exec(dbh, "ROLLBACK TRANSACTION;", NULL, NULL, &err);
+	goto out;
+}
+
 /* Open the database and set up the database handle for it */
 int
 sqlite_prepare_dbh(const char *topdir)
@@ -104,119 +227,53 @@ sqlite_prepare_dbh(const char *topdir)
 
 	buf[PATH_MAX - 1] = '\0';
 
+	/* open a new DB handle */
 	ret = sqlite3_open(buf, &dbh);
 	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to open main database: %d", ret);
-		dbh = NULL;
-		return ret;
+		/* try to create the dir */
+		ret = mkdir_if_not_exist(topdir);
+		if (ret)
+			goto out_close;
+
+		/* retry open */
+		ret = sqlite3_open(buf, &dbh);
+		if (ret != SQLITE_OK)
+			goto out_close;
 	}
 
+	/* set busy timeout */
 	ret = sqlite3_busy_timeout(dbh, CLTRACK_SQLITE_BUSY_TIMEOUT);
 	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to set sqlite busy timeout: %d", ret);
-		sqlite3_close(dbh);
-		dbh = NULL;
+		xlog(L_ERROR, "Unable to set sqlite busy timeout: %s",
+				sqlite3_errstr(ret));
+		goto out_close;
 	}
 
-	return ret;
-}
-
-/*
- * Open the "main" database, and attempt to initialize it by creating the
- * parameters table and inserting the schema version into it. Ignore any errors
- * from that, and then attempt to select the version out of it again. If the
- * version appears wrong, then assume that the DB is corrupt or has been
- * upgraded, and return an error. If all of that works, then attempt to create
- * the "clients" table.
- */
-int
-sqlite_maindb_init(const char *topdir)
-{
-	int ret;
-	char *err = NULL;
-	sqlite3_stmt *stmt = NULL;
-
-	ret = mkdir_if_not_exist(topdir);
-	if (ret)
-		return ret;
-
-	ret = sqlite_prepare_dbh(topdir);
-	if (ret)
-		return ret;
-
-	/* Try to create table */
-	ret = sqlite3_exec(dbh, "CREATE TABLE IF NOT EXISTS parameters "
-				"(key TEXT PRIMARY KEY, value TEXT);",
-				NULL, NULL, &err);
-	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to create parameter table: %d", ret);
-		goto out_err;
-	}
-
-	/* insert version into table -- ignore error if it fails */
-	ret = snprintf(buf, sizeof(buf),
-		       "INSERT OR IGNORE INTO parameters values (\"version\", "
-		       "\"%d\");", CLTRACK_SQLITE_LATEST_SCHEMA_VERSION);
-	if (ret < 0) {
-		goto out_err;
-	} else if ((size_t)ret >= sizeof(buf)) {
-		ret = -EINVAL;
-		goto out_err;
-	}
-
-	ret = sqlite3_exec(dbh, (const char *)buf, NULL, NULL, &err);
-	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to insert into parameter table: %d",
-				ret);
-		goto out_err;
-	}
-
-	ret = sqlite3_prepare_v2(dbh,
-		"SELECT value FROM parameters WHERE key == \"version\";",
-		 -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to prepare select statement: %d", ret);
-		goto out_err;
-	}
-
-	/* check schema version */
-	ret = sqlite3_step(stmt);
-	if (ret != SQLITE_ROW) {
-		xlog(L_ERROR, "Select statement execution failed: %s",
-				sqlite3_errmsg(dbh));
-		goto out_err;
-	}
-
-	/* process SELECT result */
-	ret = sqlite3_column_int(stmt, 0);
-	if (ret != CLTRACK_SQLITE_LATEST_SCHEMA_VERSION) {
+	ret = sqlite_query_schema_version();
+	switch (ret) {
+	case CLTRACK_SQLITE_LATEST_SCHEMA_VERSION:
+		/* DB is already set up. Do nothing */
+		ret = 0;
+		break;
+	case 0:
+		/* Query failed -- try to set up new DB */
+		ret = sqlite_maindb_init_v1();
+		if (ret)
+			goto out_close;
+		break;
+	default:
+		/* Unknown DB version -- downgrade? Fail */
 		xlog(L_ERROR, "Unsupported database schema version! "
 			"Expected %d, got %d.",
 			CLTRACK_SQLITE_LATEST_SCHEMA_VERSION, ret);
 		ret = -EINVAL;
-		goto out_err;
+		goto out_close;
 	}
 
-	/* now create the "clients" table */
-	ret = sqlite3_exec(dbh, "CREATE TABLE IF NOT EXISTS clients "
-				"(id BLOB PRIMARY KEY, time INTEGER);",
-				NULL, NULL, &err);
-	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to create clients table: %s", err);
-		goto out_err;
-	}
-
-	sqlite3_free(err);
-	sqlite3_finalize(stmt);
-	return 0;
-
-out_err:
-	if (err) {
-		xlog(L_ERROR, "sqlite error: %s", err);
-		sqlite3_free(err);
-	}
-	sqlite3_finalize(stmt);
-	sqlite3_close(dbh);
+	return ret;
+out_close:
+	sqlite3_close_v2(dbh);
+	dbh = NULL;
 	return ret;
 }
 

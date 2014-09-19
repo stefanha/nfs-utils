@@ -241,7 +241,7 @@ cltrack_init(const char __attribute__((unused)) *unused)
 	}
 
 	/* set up storage db */
-	ret = sqlite_maindb_init(storagedir);
+	ret = sqlite_prepare_dbh(storagedir);
 	if (ret) {
 		xlog(L_ERROR, "Failed to init database: %d", ret);
 		/*
