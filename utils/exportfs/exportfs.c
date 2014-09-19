@@ -351,16 +351,15 @@ static int exportfs_generic(char *arg, char *options, int verbose)
 
 static int exportfs_ipv6(char *arg, char *options, int verbose)
 {
-	char *path, *c, hname[NI_MAXHOST + strlen("/128")];
+	char *path, *c;
 
 	arg++;
 	c = strchr(arg, ']');
 	if (c == NULL)
 		return 1;
-	strncpy(hname, arg, c - arg);
 
 	/* no colon means this is a wildcarded DNS hostname */
-	if (strchr(hname, ':') == NULL)
+	if (memchr(arg, ':', c - arg) == NULL)
 		return exportfs_generic(--arg, options, verbose);
 
 	path = strstr(c, ":/");
@@ -370,9 +369,9 @@ static int exportfs_ipv6(char *arg, char *options, int verbose)
 
 	/* if there's anything between the closing brace and the
 	 * path separator, it's probably a prefix length */
-	strcat(hname, ++c);
+	memmove(c, c + 1, path - c);
 
-	exportfs_parsed(hname, path, options, verbose);
+	exportfs_parsed(arg, path, options, verbose);
 	return 0;
 }
 
@@ -458,16 +457,15 @@ static int unexportfs_generic(char *arg, int verbose)
 
 static int unexportfs_ipv6(char *arg, int verbose)
 {
-	char *path, *c, hname[NI_MAXHOST + strlen("/128")];
+	char *path, *c;
 
 	arg++;
 	c = strchr(arg, ']');
 	if (c == NULL)
 		return 1;
-	strncpy(hname, arg, c - arg);
 
 	/* no colon means this is a wildcarded DNS hostname */
-	if (strchr(hname, ':') == NULL)
+	if (memchr(arg, ':', c - arg) == NULL)
 		return unexportfs_generic(--arg, verbose);
 
 	path = strstr(c, ":/");
@@ -477,9 +475,9 @@ static int unexportfs_ipv6(char *arg, int verbose)
 
 	/* if there's anything between the closing brace and the
 	 * path separator, it's probably a prefix length */
-	strcat(hname, ++c);
+	memmove(c, c + 1, path - c);
 
-	unexportfs_parsed(hname, path, verbose);
+	unexportfs_parsed(arg, path, verbose);
 	return 0;
 }
 
