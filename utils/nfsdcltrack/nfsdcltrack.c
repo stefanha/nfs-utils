@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <sys/inotify.h>
 #include <dirent.h>
+#include <limits.h>
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/prctl.h>
 #include <sys/capability.h>
@@ -254,6 +255,22 @@ cltrack_init(const char __attribute__((unused)) *unused)
 	return ret;
 }
 
+/*
+ * Fetch the contents of the NFSDCLTRACK_CLIENT_HAS_SESSION env var. If
+ * it's set and the first character is 'Y' then return true. Otherwise
+ * return false.
+ */
+static bool
+cltrack_client_has_session(void)
+{
+	char *has_session = getenv("NFSDCLTRACK_CLIENT_HAS_SESSION");
+
+	if (has_session && *has_session == 'Y')
+		return true;
+
+	return false;
+}
+
 static int
 cltrack_create(const char *id)
 {
@@ -270,7 +287,7 @@ cltrack_create(const char *id)
 	if (len < 0)
 		return (int)len;
 
-	ret = sqlite_insert_client(blob, len);
+	ret = sqlite_insert_client(blob, len, cltrack_client_has_session(), false);
 
 	return ret ? -EREMOTEIO : ret;
 }
@@ -297,7 +314,8 @@ cltrack_remove(const char *id)
 }
 
 static int
-cltrack_check_legacy(const unsigned char *blob, const ssize_t len)
+cltrack_check_legacy(const unsigned char *blob, const ssize_t len,
+			bool has_session)
 {
 	int ret;
 	struct stat st;
@@ -323,7 +341,7 @@ cltrack_check_legacy(const unsigned char *blob, const ssize_t len)
 	}
 
 	/* Dir exists, try to insert record into db */
-	ret = sqlite_insert_client(blob, len);
+	ret = sqlite_insert_client(blob, len, has_session, has_session);
 	if (ret) {
 		xlog(D_GENERAL, "Failed to insert client: %d", ret);
 		return -EREMOTEIO;
@@ -343,6 +361,7 @@ cltrack_check(const char *id)
 {
 	int ret;
 	ssize_t len;
+	bool has_session;
 
 	xlog(D_GENERAL, "%s: check client record", __func__);
 
@@ -354,9 +373,11 @@ cltrack_check(const char *id)
 	if (len < 0)
 		return (int)len;
 
-	ret = sqlite_check_client(blob, len);
+	has_session = cltrack_client_has_session();
+
+	ret = sqlite_check_client(blob, len, has_session);
 	if (ret)
-		ret = cltrack_check_legacy(blob, len);
+		ret = cltrack_check_legacy(blob, len, has_session);
 
 	return ret ? -EPERM : ret;
 }

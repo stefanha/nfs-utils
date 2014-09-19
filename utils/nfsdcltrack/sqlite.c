@@ -368,14 +368,20 @@ out_close:
  * Returns a non-zero sqlite error code, or SQLITE_OK (aka 0)
  */
 int
-sqlite_insert_client(const unsigned char *clname, const size_t namelen)
+sqlite_insert_client(const unsigned char *clname, const size_t namelen,
+			const bool has_session, const bool zerotime)
 {
 	int ret;
 	sqlite3_stmt *stmt = NULL;
 
-	ret = sqlite3_prepare_v2(dbh, "INSERT OR REPLACE INTO clients VALUES "
-					"(?, strftime('%s', 'now'), 0);", -1,
-					&stmt, NULL);
+	if (zerotime)
+		ret = sqlite3_prepare_v2(dbh, "INSERT OR REPLACE INTO clients "
+				"VALUES (?, 0, ?);", -1, &stmt, NULL);
+	else
+		ret = sqlite3_prepare_v2(dbh, "INSERT OR REPLACE INTO clients "
+				"VALUES (?, strftime('%s', 'now'), ?);", -1,
+				&stmt, NULL);
+
 	if (ret != SQLITE_OK) {
 		xlog(L_ERROR, "%s: insert statement prepare failed: %s",
 			__func__, sqlite3_errmsg(dbh));
@@ -386,6 +392,13 @@ sqlite_insert_client(const unsigned char *clname, const size_t namelen)
 				SQLITE_STATIC);
 	if (ret != SQLITE_OK) {
 		xlog(L_ERROR, "%s: bind blob failed: %s", __func__,
+				sqlite3_errmsg(dbh));
+		goto out_err;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, (int)has_session);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "%s: bind int failed: %s", __func__,
 				sqlite3_errmsg(dbh));
 		goto out_err;
 	}
@@ -445,7 +458,8 @@ out_err:
  * return an error.
  */
 int
-sqlite_check_client(const unsigned char *clname, const size_t namelen)
+sqlite_check_client(const unsigned char *clname, const size_t namelen,
+			const bool has_session)
 {
 	int ret;
 	sqlite3_stmt *stmt = NULL;
@@ -477,6 +491,12 @@ sqlite_check_client(const unsigned char *clname, const size_t namelen)
 	xlog(D_GENERAL, "%s: select returned %d rows", __func__, ret);
 	if (ret != 1) {
 		ret = -EACCES;
+		goto out_err;
+	}
+
+	/* Only update timestamp for v4.0 clients */
+	if (has_session) {
+		ret = SQLITE_OK;
 		goto out_err;
 	}
 
