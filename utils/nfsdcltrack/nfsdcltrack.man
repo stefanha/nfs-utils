@@ -23,12 +23,13 @@ nfsdcltrack [\-d] [\-f] [\-s stable storage dir] <command> <args...>
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 nfsdcltack is the NFSv4 client tracking callout program. It is not necessary
-to install this daemon on machines that are not acting as NFSv4 servers.
+to install this program on machines that are not acting as NFSv4 servers.
 .PP
 When a network partition is combined with a server reboot, there are
 edge conditions that can cause the server to grant lock reclaims when
 other clients have taken conflicting locks in the interim. A more detailed
-explanation of this issue is described in \s-1RFC\s0 3530, section 8.6.3.
+explanation of this issue is described in \s-1RFC\s0 3530, section 8.6.3
+and in \s-1RFC\s0 5661, section 8.4.3.
 .PP
 In order to prevent these problems, the server must track a small amount
 of per-client information on stable storage. This program provides the
