@@ -50,6 +50,8 @@
 #define CLD_DEFAULT_STORAGEDIR NFS_STATEDIR "/nfsdcltrack"
 #endif
 
+#define NFSD_END_GRACE_FILE "/proc/fs/nfsd/v4_end_grace"
+
 /* defined by RFC 3530 */
 #define NFS4_OPAQUE_LIMIT	1024
 
@@ -211,6 +213,64 @@ cltrack_set_caps(void)
 	return ret;
 }
 
+/* Inform the kernel that it's OK to lift nfsd's grace period */
+static void
+cltrack_lift_grace_period(void)
+{
+	int fd;
+
+	fd = open(NFSD_END_GRACE_FILE, O_WRONLY);
+	if (fd < 0) {
+		/* Don't warn if file isn't present */
+		if (errno != ENOENT)
+			xlog(L_WARNING, "Unable to open %s: %m",
+				NFSD_END_GRACE_FILE);
+		return;
+	}
+
+	if (write(fd, "Y", 1) < 0)
+		xlog(L_WARNING, "Unable to write to %s: %m",
+				NFSD_END_GRACE_FILE);
+
+	close(fd);
+	return;
+}
+
+/*
+ * Fetch the contents of the NFSDCLTRACK_GRACE_START env var. If it's not set
+ * or there's an error converting it to time_t, then return LONG_MAX.
+ */
+static time_t
+cltrack_get_grace_start(void)
+{
+	time_t grace_start;
+	char *end;
+	char *grace_start_str = getenv("NFSDCLTRACK_GRACE_START");
+
+	if (!grace_start_str)
+		return LONG_MAX;
+
+	errno = 0;
+	grace_start = strtol(grace_start_str, &end, 0);
+	/* Problem converting or value is too large? */
+	if (errno)
+		return LONG_MAX;
+
+	return grace_start;
+}
+
+static bool
+cltrack_reclaims_complete(void)
+{
+	time_t grace_start = cltrack_get_grace_start();
+
+	/* Don't query DB if we didn't get a valid boot time */
+	if (grace_start == LONG_MAX)
+		return false;
+
+	return !sqlite_query_reclaiming(grace_start);
+}
+
 static int
 cltrack_init(const char __attribute__((unused)) *unused)
 {
@@ -251,7 +311,11 @@ cltrack_init(const char __attribute__((unused)) *unused)
 		 * stop upcalling until the problem is resolved.
 		 */
 		ret = -EACCES;
+	} else {
+		if (cltrack_reclaims_complete())
+			cltrack_lift_grace_period();
 	}
+
 	return ret;
 }
 
@@ -276,6 +340,7 @@ cltrack_create(const char *id)
 {
 	int ret;
 	ssize_t len;
+	bool has_session;
 
 	xlog(D_GENERAL, "%s: create client record.", __func__);
 
@@ -287,7 +352,12 @@ cltrack_create(const char *id)
 	if (len < 0)
 		return (int)len;
 
-	ret = sqlite_insert_client(blob, len, cltrack_client_has_session(), false);
+	has_session = cltrack_client_has_session();
+
+	ret = sqlite_insert_client(blob, len, has_session, false);
+
+	if (!ret && has_session && cltrack_reclaims_complete())
+		cltrack_lift_grace_period();
 
 	return ret ? -EREMOTEIO : ret;
 }

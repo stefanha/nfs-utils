@@ -558,3 +558,43 @@ sqlite_remove_unreclaimed(time_t grace_start)
 	sqlite3_free(err);
 	return ret;
 }
+
+/*
+ * Are there any clients that are possibly still reclaiming? Return a positive
+ * integer (usually number of clients) if so. If not, then return 0. On any
+ * error, return non-zero.
+ */
+int
+sqlite_query_reclaiming(const time_t grace_start)
+{
+	int ret;
+	sqlite3_stmt *stmt = NULL;
+
+	ret = sqlite3_prepare_v2(dbh, "SELECT count(*) FROM clients WHERE "
+				      "time < ? OR has_session != 1", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "%s: unable to prepare select statement: %s",
+				__func__, sqlite3_errstr(ret));
+		return ret;
+	}
+
+	ret = sqlite3_bind_int64(stmt, 1, (sqlite3_int64)grace_start);
+	if (ret != SQLITE_OK) {
+		xlog(L_ERROR, "%s: bind int64 failed: %s",
+				__func__, sqlite3_errstr(ret));
+		return ret;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		xlog(L_ERROR, "%s: unexpected return code from select: %s",
+				__func__, sqlite3_errstr(ret));
+		return ret;
+	}
+
+	ret = sqlite3_column_int(stmt, 0);
+	sqlite3_finalize(stmt);
+	xlog(D_GENERAL, "%s: there are %d clients that have not completed "
+			"reclaim", __func__, ret);
+	return ret;
+}
