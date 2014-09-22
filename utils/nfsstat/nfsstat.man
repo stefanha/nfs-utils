@@ -67,6 +67,14 @@ total number of lookups, and the number of hits and misses.
 Usage information on the server's request reply cache, including the
 total number of lookups, and the number of hits and misses.
 .TP
+.B io
+Usage information on the server's io statistics; bytes read and
+written.
+.TP
+.B ra
+Usage information on the server's read ahead cache, including the
+ra cache size, the depth of ra cache hits, and ra cache misses.
+.TP
 .B all
 Display all of the above facilities.
 .RE
