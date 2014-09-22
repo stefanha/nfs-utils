@@ -90,21 +90,36 @@ AC_ARG_ENABLE(nfsv41,
 
 AC_ARG_ENABLE(gss,
 	[AC_HELP_STRING([--enable-gss],
-                        [enable support for rpcsec_gss @<:@default=yes@:>@])],
+              [enable client support for rpcsec_gss @<:@default=yes@:>@])],
 	enable_gss=$enableval,
 	enable_gss=yes)
 	if test "$enable_gss" = yes; then
 		GSSD=gssd
-		SVCGSSD=svcgssd
 	else
 		enable_gss=
 		GSSD=
-		SVCGSSD=
 	fi
 	AC_SUBST(GSSD)
-	AC_SUBST(SVCGSSD)
 	AC_SUBST(enable_gss)
 	AM_CONDITIONAL(CONFIG_GSS, [test "$enable_gss" = "yes"])
+
+AC_ARG_ENABLE(svcgss,
+	[AC_HELP_STRING([--enable-svcgss],
+    [enable building svcgssd for rpcsec_gss server support @<:@default=yes@:>@])],
+	enable_svcgss=$enableval,
+	enable_svcgss=yes)
+	if test "$enable_gss" = yes; then
+		if "enable_svcgss" = yes; then
+			SVCGSSD=svcgssd
+		fi
+	else
+		enable_svcgss=
+		SVCGSSD=
+	fi
+	AC_SUBST(SVCGSSD)
+	AC_SUBST(enable_svcgss)
+	AM_CONDITIONAL(CONFIG_SVCGSS, [test "$enable_svcgss" = "yes"])
+
 AC_ARG_ENABLE(kprefix,
 	[AC_HELP_STRING([--enable-kprefix], [install progs as rpc.knfsd etc])],
 	test "$enableval" = "yes" && kprefix=k,
