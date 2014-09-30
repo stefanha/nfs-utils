@@ -2,14 +2,16 @@
 Description=NFS server and services
 Requires= network.target proc-fs-nfsd.mount rpcbind.target
 Requires= nfs-mountd.service
-Wants=rpc-statd.service nfs-idmapd.service auth-rpcgss-module.service
-Wants=rpc-gssd.service gssproxy.service rpc-svcgssd.service
+Wants=rpc-statd.service nfs-idmapd.service
 Wants=rpc-statd-notify.service
 
 After= network.target proc-fs-nfsd.mount rpcbind.target nfs-mountd.service
 After= nfs-idmapd.service rpc-statd.service
-After= rpc-gssd.service gssproxy.service rpc-svcgssd.service
 Before= rpc-statd-notify.service
+
+# GSS services dependencies and ordering
+Wants=auth-rpcgss-module.service
+After=rpc-gssd.service gssproxy.service rpc-svcgssd.service
 
 Wants=nfs-config.service
 After=nfs-config.service

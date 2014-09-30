@@ -5,9 +5,12 @@ Wants=remote-fs-pre.target
 
 # Note: we don't "Wants=rpc-statd.service" as "mount.nfs" will arrange to
 # start that on demand if needed.
-Wants=rpc-gssd.service rpc-svcgssd.service auth-rpcgss-module.service
 Wants=nfs-blkmap.service rpc-statd-notify.service
-After=rpc-gssd.service rpc-svcgssd.service nfs-blkmap.service
+After=nfs-blkmap.service
+
+# GSS services dependencies and ordering
+Wants=auth-rpcgss-module.service
+After=rpc-gssd.service rpc-svcgssd.service gssproxy.service
 
 [Install]
 WantedBy=multi-user.target
