@@ -415,7 +415,11 @@ class DeviceData:
     def compare_iostats(self, old_stats):
         """Return the difference between two sets of stats
         """
+        if old_stats.__nfs_data['age'] > self.__nfs_data['age']:
+            return self
+
         result = DeviceData()
+        protocol = self.__rpc_data['protocol']
 
         # copy self into result
         for key, value in self.__nfs_data.items():
@@ -430,12 +434,21 @@ class DeviceData:
         for op in result.__rpc_data['ops']:
             result.__rpc_data[op] = list(map(difference, self.__rpc_data[op], old_stats.__rpc_data[op]))
 
-        # update the remaining keys we care about
-        result.__rpc_data['rpcsends'] -= old_stats.__rpc_data['rpcsends']
-        result.__rpc_data['backlogutil'] -= old_stats.__rpc_data['backlogutil']
-        result.__nfs_data['serverreadbytes'] -= old_stats.__nfs_data['serverreadbytes']
-        result.__nfs_data['serverwritebytes'] -= old_stats.__nfs_data['serverwritebytes']
-
+        # update the remaining keys
+        if protocol == 'udp':
+            for key in XprtUdpCounters:
+                result.__rpc_data[key] -= old_stats.__rpc_data[key]
+        elif protocol == 'tcp':
+            for key in XprtTcpCounters:
+                result.__rpc_data[key] -= old_stats.__rpc_data[key]
+        elif protocol == 'rdma':
+            for key in XprtRdmaCounters:
+                result.__rpc_data[key] -= old_stats.__rpc_data[key]
+        result.__nfs_data['age'] -= old_stats.__nfs_data['age']
+        for key in NfsEventCounters:
+            result.__nfs_data[key] -= old_stats.__nfs_data[key]
+        for key in NfsByteCounters:
+            result.__nfs_data[key] -= old_stats.__nfs_data[key]
         return result
 
     def display_iostats(self, sample_time):
