@@ -238,40 +238,18 @@ class DeviceData:
             if self.__nfs_data['flavor'] == 6:
                 self.__nfs_data['pseudoflavor'] = int(keys[1].split('=')[1])
         elif words[0] == 'events:':
-            self.__nfs_data['inoderevalidates'] = int(words[1])
-            self.__nfs_data['dentryrevalidates'] = int(words[2])
-            self.__nfs_data['datainvalidates'] = int(words[3])
-            self.__nfs_data['attrinvalidates'] = int(words[4])
-            self.__nfs_data['vfsopen'] = int(words[5])
-            self.__nfs_data['vfslookup'] = int(words[6])
-            self.__nfs_data['vfspermission'] = int(words[7])
-            self.__nfs_data['vfsupdatepage'] = int(words[8])
-            self.__nfs_data['vfsreadpage'] = int(words[9])
-            self.__nfs_data['vfsreadpages'] = int(words[10])
-            self.__nfs_data['vfswritepage'] = int(words[11])
-            self.__nfs_data['vfswritepages'] = int(words[12])
-            self.__nfs_data['vfsreaddir'] = int(words[13])
-            self.__nfs_data['vfssetattr'] = int(words[14])
-            self.__nfs_data['vfsflush'] = int(words[15])
-            self.__nfs_data['vfsfsync'] = int(words[16])
-            self.__nfs_data['vfslock'] = int(words[17])
-            self.__nfs_data['vfsrelease'] = int(words[18])
-            self.__nfs_data['congestionwait'] = int(words[19])
-            self.__nfs_data['setattrtrunc'] = int(words[20])
-            self.__nfs_data['extendwrite'] = int(words[21])
-            self.__nfs_data['sillyrenames'] = int(words[22])
-            self.__nfs_data['shortreads'] = int(words[23])
-            self.__nfs_data['shortwrites'] = int(words[24])
-            self.__nfs_data['delay'] = int(words[25])
-            self.__nfs_data['pnfsreads'] = int(words[26])
-            self.__nfs_data['pnfswrites'] = int(words[27])
+            i = 1
+            for key in NfsEventCounters:
+                try:
+                    self.__nfs_data[key] = int(words[i])
+                except IndexError as err:
+                    self.__nfs_data[key] = 0
+                i += 1
         elif words[0] == 'bytes:':
-            self.__nfs_data['normalreadbytes'] = int(words[1])
-            self.__nfs_data['normalwritebytes'] = int(words[2])
-            self.__nfs_data['directreadbytes'] = int(words[3])
-            self.__nfs_data['directwritebytes'] = int(words[4])
-            self.__nfs_data['serverreadbytes'] = int(words[5])
-            self.__nfs_data['serverwritebytes'] = int(words[6])
+            i = 1
+            for key in NfsByteCounters:
+                self.__nfs_data[key] = int(words[i])
+                i += 1
 
     def __parse_rpc_line(self, words):
         if words[0] == 'RPC':
@@ -280,44 +258,20 @@ class DeviceData:
         elif words[0] == 'xprt:':
             self.__rpc_data['protocol'] = words[1]
             if words[1] == 'udp':
-                self.__rpc_data['port'] = int(words[2])
-                self.__rpc_data['bind_count'] = int(words[3])
-                self.__rpc_data['rpcsends'] = int(words[4])
-                self.__rpc_data['rpcreceives'] = int(words[5])
-                self.__rpc_data['badxids'] = int(words[6])
-                self.__rpc_data['inflightsends'] = int(words[7])
-                self.__rpc_data['backlogutil'] = int(words[8])
+                i = 2
+                for key in XprtUdpCounters:
+                    self.__rpc_data[key] = int(words[i])
+                    i += 1
             elif words[1] == 'tcp':
-                self.__rpc_data['port'] = words[2]
-                self.__rpc_data['bind_count'] = int(words[3])
-                self.__rpc_data['connect_count'] = int(words[4])
-                self.__rpc_data['connect_time'] = int(words[5])
-                self.__rpc_data['idle_time'] = int(words[6])
-                self.__rpc_data['rpcsends'] = int(words[7])
-                self.__rpc_data['rpcreceives'] = int(words[8])
-                self.__rpc_data['badxids'] = int(words[9])
-                self.__rpc_data['inflightsends'] = int(words[10])
-                self.__rpc_data['backlogutil'] = int(words[11])
+                i = 2
+                for key in XprtTcpCounters:
+                    self.__rpc_data[key] = int(words[i])
+                    i += 1
             elif words[1] == 'rdma':
-                self.__rpc_data['port'] = words[2]
-                self.__rpc_data['bind_count'] = int(words[3])
-                self.__rpc_data['connect_count'] = int(words[4])
-                self.__rpc_data['connect_time'] = int(words[5])
-                self.__rpc_data['idle_time'] = int(words[6])
-                self.__rpc_data['rpcsends'] = int(words[7])
-                self.__rpc_data['rpcreceives'] = int(words[8])
-                self.__rpc_data['badxids'] = int(words[9])
-                self.__rpc_data['backlogutil'] = int(words[10])
-                self.__rpc_data['read_chunks'] = int(words[11])
-                self.__rpc_data['write_chunks'] = int(words[12])
-                self.__rpc_data['reply_chunks'] = int(words[13])
-                self.__rpc_data['total_rdma_req'] = int(words[14])
-                self.__rpc_data['total_rdma_rep'] = int(words[15])
-                self.__rpc_data['pullup'] = int(words[16])
-                self.__rpc_data['fixup'] = int(words[17])
-                self.__rpc_data['hardway'] = int(words[18])
-                self.__rpc_data['failed_marshal'] = int(words[19])
-                self.__rpc_data['bad_reply'] = int(words[20])
+                i = 2
+                for key in XprtRdmaCounters:
+                    self.__rpc_data[key] = int(words[i])
+                    i += 1
         elif words[0] == 'per-op':
             self.__rpc_data['per-op'] = words
         else:
