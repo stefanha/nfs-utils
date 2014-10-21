@@ -221,13 +221,13 @@ class DeviceData:
             self.__nfs_data['export'] = words[1]
             self.__nfs_data['mountpoint'] = words[4]
             self.__nfs_data['fstype'] = words[7]
-            if words[7].find('nfs') != -1:
+            if words[7].find('nfs') != -1 and words[7] != 'nfsd':
                 self.__nfs_data['statvers'] = words[8]
         elif 'nfs' in words or 'nfs4' in words:
             self.__nfs_data['export'] = words[0]
             self.__nfs_data['mountpoint'] = words[3]
             self.__nfs_data['fstype'] = words[6]
-            if words[6].find('nfs') != -1:
+            if words[6].find('nfs') != -1 and words[6] != 'nfsd':
                 self.__nfs_data['statvers'] = words[7]
         elif words[0] == 'age:':
             self.__nfs_data['age'] = int(words[1])
