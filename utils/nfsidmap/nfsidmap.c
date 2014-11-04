@@ -209,10 +209,23 @@ static int key_invalidate(char *keystr, int keymask)
 		*(strchr(buf, ' ')) = '\0';
 		sscanf(buf, "%x", &key);
 
-		if (keyctl_invalidate(key) < 0) {
-			xlog_err("keyctl_invalidate(0x%x) failed: %m", key);
-			fclose(fp);
-			return 1;
+/* older libkeyutils compatibility */
+#ifndef KEYCTL_INVALIDATE
+#define KEYCTL_INVALIDATE 21      /* invalidate a key */
+#endif
+		if (keyctl(KEYCTL_INVALIDATE, key) < 0) {
+			if (errno != EOPNOTSUPP) {
+				xlog_err("keyctl_invalidate(0x%x) failed: %m", key);
+				fclose(fp);
+				return 1;
+			} else {
+				/* older kernel compatibility attempt: */
+				if (keyctl_revoke(key) < 0) {
+					xlog_err("keyctl_revoke(0x%x) failed: %m", key);
+					fclose(fp);
+					return 1;
+				}
+			}
 		}
 
 		keymask &= ~mask;
