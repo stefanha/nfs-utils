@@ -329,6 +329,9 @@ int main(int argc, char **argv)
 			key, type, value, timeout);
 	}
 
+	/* Become a possesor of the to-be-instantiated key to set the key's timeout */
+	request_key("keyring", DEFAULT_KEYRING, NULL, KEY_SPEC_THREAD_KEYRING);
+
 	if (strcmp(type, "uid") == 0)
 		rc = id_lookup(value, key, USER);
 	else if (strcmp(type, "gid") == 0)
