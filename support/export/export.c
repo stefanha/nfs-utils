@@ -76,15 +76,22 @@ export_read(char *fname)
 	struct exportent	*eep;
 	nfs_export		*exp;
 
+	int volumes = 0;
+
 	setexportent(fname, "r");
 	while ((eep = getexportent(0,1)) != NULL) {
 		exp = export_lookup(eep->e_hostname, eep->e_path, 0);
-		if (!exp)
-			export_create(eep, 0);
+		if (!exp) {
+			exp = export_create(eep, 0);
+			if (exp)
+				volumes++;
+		}
 		else
 			warn_duplicated_exports(exp, eep);
 	}
 	endexportent();
+	if (volumes == 0)
+		xlog(L_ERROR, "No file systems exported!");
 }
 
 /**
