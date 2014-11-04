@@ -272,8 +272,11 @@ class DeviceData:
                 print('%s:' % op)
                 print('\t%d ops (%d%%)' % \
                     (count, ((count * 100) / sends)), end=' ')
-                print('\t%d retrans (%d%%)' % (retrans, ((retrans * 100) / count)), end=' ')
-                print('\t%d major timeouts' % stats[2])
+                if retrans != 0:
+                    print('\t%d retrans (%d%%)' % (retrans, ((retrans * 100) / count)), end=' ')
+                    print('\t%d major timeouts' % stats[2])
+                else:
+                    print('')
                 print('\tavg bytes sent per op: %d\tavg bytes received per op: %d' % \
                     (stats[3] / count, stats[4] / count))
                 print('\tbacklog wait: %f' % (float(stats[5]) / count), end=' ')
