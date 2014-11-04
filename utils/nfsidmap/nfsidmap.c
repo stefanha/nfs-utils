@@ -25,7 +25,7 @@ char *usage="Usage: %s [-v] [-c || [-u|-g|-r key] || [-t timeout] key desc]";
 
 #define PROCKEYS "/proc/keys"
 #ifndef DEFAULT_KEYRING
-#define DEFAULT_KEYRING "id_resolver"
+#define DEFAULT_KEYRING ".id_resolver"
 #endif
 
 #ifndef PATH_IDMAPDCONF
