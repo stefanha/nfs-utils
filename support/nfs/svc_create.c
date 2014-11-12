@@ -49,6 +49,8 @@
 
 #ifdef HAVE_LIBTIRPC
 
+#include <rpc/rpc_com.h>
+
 #define SVC_CREATE_XPRT_CACHE_SIZE	(8)
 static SVCXPRT *svc_create_xprt_cache[SVC_CREATE_XPRT_CACHE_SIZE] = { NULL, };
 
@@ -401,6 +403,7 @@ nfs_svc_create(char *name, const rpcprog_t program, const rpcvers_t version,
 	const struct sigaction create_sigaction = {
 		.sa_handler	= SIG_IGN,
 	};
+	int maxrec = RPC_MAXDATASIZE;
 	unsigned int visible, up, servport;
 	struct netconfig *nconf;
 	void *handlep;
@@ -411,6 +414,20 @@ nfs_svc_create(char *name, const rpcprog_t program, const rpcvers_t version,
 	 * to them.
 	 */
 	(void)sigaction(SIGPIPE, &create_sigaction, NULL);
+
+	/*
+	 * Setting MAXREC also enables non-blocking mode for tcp connections.
+	 * This avoids DOS attacks by a client sending many requests but never
+	 * reading the reply:
+	 * - if a second request already is present for reading in the socket,
+	 *   after the first request just was read, libtirpc will break the
+	 *   connection. Thus an attacker can't simply send requests as fast as
+	 *   he can without waiting for the response.
+	 * - if the write buffer of the socket is full, the next write() will
+	 *   fail with EAGAIN. libtirpc will retry the write in a loop for max.
+	 *   2 seconds. If write still fails, the connection will be closed.
+	 */   
+	rpc_control(RPC_SVC_CONNMAXREC_SET, &maxrec);
 
 	handlep = setnetconfig();
 	if (handlep == NULL) {
