@@ -104,7 +104,7 @@ makesock(int port, int proto)
 		return -1;
 	}
 
-	return sock;
+	return svcsock_nonblock(sock);
 }
 
 void

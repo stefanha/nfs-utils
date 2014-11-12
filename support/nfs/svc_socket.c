@@ -76,6 +76,39 @@ int getservport(u_long number, const char *proto)
 	return 0;
 }
 
+int
+svcsock_nonblock(int sock)
+{
+	int flags;
+
+	if (sock < 0)
+		return sock;
+
+	/* This socket might be shared among multiple processes
+	 * if mountd is run multi-threaded.  So it is safest to
+	 * make it non-blocking, else all threads might wake
+	 * one will get the data, and the others will block
+	 * indefinitely.
+	 * In all cases, transaction on this socket are atomic
+	 * (accept for TCP, packet-read and packet-write for UDP)
+	 * so O_NONBLOCK will not confuse unprepared code causing
+	 * it to corrupt messages.
+	 * It generally safest to have O_NONBLOCK when doing an accept
+	 * as if we get a RST after the SYN and before accept runs,
+	 * we can block despite being told there was an acceptable
+	 * connection.
+	 */
+	if ((flags = fcntl(sock, F_GETFL)) < 0)
+		perror(_("svc_socket: can't get socket flags"));
+	else if (fcntl(sock, F_SETFL, flags|O_NONBLOCK) < 0)
+		perror(_("svc_socket: can't set socket flags"));
+	else
+		return sock;
+
+	(void) __close(sock);
+	return -1;
+}
+
 static int
 svc_socket (u_long number, int type, int protocol, int reuse)
 {
@@ -113,38 +146,7 @@ svc_socket (u_long number, int type, int protocol, int reuse)
       sock = -1;
     }
 
-  if (sock >= 0)
-    {
-	    /* This socket might be shared among multiple processes
-	     * if mountd is run multi-threaded.  So it is safest to
-	     * make it non-blocking, else all threads might wake
-	     * one will get the data, and the others will block
-	     * indefinitely.
-	     * In all cases, transaction on this socket are atomic
-	     * (accept for TCP, packet-read and packet-write for UDP)
-	     * so O_NONBLOCK will not confuse unprepared code causing
-	     * it to corrupt messages.
-	     * It generally safest to have O_NONBLOCK when doing an accept
-	     * as if we get a RST after the SYN and before accept runs,
-	     * we can block despite being told there was an acceptable
-	     * connection.
-	     */
-	int flags;
-	if ((flags = fcntl(sock, F_GETFL)) < 0)
-	  {
-	      perror (_("svc_socket: can't get socket flags"));
-	      (void) __close (sock);
-	      sock = -1;
-	  }
-	else if (fcntl(sock, F_SETFL, flags|O_NONBLOCK) < 0)
-	  {
-	      perror (_("svc_socket: can't set socket flags"));
-	      (void) __close (sock);
-	      sock = -1;
-	  }
-    }
-
-  return sock;
+  return svcsock_nonblock(sock);
 }
 
 /*

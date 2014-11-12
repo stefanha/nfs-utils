@@ -174,6 +174,7 @@ void closeall(int min);
 
 int			svctcp_socket (u_long __number, int __reuse);
 int			svcudp_socket (u_long __number);
+int			svcsock_nonblock (int __sock);
 
 /* Misc shared code prototypes */
 size_t  strlcat(char *, const char *, size_t);
