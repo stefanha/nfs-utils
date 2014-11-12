@@ -277,6 +277,12 @@ svc_create_nconf_rand_port(const char *name, const rpcprog_t program,
 			"(%s, %u, %s)", name, version, nconf->nc_netid);
 		return 0;
 	}
+	if (svcsock_nonblock(xprt->xp_fd) < 0) {
+		/* close() already done by svcsock_nonblock() */
+		xprt->xp_fd = RPC_ANYFD;
+		SVC_DESTROY(xprt);
+		return 0;
+	}
 
 	if (!svc_reg(xprt, program, version, dispatch, nconf)) {
 		/* svc_reg(3) destroys @xprt in this case */
@@ -332,6 +338,7 @@ svc_create_nconf_fixed_port(const char *name, const rpcprog_t program,
 		int fd;
 
 		fd = svc_create_sock(ai->ai_addr, ai->ai_addrlen, nconf);
+		fd = svcsock_nonblock(fd);
 		if (fd == -1)
 			goto out_free;
 
