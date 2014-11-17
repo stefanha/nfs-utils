@@ -357,7 +357,7 @@ sqlite_prepare_dbh(const char *topdir)
 
 	return ret;
 out_close:
-	sqlite3_close_v2(dbh);
+	sqlite3_close(dbh);
 	dbh = NULL;
 	return ret;
 }
