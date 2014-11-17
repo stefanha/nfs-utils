@@ -102,7 +102,7 @@ sqlite_query_schema_version(void)
 		 -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		xlog(L_ERROR, "Unable to prepare select statement: %s",
-			sqlite3_errstr(ret));
+			sqlite3_errmsg(dbh));
 		ret = 0;
 		goto out;
 	}
@@ -111,7 +111,7 @@ sqlite_query_schema_version(void)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		xlog(L_ERROR, "Select statement execution failed: %s",
-				sqlite3_errstr(ret));
+				sqlite3_errmsg(dbh));
 		ret = 0;
 		goto out;
 	}
@@ -324,7 +324,7 @@ sqlite_prepare_dbh(const char *topdir)
 	ret = sqlite3_busy_timeout(dbh, CLTRACK_SQLITE_BUSY_TIMEOUT);
 	if (ret != SQLITE_OK) {
 		xlog(L_ERROR, "Unable to set sqlite busy timeout: %s",
-				sqlite3_errstr(ret));
+				sqlite3_errmsg(dbh));
 		goto out_close;
 	}
 
@@ -574,21 +574,21 @@ sqlite_query_reclaiming(const time_t grace_start)
 				      "time < ? OR has_session != 1", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		xlog(L_ERROR, "%s: unable to prepare select statement: %s",
-				__func__, sqlite3_errstr(ret));
+				__func__, sqlite3_errmsg(dbh));
 		return ret;
 	}
 
 	ret = sqlite3_bind_int64(stmt, 1, (sqlite3_int64)grace_start);
 	if (ret != SQLITE_OK) {
 		xlog(L_ERROR, "%s: bind int64 failed: %s",
-				__func__, sqlite3_errstr(ret));
+				__func__, sqlite3_errmsg(dbh));
 		return ret;
 	}
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		xlog(L_ERROR, "%s: unexpected return code from select: %s",
-				__func__, sqlite3_errstr(ret));
+				__func__, sqlite3_errmsg(dbh));
 		return ret;
 	}
 
