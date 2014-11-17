@@ -612,8 +612,12 @@ try:
         nfsstat_command()
     elif prog == 'ms-iostat':
         iostat_command()
+    sys.stdout.close()
+    sys.stderr.close()
 except KeyboardInterrupt:
     print('Caught ^C... exiting')
     sys.exit(1)
+except IOError:
+    pass
 
 sys.exit(0)
