@@ -71,12 +71,13 @@ static void warn_duplicated_exports(nfs_export *exp, struct exportent *eep)
  *
  */
 void
-export_read(char *fname)
+export_read(char *fname, int verbose)
 {
 	struct exportent	*eep;
 	nfs_export		*exp;
 
 	int volumes = 0;
+	int bad_entry = 0;
 
 	setexportent(fname, "r");
 	while ((eep = getexportent(0,1)) != NULL) {
@@ -85,13 +86,19 @@ export_read(char *fname)
 			exp = export_create(eep, 0);
 			if (exp)
 				volumes++;
+			else 
+				bad_entry++;
 		}
 		else
 			warn_duplicated_exports(exp, eep);
 	}
 	endexportent();
-	if (volumes == 0)
-		xlog(L_ERROR, "No file systems exported!");
+	if (volumes == 0) {
+		if (bad_entry > 0)
+			xlog(L_ERROR, "No file systems exported!");
+		else if (verbose)
+			xlog(L_WARNING, "No file systems exported!");
+	}
 }
 
 /**

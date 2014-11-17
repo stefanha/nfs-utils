@@ -47,7 +47,7 @@ static void	error(nfs_export *exp, int err);
 static void	usage(const char *progname, int n);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
-static void	export_d_read(const char *dname);
+static void	export_d_read(const char *dname, int verbose);
 static void grab_lockfile(void);
 static void release_lockfile(void);
 
@@ -182,8 +182,8 @@ main(int argc, char **argv)
 	atexit(release_lockfile);
 
 	if (f_export && ! f_ignore) {
-		export_read(_PATH_EXPORTS);
-		export_d_read(_PATH_EXPORTS_D);
+		export_read(_PATH_EXPORTS, f_verbose);
+		export_d_read(_PATH_EXPORTS_D, f_verbose);
 	}
 	if (f_export) {
 		if (f_all)
@@ -686,7 +686,7 @@ out:
 /* Based on mnt_table_parse_dir() in
    util-linux-ng/shlibs/mount/src/tab_parse.c */
 static void
-export_d_read(const char *dname)
+export_d_read(const char *dname, int verbose)
 {
 	int n = 0, i;
 	struct dirent **namelist = NULL;
@@ -729,7 +729,7 @@ export_d_read(const char *dname)
 			continue;
 		}
 
-		export_read(fname);
+		export_read(fname, verbose);
 	}
 
 	for (i = 0; i < n; i++)
