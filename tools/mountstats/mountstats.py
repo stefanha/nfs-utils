@@ -556,10 +556,27 @@ def parse_stats_file(f):
 
     return ms_dict
 
+def print_mountstats(stats, nfs_only, rpc_only):
+    if nfs_only:
+       stats.display_nfs_options()
+       stats.display_nfs_events()
+       stats.display_nfs_bytes()
+    elif rpc_only:
+       stats.display_rpc_generic_stats()
+       stats.display_rpc_op_stats()
+    else:
+       stats.display_nfs_options()
+       stats.display_nfs_bytes()
+       stats.display_rpc_generic_stats()
+       stats.display_rpc_op_stats()
+
 def mountstats_command(args):
     """Mountstats command
     """
     mountstats = parse_stats_file(args.infile)
+
+    if args.since:
+        old_mountstats = parse_stats_file(args.since)
 
     for mp in args.mountpoints:
         if mp not in mountstats:
@@ -573,20 +590,19 @@ def mountstats_command(args):
             print('Mount point %s exists but is not an NFS mount' % mp)
             continue
 
-        if args.nfs_only:
-           stats.display_nfs_options()
-           stats.display_nfs_events()
-           stats.display_nfs_bytes()
-        elif args.rpc_only:
-           stats.display_rpc_generic_stats()
-           stats.display_rpc_op_stats()
+        if not args.since:
+            print_mountstats(stats, args.nfs_only, args.rpc_only)
+        elif args.since and mp not in old_mountstats:
+            print_mountstats(stats, args.nfs_only, args.rpc_only)
         else:
-           stats.display_nfs_options()
-           stats.display_nfs_bytes()
-           stats.display_rpc_generic_stats()
-           stats.display_rpc_op_stats()
+            old_stats = DeviceData()
+            old_stats.parse_stats(old_mountstats[mp])
+            diff_stats = stats.compare_iostats(old_stats)
+            print_mountstats(diff_stats, args.nfs_only, args.rpc_only)
 
     args.infile.close()
+    if args.since:
+        args.since.close()
 
 def nfsstat_command(args):
     return
@@ -608,6 +624,11 @@ def iostat_command(args):
     """
     mountstats = parse_stats_file(args.infile)
     devices = args.mountpoints
+
+    if args.since:
+        old_mountstats = parse_stats_file(args.since)
+    else:
+        old_mountstats = None
 
     # make certain devices contains only NFS mount points
     if len(devices) > 0:
@@ -631,7 +652,6 @@ def iostat_command(args):
         print('No NFS mount points were found')
         return
 
-    old_mountstats = None
     sample_time = 0
 
     if args.interval is None:
@@ -656,6 +676,8 @@ def iostat_command(args):
             mountstats = parse_stats_file(args.infile)
 
     args.infile.close()
+    if args.since:
+        args.since.close()
 
 class ICMAction(argparse.Action):
     """Custom action to deal with interval, count, and mountpoints.
@@ -675,7 +697,7 @@ class ICMAction(argparse.Action):
         try:
             intval = int(value)
             if namespace.infile.name != '/proc/self/mountstats':
-                raise argparse.ArgumentError(self, "not allowed with argument -f/--file")
+                raise argparse.ArgumentError(self, "not allowed with argument -f/--file or -S/--since")
             self._handle_int(namespace, intval)
         except ValueError:
             namespace.mountpoints.append(value)
@@ -699,6 +721,9 @@ def main():
     common_parser.add_argument('-f', '--file', default=open('/proc/self/mountstats', 'r'),
         type=argparse.FileType('r'), dest='infile',
         help='Read stats from %(dest)s instead of /proc/self/mountstats')
+    common_parser.add_argument('-S', '--since', type=argparse.FileType('r'),
+        metavar='SINCEFILE',
+        help='Show difference between current stats and those in SINCEFILE')
 
     mountstats_parser = subparsers.add_parser('mountstats',
         parents=[common_parser],
