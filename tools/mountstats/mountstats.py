@@ -311,6 +311,41 @@ class DeviceData:
             return True
         return False
 
+    def display_raw_stats(self):
+        """Prints out stats in the same format as /proc/self/mountstats
+        """
+        print('device %s mounted on %s with fstype %s %s' % \
+            (self.__nfs_data['export'], self.__nfs_data['mountpoint'], \
+            self.__nfs_data['fstype'], self.__nfs_data['statvers']))
+        print('\topts:\t%s' % ','.join(self.__nfs_data['mountoptions']))
+        print('\tage:\t%d' % self.__nfs_data['age'])
+        print('\tcaps:\t%s' % ','.join(self.__nfs_data['servercapabilities']))
+        print('\tsec:\tflavor=%d,pseudoflavor=%d' % (self.__nfs_data['flavor'], \
+            self.__nfs_data['pseudoflavor']))
+        print('\tevents:\t%s' % " ".join([str(self.__nfs_data[key]) for key in NfsEventCounters]))
+        print('\tbytes:\t%s' % " ".join([str(self.__nfs_data[key]) for key in NfsByteCounters]))
+        print('\tRPC iostats version: %1.1f p/v: %s (nfs)' % (self.__rpc_data['statsvers'], \
+            self.__rpc_data['programversion']))
+        if self.__rpc_data['protocol'] == 'udp':
+            print('\txprt:\tudp %s' % " ".join([str(self.__rpc_data[key]) for key in XprtUdpCounters]))
+        elif self.__rpc_data['protocol'] == 'tcp':
+            print('\txprt:\ttcp %s' % " ".join([str(self.__rpc_data[key]) for key in XprtTcpCounters]))
+        elif self.__rpc_data['protocol'] == 'rdma':
+            print('\txprt:\trdma %s' % " ".join([str(self.__rpc_data[key]) for key in XprtRdmaCounters]))
+        else:
+            raise Exception('Unknown RPC transport protocol %s' % self.__rpc_data['protocol'])
+        print('\tper-op statistics')
+        prog, vers = self.__rpc_data['programversion'].split('/')
+        if vers == '3':
+            for op in Nfsv3ops:
+                print('\t%12s: %s' % (op, " ".join(str(x) for x in self.__rpc_data[op])))
+        elif vers == '4':
+            for op in Nfsv4ops:
+                print('\t%12s: %s' % (op, " ".join(str(x) for x in self.__rpc_data[op])))
+        else:
+            print('\tnot implemented for version %d' % vers)
+        print()
+
     def display_stats_header(self):
         print('Stats for %s mounted on %s:' % \
             (self.__nfs_data['export'], self.__nfs_data['mountpoint']))
@@ -559,7 +594,7 @@ def parse_stats_file(f):
 
     return ms_dict
 
-def print_mountstats(stats, nfs_only, rpc_only):
+def print_mountstats(stats, nfs_only, rpc_only, raw):
     if nfs_only:
        stats.display_nfs_options()
        stats.display_nfs_events()
@@ -568,6 +603,8 @@ def print_mountstats(stats, nfs_only, rpc_only):
        stats.display_stats_header()
        stats.display_rpc_generic_stats()
        stats.display_rpc_op_stats()
+    elif raw:
+       stats.display_raw_stats()
     else:
        stats.display_nfs_options()
        stats.display_nfs_bytes()
@@ -610,14 +647,14 @@ def mountstats_command(args):
         stats = DeviceData()
         stats.parse_stats(mountstats[mp])
         if not args.since:
-            print_mountstats(stats, args.nfs_only, args.rpc_only)
+            print_mountstats(stats, args.nfs_only, args.rpc_only, args.raw)
         elif args.since and mp not in old_mountstats:
-            print_mountstats(stats, args.nfs_only, args.rpc_only)
+            print_mountstats(stats, args.nfs_only, args.rpc_only, args.raw)
         else:
             old_stats = DeviceData()
             old_stats.parse_stats(old_mountstats[mp])
             diff_stats = stats.compare_iostats(old_stats)
-            print_mountstats(diff_stats, args.nfs_only, args.rpc_only)
+            print_mountstats(diff_stats, args.nfs_only, args.rpc_only, args.raw)
 
     args.infile.close()
     if args.since:
@@ -753,6 +790,8 @@ def main():
         help='Display only the NFS statistics')
     group.add_argument('-r', '--rpc', action='store_true', dest='rpc_only',
         help='Display only the RPC statistics')
+    group.add_argument('-R', '--raw', action='store_true',
+        help='Display only the raw statistics')
     # The mountpoints argument cannot be moved into the common_parser because
     # it will screw up the parsing of the iostat arguments (interval and count)
     mountstats_parser.add_argument('mountpoints', nargs='*', metavar='mountpoint',
