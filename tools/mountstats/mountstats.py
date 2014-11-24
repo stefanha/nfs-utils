@@ -530,7 +530,7 @@ class DeviceData:
         self.__print_rpc_op_stats('WRITE', sample_time)
         sys.stdout.flush()
 
-def parse_stats_file(filename):
+def parse_stats_file(f):
     """pop the contents of a mountstats file into a dictionary,
     keyed by mount point.  each value object is a list of the
     lines in the mountstats file corresponding to the mount
@@ -539,7 +539,7 @@ def parse_stats_file(filename):
     ms_dict = dict()
     key = ''
 
-    f = open(filename)
+    f.seek(0)
     for line in f.readlines():
         words = line.split()
         if len(words) == 0:
@@ -553,14 +553,13 @@ def parse_stats_file(filename):
         else:
             new += [ line.strip() ]
         ms_dict[key] = new
-    f.close
 
     return ms_dict
 
 def mountstats_command(args):
     """Mountstats command
     """
-    mountstats = parse_stats_file('/proc/self/mountstats')
+    mountstats = parse_stats_file(args.infile)
 
     for mp in args.mountpoints:
         if mp not in mountstats:
@@ -587,6 +586,8 @@ def mountstats_command(args):
            stats.display_rpc_generic_stats()
            stats.display_rpc_op_stats()
 
+    args.infile.close()
+
 def nfsstat_command(args):
     return
 
@@ -605,7 +606,7 @@ def print_iostat_summary(old, new, devices, time):
 def iostat_command(args):
     """iostat-like command for NFS mount points
     """
-    mountstats = parse_stats_file('/proc/self/mountstats')
+    mountstats = parse_stats_file(args.infile)
     devices = args.mountpoints
 
     # make certain devices contains only NFS mount points
@@ -613,9 +614,12 @@ def iostat_command(args):
         check = []
         for device in devices:
             stats = DeviceData()
-            stats.parse_stats(mountstats[device])
-            if stats.is_nfs_mountpoint():
-                check += [device]
+            try:
+                stats.parse_stats(mountstats[device])
+                if stats.is_nfs_mountpoint():
+                    check += [device]
+            except KeyError:
+                continue
         devices = check
     else:
         for device, descr in mountstats.items():
@@ -641,7 +645,7 @@ def iostat_command(args):
             old_mountstats = mountstats
             time.sleep(args.interval)
             sample_time = args.interval
-            mountstats = parse_stats_file('/proc/self/mountstats')
+            mountstats = parse_stats_file(args.infile)
             count -= 1
     else: 
         while True:
@@ -649,7 +653,9 @@ def iostat_command(args):
             old_mountstats = mountstats
             time.sleep(args.interval)
             sample_time = args.interval
-            mountstats = parse_stats_file('/proc/self/mountstats')
+            mountstats = parse_stats_file(args.infile)
+
+    args.infile.close()
 
 class ICMAction(argparse.Action):
     """Custom action to deal with interval, count, and mountpoints.
@@ -668,6 +674,8 @@ class ICMAction(argparse.Action):
     def _handle_one(self, namespace, value):
         try:
             intval = int(value)
+            if namespace.infile.name != '/proc/self/mountstats':
+                raise argparse.ArgumentError(self, "not allowed with argument -f/--file")
             self._handle_int(namespace, intval)
         except ValueError:
             namespace.mountpoints.append(value)
@@ -688,6 +696,9 @@ def main():
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument('-v', '--version', action='version',
         version='mountstats ' + Mountstats_version)
+    common_parser.add_argument('-f', '--file', default=open('/proc/self/mountstats', 'r'),
+        type=argparse.FileType('r'), dest='infile',
+        help='Read stats from %(dest)s instead of /proc/self/mountstats')
 
     mountstats_parser = subparsers.add_parser('mountstats',
         parents=[common_parser],
