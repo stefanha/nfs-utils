@@ -311,11 +311,14 @@ class DeviceData:
             return True
         return False
 
+    def display_stats_header(self):
+        print('Stats for %s mounted on %s:' % \
+            (self.__nfs_data['export'], self.__nfs_data['mountpoint']))
+
     def display_nfs_options(self):
         """Pretty-print the NFS options
         """
-        print('Stats for %s mounted on %s:' % \
-            (self.__nfs_data['export'], self.__nfs_data['mountpoint']))
+        self.display_stats_header()
 
         print('  NFS mount options: %s' % ','.join(self.__nfs_data['mountoptions']))
         print('  NFS server capabilities: %s' % ','.join(self.__nfs_data['servercapabilities']))
@@ -562,6 +565,7 @@ def print_mountstats(stats, nfs_only, rpc_only):
        stats.display_nfs_events()
        stats.display_nfs_bytes()
     elif rpc_only:
+       stats.display_stats_header()
        stats.display_rpc_generic_stats()
        stats.display_rpc_op_stats()
     else:
@@ -569,27 +573,42 @@ def print_mountstats(stats, nfs_only, rpc_only):
        stats.display_nfs_bytes()
        stats.display_rpc_generic_stats()
        stats.display_rpc_op_stats()
+    print()
 
 def mountstats_command(args):
     """Mountstats command
     """
     mountstats = parse_stats_file(args.infile)
+    mountpoints = args.mountpoints
+
+    # make certain devices contains only NFS mount points
+    if len(mountpoints) > 0:
+        check = []
+        for device in mountpoints:
+            stats = DeviceData()
+            try:
+                stats.parse_stats(mountstats[device])
+                if stats.is_nfs_mountpoint():
+                    check += [device]
+            except KeyError:
+                continue
+        mountpoints = check
+    else:
+        for device, descr in mountstats.items():
+            stats = DeviceData()
+            stats.parse_stats(descr)
+            if stats.is_nfs_mountpoint():
+                mountpoints += [device]
+    if len(mountpoints) == 0:
+        print('No NFS mount points were found')
+        return
 
     if args.since:
         old_mountstats = parse_stats_file(args.since)
 
-    for mp in args.mountpoints:
-        if mp not in mountstats:
-            print('Statistics for mount point %s not found' % mp)
-            continue
-
+    for mp in mountpoints:
         stats = DeviceData()
         stats.parse_stats(mountstats[mp])
-
-        if not stats.is_nfs_mountpoint():
-            print('Mount point %s exists but is not an NFS mount' % mp)
-            continue
-
         if not args.since:
             print_mountstats(stats, args.nfs_only, args.rpc_only)
         elif args.since and mp not in old_mountstats:
@@ -736,8 +755,9 @@ def main():
         help='Display only the RPC statistics')
     # The mountpoints argument cannot be moved into the common_parser because
     # it will screw up the parsing of the iostat arguments (interval and count)
-    mountstats_parser.add_argument('mountpoints', nargs='+', metavar='mountpoint',
-        help='Display statistics for this mountpoint. More than one may be specified.')
+    mountstats_parser.add_argument('mountpoints', nargs='*', metavar='mountpoint',
+        help='Display statistics for this mountpoint. More than one may be specified. '
+            'If absent, statistics for all NFS mountpoints will be generated.')
     mountstats_parser.set_defaults(func=mountstats_command)
 
     nfsstat_parser = subparsers.add_parser('nfsstat',
