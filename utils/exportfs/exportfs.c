@@ -47,7 +47,7 @@ static void	error(nfs_export *exp, int err);
 static void	usage(const char *progname, int n);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
-static void	export_d_read(const char *dname, int verbose);
+static int	export_d_read(const char *dname);
 static void grab_lockfile(void);
 static void release_lockfile(void);
 
@@ -182,8 +182,11 @@ main(int argc, char **argv)
 	atexit(release_lockfile);
 
 	if (f_export && ! f_ignore) {
-		export_read(_PATH_EXPORTS, f_verbose);
-		export_d_read(_PATH_EXPORTS_D, f_verbose);
+		if (! (export_read(_PATH_EXPORTS) +
+		       export_d_read(_PATH_EXPORTS_D))) {
+			if (f_verbose)
+				xlog(L_WARNING, "No file systems exported!");
+		}
 	}
 	if (f_export) {
 		if (f_all)
@@ -685,21 +688,22 @@ out:
 
 /* Based on mnt_table_parse_dir() in
    util-linux-ng/shlibs/mount/src/tab_parse.c */
-static void
-export_d_read(const char *dname, int verbose)
+static int
+export_d_read(const char *dname)
 {
 	int n = 0, i;
 	struct dirent **namelist = NULL;
+	int volumes = 0;
 
 
 	n = scandir(dname, &namelist, NULL, versionsort);
 	if (n < 0) {
 		if (errno == ENOENT)
 			/* Silently return */
-			return;
+			return volumes;
 		xlog(L_NOTICE, "scandir %s: %s", dname, strerror(errno));
 	} else if (n == 0)
-		return;
+		return volumes;
 
 	for (i = 0; i < n; i++) {
 		struct dirent *d = namelist[i];
@@ -729,14 +733,14 @@ export_d_read(const char *dname, int verbose)
 			continue;
 		}
 
-		export_read(fname, verbose);
+		volumes += export_read(fname);
 	}
 
 	for (i = 0; i < n; i++)
 		free(namelist[i]);
 	free(namelist);
 
-	return;
+	return volumes;
 }
 
 static char
