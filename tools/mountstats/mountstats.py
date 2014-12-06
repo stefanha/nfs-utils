@@ -24,6 +24,7 @@ MA 02110-1301 USA
 """
 
 import sys, os, time
+from operator import itemgetter
 
 Mountstats_version = '0.2'
 
@@ -262,27 +263,29 @@ class DeviceData:
         """
         sends = self.__rpc_data['rpcsends']
 
-        # XXX: these should be sorted by 'count'
-        print()
+        allstats = []
         for op in self.__rpc_data['ops']:
-            stats = self.__rpc_data[op]
-            count = stats[0]
-            retrans = stats[1] - count
+            allstats.append([op] + self.__rpc_data[op])
+
+        print()
+        for stats in sorted(allstats, key=itemgetter(1), reverse=True):
+            count = stats[1]
             if count != 0:
-                print('%s:' % op)
+                print('%s:' % stats[0])
                 print('\t%d ops (%d%%)' % \
                     (count, ((count * 100) / sends)), end=' ')
+                retrans = stats[2] - count
                 if retrans != 0:
                     print('\t%d retrans (%d%%)' % (retrans, ((retrans * 100) / count)), end=' ')
-                    print('\t%d major timeouts' % stats[2])
+                    print('\t%d major timeouts' % stats[3])
                 else:
                     print('')
                 print('\tavg bytes sent per op: %d\tavg bytes received per op: %d' % \
-                    (stats[3] / count, stats[4] / count))
-                print('\tbacklog wait: %f' % (float(stats[5]) / count), end=' ')
-                print('\tRTT: %f' % (float(stats[6]) / count), end=' ')
+                    (stats[4] / count, stats[5] / count))
+                print('\tbacklog wait: %f' % (float(stats[6]) / count), end=' ')
+                print('\tRTT: %f' % (float(stats[7]) / count), end=' ')
                 print('\ttotal execute time: %f (milliseconds)' % \
-                    (float(stats[7]) / count))
+                    (float(stats[8]) / count))
 
     def compare_iostats(self, old_stats):
         """Return the difference between two sets of stats
