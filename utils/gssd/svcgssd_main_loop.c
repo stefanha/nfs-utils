@@ -54,19 +54,18 @@ void
 gssd_run()
 {
 	int			ret;
-	FILE			*f;
+	int			f;
 	struct pollfd		pollfd;
 
 #define NULLRPC_FILE "/proc/net/rpc/auth.rpcsec.init/channel"
 
-	f = fopen(NULLRPC_FILE, "rw");
-
-	if (!f) {
+	f = open(NULLRPC_FILE, O_RDWR);
+	if (f < 0) {
 		printerr(0, "failed to open %s: %s\n",
 			 NULLRPC_FILE, strerror(errno));
 		exit(1);
 	}
-	pollfd.fd = fileno(f);
+	pollfd.fd = f;
 	pollfd.events = POLLIN;
 	while (1) {
 		int save_err;

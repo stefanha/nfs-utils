@@ -78,6 +78,7 @@
 #include "nfsrpc.h"
 #include "nfslib.h"
 #include "gss_names.h"
+#include "misc.h"
 
 /*
  * pollarray:
@@ -1250,7 +1251,7 @@ void
 handle_gssd_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
-	char			*lbuf = NULL;
+	char			lbuf[RPC_CHAN_BUF_SIZE];
 	int			lbuflen = 0;
 	char			*p;
 	char			*mech = NULL;
@@ -1260,11 +1261,14 @@ handle_gssd_upcall(struct clnt_info *clp)
 
 	printerr(1, "handling gssd upcall (%s)\n", clp->dirname);
 
-	if (readline(clp->gssd_fd, &lbuf, &lbuflen) != 1) {
+	lbuflen = read(clp->gssd_fd, lbuf, sizeof(lbuf));
+	if (lbuflen <= 0 || lbuf[lbuflen-1] != '\n') {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "failed reading request\n");
 		return;
 	}
+	lbuf[lbuflen-1] = 0;
+
 	printerr(2, "%s: '%s'\n", __func__, lbuf);
 
 	/* find the mechanism name */
@@ -1362,7 +1366,6 @@ handle_gssd_upcall(struct clnt_info *clp)
 	}
 
 out:
-	free(lbuf);
 	free(mech);
 	free(enctypes);
 	free(target);

@@ -73,36 +73,35 @@ struct svc_cred {
 	int	cr_ngroups;
 	gid_t	cr_groups[NGROUPS];
 };
-static char vbuf[RPC_CHAN_BUF_SIZE];
 
 static int
 do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 		gss_OID mech, gss_buffer_desc *context_token,
 		int32_t endtime, char *client_name)
 {
-	FILE *f;
-	int i;
+	char buf[RPC_CHAN_BUF_SIZE], *bp;
+	int i, f, err, blen;
 	char *fname = NULL;
-	int err;
 
 	printerr(1, "doing downcall\n");
 	if ((fname = mech2file(mech)) == NULL)
 		goto out_err;
-	f = fopen(SVCGSSD_CONTEXT_CHANNEL, "w");
-	if (f == NULL) {
+
+	f = open(SVCGSSD_CONTEXT_CHANNEL, O_WRONLY);
+	if (f < 0) {
 		printerr(0, "WARNING: unable to open downcall channel "
 			     "%s: %s\n",
 			     SVCGSSD_CONTEXT_CHANNEL, strerror(errno));
 		goto out_err;
 	}
-	setvbuf(f, vbuf, _IOLBF, RPC_CHAN_BUF_SIZE);
-	qword_printhex(f, out_handle->value, out_handle->length);
+	bp = buf, blen = sizeof(buf);
+	qword_addhex(&bp, &blen, out_handle->value, out_handle->length);
 	/* XXX are types OK for the rest of this? */
 	/* For context cache, use the actual context endtime */
-	qword_printint(f, endtime);
-	qword_printint(f, cred->cr_uid);
-	qword_printint(f, cred->cr_gid);
-	qword_printint(f, cred->cr_ngroups);
+	qword_addint(&bp, &blen, endtime);
+	qword_addint(&bp, &blen, cred->cr_uid);
+	qword_addint(&bp, &blen, cred->cr_gid);
+	qword_addint(&bp, &blen, cred->cr_ngroups);
 	printerr(2, "mech: %s, hndl len: %d, ctx len %d, timeout: %d (%d from now), "
 		 "clnt: %s, uid: %d, gid: %d, num aux grps: %d:\n",
 		 fname, out_handle->length, context_token->length,
@@ -110,19 +109,21 @@ do_svc_downcall(gss_buffer_desc *out_handle, struct svc_cred *cred,
 		 client_name ? client_name : "<null>",
 		 cred->cr_uid, cred->cr_gid, cred->cr_ngroups);
 	for (i=0; i < cred->cr_ngroups; i++) {
-		qword_printint(f, cred->cr_groups[i]);
+		qword_addint(&bp, &blen, cred->cr_groups[i]);
 		printerr(2, "  (%4d) %d\n", i+1, cred->cr_groups[i]);
 	}
-	qword_print(f, fname);
-	qword_printhex(f, context_token->value, context_token->length);
+	qword_add(&bp, &blen, fname);
+	qword_addhex(&bp, &blen, context_token->value, context_token->length);
 	if (client_name)
-		qword_print(f, client_name);
-	err = qword_eol(f);
-	if (err) {
+		qword_add(&bp, &blen, client_name);
+	qword_addeol(&bp, &blen);
+	err = 0;
+	if (blen <= 0 || write(f, buf, bp - buf) != bp - buf) {
 		printerr(1, "WARNING: error writing to downcall channel "
 			 "%s: %s\n", SVCGSSD_CONTEXT_CHANNEL, strerror(errno));
+		err = -1;
 	}
-	fclose(f);
+	close(f);
 	return err;
 out_err:
 	printerr(1, "WARNING: downcall failed\n");
@@ -317,7 +318,7 @@ print_hexl(const char *description, unsigned char *cp, int length)
 #endif
 
 void
-handle_nullreq(FILE *f) {
+handle_nullreq(int f) {
 	/* XXX initialize to a random integer to reduce chances of unnecessary
 	 * invalidation of existing ctx's on restarting svcgssd. */
 	static u_int32_t	handle_seq = 0;
@@ -339,19 +340,21 @@ handle_nullreq(FILE *f) {
 	u_int32_t		maj_stat = GSS_S_FAILURE, min_stat = 0;
 	u_int32_t		ignore_min_stat;
 	struct svc_cred		cred;
-	static char		*lbuf = NULL;
-	static int		lbuflen = 0;
-	static char		*cp;
+	char			lbuf[RPC_CHAN_BUF_SIZE];
+	int			lbuflen = 0;
+	char			*cp;
 	int32_t			ctx_endtime;
 	char			*hostbased_name = NULL;
 
 	printerr(1, "handling null request\n");
 
-	if (readline(fileno(f), &lbuf, &lbuflen) != 1) {
+	lbuflen = read(f, lbuf, sizeof(lbuf));
+	if (lbuflen <= 0 || lbuf[lbuflen-1] != '\n') {
 		printerr(0, "WARNING: handle_nullreq: "
 			    "failed reading request\n");
 		return;
 	}
+	lbuf[lbuflen-1] = 0;
 
 	cp = lbuf;
 
