@@ -18,6 +18,7 @@
 #include <fcntl.h>
 
 #include "nfslib.h"
+#include "misc.h"
 
 	/* if /proc/net/rpc/... exists, then 
 	 * write to it, as that interface is more stable.
@@ -32,62 +33,72 @@
 static int
 exp_unexp(struct nfsctl_export *exp, int export)
 {
-	FILE *f;
+	char buf[RPC_CHAN_BUF_SIZE], *bp;
 	struct stat stb;
 	__u32 fsid;
 	char fsidstr[8];
 	__u16 dev;
 	__u32 inode;
-	int err;
+	int err = 0, f, blen;
 
+	f = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
+	if (f < 0) return -1;
 
-	f = fopen("/proc/net/rpc/nfsd.export/channel", "w");
-	if (f == NULL) return -1;
-	qword_print(f, exp->ex_client);
-	qword_print(f, exp->ex_path);
+	bp = buf; blen = sizeof(buf);
+	qword_add(&bp, &blen, exp->ex_client);
+	qword_add(&bp, &blen, exp->ex_path);
 	if (export) {
-		qword_printint(f, 0x7fffffff);
-		qword_printint(f, exp->ex_flags);
-		qword_printint(f, exp->ex_anon_uid);
-		qword_printint(f, exp->ex_anon_gid);
-		qword_printint(f, exp->ex_dev);
+		qword_addint(&bp, &blen, 0x7fffffff);
+		qword_addint(&bp, &blen, exp->ex_flags);
+		qword_addint(&bp, &blen, exp->ex_anon_uid);
+		qword_addint(&bp, &blen, exp->ex_anon_gid);
+		qword_addint(&bp, &blen, exp->ex_dev);
 	} else
-		qword_printint(f, 1);
-
-	err = qword_eol(f);
-	fclose(f);
+		qword_addint(&bp, &blen, 1);
+	qword_addeol(&bp, &blen);
+	if (blen <= 0 || write(f, buf, bp - buf) != bp - buf)
+		err = -1;
+	close(f);
 
 	if (stat(exp->ex_path, &stb) != 0)
 		return -1;
-	f = fopen("/proc/net/rpc/nfsd.fh/channel", "w");
-	if (f==NULL) return -1;
-	if (exp->ex_flags & NFSEXP_FSID) {
-		qword_print(f,exp->ex_client);
-		qword_printint(f,1);
-		fsid = exp->ex_dev;
-		qword_printhex(f, (char*)&fsid, 4);
-		if (export) {
-			qword_printint(f, 0x7fffffff);
-			qword_print(f, exp->ex_path);
-		} else
-			qword_printint(f, 1);
 
-		err = qword_eol(f) || err;
+	f = open("/proc/net/rpc/nfsd.fh/channel", O_WRONLY);
+	if (f < 0) return -1;
+	if (exp->ex_flags & NFSEXP_FSID) {
+		bp = buf; blen = sizeof(buf);
+		qword_add(&bp, &blen, exp->ex_client);
+		qword_addint(&bp, &blen, 1);
+		fsid = exp->ex_dev;
+		qword_addhex(&bp, &blen, (char*)&fsid, 4);
+		if (export) {
+			qword_addint(&bp, &blen, 0x7fffffff);
+			qword_add(&bp, &blen, exp->ex_path);
+		} else
+			qword_addint(&bp, &blen, 1);
+		qword_addeol(&bp, &blen);
+		if (blen <= 0 || write(f, buf, bp - buf) != bp - buf)
+			err = -1;
 	}
-	qword_print(f,exp->ex_client);
-	qword_printint(f,0);
+
+	bp = buf; blen = sizeof(buf);
+	qword_add(&bp, &blen, exp->ex_client);
+	qword_addint(&bp, &blen, 0);
 	dev = htons(major(stb.st_dev)); memcpy(fsidstr, &dev, 2);
 	dev = htons(minor(stb.st_dev)); memcpy(fsidstr+2, &dev, 2);
 	inode = stb.st_ino; memcpy(fsidstr+4, &inode, 4);
 	
-	qword_printhex(f, fsidstr, 8);
+	qword_addhex(&bp, &blen, fsidstr, 8);
 	if (export) {
-		qword_printint(f, 0x7fffffff);
-		qword_print(f, exp->ex_path);
+		qword_addint(&bp, &blen, 0x7fffffff);
+		qword_add(&bp, &blen, exp->ex_path);
 	} else
-		qword_printint(f, 1);
-	err = qword_eol(f) || err;
-	fclose(f);
+		qword_addint(&bp, &blen, 1);
+	qword_addeol(&bp, &blen);
+	if (blen <= 0 || write(f, buf, bp - buf) != bp - buf)
+		err = -1;
+	close(f);
+
 	return err;
 }
 
