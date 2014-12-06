@@ -23,6 +23,7 @@
 #ifndef __NFS_UTILS_NFSRPC_H
 #define __NFS_UTILS_NFSRPC_H
 
+#include <string.h>
 #include <rpc/types.h>
 #include <rpc/clnt.h>
 

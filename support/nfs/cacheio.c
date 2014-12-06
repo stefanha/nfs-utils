@@ -18,6 +18,7 @@
 #include <nfslib.h>
 #include <stdio.h>
 #include <stdio_ext.h>
+#include <string.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>

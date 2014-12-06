@@ -10,6 +10,7 @@
 #define EXPORTFS_H
 
 #include <netdb.h>
+#include <string.h>
 
 #include "sockaddr.h"
 #include "nfslib.h"
