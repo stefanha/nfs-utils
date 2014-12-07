@@ -152,11 +152,6 @@ struct nfs_fh_len *	getfh(const struct sockaddr_in *sin, const char *path);
 struct nfs_fh_len *	getfh_size(const struct sockaddr_in *sin,
 					const char *path, int const size);
 
-void qword_print(FILE *f, char *str);
-void qword_printhex(FILE *f, char *str, int slen);
-void qword_printint(FILE *f, int num);
-int qword_eol(FILE *f);
-int readline(int fd, char **buf, int *lenp);
 int qword_get(char **bpp, char *dest, int bufsize);
 int qword_get_int(char **bpp, int *anint);
 void cache_flush(int force);
@@ -167,8 +162,6 @@ void qword_addint(char **bpp, int *lp, int n);
 void qword_adduint(char **bpp, int *lp, unsigned int n);
 void qword_addeol(char **bpp, int *lp);
 int qword_get_uint(char **bpp, unsigned int *anint);
-void qword_printuint(FILE *f, unsigned int num);
-void qword_printtimefrom(FILE *f, unsigned int num);
 
 void closeall(int min);
 
