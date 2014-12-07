@@ -7,6 +7,7 @@ GENFILES_H	= nlm_sm_inter.h
 
 GENFILES	= $(GENFILES_CLNT) $(GENFILES_SVC) $(GENFILES_XDR) $(GENFILES_H)
 
+EXTRA_DIST = nlm_sm_inter.x
 
 check_PROGRAMS	= nsm_client
 nsm_client_SOURCES = $(GENFILES) nsm_client.c

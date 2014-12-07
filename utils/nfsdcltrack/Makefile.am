@@ -10,6 +10,8 @@ EXTRA_DIST	= $(man8_MANS)
 AM_CFLAGS	+= -D_LARGEFILE64_SOURCE
 sbin_PROGRAMS	= nfsdcltrack
 
+noinst_HEADERS	= sqlite.h
+
 nfsdcltrack_SOURCES = nfsdcltrack.c sqlite.c
 nfsdcltrack_LDADD = ../../support/nfs/libnfs.a $(LIBSQLITE) $(LIBCAP)
 

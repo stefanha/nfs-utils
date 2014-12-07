@@ -7,6 +7,7 @@ RPCPREFIX	= rpc.
 KPREFIX		= @kprefix@
 sbin_PROGRAMS	= mountd
 
+noinst_HEADERS = fsloc.h
 mountd_SOURCES = mountd.c mount_dispatch.c auth.c rmtab.c cache.c \
 		 svc_run.c fsloc.c v4root.c mountd.h
 mountd_LDADD = ../../support/export/libexport.a \

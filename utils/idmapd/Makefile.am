@@ -7,8 +7,7 @@ KPREFIX		= @kprefix@
 sbin_PROGRAMS	= idmapd
 
 EXTRA_DIST = \
-	$(man8_MANS) \
-	idmapd.conf
+	$(man8_MANS)
 
 idmapd_SOURCES = \
 	idmapd.c \

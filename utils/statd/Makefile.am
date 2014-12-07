@@ -8,7 +8,7 @@ sbin_PROGRAMS	= statd sm-notify
 dist_sbin_SCRIPTS	= start-statd
 statd_SOURCES = callback.c notlist.c misc.c monitor.c hostname.c \
 	        simu.c stat.c statd.c svc_run.c rmtcall.c \
-	        notlist.h statd.h system.h version.h
+	        notlist.h statd.h system.h
 sm_notify_SOURCES = sm-notify.c
 
 BUILT_SOURCES = $(GENFILES)
@@ -20,7 +20,7 @@ sm_notify_LDADD = ../../support/nsm/libnsm.a \
 		  ../../support/nfs/libnfs.a \
 		  $(LIBNSL) $(LIBCAP) $(LIBTIRPC)
 
-EXTRA_DIST = sim_sm_inter.x $(man8_MANS) COPYRIGHT simulate.c
+EXTRA_DIST = sim_sm_inter.x $(man8_MANS) simulate.c
 
 if CONFIG_RPCGEN
 RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen

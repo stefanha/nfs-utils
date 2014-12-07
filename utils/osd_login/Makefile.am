@@ -4,6 +4,6 @@
 # overridden at config time.
 sbindir = /sbin
 
-sbin_SCRIPTS = osd_login
+dist_sbin_SCRIPTS = osd_login
 
 MAINTAINERCLEANFILES = Makefile.in

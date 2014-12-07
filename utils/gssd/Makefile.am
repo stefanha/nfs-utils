@@ -15,7 +15,6 @@ endif
 sbin_PROGRAMS	= $(sbin_PREFIXED)
 
 EXTRA_DIST = \
-	gss_destroy_creds \
 	$(man8_MANS)
 
 COMMON_SRCS = \

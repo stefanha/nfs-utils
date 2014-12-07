@@ -11,3 +11,4 @@ SUBDIRS = nsm_client
 MAINTAINERCLEANFILES = Makefile.in
 
 TESTS = t0001-statd-basic-mon-unmon.sh
+EXTRA_DIST = test-lib.sh $(TESTS)
