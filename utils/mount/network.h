@@ -57,9 +57,22 @@ int clnt_ping(struct sockaddr_in *, const unsigned long,
 
 struct mount_options;
 
+enum {
+	V_DEFAULT = 0,
+	V_GENERAL,
+	V_SPECIFIC,
+	V_PARSE_ERR,
+};
+
+struct nfs_version {
+	unsigned long major;
+	unsigned long minor;
+	int v_mode;
+};
+
 int nfs_nfs_proto_family(struct mount_options *options, sa_family_t *family);
 int nfs_mount_proto_family(struct mount_options *options, sa_family_t *family);
-int nfs_nfs_version(struct mount_options *options, unsigned long *version);
+int nfs_nfs_version(struct mount_options *options, struct nfs_version *version);
 int  nfs_nfs_protocol(struct mount_options *options, unsigned long *protocol);
 
 int nfs_options2pmap(struct mount_options *,

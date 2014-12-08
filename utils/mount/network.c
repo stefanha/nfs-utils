@@ -92,9 +92,6 @@ static const char *nfs_version_opttbl[] = {
 	"v4",
 	"vers",
 	"nfsvers",
-	"v4.0",
-	"v4.1",
-	"v4.2",
 	NULL,
 };
 
@@ -1242,71 +1239,69 @@ nfs_nfs_program(struct mount_options *options, unsigned long *program)
  * or FALSE if the option was specified with an invalid value.
  */
 int
-nfs_nfs_version(struct mount_options *options, unsigned long *version)
+nfs_nfs_version(struct mount_options *options, struct nfs_version *version)
 {
-	long tmp;
+	char *version_key, *version_val, *cptr;
+	int i, found = 0;
 
-	switch (po_rightmost(options, nfs_version_opttbl)) {
-	case 0:	/* v2 */
-		*version = 2;
-		return 1;
-	case 1: /* v3 */
-		*version = 3;
-		return 1;
-	case 2: /* v4 */
-		*version = 4;
-		return 1;
-	case 3:	/* vers */
-		switch (po_get_numeric(options, "vers", &tmp)) {
-		case PO_FOUND:
-			if (tmp >= 2 && tmp <= 4) {
-				*version = tmp;
-				return 1;
-			}
-			nfs_error(_("%s: parsing error on 'vers=' option\n"),
-					progname);
-			return 0;
-		case PO_NOT_FOUND:
-			nfs_error(_("%s: parsing error on 'vers=' option\n"),
-					progname);
-			return 0;
-		case PO_BAD_VALUE:
-			nfs_error(_("%s: invalid value for 'vers=' option"),
-					progname);
-			return 0;
+	version->v_mode = V_DEFAULT;
+
+	for (i = 0; nfs_version_opttbl[i]; i++) {
+		if (po_contains_prefix(options, nfs_version_opttbl[i],
+								&version_key) == PO_FOUND) {
+			found++;
+			break;
 		}
-	case 4: /* nfsvers */
-		switch (po_get_numeric(options, "nfsvers", &tmp)) {
-		case PO_FOUND:
-			if (tmp >= 2 && tmp <= 4) {
-				*version = tmp;
-				return 1;
-			}
-			nfs_error(_("%s: parsing error on 'nfsvers=' option\n"),
-					progname);
-			return 0;
-		case PO_NOT_FOUND:
-			nfs_error(_("%s: parsing error on 'nfsvers=' option\n"),
-					progname);
-			return 0;
-		case PO_BAD_VALUE:
-			nfs_error(_("%s: invalid value for 'nfsvers=' option"),
-					progname);
-			return 0;
-		}
-	case 5: /* v4.0 */
-	case 6: /* v4.1 */
-	case 7: /* v4.2 */
-		*version = 4;
-		return 1;
 	}
 
-	/*
-	 * NFS version wasn't specified.  The pmap version value
-	 * will be filled in later by an rpcbind query in this case.
-	 */
-	*version = 0;
+	if (!found)
+		return 1;
+
+	if (i <= 2 ) {
+		/* v2, v3, v4 */
+		version_val = version_key + 1;
+		version->v_mode = V_SPECIFIC;
+	} else if (i > 2 ) {
+		/* vers=, nfsvers= */
+		version_val = po_get(options, version_key);
+	}
+
+	if (!version_val)
+		goto ret_error;
+
+	if (!(version->major = strtol(version_val, &cptr, 10)))
+		goto ret_error;
+
+	if (version->major < 4)
+		version->v_mode = V_SPECIFIC;
+
+	if (*cptr == '.') {
+		version_val = ++cptr;
+		if (!(version->minor = strtol(version_val, &cptr, 10)) && cptr == version_val)
+			goto ret_error;
+		version->v_mode = V_SPECIFIC;
+	} else if (version->major > 3 && *cptr == '\0')
+		version->v_mode = V_GENERAL;
+
+	if (*cptr != '\0')
+		goto ret_error;
+
 	return 1;
+
+ret_error:
+	if (i <= 2 ) {
+		nfs_error(_("%s: parsing error on 'v' option"),
+			progname);
+	} else if (i == 3 ) {
+		nfs_error(_("%s: parsing error on 'vers=' option"),
+			progname);
+	} else if (i == 4) {
+		nfs_error(_("%s: parsing error on 'nfsvers=' option"),
+			progname);
+	}
+	version->v_mode = V_PARSE_ERR;
+	errno = EINVAL;
+	return 0;
 }
 
 /*
@@ -1625,10 +1620,13 @@ out_err:
 int nfs_options2pmap(struct mount_options *options,
 		     struct pmap *nfs_pmap, struct pmap *mnt_pmap)
 {
+	struct nfs_version version;
+
 	if (!nfs_nfs_program(options, &nfs_pmap->pm_prog))
 		return 0;
-	if (!nfs_nfs_version(options, &nfs_pmap->pm_vers))
+	if (!nfs_nfs_version(options, &version))
 		return 0;
+	nfs_pmap->pm_vers = version.major;
 	if (!nfs_nfs_protocol(options, &nfs_pmap->pm_prot))
 		return 0;
 	if (!nfs_nfs_port(options, &nfs_pmap->pm_port))

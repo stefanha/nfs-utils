@@ -88,7 +88,7 @@ struct nfsmount_info {
 	struct mount_options	*options;	/* parsed mount options */
 	char			**extra_opts;	/* string for /etc/mtab */
 
-	unsigned long		version;	/* NFS version */
+	struct nfs_version	version;	/* NFS version */
 	int			flags,		/* MS_ flags */
 				fake,		/* actually do the mount? */
 				child;		/* forked bg child? */
@@ -99,13 +99,13 @@ static void nfs_default_version(struct nfsmount_info *mi);
 
 static void nfs_default_version(struct nfsmount_info *mi)
 {
-	extern unsigned long config_default_vers;
+	extern struct nfs_version config_default_vers;
 	/*
 	 * Use the default value set in the config file when
 	 * the version has not been explicitly set.
 	 */
-	if (mi->version == 0 && config_default_vers) {
-		if (config_default_vers < 4)
+	if (mi->version.major == 0 && config_default_vers.major) {
+		if (config_default_vers.major < 4)
 			mi->version = config_default_vers;
 	}
 }
@@ -300,7 +300,7 @@ static int nfs_set_version(struct nfsmount_info *mi)
 		return 0;
 
 	if (strncmp(mi->type, "nfs4", 4) == 0)
-		mi->version = 4;
+		mi->version.major = 4;
 
 	/*
 	 * Before 2.6.32, the kernel NFS client didn't
@@ -308,20 +308,20 @@ static int nfs_set_version(struct nfsmount_info *mi)
 	 * 4 cannot be included when autonegotiating
 	 * while running on those kernels.
 	 */
-	if (mi->version == 0 &&
+	if (mi->version.major == 0 &&
 	    linux_version_code() <= MAKE_VERSION(2, 6, 31))
-		mi->version = 3;
+		mi->version.major = 3;
 
 	/*
 	 * If we still don't know, check for version-specific
 	 * mount options.
 	 */
-	if (mi->version == 0) {
+	if (mi->version.major == 0) {
 		if (po_contains(mi->options, "mounthost") ||
 		    po_contains(mi->options, "mountaddr") ||
 		    po_contains(mi->options, "mountvers") ||
 		    po_contains(mi->options, "mountproto"))
-			mi->version = 3;
+			mi->version.major = 3;
 	}
 
 	/*
@@ -691,7 +691,7 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 		return result;
 	}
 
-	if (mi->version == 0) {
+	if (mi->version.major == 0) {
 		if (po_contains(options, "mounthost") ||
 			po_contains(options, "mountaddr") ||
 			po_contains(options, "mountvers") ||
@@ -839,7 +839,7 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 {
 	int result = 0;
 
-	switch (mi->version) {
+	switch (mi->version.major) {
 	case 0:
 		result = nfs_autonegotiate(mi);
 		break;

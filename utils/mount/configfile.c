@@ -258,7 +258,7 @@ check_vers(char *mopt, char *field)
 	return 0;
 }
 
-unsigned long config_default_vers;
+struct nfs_version config_default_vers;
 unsigned long config_default_proto;
 extern sa_family_t config_default_family;
 
