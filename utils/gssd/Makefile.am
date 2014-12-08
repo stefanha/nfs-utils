@@ -45,8 +45,8 @@ gssd_SOURCES = \
 	write_bytes.h
 
 gssd_LDADD =	../../support/nfs/libnfs.a \
-		$(RPCSECGSS_LIBS) $(KRBLIBS) $(GSSAPI_LIBS)
-gssd_LDFLAGS = $(KRBLDFLAGS) $(LIBTIRPC)
+		$(RPCSECGSS_LIBS) $(KRBLIBS) $(GSSAPI_LIBS) $(LIBTIRPC)
+gssd_LDFLAGS = $(KRBLDFLAGS)
 
 gssd_CFLAGS = $(AM_CFLAGS) $(CFLAGS) \
 	      $(RPCSECGSS_CFLAGS) $(KRBCFLAGS) $(GSSAPI_CFLAGS)
