@@ -228,35 +228,6 @@ void free_all(void)
 		free(entry);
 	}
 }
-static char *versions[] = {"v2", "v3", "v4", "vers", "nfsvers", NULL};
-static int 
-check_vers(char *mopt, char *field)
-{
-	int i, found=0;
-
-	/*
-	 * First check to see if the config setting is one 
-	 * of the many version settings
-	 */
-	for (i=0; versions[i]; i++) { 
-		if (strcasestr(field, versions[i]) != NULL) {
-			found++;
-			break;
-		}
-	}
-	if (!found)
-		return 0;
-	/*
-	 * It appears the version is being set, now see
-	 * if the version appears on the command 
-	 */
-	for (i=0; versions[i]; i++)  {
-		if (strcasestr(mopt, versions[i]) != NULL)
-			return 1;
-	}
-
-	return 0;
-}
 
 struct nfs_version config_default_vers;
 unsigned long config_default_proto;
@@ -330,11 +301,6 @@ conf_parse_mntopts(char *section, char *arg, char *opts)
 		 */
 		snprintf(buf, BUFSIZ, "%s=", node->field);
 		if (opts && strcasestr(opts, buf) != NULL)
-			continue;
-		/* 
-		 * Protocol verions can be set in a number of ways
-		 */
-		if (opts && check_vers(opts, node->field))
 			continue;
 
 		if (lookup_entry(node->field) != NULL)
