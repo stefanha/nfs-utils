@@ -186,10 +186,12 @@ AC_ARG_ENABLE(ipv6,
 if test "$enable_mount" = yes; then
 	AC_ARG_ENABLE(mountconfig,
 	[AC_HELP_STRING([--enable-mountconfig],
-                        [enable mount to use a configuration file])],
+        [enable mount to use a configuration file @<:@default=yes@:>@])],
 	mountconfig=$enableval,
-	mountconfig=no)
-	if test "$enable_mountconfig" = yes; then
+	mountconfig=yes)
+	if test "$enable_mountconfig" = no; then
+		enable_mountconfig=
+	else
 		AC_DEFINE(MOUNT_CONFIG, 1, 
 			[Define this if you want mount to read a configuration file])
 		AC_ARG_WITH(mountfile,
@@ -201,8 +203,6 @@ if test "$enable_mount" = yes; then
 		AC_SUBST(mountfile)
 		AC_DEFINE_UNQUOTED(MOUNTOPTS_CONFFILE, "$mountfile", 
 			[This defines the location of the NFS mount configuration file])
-	else
-		enable_mountconfig=
 	fi
 	AC_SUBST(enable_mountconfig)
 	AM_CONDITIONAL(MOUNT_CONFIG, [test "$enable_mountconfig" = "yes"])
