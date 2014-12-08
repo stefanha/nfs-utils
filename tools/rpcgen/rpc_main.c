@@ -44,6 +44,7 @@ static char sccsid[] = "@(#)rpc_main.c 1.30 89/03/30 (C) 1987 SMI";
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <libgen.h>
 #include "rpc_parse.h"
 #include "rpc_util.h"
 #include "rpc_scan.h"
@@ -389,7 +390,7 @@ c_output(char *infile, char *define, int extend, char *outfile)
 	open_output(infile, outfilename);
 	add_warning();
 	if (infile && (include = extendfile(infile, ".h"))) {
-		f_print(fout, "#include \"%s\"\n", include);
+		f_print(fout, "#include \"%s\"\n", basename(include));
 		free(include);
 		/* .h file already contains rpc/rpc.h */
 	} else
@@ -523,7 +524,7 @@ s_output(int argc, char **argv, char *infile, char *define, int extend,
 	open_output(infile, outfilename);
 	add_warning();
 	if (infile && (include = extendfile(infile, ".h"))) {
-		f_print(fout, "#include \"%s\"\n", include);
+		f_print(fout, "#include \"%s\"\n", basename(include));
 		free(include);
 	} else
 	  f_print(fout, "#include <rpc/rpc.h>\n");
@@ -630,7 +631,7 @@ l_output(char *infile, char *define, int extend, char *outfile)
 	if (Cflag)
 	  f_print (fout, "#include <memory.h> /* for memset */\n");
 	if (infile && (include = extendfile(infile, ".h"))) {
-		f_print(fout, "#include \"%s\"\n", include);
+		f_print(fout, "#include \"%s\"\n", basename(include));
 		free(include);
 	} else
 	  f_print(fout, "#include <rpc/rpc.h>\n");
