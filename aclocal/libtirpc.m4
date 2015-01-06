@@ -14,6 +14,12 @@ AC_DEFUN([AC_LIBTIRPC], [
                        AS_IF([test "$enable_tirpc" = "yes" -a -z "${LIBTIRPC}"],
                              [AC_MSG_ERROR([libtirpc not found.])])])])
 
+     AS_IF([test -n "${LIBTIRPC}"],
+           [AC_CHECK_LIB([tirpc], [authgss_free_private_data],
+                         [AC_DEFINE([HAVE_AUTHGSS_FREE_PRIVATE_DATA], [1],
+                                    [Define to 1 if your rpcsec library provides authgss_free_private_data])],,
+                         [${LIBS}])])
+
   AC_SUBST([AM_CPPFLAGS])
   AC_SUBST(LIBTIRPC)
 
