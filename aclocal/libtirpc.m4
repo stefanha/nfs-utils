@@ -5,7 +5,7 @@ AC_DEFUN([AC_LIBTIRPC], [
   PKG_PROG_PKG_CONFIG([0.9.0])
   AS_IF(
     [test "$enable_tirpc" != "no"],
-    [PKG_CHECK_MODULES([TIRPC], [libtirpc >= 0.2.4],
+    [PKG_CHECK_MODULES([TIRPC], [libtirpc],
                       [LIBTIRPC="${TIRPC_LIBS}"
                        AM_CPPFLAGS="${AM_CPPFLAGS} ${TIRPC_CFLAGS}"
                        AC_DEFINE([HAVE_LIBTIRPC], [1],
