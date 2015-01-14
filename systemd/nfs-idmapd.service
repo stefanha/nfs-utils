@@ -1,7 +1,7 @@
 [Unit]
 Description=NFSv4 ID-name mapping service
 
-PartOf=nfs-utils.service
+BindsTo=nfs-server.service
 
 Wants=nfs-config.service
 After=nfs-config.service
