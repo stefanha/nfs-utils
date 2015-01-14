@@ -7,7 +7,7 @@
 PATH="/sbin:/usr/sbin:/bin:/usr/bin"
 
 # First try systemd if it's installed.
-if systemctl --help >/dev/null 2>&1; then
+if [ -d /run/systemd/system ]; then
     # Quit only if the call worked.
     systemctl start rpc-statd.service && exit
 fi
