@@ -14,6 +14,5 @@ After=nfs-config.service
 
 [Service]
 EnvironmentFile=-/run/sysconfig/nfs-utils
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=-/usr/sbin/sm-notify -d $SMNOTIFYARGS
+Type=forking
+ExecStart=-/usr/sbin/sm-notify $SMNOTIFYARGS
