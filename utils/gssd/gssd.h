@@ -74,10 +74,8 @@ struct clnt_info {
 	char			*protocol;
 	int			krb5_fd;
 	struct event		krb5_ev;
-	bool			krb5_close_me;
 	int			gssd_fd;
 	struct event		gssd_ev;
-	bool			gssd_close_me;
 	struct			sockaddr_storage addr;
 };
 

@@ -366,7 +366,10 @@ gssd_clnt_gssd_cb(int UNUSED(fd), short which, void *data)
 	struct clnt_info *clp = data;
 
 	if (which != EV_READ) {
-		clp->gssd_close_me = true;
+		printerr(2, "Closing 'gssd' pipe for %s\n", clp->dirname);
+		close(clp->gssd_fd);
+		clp->gssd_fd = -1;
+		event_del(&clp->gssd_ev);
 		gssd_update_clients();
 		return;
 	}
@@ -380,7 +383,10 @@ gssd_clnt_krb5_cb(int UNUSED(fd), short which, void *data)
 	struct clnt_info *clp = data;
 
 	if (which != EV_READ) {
-		clp->krb5_close_me = true;
+		printerr(2, "Closing 'krb5' pipe for %s\n", clp->dirname);
+		close(clp->krb5_fd);
+		clp->krb5_fd = -1;
+		event_del(&clp->krb5_ev);
 		gssd_update_clients();
 		return;
 	}
@@ -395,22 +401,6 @@ process_clnt_dir_files(struct clnt_info * clp)
 	char	gname[PATH_MAX];
 	bool gssd_was_closed;
 	bool krb5_was_closed;
-
-	if (clp->gssd_close_me) {
-		printerr(2, "Closing 'gssd' pipe for %s\n", clp->dirname);
-		close(clp->gssd_fd);
-		event_del(&clp->gssd_ev);
-		clp->gssd_fd = -1;
-		clp->gssd_close_me = false;
-	}
-
-	if (clp->krb5_close_me) {
-		printerr(2, "Closing 'krb5' pipe for %s\n", clp->dirname);
-		close(clp->krb5_fd);
-		event_del(&clp->krb5_ev);
-		clp->krb5_fd = -1;
-		clp->krb5_close_me = false;
-	}
 
 	gssd_was_closed = clp->gssd_fd < 0 ? true : false;
 	krb5_was_closed = clp->krb5_fd < 0 ? true : false;
