@@ -64,7 +64,7 @@ extern char			*preferred_realm;
 
 struct clnt_info {
 	TAILQ_ENTRY(clnt_info)	list;
-	int			dir_fd;
+	int			wd;
 	bool			scanned;
 	char			*name;
 	char			*relpath;
