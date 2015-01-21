@@ -89,9 +89,9 @@ struct clnt_info {
 TAILQ_HEAD(topdirs_list_head, topdirs_info) topdirs_list;
 
 struct topdirs_info {
-	TAILQ_ENTRY(topdirs_info)   list;
-	char			*dirname;
-	int			fd;
+	TAILQ_ENTRY(topdirs_info)	list;
+	int				fd;
+	char				dirname[];
 };
 
 void init_client_list(void);
