@@ -9,6 +9,7 @@
   Copyright (c) 2002 Marius Aamodt Eriksen <marius@UMICH.EDU>.
   Copyright (c) 2002 Bruce Fields <bfields@UMICH.EDU>
   Copyright (c) 2004 Kevin Coffman <kwc@umich.edu>
+  Copyright (c) 2014 David H?rdeman <david@hardeman.nu>
   All rights reserved, all wrongs reversed.
 
   Redistribution and use in source and binary forms, with or without
