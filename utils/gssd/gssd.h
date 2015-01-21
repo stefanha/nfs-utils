@@ -34,6 +34,8 @@
 #include <sys/types.h>
 #include <sys/queue.h>
 #include <gssapi/gssapi.h>
+#include <event.h>
+#include <stdbool.h>
 
 #ifndef GSSD_PIPEFS_DIR
 #define GSSD_PIPEFS_DIR		"/var/lib/nfs/rpc_pipefs"
@@ -71,14 +73,13 @@ struct clnt_info {
 	int			vers;
 	char			*protocol;
 	int			krb5_fd;
-	int			krb5_poll_index;
-	int			krb5_close_me;
-	int                     gssd_fd;
-	int                     gssd_poll_index;
-	int			gssd_close_me;
-	struct sockaddr_storage addr;
+	struct event		krb5_ev;
+	bool			krb5_close_me;
+	int			gssd_fd;
+	struct event		gssd_ev;
+	bool			gssd_close_me;
+	struct			sockaddr_storage addr;
 };
-
 
 void handle_krb5_upcall(struct clnt_info *clp);
 void handle_gssd_upcall(struct clnt_info *clp);

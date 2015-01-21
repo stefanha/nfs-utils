@@ -64,6 +64,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <netdb.h>
+#include <event.h>
 
 #include "gssd.h"
 #include "err_util.h"
@@ -80,8 +81,6 @@ unsigned int  context_timeout = 0;
 unsigned int  rpc_timeout = 5;
 char *preferred_realm = NULL;
 
-#define POLL_MILLISECS	500
-
 TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 
 TAILQ_HEAD(topdirs_list_head, topdirs_info) topdirs_list;
@@ -92,22 +91,9 @@ struct topdirs_info {
 	char				dirname[];
 };
 
-static volatile int dir_changed = 1;
-
-static void dir_notify_handler(__attribute__((unused))int sig)
-{
-	dir_changed = 1;
-}
-
-
 /*
- * pollarray:
- *      array of struct pollfd suitable to pass to poll. initialized to
- *      zero - a zero struct is ignored by poll() because the events mask is 0.
- *
  * clnt_list:
- *      linked list of struct clnt_info which associates a clntXXX directory
- *	with an index into pollarray[], and other basic data about that client.
+ *      linked list of struct clnt_info with basic data about a clntXXX dir.
  *
  * Directory structure: created by the kernel
  *      {rpc_pipefs}/{dir}/clntXX         : one per rpc_clnt struct in the kernel
@@ -126,10 +112,6 @@ static void dir_notify_handler(__attribute__((unused))int sig)
  *      created or destroyed in {rpc_pipefs} or in any of the clntXX directories,
  *      and rescan the whole {rpc_pipefs} when this happens.
  */
-
-static struct pollfd * pollarray;
-
-static unsigned long pollsize;  /* the size of pollaray (in pollfd's) */
 
 /* Avoid DNS reverse lookups on server names */
 static int avoid_dns = 1;
@@ -335,15 +317,19 @@ fail:
 static void
 destroy_client(struct clnt_info *clp)
 {
-	if (clp->krb5_poll_index != -1)
-		memset(&pollarray[clp->krb5_poll_index], 0,
-					sizeof(struct pollfd));
-	if (clp->gssd_poll_index != -1)
-		memset(&pollarray[clp->gssd_poll_index], 0,
-					sizeof(struct pollfd));
-	if (clp->dir_fd != -1) close(clp->dir_fd);
-	if (clp->krb5_fd != -1) close(clp->krb5_fd);
-	if (clp->gssd_fd != -1) close(clp->gssd_fd);
+	if (clp->krb5_fd >= 0) {
+		close(clp->krb5_fd);
+		event_del(&clp->krb5_ev);
+	}
+
+	if (clp->gssd_fd >= 0) {
+		close(clp->gssd_fd);
+		event_del(&clp->gssd_ev);
+	}
+
+	if (clp->dir_fd >= 0)
+		close(clp->dir_fd);
+
 	free(clp->dirname);
 	free(clp->pdir);
 	free(clp->servicename);
@@ -362,8 +348,7 @@ insert_new_clnt(void)
 			 strerror(errno));
 		goto out;
 	}
-	clp->krb5_poll_index = -1;
-	clp->gssd_poll_index = -1;
+
 	clp->krb5_fd = -1;
 	clp->gssd_fd = -1;
 	clp->dir_fd = -1;
@@ -373,36 +358,68 @@ out:
 	return clp;
 }
 
+static void gssd_update_clients(void);
+
+static void
+gssd_clnt_gssd_cb(int UNUSED(fd), short which, void *data)
+{
+	struct clnt_info *clp = data;
+
+	if (which != EV_READ) {
+		clp->gssd_close_me = true;
+		gssd_update_clients();
+		return;
+	}
+
+	handle_gssd_upcall(clp);
+}
+
+static void
+gssd_clnt_krb5_cb(int UNUSED(fd), short which, void *data)
+{
+	struct clnt_info *clp = data;
+
+	if (which != EV_READ) {
+		clp->krb5_close_me = true;
+		gssd_update_clients();
+		return;
+	}
+
+	handle_krb5_upcall(clp);
+}
+
 static int
 process_clnt_dir_files(struct clnt_info * clp)
 {
 	char	name[PATH_MAX];
 	char	gname[PATH_MAX];
-	char	info_file_name[PATH_MAX];
+	bool gssd_was_closed;
+	bool krb5_was_closed;
 
 	if (clp->gssd_close_me) {
 		printerr(2, "Closing 'gssd' pipe for %s\n", clp->dirname);
 		close(clp->gssd_fd);
-		memset(&pollarray[clp->gssd_poll_index], 0,
-			sizeof(struct pollfd));
+		event_del(&clp->gssd_ev);
 		clp->gssd_fd = -1;
-		clp->gssd_poll_index = -1;
-		clp->gssd_close_me = 0;
+		clp->gssd_close_me = false;
 	}
+
 	if (clp->krb5_close_me) {
 		printerr(2, "Closing 'krb5' pipe for %s\n", clp->dirname);
 		close(clp->krb5_fd);
-		memset(&pollarray[clp->krb5_poll_index], 0,
-			sizeof(struct pollfd));
+		event_del(&clp->krb5_ev);
 		clp->krb5_fd = -1;
-		clp->krb5_poll_index = -1;
-		clp->krb5_close_me = 0;
+		clp->krb5_close_me = false;
 	}
+
+	gssd_was_closed = clp->gssd_fd < 0 ? true : false;
+	krb5_was_closed = clp->krb5_fd < 0 ? true : false;
 
 	if (clp->gssd_fd == -1) {
 		snprintf(gname, sizeof(gname), "%s/gssd", clp->dirname);
 		clp->gssd_fd = open(gname, O_RDWR);
 	}
+
 	if (clp->gssd_fd == -1) {
 		if (clp->krb5_fd == -1) {
 			snprintf(name, sizeof(name), "%s/krb5", clp->dirname);
@@ -423,56 +440,29 @@ process_clnt_dir_files(struct clnt_info * clp)
 		}
 	}
 
+	if (gssd_was_closed && clp->gssd_fd >= 0) {
+		event_set(&clp->gssd_ev, clp->gssd_fd, EV_READ | EV_PERSIST,
+			  gssd_clnt_gssd_cb, clp);
+		event_add(&clp->gssd_ev, NULL);
+	}
+
+	if (krb5_was_closed && clp->krb5_fd >= 0) {
+		event_set(&clp->krb5_ev, clp->krb5_fd, EV_READ | EV_PERSIST,
+			  gssd_clnt_krb5_cb, clp);
+		event_add(&clp->krb5_ev, NULL);
+	}
+
 	if ((clp->krb5_fd == -1) && (clp->gssd_fd == -1))
-		return -1;
-	snprintf(info_file_name, sizeof(info_file_name), "%s/info",
-			clp->dirname);
-	if (clp->prog == 0)
+		/* not fatal, files might appear later */
+		return 0;
+
+	if (clp->prog == 0) {
+		char info_file_name[strlen(clp->dirname) + 6];
+
+		sprintf(info_file_name, "%s/info", clp->dirname);
 		read_service_info(info_file_name, &clp->servicename,
 				  &clp->servername, &clp->prog, &clp->vers,
 				  &clp->protocol, (struct sockaddr *) &clp->addr);
-	return 0;
-}
-
-static int
-get_poll_index(int *ind)
-{
-	unsigned int i;
-
-	*ind = -1;
-	for (i=0; i<pollsize; i++) {
-		if (pollarray[i].events == 0) {
-			*ind = i;
-			break;
-		}
-	}
-	if (*ind == -1) {
-		printerr(0, "ERROR: No pollarray slots open\n");
-		return -1;
-	}
-	return 0;
-}
-
-
-static int
-insert_clnt_poll(struct clnt_info *clp)
-{
-	if ((clp->gssd_fd != -1) && (clp->gssd_poll_index == -1)) {
-		if (get_poll_index(&clp->gssd_poll_index)) {
-			printerr(0, "ERROR: Too many gssd clients\n");
-			return -1;
-		}
-		pollarray[clp->gssd_poll_index].fd = clp->gssd_fd;
-		pollarray[clp->gssd_poll_index].events |= POLLIN;
-	}
-
-	if ((clp->krb5_fd != -1) && (clp->krb5_poll_index == -1)) {
-		if (get_poll_index(&clp->krb5_poll_index)) {
-			printerr(0, "ERROR: Too many krb5 clients\n");
-			return -1;
-		}
-		pollarray[clp->krb5_poll_index].fd = clp->krb5_fd;
-		pollarray[clp->krb5_poll_index].events |= POLLIN;
 	}
 
 	return 0;
@@ -484,43 +474,35 @@ process_clnt_dir(char *dir, char *pdir)
 	struct clnt_info *	clp;
 
 	if (!(clp = insert_new_clnt()))
-		goto fail_destroy_client;
+		goto out;
 
 	if (!(clp->pdir = strdup(pdir)))
-		goto fail_destroy_client;
+		goto out;
 
 	/* An extra for the '/', and an extra for the null */
-	if (!(clp->dirname = calloc(strlen(dir) + strlen(pdir) + 2, 1))) {
-		goto fail_destroy_client;
-	}
+	if (!(clp->dirname = calloc(strlen(dir) + strlen(pdir) + 2, 1)))
+		goto out;
+
 	sprintf(clp->dirname, "%s/%s", pdir, dir);
 	if ((clp->dir_fd = open(clp->dirname, O_RDONLY)) == -1) {
 		if (errno != ENOENT)
 			printerr(0, "ERROR: can't open %s: %s\n",
 				 clp->dirname, strerror(errno));
-		goto fail_destroy_client;
+		goto out;
 	}
 	fcntl(clp->dir_fd, F_SETSIG, DNOTIFY_SIGNAL);
 	fcntl(clp->dir_fd, F_NOTIFY, DN_CREATE | DN_DELETE | DN_MULTISHOT);
 
 	if (process_clnt_dir_files(clp))
-		goto fail_keep_client;
-
-	if (insert_clnt_poll(clp))
-		goto fail_destroy_client;
+		goto out;
 
 	return;
 
-fail_destroy_client:
+out:
 	if (clp) {
 		TAILQ_REMOVE(&clnt_list, clp, list);
 		destroy_client(clp);
 	}
-fail_keep_client:
-	/* We couldn't find some subdirectories, but we keep the client
-	 * around in case we get a notification on the directory when the
-	 * subdirectories are created. */
-	return;
 }
 
 /*
@@ -559,10 +541,8 @@ update_old_clients(struct dirent **namelist, int size, char *pdir)
 			clp = saveprev;
 		}
 	}
-	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next) {
-		if (!process_clnt_dir_files(clp))
-			insert_clnt_poll(clp);
-	}
+	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next)
+		process_clnt_dir_files(clp);
 }
 
 /* Search for a client by directory name, return 1 if found, 0 otherwise */
@@ -613,10 +593,10 @@ process_pipedir(char *pipe_name)
 }
 
 /* Used to read (and re-read) list of clients, set up poll array. */
-static int
-update_client_list(void)
+static void
+gssd_update_clients(void)
 {
-	int retval = -1;
+	int retval;
 	struct topdirs_info *tdi;
 
 	TAILQ_FOREACH(tdi, &topdirs_list, list) {
@@ -626,44 +606,12 @@ update_client_list(void)
 				 tdi->dirname);
 
 	}
-	return retval;
 }
 
 static void
-scan_poll_results(int ret)
+gssd_update_clients_cb(int UNUSED(ifd), short UNUSED(which), void *UNUSED(data))
 {
-	int			i;
-	struct clnt_info	*clp;
-
-	for (clp = clnt_list.tqh_first; clp != NULL; clp = clp->list.tqe_next)
-	{
-		i = clp->gssd_poll_index;
-		if (i >= 0 && pollarray[i].revents) {
-			if (pollarray[i].revents & POLLHUP) {
-				clp->gssd_close_me = 1;
-				dir_changed = 1;
-			}
-			if (pollarray[i].revents & POLLIN)
-				handle_gssd_upcall(clp);
-			pollarray[clp->gssd_poll_index].revents = 0;
-			ret--;
-			if (!ret)
-				break;
-		}
-		i = clp->krb5_poll_index;
-		if (i >= 0 && pollarray[i].revents) {
-			if (pollarray[i].revents & POLLHUP) {
-				clp->krb5_close_me = 1;
-				dir_changed = 1;
-			}
-			if (pollarray[i].revents & POLLIN)
-				handle_krb5_upcall(clp);
-			pollarray[clp->krb5_poll_index].revents = 0;
-			ret--;
-			if (!ret)
-				break;
-		}
-	}
+	gssd_update_clients();
 }
 
 static int
@@ -728,115 +676,11 @@ topdirs_init_list(void)
 	closedir(pipedir);
 }
 
-#ifdef HAVE_PPOLL
-static void gssd_poll(struct pollfd *fds, unsigned long nfds)
-{
-	sigset_t emptyset;
-	int ret;
-
-	sigemptyset(&emptyset);
-	ret = ppoll(fds, nfds, NULL, &emptyset);
-	if (ret < 0) {
-		if (errno != EINTR)
-			printerr(0, "WARNING: error return from poll\n");
-	} else if (ret == 0) {
-		printerr(0, "WARNING: unexpected timeout\n");
-	} else {
-		scan_poll_results(ret);
-	}
-}
-#else	/* !HAVE_PPOLL */
-static void gssd_poll(struct pollfd *fds, unsigned long nfds)
-{
-	int ret;
-
-	/* race condition here: dir_changed could be set before we
-	 * enter the poll, and we'd never notice if it weren't for the
-	 * timeout. */
-	ret = poll(fds, nfds, POLL_MILLISECS);
-	if (ret < 0) {
-		if (errno != EINTR)
-			printerr(0, "WARNING: error return from poll\n");
-	} else if (ret == 0) {
-		/* timeout */
-	} else { /* ret > 0 */
-		scan_poll_results(ret);
-	}
-}
-#endif	/* !HAVE_PPOLL */
-
-
-#define FD_ALLOC_BLOCK		256
 static void
-init_client_list(void)
+gssd_atexit(void)
 {
-	struct rlimit rlim;
-
-	TAILQ_INIT(&clnt_list);
-
-	/* Eventually plan to grow/shrink poll array: */
-	if (!getrlimit(RLIMIT_NOFILE, &rlim) && rlim.rlim_cur != RLIM_INFINITY)
-		pollsize = rlim.rlim_cur;
-	else
-		pollsize = FD_ALLOC_BLOCK;
-
-	pollarray = calloc(pollsize, sizeof(struct pollfd));
-	if (!pollarray) {
-		printerr(1, "ERROR: calloc failed\n");
-		exit(EXIT_FAILURE);
-	}
-}
-
-static void
-gssd_run(void)
-{
-	struct sigaction	dn_act = {
-		.sa_handler = dir_notify_handler
-	};
-	sigset_t		set;
-
-	sigemptyset(&dn_act.sa_mask);
-	sigaction(DNOTIFY_SIGNAL, &dn_act, NULL);
-
-	/* just in case the signal is blocked... */
-	sigemptyset(&set);
-	sigaddset(&set, DNOTIFY_SIGNAL);
-	sigprocmask(SIG_UNBLOCK, &set, NULL);
-
-	topdirs_init_list();
-	init_client_list();
-
-	printerr(1, "beginning poll\n");
-	while (1) {
-		while (dir_changed) {
-			dir_changed = 0;
-			if (update_client_list()) {
-				/* Error msg is already printed */
-				exit(1);
-			}
-
-			daemon_ready();
-		}
-		gssd_poll(pollarray, pollsize);
-	}
-}
-
-static void
-sig_die(int signal)
-{
-	/* destroy krb5 machine creds */
 	if (root_uses_machine_creds)
 		gssd_destroy_krb5_machine_creds();
-	printerr(1, "exiting on signal %d\n", signal);
-	exit(0);
-}
-
-static void
-sig_hup(int signal)
-{
-	/* don't exit on SIGHUP */
-	printerr(1, "Received SIGHUP(%d)... Ignoring.\n", signal);
-	return;
 }
 
 static void
@@ -858,6 +702,8 @@ main(int argc, char *argv[])
 	extern char *optarg;
 	char *progname;
 	char *ccachedir = NULL;
+	struct event sighup_ev;
+	struct event sigdnotify_ev;
 
 	while ((opt = getopt(argc, argv, "DfvrlmnMp:k:d:t:T:R:")) != -1) {
 		switch (opt) {
@@ -981,17 +827,31 @@ main(int argc, char *argv[])
 
 	daemon_init(fg);
 
+	event_init();
+
 	if (chdir(pipefs_dir)) {
 		printerr(1, "ERROR: chdir(%s) failed: %s\n", pipefs_dir, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	signal(SIGINT, sig_die);
-	signal(SIGTERM, sig_die);
-	signal(SIGHUP, sig_hup);
+	if (atexit(gssd_atexit)) {
+		printerr(1, "ERROR: atexit failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-	gssd_run();
-	printerr(0, "gssd_run returned!\n");
-	abort();
+	signal_set(&sighup_ev, SIGHUP, gssd_update_clients_cb, NULL);
+	signal_add(&sighup_ev, NULL);
+	signal_set(&sigdnotify_ev, DNOTIFY_SIGNAL, gssd_update_clients_cb, NULL);
+	signal_add(&sigdnotify_ev, NULL);
+
+	topdirs_init_list();
+	TAILQ_INIT(&clnt_list);
+	gssd_update_clients();
+	daemon_ready();
+
+	event_dispatch();
+
+	printerr(1, "ERROR: event_dispatch() returned!\n");
+	return EXIT_FAILURE;
 }
 
