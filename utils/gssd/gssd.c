@@ -95,8 +95,7 @@ struct topdir {
 	TAILQ_ENTRY(topdir) list;
 	TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 	int wd;
-	char *name;
-	char dirname[];
+	char name[];
 };
 
 /*
@@ -514,7 +513,7 @@ gssd_get_topdir(const char *name)
 		if (!strcmp(tdi->name, name))
 			return tdi;
 
-	tdi = malloc(sizeof(*tdi) + strlen(pipefs_path) + strlen(name) + 2);
+	tdi = malloc(sizeof(*tdi) + strlen(name) + 1);
 	if (!tdi) {
 		printerr(0, "ERROR: Couldn't allocate struct topdir\n");
 		return NULL;
@@ -522,14 +521,13 @@ gssd_get_topdir(const char *name)
 
 	tdi->wd = inotify_add_watch(inotify_fd, name, IN_CREATE | IN_DELETE);
 	if (tdi->wd < 0) {
-		printerr(0, "ERROR: inotify_add_watch failed for %s: %s\n",
-			 tdi->dirname, strerror(errno));
+		printerr(0, "ERROR: inotify_add_watch failed for top dir %s: %s\n",
+			 tdi->name, strerror(errno));
 		free(tdi);
 		return NULL;
 	}
 
-	sprintf(tdi->dirname, "%s/%s", pipefs_path, name);
-	tdi->name = tdi->dirname + strlen(pipefs_path) + 1;
+	strcpy(tdi->name, name);
 	TAILQ_INIT(&tdi->clnt_list);
 
 	TAILQ_INSERT_HEAD(&topdir_list, tdi, list);
@@ -552,14 +550,14 @@ gssd_scan_topdir(const char *name)
 	dfd = openat(pipefs_fd, tdi->name, O_RDONLY);
 	if (dfd < 0) {
 		printerr(0, "ERROR: can't openat %s: %s\n",
-			 tdi->dirname, strerror(errno));
+			 tdi->name, strerror(errno));
 		return;
 	}
 
 	dir = fdopendir(dfd);
 	if (!dir) {
 		printerr(0, "ERROR: can't fdopendir %s: %s\n",
-			 tdi->dirname, strerror(errno));
+			 tdi->name, strerror(errno));
 		return;
 	}
 
