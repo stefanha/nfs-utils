@@ -67,8 +67,8 @@
 #include "krb5_util.h"
 #include "nfslib.h"
 
-static char pipefs_dir[PATH_MAX] = GSSD_PIPEFS_DIR;
-char keytabfile[PATH_MAX] = GSSD_DEFAULT_KEYTAB_FILE;
+static char *pipefs_dir = GSSD_PIPEFS_DIR;
+char *keytabfile = GSSD_DEFAULT_KEYTAB_FILE;
 char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR ":" GSSD_USER_CRED_DIR;
 char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
 int  use_memcache = 0;
@@ -341,14 +341,10 @@ main(int argc, char *argv[])
 				rpc_verbosity++;
 				break;
 			case 'p':
-				strncpy(pipefs_dir, optarg, sizeof(pipefs_dir));
-				if (pipefs_dir[sizeof(pipefs_dir)-1] != '\0')
-					errx(1, "pipefs path name too long");
+				pipefs_dir = optarg;
 				break;
 			case 'k':
-				strncpy(keytabfile, optarg, sizeof(keytabfile));
-				if (keytabfile[sizeof(keytabfile)-1] != '\0')
-					errx(1, "keytab path name too long");
+				keytabfile = optarg;
 				break;
 			case 'd':
 				strncpy(ccachedir, optarg, sizeof(ccachedir));

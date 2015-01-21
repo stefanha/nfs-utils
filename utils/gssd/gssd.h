@@ -58,8 +58,8 @@
  */
 enum {AUTHTYPE_KRB5, AUTHTYPE_LIPKEY};
 
-extern char			keytabfile[PATH_MAX];
-extern char			*ccachesearch[];
+extern char		       *keytabfile;
+extern char		       *ccachesearch[];
 extern int			use_memcache;
 extern int			root_uses_machine_creds;
 extern unsigned int 		context_timeout;
