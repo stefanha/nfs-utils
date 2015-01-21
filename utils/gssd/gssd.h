@@ -58,9 +58,6 @@
  */
 enum {AUTHTYPE_KRB5, AUTHTYPE_LIPKEY};
 
-
-
-extern char			pipefs_dir[PATH_MAX];
 extern char			keytabfile[PATH_MAX];
 extern char			*ccachesearch[];
 extern int			use_memcache;
@@ -102,7 +99,6 @@ void init_client_list(void);
 int update_client_list(void);
 void handle_krb5_upcall(struct clnt_info *clp);
 void handle_gssd_upcall(struct clnt_info *clp);
-void gssd_run(void);
 
 
 #endif /* _RPC_GSSD_H_ */

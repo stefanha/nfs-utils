@@ -36,7 +36,6 @@ COMMON_SRCS = \
 gssd_SOURCES = \
 	$(COMMON_SRCS) \
 	gssd.c \
-	gssd_main_loop.c \
 	gssd_proc.c \
 	krb5_util.c \
 	\
