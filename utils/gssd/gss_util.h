@@ -52,6 +52,4 @@ int gssd_check_mechs(void);
 		gss_krb5_set_allowable_enctypes(min, cred, num, types)
 #endif
 
-extern int avoid_dns;
-
 #endif /* _GSS_UTIL_H_ */

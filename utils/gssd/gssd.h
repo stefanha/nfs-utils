@@ -35,13 +35,9 @@
 #include <sys/queue.h>
 #include <gssapi/gssapi.h>
 
-#define MAX_FILE_NAMELEN	32
-#define FD_ALLOC_BLOCK		256
 #ifndef GSSD_PIPEFS_DIR
 #define GSSD_PIPEFS_DIR		"/var/lib/nfs/rpc_pipefs"
 #endif
-#define INFO			"info"
-#define KRB5			"krb5"
 #define DNOTIFY_SIGNAL		(SIGRTMIN + 3)
 
 #define GSSD_DEFAULT_CRED_DIR			"/tmp"
@@ -50,7 +46,6 @@
 #define GSSD_DEFAULT_MACHINE_CRED_SUFFIX	"machine"
 #define GSSD_DEFAULT_KEYTAB_FILE		"/etc/krb5.keytab"
 #define GSSD_SERVICE_NAME			"nfs"
-#define GSSD_SERVICE_NAME_LEN			3
 
 /*
  * The gss mechanisms that we can handle
@@ -64,8 +59,6 @@ extern int			root_uses_machine_creds;
 extern unsigned int 		context_timeout;
 extern unsigned int rpc_timeout;
 extern char			*preferred_realm;
-
-TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 
 struct clnt_info {
 	TAILQ_ENTRY(clnt_info)	list;
@@ -86,16 +79,7 @@ struct clnt_info {
 	struct sockaddr_storage addr;
 };
 
-TAILQ_HEAD(topdirs_list_head, topdirs_info) topdirs_list;
 
-struct topdirs_info {
-	TAILQ_ENTRY(topdirs_info)	list;
-	int				fd;
-	char				dirname[];
-};
-
-void init_client_list(void);
-int update_client_list(void);
 void handle_krb5_upcall(struct clnt_info *clp);
 void handle_gssd_upcall(struct clnt_info *clp);
 
