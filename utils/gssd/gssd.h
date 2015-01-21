@@ -51,7 +51,6 @@
 #define GSSD_DEFAULT_KEYTAB_FILE		"/etc/krb5.keytab"
 #define GSSD_SERVICE_NAME			"nfs"
 #define GSSD_SERVICE_NAME_LEN			3
-#define GSSD_MAX_CCACHE_SEARCH			16
 
 /*
  * The gss mechanisms that we can handle
@@ -59,7 +58,7 @@
 enum {AUTHTYPE_KRB5, AUTHTYPE_LIPKEY};
 
 extern char		       *keytabfile;
-extern char		       *ccachesearch[];
+extern char		      **ccachesearch;
 extern int			use_memcache;
 extern int			root_uses_machine_creds;
 extern unsigned int 		context_timeout;

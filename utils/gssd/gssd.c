@@ -69,8 +69,7 @@
 
 static char *pipefs_dir = GSSD_PIPEFS_DIR;
 char *keytabfile = GSSD_DEFAULT_KEYTAB_FILE;
-char ccachedir[PATH_MAX] = GSSD_DEFAULT_CRED_DIR ":" GSSD_USER_CRED_DIR;
-char *ccachesearch[GSSD_MAX_CCACHE_SEARCH + 1];
+char **ccachesearch;
 int  use_memcache = 0;
 int  root_uses_machine_creds = 1;
 unsigned int  context_timeout = 0;
@@ -318,8 +317,8 @@ main(int argc, char *argv[])
 	int i;
 	extern char *optarg;
 	char *progname;
+	char *ccachedir = NULL;
 
-	memset(ccachesearch, 0, sizeof(ccachesearch));
 	while ((opt = getopt(argc, argv, "DfvrlmnMp:k:d:t:T:R:")) != -1) {
 		switch (opt) {
 			case 'f':
@@ -347,9 +346,7 @@ main(int argc, char *argv[])
 				keytabfile = optarg;
 				break;
 			case 'd':
-				strncpy(ccachedir, optarg, sizeof(ccachedir));
-				if (ccachedir[sizeof(ccachedir)-1] != '\0')
-					errx(1, "ccachedir path name too long");
+				ccachedir = optarg;
 				break;
 			case 't':
 				context_timeout = atoi(optarg);
@@ -388,11 +385,37 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	i = 0;
-	ccachesearch[i++] = strtok(ccachedir, ":");
-	do {
-		ccachesearch[i++] = strtok(NULL, ":");
-	} while (ccachesearch[i-1] != NULL && i < GSSD_MAX_CCACHE_SEARCH);
+	if (ccachedir) {
+		char *ccachedir_copy;
+		char *ptr;
+
+		for (ptr = ccachedir, i = 2; *ptr; ptr++)
+			if (*ptr == ':')
+				i++;
+
+		ccachesearch = malloc(i * sizeof(char *));
+	       	ccachedir_copy = strdup(ccachedir);
+		if (!ccachedir_copy || !ccachesearch) {
+			printerr(0, "malloc failure\n");
+			exit(EXIT_FAILURE);
+		}
+
+		i = 0;
+		ccachesearch[i++] = strtok(ccachedir, ":");
+		while(ccachesearch[i - 1])
+			ccachesearch[i++] = strtok(NULL, ":");
+
+	} else {
+		ccachesearch = malloc(3 * sizeof(char *));
+		if (!ccachesearch) {
+			printerr(0, "malloc failure\n");
+			exit(EXIT_FAILURE);
+		}
+
+		ccachesearch[0] = GSSD_DEFAULT_CRED_DIR;
+		ccachesearch[1] = GSSD_USER_CRED_DIR;
+		ccachesearch[2] = NULL;
+	}
 
 	if (preferred_realm == NULL)
 		gssd_k5_get_default_realm(&preferred_realm);
