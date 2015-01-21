@@ -527,7 +527,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		return;
 	}
 
-	printerr(1, "handling krb5 upcall (%s)\n", clp->dirname);
+	printerr(1, "handling krb5 upcall (%s)\n", clp->relpath);
 
 	token.length = 0;
 	token.value = NULL;
@@ -716,7 +716,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 	char			*service = NULL;
 	char			*enctypes = NULL;
 
-	printerr(1, "handling gssd upcall (%s)\n", clp->dirname);
+	printerr(1, "handling gssd upcall (%s)\n", clp->relpath);
 
 	lbuflen = read(clp->gssd_fd, lbuf, sizeof(lbuf));
 	if (lbuflen <= 0 || lbuf[lbuflen-1] != '\n') {
