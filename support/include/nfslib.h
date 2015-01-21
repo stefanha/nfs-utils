@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <paths.h>
 #include <rpcsvc/nfs_prot.h>
 #include <nfs/nfs.h>
@@ -129,8 +130,8 @@ void			fendrmtabent(FILE *fp);
 void			frewindrmtabent(FILE *fp);
 
 /* mydaemon */
-void mydaemon(int nochdir, int noclose, int *pipefds);
-void release_parent(int *pipefds);
+void daemon_init(bool fg);
+void daemon_ready(void);
 
 /*
  * wildmat borrowed from INN

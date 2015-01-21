@@ -46,56 +46,61 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <xlog.h>
 
+#include "nfslib.h"
+
+static int pipefds[2] = { -1, -1};
+
 /**
- * mydaemon - daemonize, but have parent wait to exit
- * @nochdir:	skip chdir()'ing the child to / after forking if true
- * @noclose:	skip closing stdin/stdout/stderr if true
- * @pipefds:	pointer to 2 element array of pipefds
+ * daemon_init - initial daemon setup
+ * @fg:		whether to run in the foreground
  *
  * This function is like daemon(), but with our own special sauce to delay
  * the exit of the parent until the child is set up properly. A pipe is created
  * between parent and child. The parent process will wait to exit until the
- * child dies or writes a '1' on the pipe signaling that it started
- * successfully.
+ * child dies or writes an int on the pipe signaling its status.
  */
 void
-mydaemon(int nochdir, int noclose, int *pipefds)
+daemon_init(bool fg)
 {
 	int pid, status, tempfd;
+
+	if (fg)
+		return;
 
 	if (pipe(pipefds) < 0) {
 		xlog_err("mydaemon: pipe() failed: errno %d (%s)\n",
 			 errno, strerror(errno));
-		exit(1);
-	}
-	if ((pid = fork ()) < 0) {
-		xlog_err("mydaemon: fork() failed: errno %d (%s)\n",
-			 errno, strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
-	if (pid != 0) {
-		/*
-		 * Parent. Wait for status from child.
-		 */
-		close(pipefds[1]);
-		if (read(pipefds[0], &status, 1) != 1)
-			exit(1);
-		exit (0);
+	pid = fork();
+	if (pid < 0) {
+		xlog_err("mydaemon: fork() failed: errno %d (%s)\n",
+			 errno, strerror(errno));
+		exit(EXIT_FAILURE);
 	}
-	/* Child.	*/
+
+	if (pid > 0) {
+		/* Parent */
+		close(pipefds[1]);
+		if (read(pipefds[0], &status, sizeof(status)) != sizeof(status))
+			exit(EXIT_FAILURE);
+		exit(status);
+	}
+
+	/* Child */
 	close(pipefds[0]);
 	setsid ();
-	if (nochdir == 0) {
-		if (chdir ("/") == -1) {
-			xlog_err("mydaemon: chdir() failed: errno %d (%s)\n",
-				 errno, strerror(errno));
-			exit(1);
-		}
+
+	if (chdir ("/")) {
+		xlog_err("mydaemon: chdir() failed: errno %d (%s)\n",
+			 errno, strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 	while (pipefds[1] <= 2) {
@@ -103,41 +108,38 @@ mydaemon(int nochdir, int noclose, int *pipefds)
 		if (pipefds[1] < 0) {
 			xlog_err("mydaemon: dup() failed: errno %d (%s)\n",
 				 errno, strerror(errno));
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
-	if (noclose == 0) {
-		tempfd = open("/dev/null", O_RDWR);
-		if (tempfd >= 0) {
-			dup2(tempfd, 0);
-			dup2(tempfd, 1);
-			dup2(tempfd, 2);
-			close(tempfd);
-		} else {
-			xlog_err("mydaemon: can't open /dev/null: errno %d "
-				 "(%s)\n", errno, strerror(errno));
-			exit(1);
-		}
+	tempfd = open("/dev/null", O_RDWR);
+	if (tempfd < 0) {
+		xlog_err("mydaemon: can't open /dev/null: errno %d "
+			 "(%s)\n", errno, strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
-	return;
+	dup2(tempfd, 0);
+	dup2(tempfd, 1);
+	dup2(tempfd, 2);
+	dup2(pipefds[1], 3);
+	pipefds[1] = 3;
+	closeall(4);
 }
 
 /**
- * release_parent - tell the parent that it can exit now
- * @pipefds:	pipefd array that was previously passed to mydaemon()
+ * daemon_ready - tell interested parties that the daemon is ready
  *
- * This function tells the parent process of mydaemon() that it's now clear
- * to exit(0).
+ * This function tells e.g. the parent process that the daemon is up
+ * and running.
  */
 void
-release_parent(int *pipefds)
+daemon_ready(void)
 {
-	int status;
+	int status = 0;
 
 	if (pipefds[1] > 0) {
-		if (write(pipefds[1], &status, 1) != 1) {
+		if (write(pipefds[1], &status, sizeof(status)) != sizeof(status)) {
 			xlog_err("WARN: writing to parent pipe failed: errno "
 				 "%d (%s)\n", errno, strerror(errno));
 		}

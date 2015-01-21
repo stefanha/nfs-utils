@@ -252,8 +252,7 @@ gssd_run()
 				exit(1);
 			}
 
-			/* release the parent after the initial dir scan */
-			release_parent(pipefds);
+			daemon_ready();
 		}
 		gssd_poll(pollarray, pollsize);
 	}

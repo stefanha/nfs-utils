@@ -62,8 +62,6 @@
 #include "gss_util.h"
 #include "err_util.h"
 
-static int pipefds[2] = { -1, -1 };
-
 void
 sig_die(int signal)
 {
@@ -157,8 +155,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (!fg)
-		mydaemon(0, 0, pipefds);
+	daemon_init(fg);
 
 	signal(SIGINT, sig_die);
 	signal(SIGTERM, sig_die);
@@ -187,8 +184,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (!fg)
-		release_parent(pipefds);
+	daemon_ready();
 
 	nfs4_init_name_mapping(NULL); /* XXX: should only do this once */
 	gssd_run();

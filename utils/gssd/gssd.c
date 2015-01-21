@@ -66,7 +66,6 @@ int  root_uses_machine_creds = 1;
 unsigned int  context_timeout = 0;
 unsigned int  rpc_timeout = 5;
 char *preferred_realm = NULL;
-int pipefds[2] = { -1, -1 };
 
 void
 sig_die(int signal)
@@ -206,8 +205,7 @@ main(int argc, char *argv[])
 	if (gssd_check_mechs() != 0)
 		errx(1, "Problem with gssapi library");
 
-	if (!fg)
-		mydaemon(0, 0, pipefds);
+	daemon_init(fg);
 
 	signal(SIGINT, sig_die);
 	signal(SIGTERM, sig_die);

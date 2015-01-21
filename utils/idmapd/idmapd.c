@@ -164,7 +164,6 @@ static char pipefsdir[PATH_MAX];
 static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
 static gid_t nobodygid;
-static int pipefds[2] = { -1, -1 };
 
 /* Used by conffile.c in libnfs.a */
 char *conf_path;
@@ -302,8 +301,7 @@ main(int argc, char **argv)
 	if (nfs4_init_name_mapping(conf_path))
 		errx(1, "Unable to create name to user id mappings.");
 
-	if (!fg)
-		mydaemon(0, 0, pipefds);
+	daemon_init(fg);
 
 	event_init();
 
@@ -380,7 +378,7 @@ main(int argc, char **argv)
 	if (nfsdret != 0 && fd == 0)
 		xlog_err("main: Neither NFS client nor NFSd found");
 
-	release_parent(pipefds);
+	daemon_ready();
 
 	if (event_dispatch() < 0)
 		xlog_err("main: event_dispatch returns errno %d (%s)",

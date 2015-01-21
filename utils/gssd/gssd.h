@@ -68,7 +68,6 @@ extern int			root_uses_machine_creds;
 extern unsigned int 		context_timeout;
 extern unsigned int rpc_timeout;
 extern char			*preferred_realm;
-extern int			pipefds[2];
 
 TAILQ_HEAD(clnt_list_head, clnt_info) clnt_list;
 

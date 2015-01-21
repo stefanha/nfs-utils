@@ -248,13 +248,12 @@ int main (int argc, char **argv)
 	int nlm_udp = 0, nlm_tcp = 0;
 	struct rlimit rlim;
 
-	int pipefds[2] = { -1, -1};
-	char status;
-
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
-	xlog_stderr(0);
-	xlog_syslog(1);
+
+	/* Log to stderr if there's an error during startup */
+	xlog_stderr(1);
+	xlog_syslog(0);
 
 	/* Set the basename */
 	if ((name_p = strrchr(argv[0],'/')) != NULL) {
@@ -394,52 +393,17 @@ int main (int argc, char **argv)
 		simulator (--argc, ++argv);	/* simulator() does exit() */
 #endif
 
-	if (!(run_mode & MODE_NODAEMON)) {
-		int tempfd;
-
-		if (pipe(pipefds)<0) {
-			perror("statd: unable to create pipe");
-			exit(1);
-		}
-		if ((pid = fork ()) < 0) {
-			perror ("statd: Could not fork");
-			exit (1);
-		} else if (pid != 0) {
-			/* Parent.
-			 * Wait for status from child.
-			 */
-			close(pipefds[1]);
-			if (read(pipefds[0], &status, 1) != 1)
-				exit(1);
-			exit (0);
-		}
-		/* Child.	*/
-		close(pipefds[0]);
-		setsid ();
-
-		while (pipefds[1] <= 2) {
-			pipefds[1] = dup(pipefds[1]);
-			if (pipefds[1]<0) {
-				perror("statd: dup");
-				exit(1);
-			}
-		}
-		tempfd = open("/dev/null", O_RDWR);
-		dup2(tempfd, 0);
-		dup2(tempfd, 1);
-		dup2(tempfd, 2);
-		dup2(pipefds[1], 3);
-		pipefds[1] = 3;
-		closeall(4);
-	}
-
-	/* Child. */
+	daemon_init(!(run_mode & MODE_NODAEMON));
 
 	if (run_mode & MODE_LOG_STDERR) {
 		xlog_syslog(0);
 		xlog_stderr(1);
 		xlog_config(D_ALL, 1);
+	} else {
+		xlog_syslog(1);
+		xlog_stderr(0);
 	}
+
 	xlog_open(name_p);
 	xlog(L_NOTICE, "Version " VERSION " starting");
 
@@ -512,16 +476,8 @@ int main (int argc, char **argv)
 	}
 	atexit(statd_unregister);
 
-	/* If we got this far, we have successfully started, so notify parent */
-	if (pipefds[1] > 0) {
-		status = 0;
-		if (write(pipefds[1], &status, 1) != 1) {
-			xlog_warn("writing to parent pipe failed: errno %d (%s)\n",
-				errno, strerror(errno));
-		}
-		close(pipefds[1]);
-		pipefds[1] = -1;
-	}
+	/* If we got this far, we have successfully started */
+	daemon_ready();
 
 	for (;;) {
 		/*
