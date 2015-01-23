@@ -20,6 +20,16 @@ is the NFSv4 ID <-> name mapping daemon.  It provides functionality to
 the NFSv4 kernel client and server, to which it communicates via
 upcalls, by translating user and group IDs to names, and vice versa.
 .Pp
+Note that on more recent kernels only the NFSv4 server uses
+.Nm .
+The NFSv4 client instead uses
+.Xr nfsidmap 8 ,
+and only falls back to 
+.Nm 
+if there was a problem running the
+.Xr nfsidmap 8
+program.
+.Pp
 The options are as follows:
 .Bl -tag -width Ds_imagedir
 .It Fl v
@@ -58,7 +68,8 @@ messages to console, and with a verbosity level of 3.
 .Sh FILES
 .Pa /etc/idmapd.conf
 .Sh SEE ALSO
-.Xr idmapd.conf 5
+.Xr idmapd.conf 5 ,
+.Xr nfsidmap 8
 .\".Sh SEE ALSO
 .\".Xr nylon.conf 4
 .\" .Sh COMPATIBILITY
