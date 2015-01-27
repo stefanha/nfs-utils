@@ -171,10 +171,10 @@ AC_ARG_ENABLE(tirpc,
 	enable_tirpc=$enableval,
 	enable_tirpc='')
 AC_ARG_ENABLE(ipv6,
-	[AC_HELP_STRING([--enable-ipv6],
-                        [enable support for IPv6 @<:@default=no@:>@])],
+	[AC_HELP_STRING([--disable-ipv6],
+                        [disable support for IPv6 @<:@default=no@:>@])],
 	enable_ipv6=$enableval,
-	enable_ipv6=no)
+	enable_ipv6=yes)
 	if test "$enable_ipv6" = yes; then
 		AC_DEFINE(IPV6_SUPPORTED, 1, [Define this if you want IPv6 support compiled in])
 	else
