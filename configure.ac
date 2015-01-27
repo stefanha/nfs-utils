@@ -185,10 +185,10 @@ AC_ARG_ENABLE(ipv6,
 
 if test "$enable_mount" = yes; then
 	AC_ARG_ENABLE(mountconfig,
-	[AC_HELP_STRING([--enable-mountconfig],
-        [enable mount to use a configuration file @<:@default=yes@:>@])],
-	mountconfig=$enableval,
-	mountconfig=yes)
+	[AC_HELP_STRING([--disable-mountconfig],
+        [disable mount to use a configuration file @<:@default=no@:>@])],
+	enable_mountconfig=$enableval,
+	enable_mountconfig=yes)
 	if test "$enable_mountconfig" = no; then
 		enable_mountconfig=
 	else
