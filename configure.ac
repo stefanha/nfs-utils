@@ -115,9 +115,9 @@ AC_ARG_ENABLE(gss,
 
 AC_ARG_ENABLE(svcgss,
 	[AC_HELP_STRING([--enable-svcgss],
-    [enable building svcgssd for rpcsec_gss server support @<:@default=yes@:>@])],
+    [enable building svcgssd for rpcsec_gss server support @<:@default=no@:>@])],
 	enable_svcgss=$enableval,
-	enable_svcgss=yes)
+	enable_svcgss=no)
 	if test "$enable_gss" = yes -a "$enable_svcgss" = yes; then
 		SVCGSSD=svcgssd
 	else
