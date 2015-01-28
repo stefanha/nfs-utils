@@ -147,7 +147,8 @@ AC_ARG_WITH(rpcgen,
 	AC_SUBST(RPCGEN_PATH)
 	AM_CONDITIONAL(CONFIG_RPCGEN, [test "$RPCGEN_PATH" = ""])
 AC_ARG_ENABLE(uuid,
-	[AC_HELP_STRING([--disable-uuid], [Exclude uuid support to avoid buggy libblkid])],
+	[AC_HELP_STRING([--disable-uuid], 
+		[Exclude uuid support to avoid buggy libblkid. @<:@default=no@:>@])],
 	if test "$enableval" = "yes" ; then choose_blkid=yes; else choose_blkid=no; fi,
 	choose_blkid=default)
 AC_ARG_ENABLE(mount,
@@ -160,7 +161,7 @@ AC_ARG_ENABLE(mount,
 if test "$enable_mount" = yes; then
 	AC_ARG_ENABLE(libmount-mount,
 		[AC_HELP_STRING([--enable-libmount-mount],
-				[Link mount.nfs with libmount (EXPERIMENTAL)])],
+				[Link mount.nfs with libmount @<:@default=no@:>@])],
 		enable_libmount=$enableval,
 		enable_libmount=no)
 fi
