@@ -393,7 +393,7 @@ int main (int argc, char **argv)
 		simulator (--argc, ++argv);	/* simulator() does exit() */
 #endif
 
-	daemon_init(!(run_mode & MODE_NODAEMON));
+	daemon_init((run_mode & MODE_NODAEMON));
 
 	if (run_mode & MODE_LOG_STDERR) {
 		xlog_syslog(0);
