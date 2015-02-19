@@ -10,7 +10,7 @@ mountstats \- Displays various NFS client per-mount statistics
 .RB [ \-v | \-\-version ]
 .RB [ \-f | \-\-file
 .IR infile ]
-.RB [ \-s | \-\-since
+.RB [ \-S | \-\-since
 .IR sincefile ]
 .\" .RB [ \-n | \-\-nfs | \-r | \-\-rpc | \-R | \-\-raw ]
 .R [
@@ -27,7 +27,7 @@ mountstats \- Displays various NFS client per-mount statistics
 .RB [ \-v | \-\-version ]
 .RB [ \-f | \-\-file
 .IR infile ]
-.RB [ \-s | \-\-since
+.RB [ \-S | \-\-since
 .IR sincefile ]
 .RI [ interval ]
 .RI [ count ]
@@ -38,7 +38,7 @@ mountstats \- Displays various NFS client per-mount statistics
 .RB [ \-v | \-\-version ]
 .RB [ \-f | \-\-file
 .IR infile ]
-.RB [ \-s | \-\-since
+.RB [ \-S | \-\-since
 .IR sincefile ]
 .RB [ \-3 ]
 .RB [ \-4 ]
@@ -128,7 +128,7 @@ parameter is specified without the
 parameter, the command generates reports continuously.  This may not be used with the
 .BR \-f | \-\-file
 or
-.BR \-s | \-\-since 
+.BR \-S | \-\-since 
 options.
 .SS Options specific to the nfsstat sub-command
 .IP "\fB\-3\fP"
