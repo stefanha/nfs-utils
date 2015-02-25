@@ -376,7 +376,7 @@ static char *next_mnt(void **v, char *p)
 		*v = f;
 	} else
 		f = *v;
-	while ((me = getmntent(f)) != NULL &&
+	while ((me = getmntent(f)) != NULL && l > 1 &&
 	       (strncmp(me->mnt_dir, p, l) != 0 ||
 		me->mnt_dir[l] != '/'))
 		;
