@@ -218,16 +218,46 @@ This option can be very useful in some situations, but it should be
 used with due care, and only after confirming that the client system
 copes with the situation effectively.
 
-The option can be explicitly disabled with
+The option can be explicitly disabled for NFSv2 and NFSv3 with
 .IR hide .
+
+This option is not relevant when NFSv4 is use.  NFSv4 never hides
+subordinate filesystems.  Any filesystem that is exported will be
+visible where expected when using NFSv4.
 .TP
-.IR crossmnt
+.I crossmnt
 This option is similar to
 .I nohide
-but it makes it possible for clients to move from the filesystem marked
-with crossmnt to exported filesystems mounted on it.  Thus when a child
-filesystem "B" is mounted on a parent "A", setting crossmnt on "A" has
-the same effect as setting "nohide" on B.
+but it makes it possible for clients to access all filesystems mounted
+on a filesystem marked with
+.IR crossmnt .
+Thus when a child filesystem "B" is mounted on a parent "A", setting
+crossmnt on "A" has a similar effect to setting "nohide" on B.
+
+With
+.I nohide
+the child filesystem needs to be explicitly exported.  With
+.I crossmnt
+it need not.  If a child of a
+.I crossmnt
+file is not explicitly exported, then it will be implicitly exported
+with the same export options as the parent, except for
+.IR fsid= .
+This makes it impossible to
+.B not
+export a child of a
+.I crossmnt
+filesystem.  If some but not all subordinate filesystems of a parent
+are to be exported, then they must be explicitly exported and the
+parent should not have
+.I crossmnt
+set.
+
+The
+.I nocrossmnt
+option can explictly disable
+.I crossmnt
+if it was previously set.  This is rarely useful.
 .TP
 .IR no_subtree_check
 This option disables subtree checking, which has mild security
