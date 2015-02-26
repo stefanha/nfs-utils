@@ -60,7 +60,6 @@ AC_ARG_WITH(systemd,
 	[AC_HELP_STRING([--with-systemd@<:@=unit-dir-path@:>@],
 			[install systemd unit files @<:@Default: no, and path defaults to /usr/lib/systemd/system if not given@:>@])],
 	test "$withval" = "no" && use_systemd=0 || unitdir=$withval use_systemd=1
-	use_systemd=0
 	)
 	AM_CONDITIONAL(INSTALL_SYSTEMD, [test "$use_systemd" = 1])
 	AC_SUBST(unitdir)
