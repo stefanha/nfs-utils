@@ -221,6 +221,9 @@ process_reply(FD_SET_TYPE *rfds)
 	if (sockfd == -1 || !FD_ISSET(sockfd, rfds))
 		return 0;
 
+	/* Should not be processed again. */
+	FD_CLR (sockfd, rfds);
+
 	if (!(lp = recv_rply(&port)))
 		return 1;
 
