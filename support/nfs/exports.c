@@ -154,6 +154,7 @@ getexportent(int fromkernel, int fromexports)
 		}
 	}
 
+	xfree(ee.e_hostname);
 	ee = def_ee;
 
 	/* Check for default client */
@@ -176,7 +177,6 @@ getexportent(int fromkernel, int fromexports)
 		if (!has_default_opts)
 			xlog(L_WARNING, "No options for %s %s: suggest %s(sync) to avoid warning", ee.e_path, exp, exp);
 	}
-	xfree(ee.e_hostname);
 	ee.e_hostname = xstrdup(hostname);
 
 	if (parseopts(opt, &ee, fromexports && !has_default_subtree_opts, NULL) < 0)
