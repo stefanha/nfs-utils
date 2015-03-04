@@ -708,7 +708,7 @@ def mountstats_command(args):
                 mountpoints += [device]
     if len(mountpoints) == 0:
         print('No NFS mount points were found')
-        return
+        return 1
 
     if args.since:
         old_mountstats = parse_stats_file(args.since)
@@ -729,6 +729,7 @@ def mountstats_command(args):
     args.infile.close()
     if args.since:
         args.since.close()
+    return 0
 
 def nfsstat_command(args):
     """nfsstat-like command for NFS mount points
@@ -766,7 +767,7 @@ def nfsstat_command(args):
                 mountpoints += [device]
     if len(mountpoints) == 0:
         print('No NFS mount points were found')
-        return
+        return 1
 
     if args.since:
         old_mountstats = parse_stats_file(args.since)
@@ -803,6 +804,7 @@ def nfsstat_command(args):
     args.infile.close()
     if args.since:
         args.since.close()
+    return 0
 
 def print_iostat_summary(old, new, devices, time):
     for device in devices:
@@ -847,7 +849,7 @@ def iostat_command(args):
                 devices += [device]
     if len(devices) == 0:
         print('No NFS mount points were found')
-        return
+        return 1
 
     sample_time = 0
 
@@ -875,6 +877,7 @@ def iostat_command(args):
     args.infile.close()
     if args.since:
         args.since.close()
+    return 0
 
 class ICMAction(argparse.Action):
     """Custom action to deal with interval, count, and mountpoints.
@@ -986,7 +989,7 @@ try:
         sys.stdout.close()
         sys.stderr.close()
         sys.exit(res)
-except (SystemExit, KeyboardInterrupt, RuntimeError):
+except (KeyboardInterrupt, RuntimeError):
     sys.exit(1)
 except IOError:
     pass
