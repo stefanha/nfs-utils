@@ -686,7 +686,7 @@ def mountstats_command(args):
     """Mountstats command
     """
     mountstats = parse_stats_file(args.infile)
-    mountpoints = args.mountpoints
+    mountpoints = [os.path.normpath(mp) for mp in args.mountpoints]
 
     # make certain devices contains only NFS mount points
     if len(mountpoints) > 0:
@@ -735,7 +735,7 @@ def nfsstat_command(args):
     """nfsstat-like command for NFS mount points
     """
     mountstats = parse_stats_file(args.infile)
-    mountpoints = args.mountpoints
+    mountpoints = [os.path.normpath(mp) for mp in args.mountpoints]
     v3stats = DeviceData()
     v3stats.setup_accumulator(Nfsv3ops)
     v4stats = DeviceData()
@@ -822,7 +822,7 @@ def iostat_command(args):
     """iostat-like command for NFS mount points
     """
     mountstats = parse_stats_file(args.infile)
-    devices = args.mountpoints
+    devices = [os.path.normpath(mp) for mp in args.mountpoints]
 
     if args.since:
         old_mountstats = parse_stats_file(args.since)
