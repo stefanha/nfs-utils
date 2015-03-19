@@ -13,6 +13,9 @@ Before= rpc-statd-notify.service
 Wants=auth-rpcgss-module.service
 After=rpc-gssd.service gssproxy.service rpc-svcgssd.service
 
+# start/stop server before/after client
+Before=remote-fs-pre.target
+
 Wants=nfs-config.service
 After=nfs-config.service
 
