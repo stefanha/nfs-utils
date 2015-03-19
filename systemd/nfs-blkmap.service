@@ -10,6 +10,7 @@ PartOf=nfs-utils.service
 [Service]
 Type=forking
 PIDFile=/var/run/blkmapd.pid
+EnvironmentFile=-/run/sysconfig/nfs-utils
 ExecStart=/usr/sbin/blkmapd $BLKMAPDARGS
 
 [Install]
