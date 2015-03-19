@@ -24,7 +24,7 @@ by a suitable 'preset' setting:
     is started by /usr/sbin/start-statd which mount.nfs will run
     if statd is needed.
 
- nfs-blkmap.target
+ nfs-blkmap.service
     If enabled, then blkmapd will be run when nfs-client.target is
     started.
 

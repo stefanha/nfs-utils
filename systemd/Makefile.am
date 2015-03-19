@@ -3,7 +3,6 @@
 MAINTAINERCLEANFILES = Makefile.in
 
 unit_files =  \
-    nfs-blkmap.target \
     nfs-client.target \
     \
     auth-rpcgss-module.service \

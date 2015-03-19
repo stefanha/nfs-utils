@@ -5,12 +5,12 @@ Conflicts=umount.target
 After=var-lib-nfs-rpc_pipefs.mount
 Requires=var-lib-nfs-rpc_pipefs.mount
 
-Requisite=nfs-blkmap.target
-After=nfs-blkmap.target
-
 PartOf=nfs-utils.service
 
 [Service]
 Type=forking
 PIDFile=/var/run/blkmapd.pid
 ExecStart=/usr/sbin/blkmapd $BLKMAPDARGS
+
+[Install]
+WantedBy=nfs-client.target
