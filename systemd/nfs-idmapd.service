@@ -1,7 +1,8 @@
 [Unit]
 Description=NFSv4 ID-name mapping service
+DefaultDependencies=no
 Requires=var-lib-nfs-rpc_pipefs.mount
-After=var-lib-nfs-rpc_pipefs.mount
+After=var-lib-nfs-rpc_pipefs.mount local-fs.target
 
 BindsTo=nfs-server.service
 
