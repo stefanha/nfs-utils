@@ -179,6 +179,7 @@ struct bl_serial *bldev_read_serial(int fd, const char *filename)
 	char *buffer;
 	struct bl_dev_id *dev_root, *dev_id;
 	unsigned int pos, len, current_id = 0;
+	size_t devid_len = sizeof(struct bl_dev_id) - sizeof(unsigned char);
 
 	status = bldev_inquire_pages(fd, 0x83, &buffer);
 	if (status)
@@ -189,7 +190,11 @@ struct bl_serial *bldev_read_serial(int fd, const char *filename)
 	pos = 0;
 	current_id = 0;
 	len = dev_root->len;
-	while (pos < (len - sizeof(struct bl_dev_id) + sizeof(unsigned char))) {
+
+	if (len < devid_len)
+		goto out;
+
+	while (pos < (len - devid_len)) {
 		dev_id = (struct bl_dev_id *)&(dev_root->data[pos]);
 		if ((dev_id->ids & 0xf) < current_id)
 			continue;
@@ -221,8 +226,7 @@ struct bl_serial *bldev_read_serial(int fd, const char *filename)
 		}
 		if (current_id == 3)
 			break;
-		pos += (dev_id->len + sizeof(struct bl_dev_id) -
-			sizeof(unsigned char));
+		pos += (dev_id->len + devid_len);
 	}
  out:
 	if (!serial_out)
