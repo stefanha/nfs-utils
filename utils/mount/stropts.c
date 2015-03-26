@@ -298,6 +298,7 @@ static int nfs_verify_lock_option(struct mount_options *options)
 			    "required for remote locking."), progname);
 		nfs_error(_("%s: Either use '-o nolock' to keep "
 			    "locks local, or start statd."), progname);
+		errno = EALREADY; /* Don't print further error message */
 		return 0;
 	}
 

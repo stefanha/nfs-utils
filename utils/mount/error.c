@@ -247,6 +247,9 @@ void mount_error(const char *spec, const char *mount_point, int error)
 		nfs_error(_("%s: please report the error to" PACKAGE_BUGREPORT),
 				progname);
 		break;
+	case EALREADY:
+		/* Error message has already been provided */
+		break;
 	default:
 		nfs_error(_("%s: %s"),
 			progname, strerror(error));
