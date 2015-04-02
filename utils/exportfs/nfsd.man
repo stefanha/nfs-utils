@@ -196,6 +196,7 @@ classes of tracing to be enabled.  Consult the kernel header files to
 find out what number correspond to what tracing.
 
 .SH SEE ALSO
+.BR nfsd (8),
 .BR rpc.nfsd (8),
 .BR exports (5),
 .BR nfsstat (8),

@@ -121,6 +121,7 @@ address family combinations that are marked visible in the
 database.
 
 .SH SEE ALSO
+.BR nfsd (7),
 .BR rpc.mountd (8),
 .BR exports (5),
 .BR exportfs (8),
