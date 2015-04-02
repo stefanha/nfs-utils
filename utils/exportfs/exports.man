@@ -408,6 +408,15 @@ If the client asks for alternative locations for the export point, it
 will be given this list of alternatives. (Note that actual replication
 of the filesystem must be handled elsewhere.)
 
+.TP
+.IR pnfs
+This option allows enables the use of pNFS extension if protocol level
+is NFSv4.1 or higher, and the filesystem supports pNFS exports.  With
+pNFS clients can bypass the server and perform I/O directly to storage
+devices. The default can be explicitly requested with the
+.I no_pnfs
+option.
+
 .SS User ID Mapping
 .PP
 .B nfsd

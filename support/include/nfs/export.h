@@ -26,6 +26,7 @@
 #define	NFSEXP_CROSSMOUNT	0x4000
 #define NFSEXP_NOACL		0x8000 /* reserved for possible ACL related use */
 #define NFSEXP_V4ROOT		0x10000
+#define NFSEXP_PNFS            0x20000
 /*
  * All flags supported by the kernel before addition of the
  * export_features interface:
