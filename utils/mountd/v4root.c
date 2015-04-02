@@ -26,6 +26,7 @@
 #include "nfslib.h"
 #include "misc.h"
 #include "v4root.h"
+#include "pseudoflavors.h"
 
 int v4root_needed;
 
@@ -56,22 +57,22 @@ static nfs_export pseudo_root = {
 };
 
 static void
-set_pseudofs_security(struct exportent *pseudo, struct exportent *source)
+set_pseudofs_security(struct exportent *pseudo, int flags)
 {
-	struct sec_entry *se;
+	struct flav_info *flav;
 	int i;
 
-	if (source->e_flags & NFSEXP_INSECURE_PORT)
+	if (flags & NFSEXP_INSECURE_PORT)
 		pseudo->e_flags |= NFSEXP_INSECURE_PORT;
-	if ((source->e_flags & NFSEXP_ROOTSQUASH) == 0)
+	if ((flags & NFSEXP_ROOTSQUASH) == 0)
 		pseudo->e_flags &= ~NFSEXP_ROOTSQUASH;
-	for (se = source->e_secinfo; se->flav; se++) {
+	for (flav = flav_map; flav < flav_map + flav_map_size; flav++) {
 		struct sec_entry *new;
 
-		i = secinfo_addflavor(se->flav, pseudo);
+		i = secinfo_addflavor(flav, pseudo);
 		new = &pseudo->e_secinfo[i];
 
-		if (se->flags & NFSEXP_INSECURE_PORT)
+		if (flags & NFSEXP_INSECURE_PORT)
 			new->flags |= NFSEXP_INSECURE_PORT;
 	}
 }
@@ -91,7 +92,7 @@ v4root_create(char *path, nfs_export *export)
 	strncpy(eep.e_path, path, sizeof(eep.e_path));
 	if (strcmp(path, "/") != 0)
 		eep.e_flags &= ~NFSEXP_FSID;
-	set_pseudofs_security(&eep, curexp);
+	set_pseudofs_security(&eep, curexp->e_flags);
 	exp = export_create(&eep, 0);
 	if (exp == NULL)
 		return NULL;
@@ -139,7 +140,7 @@ pseudofs_update(char *hostname, char *path, nfs_export *source)
 		return 0;
 	}
 	/* Update an existing V4ROOT export: */
-	set_pseudofs_security(&exp->m_export, &source->m_export);
+	set_pseudofs_security(&exp->m_export, source->m_export.e_flags);
 	return 0;
 }
 
