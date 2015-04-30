@@ -323,7 +323,10 @@ int main(int argc, char **argv)
 	}
 	type = strtok(arg, ":");
 	value = strtok(NULL, ":");
-
+    if (value == NULL) {
+		xlog_err("Error: Null uid/gid value.");
+		return 1;
+	}
 	if (verbose) {
 		xlog_warn("key: 0x%lx type: %s value: %s timeout %ld",
 			key, type, value, timeout);
