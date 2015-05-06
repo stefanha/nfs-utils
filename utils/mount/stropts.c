@@ -737,8 +737,13 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 	}
 
 	if (mi->version.v_mode != V_SPECIFIC) {
-		snprintf(version_opt, sizeof(version_opt) - 1,
-			"vers=%lu.%lu", mi->version.major, mi->version.minor);
+		if (mi->version.v_mode == V_GENERAL)
+			snprintf(version_opt, sizeof(version_opt) - 1,
+				"vers=%lu", mi->version.major);
+		else
+			snprintf(version_opt, sizeof(version_opt) - 1,
+				"vers=%lu.%lu", mi->version.major,
+				mi->version.minor);
 
 		if (po_append(options, version_opt) == PO_FAILED) {
 			errno = EINVAL;
