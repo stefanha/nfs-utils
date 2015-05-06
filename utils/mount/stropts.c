@@ -108,12 +108,6 @@ static void nfs_default_version(struct nfsmount_info *mi)
 		return;
 	}
 
-	if (mi->version.v_mode == V_GENERAL &&
-		config_default_vers.v_mode == V_DEFAULT) {
-		mi->version.v_mode = V_SPECIFIC;
-		return;
-	}
-
 	if (mi->version.v_mode == V_DEFAULT &&
 		config_default_vers.v_mode != V_DEFAULT) {
 		mi->version.major = config_default_vers.major;
@@ -121,9 +115,9 @@ static void nfs_default_version(struct nfsmount_info *mi)
 		return;
 	}
 
-	if (mi->version.v_mode == V_GENERAL &&
-		config_default_vers.v_mode != V_DEFAULT) {
-		if (mi->version.major == config_default_vers.major)
+	if (mi->version.v_mode == V_GENERAL) {
+		if (config_default_vers.v_mode != V_DEFAULT &&
+		    mi->version.major == config_default_vers.major)
 			mi->version.minor = config_default_vers.minor;
 		return;
 	}
