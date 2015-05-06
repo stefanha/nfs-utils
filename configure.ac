@@ -163,6 +163,8 @@ if test "$enable_mount" = yes; then
 				[Link mount.nfs with libmount @<:@default=no@:>@])],
 		enable_libmount=$enableval,
 		enable_libmount=no)
+else
+	enable_libmount=no
 fi
 
 AC_ARG_ENABLE(tirpc,
@@ -346,7 +348,7 @@ AC_SUBST(LIBBSD)
 AC_SUBST(LIBBLKID)
 AC_SUBST(LIBDL)
 
-if test "$enable_libmount" != no; then
+if test "$enable_libmount" = yes; then
    AC_CHECK_LIB(mount, mnt_context_do_mount, [LIBMOUNT="-lmount"], AC_MSG_ERROR([libmount needed]))
    AC_CHECK_HEADER(libmount/libmount.h, , AC_MSG_ERROR([Cannot find libmount header file libmount/libmount.h]))
 fi
