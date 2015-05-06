@@ -69,6 +69,9 @@ set_pseudofs_security(struct exportent *pseudo, int flags)
 	for (flav = flav_map; flav < flav_map + flav_map_size; flav++) {
 		struct sec_entry *new;
 
+		if (!flav->fnum)
+			continue;
+
 		i = secinfo_addflavor(flav, pseudo);
 		new = &pseudo->e_secinfo[i];
 

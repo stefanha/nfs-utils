@@ -408,7 +408,7 @@ int secinfo_addflavor(struct flav_info *flav, struct exportent *ep)
 	struct sec_entry *p;
 
 	for (p=ep->e_secinfo; p->flav; p++) {
-		if (p->flav == flav)
+		if (p->flav == flav || p->flav->fnum == flav->fnum)
 			return p - ep->e_secinfo;
 	}
 	if (p - ep->e_secinfo >= SECFLAVOR_COUNT) {
