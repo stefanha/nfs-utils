@@ -213,7 +213,7 @@ fi
 AC_ARG_ENABLE(nfsdcltrack,
 	[AC_HELP_STRING([--disable-nfsdcltrack],
 			[disable NFSv4 clientid tracking programs @<:@default=no@:>@])],
-	enable_nfsdctrack=$enableval,
+	enable_nfsdcltrack=$enableval,
 	enable_nfsdcltrack="yes")
 
 dnl Check for TI-RPC library and headers
