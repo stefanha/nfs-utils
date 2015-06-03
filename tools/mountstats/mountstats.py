@@ -474,7 +474,7 @@ class DeviceData:
         # authrefresh stats don't actually get captured in
         # /proc/self/mountstats, so we fudge it here
         authrefrsh = sends
-        return (sends, trans, authrefrsh)
+        return (sends, retrans, authrefrsh)
 
     def display_nfsstat_stats(self):
         """Pretty-print nfsstat-style stats
