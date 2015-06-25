@@ -1,13 +1,13 @@
 [Unit]
 Description=NFS server and services
 DefaultDependencies=no
-Requires= network.target proc-fs-nfsd.mount rpcbind.target
+Requires= network.target proc-fs-nfsd.mount rpcbind.service
 Requires= nfs-mountd.service
 Wants=rpc-statd.service nfs-idmapd.service
 Wants=rpc-statd-notify.service
 
 After= local-fs.target
-After= network.target proc-fs-nfsd.mount rpcbind.target nfs-mountd.service
+After= network.target proc-fs-nfsd.mount rpcbind.service nfs-mountd.service
 After= nfs-idmapd.service rpc-statd.service
 Before= rpc-statd-notify.service
 
