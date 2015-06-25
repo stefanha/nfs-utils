@@ -1706,6 +1706,9 @@ with the mount options already saved on disk for the NFS server mounted at /mnt.
 .TP 1.5i
 .I /etc/fstab
 file system table
+.TP 1.5i
+.I /etc/nfsmount.conf
+Configuration file for NFS mounts
 .SH BUGS
 Before 2.4.7, the Linux NFS client did not support NFS over TCP.
 .P
@@ -1735,6 +1738,7 @@ such as security negotiation, server referrals, and named attributes.
 .BR mount.nfs (5),
 .BR umount.nfs (5),
 .BR exports (5),
+.BR nfsmount.conf (5),
 .BR netconfig (5),
 .BR ipv6 (7),
 .BR nfsd (8),
