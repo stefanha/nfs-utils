@@ -80,10 +80,13 @@ file system table
 .TP
 .I /etc/mtab
 table of mounted file systems
-
+.TP
+.I /etc/nfsmount.conf
+Configuration file for NFS mounts
 .PD
 .SH "SEE ALSO"
 .BR nfs (5),
+.BR nfsmount.conf (5),
 .BR mount (8),
 
 .SH "AUTHOR"
