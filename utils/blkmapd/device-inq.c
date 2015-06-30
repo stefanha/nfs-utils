@@ -196,6 +196,8 @@ struct bl_serial *bldev_read_serial(int fd, const char *filename)
 
 	while (pos < (len - devid_len)) {
 		dev_id = (struct bl_dev_id *)&(dev_root->data[pos]);
+		pos += (dev_id->len + devid_len);
+
 		if ((dev_id->ids & 0xf) < current_id)
 			continue;
 		switch (dev_id->ids & 0xf) {
@@ -226,7 +228,6 @@ struct bl_serial *bldev_read_serial(int fd, const char *filename)
 		}
 		if (current_id == 3)
 			break;
-		pos += (dev_id->len + devid_len);
 	}
  out:
 	if (!serial_out)
