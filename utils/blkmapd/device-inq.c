@@ -198,6 +198,13 @@ struct bl_serial *bldev_read_serial(int fd, const char *filename)
 		dev_id = (struct bl_dev_id *)&(dev_root->data[pos]);
 		pos += (dev_id->len + devid_len);
 
+		/* Some targets export zero length EVPD pages,
+		 * skip them to not confuse the device id
+		 * cache.
+		 */
+		if (!dev_id->len)
+			continue;
+
 		if ((dev_id->ids & 0xf) < current_id)
 			continue;
 		switch (dev_id->ids & 0xf) {
