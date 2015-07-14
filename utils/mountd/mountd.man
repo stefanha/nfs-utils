@@ -174,7 +174,7 @@ to perform a reverse lookup on each IP address and return that hostname instead.
 Enabling this can have a substantial negative effect on performance
 in some situations.
 .TP
-.BR "\-t N" " or " "\-\-num\-threads=N" or " \-\-num\-threads N"
+.BR "\-t N" " or " "\-\-num\-threads=N " or  " \-\-num\-threads N "
 This option specifies the number of worker threads that rpc.mountd
 spawns.  The default is 1 thread, which is probably enough.  More
 threads are usually only needed for NFS servers which need to handle
