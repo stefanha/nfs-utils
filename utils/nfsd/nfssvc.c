@@ -24,6 +24,7 @@
 
 #include "nfslib.h"
 #include "xlog.h"
+#include "nfssvc.h"
 
 #ifndef NFSD_FS_DIR
 #define NFSD_FS_DIR	  "/proc/fs/nfsd"
@@ -124,22 +125,6 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 	if (fd < 0)
 		return 0;
 
-	switch(hints->ai_family) {
-	case AF_INET:
-		family = "inet";
-		break;
-#ifdef IPV6_SUPPORTED
-	case AF_INET6:
-		family = "inet6";
-		break;
-#endif /* IPV6_SUPPORTED */
-	default:
-		xlog(L_ERROR, "Unknown address family specified: %d\n",
-				hints->ai_family);
-		rc = EAFNOSUPPORT;
-		goto error;
-	}
-
 	rc = getaddrinfo(node, port, hints, &addrhead);
 	if (rc == EAI_NONAME && !strcmp(port, "nfs")) {
 		snprintf(buf, sizeof(buf), "%d", NFS_PORT);
@@ -147,10 +132,10 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 	}
 
 	if (rc != 0) {
-		xlog(L_ERROR, "unable to resolve %s:%s to %s address: "
-				"%s", node ? node : "ANYADDR", port, family,
-				rc == EAI_SYSTEM ? strerror(errno) :
-					gai_strerror(rc));
+		xlog(L_ERROR, "unable to resolve %s:%s: %s",
+			node ? node : "ANYADDR", port,
+			rc == EAI_SYSTEM ? strerror(errno) :
+				gai_strerror(rc));
 		goto error;
 	}
 
@@ -164,6 +149,20 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 		case IPPROTO_TCP:
 			proto = "TCP";
 			break;
+		default:
+			addr = addr->ai_next;
+			continue;
+		}
+
+		switch(addr->ai_addr->sa_family) {
+		case AF_INET:
+			family = "AF_INET";
+			break;
+#ifdef IPV6_SUPPORTED
+		case AF_INET6:
+			family = "AF_INET6";
+			break;
+#endif /* IPV6_SUPPORTED */
 		default:
 			addr = addr->ai_next;
 			continue;
@@ -252,12 +251,16 @@ error:
 }
 
 int
-nfssvc_set_sockets(const int family, const unsigned int protobits,
+nfssvc_set_sockets(const unsigned int protobits,
 		   const char *host, const char *port)
 {
 	struct addrinfo hints = { .ai_flags = AI_PASSIVE };
 
-	hints.ai_family = family;
+#ifdef IPV6_SUPPORTED
+	hints.ai_family = AF_UNSPEC;
+#else  /* IPV6_SUPPORTED */
+	hints.ai_family = AF_INET;
+#endif /* IPV6_SUPPORTED */
 
 	if (!NFSCTL_ANYPROTO(protobits))
 		return EPROTOTYPE;

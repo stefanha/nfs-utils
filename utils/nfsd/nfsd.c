@@ -52,50 +52,6 @@ static struct option longopts[] =
 	{ NULL, 0, 0, 0 }
 };
 
-/* given a family and ctlbits, disable any that aren't listed in netconfig */
-#ifdef HAVE_LIBTIRPC
-static void
-nfsd_enable_protos(unsigned int *proto4, unsigned int *proto6)
-{
-	struct netconfig *nconf;
-	unsigned int *famproto;
-	void *handle;
-
-	xlog(D_GENERAL, "Checking netconfig for visible protocols.");
-
-	handle = setnetconfig();
-	while((nconf = getnetconfig(handle))) {
-		if (!(nconf->nc_flag & NC_VISIBLE))
-			continue;
-
-		if (!strcmp(nconf->nc_protofmly, NC_INET))
-			famproto = proto4;
-		else if (!strcmp(nconf->nc_protofmly, NC_INET6))
-			famproto = proto6;
-		else
-			continue;
-
-		if (!strcmp(nconf->nc_proto, NC_TCP))
-			NFSCTL_TCPSET(*famproto);
-		else if (!strcmp(nconf->nc_proto, NC_UDP))
-			NFSCTL_UDPSET(*famproto);
-
-		xlog(D_GENERAL, "Enabling %s %s.", nconf->nc_protofmly,
-			nconf->nc_proto);
-	}
-	endnetconfig(handle);
-	return;
-}
-#else /* HAVE_LIBTIRPC */
-static void
-nfsd_enable_protos(unsigned int *proto4, unsigned int *proto6)
-{
-	/* Enable all IPv4 protocols if no TIRPC support */
-	*proto4 = NFSCTL_ALLBITS;
-	*proto6 = 0;
-}
-#endif /* HAVE_LIBTIRPC */
-
 int
 main(int argc, char **argv)
 {
@@ -108,8 +64,6 @@ main(int argc, char **argv)
 	unsigned int minorversset = 0;
 	unsigned int versbits = NFSCTL_VERDEFAULT;
 	unsigned int protobits = NFSCTL_ALLBITS;
-	unsigned int proto4 = 0;
-	unsigned int proto6 = 0;
 	int grace = -1;
 	int lease = -1;
 
@@ -278,18 +232,6 @@ main(int argc, char **argv)
 
 	xlog_open(progname);
 
-	nfsd_enable_protos(&proto4, &proto6);
-
-	if (!NFSCTL_TCPISSET(protobits)) {
-		NFSCTL_TCPUNSET(proto4);
-		NFSCTL_TCPUNSET(proto6);
-	}
-
-	if (!NFSCTL_UDPISSET(protobits)) {
-		NFSCTL_UDPUNSET(proto4);
-		NFSCTL_UDPUNSET(proto6);
-	}
-
 	/* make sure that at least one version is enabled */
 	found_one = 0;
 	for (c = NFSD_MINVERS; c <= NFSD_MAXVERS; c++) {
@@ -302,8 +244,7 @@ main(int argc, char **argv)
 	}
 
 	if (NFSCTL_VERISSET(versbits, 4) &&
-	    !NFSCTL_TCPISSET(proto4) &&
-	    !NFSCTL_TCPISSET(proto6)) {
+	    !NFSCTL_TCPISSET(protobits)) {
 		xlog(L_ERROR, "version 4 requires the TCP protocol");
 		exit(1);
 	}
@@ -337,15 +278,10 @@ main(int argc, char **argv)
 
 	i = 0;
 	do {
-		error = nfssvc_set_sockets(AF_INET, proto4, haddr[i], port);
+		error = nfssvc_set_sockets(protobits, haddr[i], port);
 		if (!error)
 			socket_up = 1;
-#ifdef IPV6_SUPPORTED
-		error = nfssvc_set_sockets(AF_INET6, proto6, haddr[i], port);
-		if (!error)
-			socket_up = 1;
-#endif /* IPV6_SUPPORTED */
-	} while (++i < hcounter); 
+	} while (++i < hcounter);
 
 	if (rdma_port) {
 		error = nfssvc_set_rdmaport(rdma_port);
