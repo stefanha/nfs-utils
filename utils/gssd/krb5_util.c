@@ -772,7 +772,9 @@ gssd_search_krb5_keytab(krb5_context context, krb5_keytab kt,
 			    "keytab '%s'\n", k5err, kt_name);
 	}
 
-	retval = 0;
+	/* Only clear the retval if has not been set */
+	if (retval < 0)
+		retval = 0;
   out:
 	free(k5err);
 	return retval;
