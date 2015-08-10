@@ -115,7 +115,7 @@ options.
 Specifies the amount of time in seconds between each report.  The first report contains statistics for the time since each file system was mounted.  Each subsequent report contains statistics collected during the interval since the previous report.  This may not be used with the
 .BR \-f | \-\-file
 or
-.BR \-s | \-\-since
+.BR \-S | \-\-since
 options.
 .P
 .IP "\fIcount\fP"
