@@ -684,7 +684,7 @@ out:
 		AUTH_DESTROY(auth);
 	if (rpc_clnt)
 		clnt_destroy(rpc_clnt);
-	return;
+	exit(0);
 
 out_return_error:
 	do_error_downcall(fd, uid, downcall_err);
