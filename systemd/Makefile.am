@@ -5,20 +5,32 @@ MAINTAINERCLEANFILES = Makefile.in
 unit_files =  \
     nfs-client.target \
     \
-    auth-rpcgss-module.service \
-    nfs-blkmap.service \
     nfs-config.service \
-    nfs-idmapd.service \
     nfs-mountd.service \
     nfs-server.service \
     nfs-utils.service \
-    rpc-gssd.service \
     rpc-statd-notify.service \
     rpc-statd.service \
-    rpc-svcgssd.service \
     \
     proc-fs-nfsd.mount \
     var-lib-nfs-rpc_pipefs.mount
+
+if CONFIG_NFSV4
+unit_files += \
+    nfs-idmapd.service
+endif
+
+if CONFIG_NFSV41
+unit_files += \
+    nfs-blkmap.service
+endif
+
+if CONFIG_GSS
+unit_files += \
+    auth-rpcgss-module.service \
+    rpc-gssd.service \
+    rpc-svcgssd.service
+endif
 
 EXTRA_DIST = $(unit_files)
 
