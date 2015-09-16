@@ -13,13 +13,13 @@ mountstats \- Displays various NFS client per-mount statistics
 .RB [ \-S | \-\-since
 .IR sincefile ]
 .\" .RB [ \-n | \-\-nfs | \-r | \-\-rpc | \-R | \-\-raw ]
-.R [
+[
 .RB [ \-n | \-\-nfs ]
-.R |
+|
 .RB [ \-r | \-\-rpc ]
-.R |
+|
 .RB  [ \-R | \-\-raw ]
-.R ]
+]
 .RI [ mountpoint ] ...
 .P
 .B mountstats iostat
