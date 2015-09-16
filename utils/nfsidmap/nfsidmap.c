@@ -289,7 +289,7 @@ static int key_invalidate(char *keystr, int keymask)
 
 	if ((fp = fopen(PROCKEYS, "r")) == NULL) {
 		xlog_err("fopen(%s) failed: %m", PROCKEYS);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	while(fgets(buf, BUFSIZ, fp) != NULL) {
@@ -328,13 +328,13 @@ static int key_invalidate(char *keystr, int keymask)
 			if (errno != EOPNOTSUPP) {
 				xlog_err("keyctl_invalidate(0x%x) failed: %m", key);
 				fclose(fp);
-				return 1;
+				return EXIT_FAILURE;
 			} else {
 				/* older kernel compatibility attempt: */
 				if (keyctl_revoke(key) < 0) {
 					xlog_err("keyctl_revoke(0x%x) failed: %m", key);
 					fclose(fp);
-					return 1;
+					return EXIT_FAILURE;
 				}
 			}
 		}
@@ -342,12 +342,12 @@ static int key_invalidate(char *keystr, int keymask)
 		keymask &= ~mask;
 		if (keymask == 0) {
 			fclose(fp);
-			return 0;
+			return EXIT_SUCCESS;
 		}
 	}
 	xlog_err("'%s' key was not found.", keystr);
 	fclose(fp);
-	return 1;
+	return EXIT_FAILURE;
 }
 
 int main(int argc, char **argv)
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 
 	if ((rc = nfs4_init_name_mapping(PATH_IDMAPDCONF)))  {
 		xlog_errno(rc, "Unable to create name to user id mappings.");
-		return 1;
+		return EXIT_FAILURE;
 	}
 	if (!verbose)
 		verbose = conf_get_num("General", "Verbosity", 0);
@@ -416,20 +416,18 @@ int main(int argc, char **argv)
 	if (list)
 		return list_keyring(DEFAULT_KEYRING);
 	if (keystr) {
-		rc = key_invalidate(keystr, keymask);
-		return rc;		
+		return key_invalidate(keystr, keymask);
 	}
 	if (clearing) {
 		xlog_syslog(0);
-		rc = keyring_clear(DEFAULT_KEYRING);
-		return rc;		
+		return keyring_clear(DEFAULT_KEYRING);
 	}
 
 	xlog_stderr(0);
 	if ((argc - optind) != 2) {
 		xlog_err("Bad arg count. Check /etc/request-key.conf");
 		xlog_warn(usage, progname);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	if (verbose)
@@ -440,13 +438,14 @@ int main(int argc, char **argv)
 	arg = strdup(argv[optind]);
 	if (arg == NULL) {
 		xlog_err("strdup failed: %m");
-		return 1;
+		return EXIT_FAILURE;
 	}
 	type = strtok(arg, ":");
 	value = strtok(NULL, ":");
-    if (value == NULL) {
+	if (value == NULL) {
+		free(arg);
 		xlog_err("Error: Null uid/gid value.");
-		return 1;
+		return EXIT_FAILURE;
 	}
 	if (verbose) {
 		xlog_warn("key: 0x%lx type: %s value: %s timeout %ld",
@@ -466,7 +465,7 @@ int main(int argc, char **argv)
 		rc = name_lookup(value, key, GROUP);
 
 	/* Set timeout to 10 (600 seconds) minutes */
-	if (rc == 0)
+	if (rc == EXIT_SUCCESS)
 		keyctl_set_timeout(key, timeout);
 
 	free(arg);
