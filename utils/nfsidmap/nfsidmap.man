@@ -13,6 +13,8 @@ nfsidmap \- The NFS idmapper upcall program
 .B "nfsidmap [-v] [-u|-g|-r user]"
 .br
 .B "nfsidmap -d"
+.br
+.B "nfsidmap -l"
 .SH DESCRIPTION
 The NFSv4 protocol represents the local system's UID and GID values
 on the wire as strings of the form
@@ -50,6 +52,13 @@ can also clear cached ID map results in the kernel,
 or revoke one particular key.
 An incorrect cached key can result in file and directory ownership
 reverting to "nobody" on NFSv4 mount points.
+.PP
+In addition, the
+.B -d
+and
+.B -l
+options are available to help diagnose misconfigurations.
+They have no effect on the keyring containing ID mapping results.
 .SH OPTIONS
 .TP
 .B -c 
@@ -61,6 +70,12 @@ Display the system's effective NFSv4 domain name on
 .TP
 .B -g user
 Revoke the gid key of the given user.
+.TP
+.B -l
+Display on
+.I stdout
+all keys currently in the keyring used to cache ID mapping results.
+These keys are visible only to the superuser.
 .TP
 .B -r user
 Revoke both the uid and gid key of the given user.

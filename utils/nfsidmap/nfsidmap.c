@@ -17,7 +17,7 @@
 #include "conffile.h"
 
 int verbose = 0;
-char *usage = "Usage: %s [-v] [-c || [-u|-g|-r key] || -d || [-t timeout] key desc]";
+char *usage = "Usage: %s [-v] [-c || [-u|-g|-r key] || -d || -l || [-t timeout] key desc]";
 
 #define MAX_ID_LEN   11
 #define IDMAP_NAMESZ 128
@@ -108,6 +108,81 @@ static int display_default_domain(void)
 	}
 
 	printf("%s\n", domain);
+	return EXIT_SUCCESS;
+}
+
+static void list_key(key_serial_t key)
+{
+	char *buffer, *c;
+	int rc;
+
+	rc = keyctl_describe_alloc(key, &buffer);
+	if (rc < 0) {
+		switch (errno) {
+		case EKEYEXPIRED:
+			printf("Expired key not displayed\n");
+			break;
+		default:
+			xlog_err("Failed to describe key: %m");
+		}
+		return;
+	}
+
+	c = strrchr(buffer, ';');
+	if (!c) {
+		xlog_err("Unparsable key not displayed\n");
+		goto out_free;
+	}
+	printf("  %s\n", ++c);
+
+out_free:
+	free(buffer);
+}
+
+static void list_keys(const char *ring_name, key_serial_t ring_id)
+{
+	key_serial_t *key;
+	void *keylist;
+	int count;
+
+	count = keyctl_read_alloc(ring_id, &keylist);
+	if (count < 0) {
+		xlog_err("Failed to read keyring %s: %m", ring_name);
+		return;
+	}
+	count /= (int)sizeof(*key);
+
+	switch (count) {
+	case 0:
+		printf("No %s keys found.\n", ring_name);
+		break;
+	case 1:
+		printf("1 %s key found:\n", ring_name);
+		break;
+	default:
+		printf("%u %s keys found:\n", count, ring_name);
+	}
+
+	for (key = keylist; count--; key++)
+		list_key(*key);
+
+	free(keylist);
+}
+
+/*
+ * List all keys on a keyring
+ */
+static int list_keyring(const char *keyring)
+{
+	key_serial_t key;
+
+	key = find_key_by_type_and_desc("keyring", keyring, 0);
+	if (key == -1) {
+		xlog_err("'%s' keyring was not found.", keyring);
+		return EXIT_FAILURE;
+	}
+
+	list_keys(keyring, key);
 	return EXIT_SUCCESS;
 }
 
@@ -280,7 +355,7 @@ int main(int argc, char **argv)
 	int timeout = 600;
 	key_serial_t key;
 	char *progname, *keystr = NULL;
-	int clearing = 0, keymask = 0, display = 0;
+	int clearing = 0, keymask = 0, display = 0, list = 0;
 
 	/* Set the basename */
 	if ((progname = strrchr(argv[0], '/')) != NULL)
@@ -290,10 +365,13 @@ int main(int argc, char **argv)
 
 	xlog_open(progname);
 
-	while ((opt = getopt(argc, argv, "du:g:r:ct:v")) != -1) {
+	while ((opt = getopt(argc, argv, "du:g:r:ct:vl")) != -1) {
 		switch (opt) {
 		case 'd':
 			display++;
+			break;
+		case 'l':
+			list++;
 			break;
 		case 'u':
 			keymask = UIDKEYS;
@@ -331,6 +409,8 @@ int main(int argc, char **argv)
 
 	if (display)
 		return display_default_domain();
+	if (list)
+		return list_keyring(DEFAULT_KEYRING);
 	if (keystr) {
 		rc = key_invalidate(keystr, keymask);
 		return rc;		
