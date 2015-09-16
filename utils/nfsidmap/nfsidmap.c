@@ -16,7 +16,7 @@
 #include "conffile.h"
 
 int verbose = 0;
-char *usage="Usage: %s [-v] [-c || [-u|-g|-r key] || [-t timeout] key desc]";
+char *usage = "Usage: %s [-v] [-c || [-u|-g|-r key] || -d || [-t timeout] key desc]";
 
 #define MAX_ID_LEN   11
 #define IDMAP_NAMESZ 128
@@ -36,6 +36,21 @@ static int keyring_clear(char *keyring);
 
 #define UIDKEYS 0x1
 #define GIDKEYS 0x2
+
+static int display_default_domain(void)
+{
+	char domain[NFS4_MAX_DOMAIN_LEN];
+	int rc;
+
+	rc = nfs4_get_default_domain(NULL, domain, NFS4_MAX_DOMAIN_LEN);
+	if (rc) {
+		xlog_errno(rc, "nfs4_get_default_domain failed: %m");
+		return EXIT_FAILURE;
+	}
+
+	printf("%s\n", domain);
+	return EXIT_SUCCESS;
+}
 
 /*
  * Find either a user or group id based on the name@domain string
@@ -248,7 +263,7 @@ int main(int argc, char **argv)
 	int timeout = 600;
 	key_serial_t key;
 	char *progname, *keystr = NULL;
-	int clearing = 0, keymask = 0;
+	int clearing = 0, keymask = 0, display = 0;
 
 	/* Set the basename */
 	if ((progname = strrchr(argv[0], '/')) != NULL)
@@ -258,8 +273,11 @@ int main(int argc, char **argv)
 
 	xlog_open(progname);
 
-	while ((opt = getopt(argc, argv, "u:g:r:ct:v")) != -1) {
+	while ((opt = getopt(argc, argv, "du:g:r:ct:v")) != -1) {
 		switch (opt) {
+		case 'd':
+			display++;
+			break;
 		case 'u':
 			keymask = UIDKEYS;
 			keystr = strdup(optarg);
@@ -294,6 +312,8 @@ int main(int argc, char **argv)
 	if (!verbose)
 		verbose = conf_get_num("General", "Verbosity", 0);
 
+	if (display)
+		return display_default_domain();
 	if (keystr) {
 		rc = key_invalidate(keystr, keymask);
 		return rc;		
