@@ -238,7 +238,7 @@ static int id_lookup(char *name_at_domain, key_serial_t key, int type)
 /*
  * Find the name@domain string from either a user or group id
  */
-int name_lookup(char *id, key_serial_t key, int type)
+static int name_lookup(char *id, key_serial_t key, int type)
 {
 	char name[IDMAP_NAMESZ];
 	char domain[NFS4_MAX_DOMAIN_LEN];
@@ -247,11 +247,10 @@ int name_lookup(char *id, key_serial_t key, int type)
 	int rc;
 
 	rc = nfs4_get_default_domain(NULL, domain, NFS4_MAX_DOMAIN_LEN);
-	if (rc != 0) {
+	if (rc) {
 		xlog_errno(rc,
 			"name_lookup: nfs4_get_default_domain failed: %m");
-		rc = -1;
-		goto out;
+		return EXIT_FAILURE;
 	}
 
 	if (type == USER) {
@@ -261,16 +260,18 @@ int name_lookup(char *id, key_serial_t key, int type)
 		gid = atoi(id);
 		rc = nfs4_gid_to_name(gid, domain, name, IDMAP_NAMESZ);
 	}
-	if (rc < 0)
+	if (rc) {
 		xlog_errno(rc, "name_lookup: %s: failed: %m",
 			(type == USER ? "nfs4_uid_to_name" : "nfs4_gid_to_name"));
-
-	if (rc == 0) {
-		rc = keyctl_instantiate(key, &name, strlen(name), 0);
-		if (rc < 0)
-			xlog_err("name_lookup: keyctl_instantiate failed: %m");
+		return EXIT_FAILURE;
 	}
-out:
+
+	rc = EXIT_SUCCESS;
+	if (keyctl_instantiate(key, &name, strlen(name), 0)) {
+		rc = EXIT_FAILURE;
+		xlog_err("name_lookup: keyctl_instantiate failed: %m");
+	}
+
 	return rc;
 }
 
