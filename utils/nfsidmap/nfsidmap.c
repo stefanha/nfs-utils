@@ -189,7 +189,7 @@ static int list_keyring(const char *keyring)
 /*
  * Find either a user or group id based on the name@domain string
  */
-int id_lookup(char *name_at_domain, key_serial_t key, int type)
+static int id_lookup(char *name_at_domain, key_serial_t key, int type)
 {
 	char id[MAX_ID_LEN];
 	uid_t uid = 0;
@@ -203,30 +203,33 @@ int id_lookup(char *name_at_domain, key_serial_t key, int type)
 		rc = nfs4_group_owner_to_gid(name_at_domain, &gid);
 		sprintf(id, "%u", gid);
 	}
-	if (rc < 0)
+	if (rc < 0) {
 		xlog_errno(rc, "id_lookup: %s: failed: %m",
 			(type == USER ? "nfs4_owner_to_uid" : "nfs4_group_owner_to_gid"));
+		return EXIT_FAILURE;
+	}
 
-	if (rc == 0) {
-		rc = keyctl_instantiate(key, id, strlen(id) + 1, 0);
-		if (rc < 0) {
-			switch(rc) {
-			case -EDQUOT:
-			case -ENFILE:
-			case -ENOMEM:
-				/*
-			 	 * The keyring is full. Clear the keyring and try again
-			 	 */
-				rc = keyring_clear(DEFAULT_KEYRING);
-				if (rc == 0)
-					rc = keyctl_instantiate(key, id, strlen(id) + 1, 0);
+	rc = EXIT_SUCCESS;
+	if (keyctl_instantiate(key, id, strlen(id) + 1, 0)) {
+		switch (errno) {
+		case EDQUOT:
+		case ENFILE:
+		case ENOMEM:
+			/*
+			 * The keyring is full. Clear the keyring and try again
+			 */
+			rc = keyring_clear(DEFAULT_KEYRING);
+			if (rc)
 				break;
-			default:
-				break;
+			if (keyctl_instantiate(key, id, strlen(id) + 1, 0)) {
+				rc = EXIT_FAILURE;
+				xlog_err("id_lookup: keyctl_instantiate failed: %m");
 			}
+			break;
+		default:
+			rc = EXIT_FAILURE;
+			break;
 		}
-		if (rc < 0)
-			xlog_err("id_lookup: keyctl_instantiate failed: %m");
 	}
 
 	return rc;
