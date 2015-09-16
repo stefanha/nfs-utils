@@ -1,3 +1,4 @@
+#include "config.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -32,10 +33,68 @@ char *usage = "Usage: %s [-v] [-c || [-u|-g|-r key] || -d || [-t timeout] key de
 #define PATH_IDMAPDCONF "/etc/idmapd.conf"
 #endif
 
-static int keyring_clear(char *keyring);
-
 #define UIDKEYS 0x1
 #define GIDKEYS 0x2
+
+#ifndef HAVE_FIND_KEY_BY_TYPE_AND_DESC
+static key_serial_t find_key_by_type_and_desc(const char *type,
+		const char *desc, key_serial_t destringid)
+{
+	char buf[BUFSIZ];
+	key_serial_t key;
+	FILE *fp;
+
+	if ((fp = fopen(PROCKEYS, "r")) == NULL) {
+		xlog_err("fopen(%s) failed: %m", PROCKEYS);
+		return -1;
+	}
+
+	key = -1;
+	while(fgets(buf, BUFSIZ, fp) != NULL) {
+		unsigned int id;
+
+		if (strstr(buf, type) == NULL)
+			continue;
+		if (strstr(buf, desc) == NULL)
+			continue;
+		if (sscanf(buf, "%x %*s", &id) != 1) {
+			xlog_err("Unparsable keyring entry in %s", PROCKEYS);
+			continue;
+		}
+
+		key = (key_serial_t)id;
+		break;
+	}
+
+	fclose(fp);
+	return key;
+}
+#endif
+
+/*
+ * Clear all the keys on the given keyring
+ */
+static int keyring_clear(const char *keyring)
+{
+	key_serial_t key;
+
+	key = find_key_by_type_and_desc("keyring", keyring, 0);
+	if (key == -1) {
+		xlog_err("'%s' keyring was not found.", keyring);
+		return EXIT_FAILURE;
+	}
+
+	if (keyctl_clear(key) < 0) {
+		xlog_err("keyctl_clear(0x%x) failed: %m",
+				(unsigned int)key);
+		return EXIT_FAILURE;
+	}
+	
+	if (verbose)
+		xlog_warn("'%s' cleared", keyring);
+
+	return EXIT_SUCCESS;
+}
 
 static int display_default_domain(void)
 {
@@ -136,49 +195,7 @@ int name_lookup(char *id, key_serial_t key, int type)
 out:
 	return rc;
 }
-/*
- * Clear all the keys on the given keyring
- */
-static int keyring_clear(char *keyring)
-{
-	FILE *fp;
-	char buf[BUFSIZ];
-	key_serial_t key;
 
-	if (keyring == NULL)
-		keyring = DEFAULT_KEYRING;
-
-	if ((fp = fopen(PROCKEYS, "r")) == NULL) {
-		xlog_err("fopen(%s) failed: %m", PROCKEYS);
-		return 1;
-	}
-
-	while(fgets(buf, BUFSIZ, fp) != NULL) {
-		if (strstr(buf, "keyring") == NULL)
-			continue;
-		if (strstr(buf, keyring) == NULL)
-			continue;
-		if (verbose) {
-			*(strchr(buf, '\n')) = '\0';
-			xlog_warn("clearing '%s'", buf);
-		}
-		/*
-		 * The key is the first arugment in the string
-		 */
-		*(strchr(buf, ' ')) = '\0';
-		sscanf(buf, "%x", &key);
-		if (keyctl_clear(key) < 0) {
-			xlog_err("keyctl_clear(0x%x) failed: %m", key);
-			fclose(fp);
-			return 1;
-		}
-		fclose(fp);
-		return 0;
-	}
-	xlog_err("'%s' keyring was not found.", keyring);
-	fclose(fp);
-	return 1;
-}
 /*
  * Revoke a key 
  */
