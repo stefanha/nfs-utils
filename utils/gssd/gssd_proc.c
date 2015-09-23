@@ -482,6 +482,67 @@ change_identity(uid_t uid)
 	return 0;
 }
 
+AUTH *
+krb5_use_machine_creds(struct clnt_info *clp, uid_t uid, char *tgtname,
+		    char *service, CLIENT **rpc_clnt)
+{
+	AUTH	*auth = NULL;
+	char	**credlist = NULL;
+	char	**ccname;
+	int	nocache = 0;
+	int	success = 0;
+
+	printerr(1, "krb5_use_machine_creds: uid %d tgtname %s\n", 
+		uid, tgtname);
+
+	do {
+		gssd_refresh_krb5_machine_credential(clp->servername, NULL,
+						service);
+	/*
+	 * Get a list of credential cache names and try each
+	 * of them until one works or we've tried them all
+	 */
+		if (gssd_get_krb5_machine_cred_list(&credlist)) {
+			printerr(0, "ERROR: No credentials found "
+				"for connection to server %s\n",
+				clp->servername);
+			goto out;
+		}
+		for (ccname = credlist; ccname && *ccname; ccname++) {
+			gssd_setup_krb5_machine_gss_ccache(*ccname);
+			if ((create_auth_rpc_client(clp, tgtname, rpc_clnt,
+						&auth, uid,
+						AUTHTYPE_KRB5,
+						GSS_C_NO_CREDENTIAL)) == 0) {
+				/* Success! */
+				success++;
+				break;
+			}
+			printerr(2, "WARNING: Failed to create machine krb5"
+				"context with cred cache %s for server %s\n",
+				*ccname, clp->servername);
+		}
+		gssd_free_krb5_machine_cred_list(credlist);
+		if (!success) {
+			if(nocache == 0) {
+				nocache++;
+				printerr(2, "WARNING: Machine cache prematurely"					 "expired or corrupted trying to"
+					 "recreate cache for server %s\n",
+					clp->servername);
+			} else {
+				printerr(1, "WARNING: Failed to create machine"
+					 "krb5 context with any credentials"
+					 "cache for server %s\n",
+					clp->servername);
+				goto out;
+			}
+		}
+	} while(!success);
+
+out:
+	return auth;
+}
+
 /*
  * this code uses the userland rpcsec gss library to create a krb5
  * context on behalf of the kernel
@@ -494,8 +555,6 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	AUTH			*auth = NULL;
 	struct authgss_private_data pd;
 	gss_buffer_desc		token;
-	char			**credlist = NULL;
-	char			**ccname;
 	char			**dirname;
 	int			create_resp = -1;
 	int			err, downcall_err = -EACCES;
@@ -587,49 +646,10 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	if (create_resp != 0) {
 		if (uid == 0 && (root_uses_machine_creds == 1 ||
 				service != NULL)) {
-			int nocache = 0;
-			int success = 0;
-			do {
-				gssd_refresh_krb5_machine_credential(clp->servername,
-								     NULL, service);
-				/*
-				 * Get a list of credential cache names and try each
-				 * of them until one works or we've tried them all
-				 */
-				if (gssd_get_krb5_machine_cred_list(&credlist)) {
-					printerr(0, "ERROR: No credentials found "
-						 "for connection to server %s\n",
-						 clp->servername);
-					goto out_return_error;
-				}
-				for (ccname = credlist; ccname && *ccname; ccname++) {
-					gssd_setup_krb5_machine_gss_ccache(*ccname);
-					if ((create_auth_rpc_client(clp, tgtname, &rpc_clnt,
-								    &auth, uid,
-								    AUTHTYPE_KRB5,
-								    GSS_C_NO_CREDENTIAL)) == 0) {
-						/* Success! */
-						success++;
-						break;
-					}
-					printerr(2, "WARNING: Failed to create machine krb5 context "
-						 "with credentials cache %s for server %s\n",
-						 *ccname, clp->servername);
-				}
-				gssd_free_krb5_machine_cred_list(credlist);
-				if (!success) {
-					if(nocache == 0) {
-						nocache++;
-						printerr(2, "WARNING: Machine cache is prematurely expired or corrupted "
-						            "trying to recreate cache for server %s\n", clp->servername);
-					} else {
-						printerr(1, "WARNING: Failed to create machine krb5 context "
-						 "with any credentials cache for server %s\n",
-						 clp->servername);
-						goto out_return_error;
-					}
-				}
-			} while(!success);
+			auth =	krb5_use_machine_creds(clp, uid, tgtname,
+							service, &rpc_clnt);
+			if (auth == NULL)
+				goto out_return_error;
 		} else {
 			printerr(1, "WARNING: Failed to create krb5 context "
 				 "for user with uid %d for server %s\n",
