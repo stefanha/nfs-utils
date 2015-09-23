@@ -729,10 +729,12 @@ found:
 }
 
 static void
-gssd_atexit(void)
+sig_die(int signal)
 {
 	if (root_uses_machine_creds)
 		gssd_destroy_krb5_machine_creds();
+	printerr(1, "exiting on signal %d\n", signal);
+	exit(0);
 }
 
 static void
@@ -892,17 +894,14 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (atexit(gssd_atexit)) {
-		printerr(1, "ERROR: atexit failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	inotify_fd = inotify_init1(IN_NONBLOCK);
 	if (inotify_fd == -1) {
 		printerr(1, "ERROR: inotify_init1 failed: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
+	signal(SIGINT, sig_die);
+	signal(SIGTERM, sig_die);
 	signal_set(&sighup_ev, SIGHUP, gssd_scan_cb, NULL);
 	signal_add(&sighup_ev, NULL);
 	event_set(&inotify_ev, inotify_fd, EV_READ | EV_PERSIST, gssd_inotify_cb, NULL);
