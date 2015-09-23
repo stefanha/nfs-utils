@@ -603,32 +603,10 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	gss_buffer_desc		token;
 	int			err, downcall_err = -EACCES;
 	OM_uint32		maj_stat, min_stat, lifetime_rec;
-	pid_t			pid;
+	pid_t			pid, childpid = -1;
 	gss_name_t		gacceptor = GSS_C_NO_NAME;
 	gss_OID			mech;
 	gss_buffer_desc		acceptor  = {0};
-
-	pid = fork();
-	switch(pid) {
-	case 0:
-		/* Child: fall through to rest of function */
-		break;
-	case -1:
-		/* fork() failed! */
-		printerr(0, "WARNING: unable to fork() to handle upcall: %s\n",
-				strerror(errno));
-		return;
-	default:
-		/* Parent: just wait on child to exit and return */
-		do {
-			pid = wait(&err);
-		} while(pid == -1 && errno != -ECHILD);
-
-		if (WIFSIGNALED(err))
-			printerr(0, "WARNING: forked child was killed with signal %d\n",
-					WTERMSIG(err));
-		return;
-	}
 
 	printerr(1, "handling krb5 upcall (%s)\n", clp->relpath);
 
@@ -661,6 +639,37 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 		 service ? service : "<null>");
 	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0 &&
 				service == NULL)) {
+
+		/* already running as uid 0 */
+		if (uid == 0)
+			goto no_fork;
+
+		pid = fork();
+		switch(pid) {
+		case 0:
+			/* Child: fall through to rest of function */
+			childpid = getpid();
+			unsetenv("KRB5CCNAME");
+			printerr(1, "CHILD forked pid %d \n", childpid);
+			break;
+		case -1:
+			/* fork() failed! */
+			printerr(0, "WARNING: unable to fork() to handle"
+				"upcall: %s\n", strerror(errno));
+			return;
+		default:
+			/* Parent: just wait on child to exit and return */
+			do {
+				pid = wait(&err);
+			} while(pid == -1 && errno != -ECHILD);
+
+			if (WIFSIGNALED(err))
+				printerr(0, "WARNING: forked child was killed"
+					 "with signal %d\n", WTERMSIG(err));
+			return;
+		}
+no_fork:
+
 		auth = krb5_not_machine_creds(clp, uid, tgtname, &downcall_err,
 						&err, &rpc_clnt);
 		if (err)
@@ -727,7 +736,12 @@ out:
 		AUTH_DESTROY(auth);
 	if (rpc_clnt)
 		clnt_destroy(rpc_clnt);
-	exit(0);
+
+	pid = getpid();
+	if (pid == childpid)
+		exit(0);
+	else
+		return;
 
 out_return_error:
 	do_error_downcall(fd, uid, downcall_err);
