@@ -174,15 +174,14 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 		sockfd = socket(addr->ai_family, addr->ai_socktype,
 				addr->ai_protocol);
 		if (sockfd < 0) {
-			if (errno == EAFNOSUPPORT)
-				xlog(L_NOTICE, "address family %s not "
-						"supported by protocol %s",
-						family, proto);
-			else
+			if (errno != EAFNOSUPPORT) {
 				xlog(L_ERROR, "unable to create %s %s socket: "
 				     "errno %d (%m)", family, proto, errno);
-			rc = errno;
-			goto error;
+				rc = errno;
+				goto error;
+			}
+			addr = addr->ai_next;
+			continue;
 		}
 #ifdef IPV6_SUPPORTED
 		if (addr->ai_family == AF_INET6 &&
