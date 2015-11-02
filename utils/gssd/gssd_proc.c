@@ -348,16 +348,9 @@ create_auth_rpc_client(struct clnt_info *clp,
 	printerr(2, "creating %s client for server %s\n", clp->protocol,
 			clp->servername);
 
-	if ((strcmp(clp->protocol, "tcp")) == 0) {
-		protocol = IPPROTO_TCP;
-	} else if ((strcmp(clp->protocol, "udp")) == 0) {
+	protocol = IPPROTO_TCP;
+	if ((strcmp(clp->protocol, "udp")) == 0)
 		protocol = IPPROTO_UDP;
-	} else {
-		printerr(0, "WARNING: unrecognized protocol, '%s', requested "
-			 "for connection to server %s for user with uid %d\n",
-			 clp->protocol, clp->servername, uid);
-		goto out_fail;
-	}
 
 	switch (addr->sa_family) {
 	case AF_INET:
