@@ -20,6 +20,12 @@ AC_DEFUN([AC_LIBTIRPC], [
                                     [Define to 1 if your rpcsec library provides authgss_free_private_data])],,
                          [${LIBS}])])
 
+     AS_IF([test -n "${LIBTIRPC}"],
+           [AC_CHECK_LIB([tirpc], [libtirpc_set_debug],
+                         [AC_DEFINE([HAVE_LIBTIRPC_SET_DEBUG], [1],
+                                    [Define to 1 if your tirpc library provides libtirpc_set_debug])],,
+                         [${LIBS}])])
+
   AC_SUBST([AM_CPPFLAGS])
   AC_SUBST(LIBTIRPC)
 

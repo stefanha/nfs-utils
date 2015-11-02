@@ -135,6 +135,13 @@ main(int argc, char *argv[])
 	if (verbosity && rpc_verbosity == 0)
 		rpc_verbosity = verbosity;
 	authgss_set_debug_level(rpc_verbosity);
+#elif HAVE_LIBTIRPC_SET_DEBUG
+        /*
+	 * Only set the libtirpc debug level if explicitly requested via -r...
+	 * svcgssd is chatty enough as it is.
+	 */
+        if (rpc_verbosity > 0)
+                libtirpc_set_debug(progname, rpc_verbosity, fg);
 #else
 	if (rpc_verbosity > 0)
 		printerr(0, "Warning: rpcsec_gss library does not "

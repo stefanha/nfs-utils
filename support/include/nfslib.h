@@ -176,6 +176,9 @@ size_t  strlcpy(char *, const char *, size_t);
 ssize_t atomicio(ssize_t (*f) (int, void*, size_t),
 		 int, void *, size_t);
 
+#ifdef HAVE_LIBTIRPC_SET_DEBUG
+void  libtirpc_set_debug(char *name, int level, int use_stderr);
+#endif
 
 #define UNUSED(x) UNUSED_ ## x __attribute__((unused))
 
