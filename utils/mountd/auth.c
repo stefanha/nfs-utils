@@ -85,7 +85,7 @@ auth_reload()
 {
 	struct stat		stb;
 	static ino_t		last_inode;
-	static int		last_fd;
+	static int		last_fd = -1;
 	static unsigned int	counter;
 	int			fd;
 
@@ -93,11 +93,22 @@ auth_reload()
 		xlog(L_FATAL, "couldn't open %s", _PATH_ETAB);
 	} else if (fstat(fd, &stb) < 0) {
 		xlog(L_FATAL, "couldn't stat %s", _PATH_ETAB);
-	} else if (stb.st_ino == last_inode) {
+		close(fd);
+	} else if (last_fd != -1 && stb.st_ino == last_inode) {
+		/* We opened the etab file before, and its inode
+		 * number hasn't changed since then.
+		 */
 		close(fd);
 		return counter;
 	} else {
-		close(last_fd);
+		/* Need to process entries from the etab file.  Close
+		 * the file descriptor from the previous open (last_fd),
+		 * and keep the current file descriptor open to prevent
+		 * the file system reusing the current inode number
+		 * (last_inode).
+		 */
+		if (last_fd != -1)
+			close(last_fd);
 		last_fd = fd;
 		last_inode = stb.st_ino;
 	}
