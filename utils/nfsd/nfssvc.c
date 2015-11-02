@@ -168,8 +168,6 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 			continue;
 		}
 
-		xlog(D_GENERAL, "Creating %s %s socket.", family, proto);
-
 		/* open socket and prepare to hand it off to kernel */
 		sockfd = socket(addr->ai_family, addr->ai_socktype,
 				addr->ai_protocol);
@@ -183,6 +181,9 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 			addr = addr->ai_next;
 			continue;
 		}
+
+		xlog(D_GENERAL, "Created %s %s socket.", family, proto);
+
 #ifdef IPV6_SUPPORTED
 		if (addr->ai_family == AF_INET6 &&
 		    setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on))) {
