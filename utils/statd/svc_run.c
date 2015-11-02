@@ -78,7 +78,7 @@ my_svc_exit(void)
  * The heart of the server.  A crib from libc for the most part...
  */
 void
-my_svc_run(void)
+my_svc_run(int sockfd)
 {
 	FD_SET_TYPE	readfds;
 	int             selret;
@@ -96,6 +96,8 @@ my_svc_run(void)
 		}
 
 		readfds = SVC_FDSET;
+		/* Set notify sockfd for waiting for reply */
+		FD_SET(sockfd, &readfds);
 		if (notify) {
 			struct timeval	tv;
 
@@ -125,8 +127,10 @@ my_svc_run(void)
 
 		default:
 			selret -= process_reply(&readfds);
-			if (selret)
+			if (selret) {
+				FD_CLR(sockfd, &readfds);
 				svc_getreqset(&readfds);
+			}
 		}
 	}
 }

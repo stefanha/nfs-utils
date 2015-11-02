@@ -247,6 +247,7 @@ int main (int argc, char **argv)
 	int port = 0, out_port = 0;
 	int nlm_udp = 0, nlm_tcp = 0;
 	struct rlimit rlim;
+	int notify_sockfd;
 
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
@@ -437,7 +438,7 @@ int main (int argc, char **argv)
 		}
 
 	/* Make sure we have a privilege port for calling into the kernel */
-	if (statd_get_socket() < 0)
+	if ((notify_sockfd = statd_get_socket()) < 0)
 		exit(1);
 
 	/* If sm-notify didn't take all the state files, load
@@ -484,7 +485,7 @@ int main (int argc, char **argv)
 		 * Handle incoming requests:  SM_NOTIFY socket requests, as
 		 * well as callbacks from lockd.
 		 */
-		my_svc_run();	/* I rolled my own, Olaf made it better... */
+		my_svc_run(notify_sockfd);	/* I rolled my own, Olaf made it better... */
 
 		/* Only get here when simulating a crash so we should probably
 		 * start sm-notify running again.  As we have already dropped

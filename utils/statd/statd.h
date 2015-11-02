@@ -28,7 +28,7 @@ extern _Bool	statd_present_address(const struct sockaddr *sap, char *buf,
 __attribute__((__malloc__))
 extern char *	statd_canonical_name(const char *hostname);
 
-extern void	my_svc_run(void);
+extern void	my_svc_run(int);
 extern void	notify_hosts(void);
 extern void	shuffle_dirs(void);
 extern int	statd_get_socket(void);

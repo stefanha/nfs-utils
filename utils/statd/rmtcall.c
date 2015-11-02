@@ -113,7 +113,6 @@ statd_get_socket(void)
 	if (sockfd < 0)
 		return -1;
 
-	FD_SET(sockfd, &SVC_FDSET);
 	return sockfd;
 }
 
