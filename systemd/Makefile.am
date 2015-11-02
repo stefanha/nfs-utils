@@ -28,8 +28,12 @@ endif
 if CONFIG_GSS
 unit_files += \
     auth-rpcgss-module.service \
-    rpc-gssd.service \
+    rpc-gssd.service
+
+if CONFIG_SVCGSS
+unit_files += \
     rpc-svcgssd.service
+endif
 endif
 
 EXTRA_DIST = $(unit_files)
