@@ -801,7 +801,7 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 	char *default_realm = NULL;
 	char *realm;
 	char *k5err = NULL;
-	int tried_all = 0, tried_default = 0;
+	int tried_all = 0, tried_default = 0, tried_upper = 0;
 	krb5_principal princ;
 	const char *notsetstr = "not set";
 	char *adhostoverride;
@@ -835,7 +835,6 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 	        strcpy(myhostad, myhostname);
 	        for (i = 0; myhostad[i] != 0; ++i) {
 	          if (myhostad[i] == '.') break;
-	          myhostad[i] = toupper(myhostad[i]);
 	        }
 	        myhostad[i] = '$';
 	        myhostad[i+1] = 0;
@@ -936,6 +935,19 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 				k5err = gssd_k5_err_msg(context, code);
 				printerr(3, "%s while getting keytab entry for '%s'\n",
 					 k5err, spn);
+				/*
+				 * We tried the active directory machine account
+				 * with the hostname part as-is and failed...
+				 * convert it to uppercase and try again before
+				 * moving on to the svcname
+				 */
+				if (strcmp(svcnames[j],"$") == 0 && !tried_upper) {
+					for (i = 0; myhostad[i] != '$'; ++i) {
+						myhostad[i] = toupper(myhostad[i]);
+					}
+					j--;
+					tried_upper = 1;
+				}
 			} else {
 				printerr(3, "Success getting keytab entry for '%s'\n",spn);
 				retval = 0;
