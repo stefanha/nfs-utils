@@ -134,6 +134,8 @@ host_pton(const char *paddr)
 			break;
 		}
 		return ai;
+	case EAI_NONAME:
+		break;
 	case EAI_SYSTEM:
 		xlog(D_GENERAL, "%s: failed to convert %s: (%d) %m",
 				__func__, paddr, errno);
