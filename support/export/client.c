@@ -686,6 +686,21 @@ check_netgroup(const nfs_client *clp, const struct addrinfo *ai)
 		}
 	}
 
+	/* check whether the IP itself is in the netgroup */
+	for (tmp = (struct addrinfo *)ai ; tmp != NULL ; tmp = tmp->ai_next) {
+		free(hname);
+		hname = calloc(INET6_ADDRSTRLEN, 1);
+
+		if (inet_ntop(tmp->ai_family, &(((struct sockaddr_in *)tmp->ai_addr)->sin_addr), hname, INET6_ADDRSTRLEN) != hname) {
+			xlog(D_GENERAL, "  %s: unable to inet_ntop addrinfo %p: %m", __func__, tmp, errno);
+			goto out;
+		}
+		if (innetgr(netgroup, hname, NULL, NULL)) {
+			match = 1;
+			goto out;
+		}
+	}
+
 	/* Okay, strip off the domain (if we have one) */
 	dot = strchr(hname, '.');
 	if (dot == NULL)
