@@ -49,6 +49,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <xlog.h>
 
 #include "nfslib.h"
