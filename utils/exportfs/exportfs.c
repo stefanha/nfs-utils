@@ -499,9 +499,10 @@ unexportfs(char *arg, int verbose)
 
 static int can_test(void)
 {
-	char buf[1024];
+	char buf[1024] = { 0 };
 	int fd;
 	int n;
+	size_t bufsiz = sizeof(buf);
 
 	fd = open("/proc/net/rpc/auth.unix.ip/channel", O_WRONLY);
 	if (fd < 0)
@@ -514,9 +515,9 @@ static int can_test(void)
 	 * commit 2f74f972  (sunrpc: prepare NFS for 2038).
 	 */
 	if (time(NULL) > INT_TO_LONG_THRESHOLD_SECS)
-		sprintf(buf, "nfsd 0.0.0.0 %ld -test-client-\n", LONG_MAX);
+		snprintf(buf, bufsiz-1, "nfsd 0.0.0.0 %ld -test-client-\n", LONG_MAX);
 	else
-		sprintf(buf, "nfsd 0.0.0.0 %d -test-client-\n", INT_MAX);
+		snprintf(buf, bufsiz-1, "nfsd 0.0.0.0 %d -test-client-\n", INT_MAX);
 
 	n = write(fd, buf, strlen(buf));
 	close(fd);
@@ -532,7 +533,8 @@ static int can_test(void)
 
 static int test_export(char *path, int with_fsid)
 {
-	char buf[1024];
+	/* beside max path, buf size should take protocol str into account */
+	char buf[NFS_MAXPATHLEN+1+64] = { 0 };
 	char *bp = buf;
 	int len = sizeof(buf);
 	int fd, n;
@@ -758,7 +760,8 @@ dumpopt(char c, char *fmt, ...)
 static void
 dump(int verbose, int export_format)
 {
-	char buf[1024];
+	/* buf[] size should >= sizeof(struct exportent->e_path) */
+	char buf[NFS_MAXPATHLEN+1] = { 0 };
 	char *bp;
 	int len;
 	nfs_export	*exp;
