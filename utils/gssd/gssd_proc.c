@@ -703,7 +703,7 @@ no_fork:
 	 * try to use it after this point.
 	 */
 	if (serialize_context_for_kernel(&pd.pd_ctx, &token, &krb5oid, NULL)) {
-		printerr(0, "WARNING: Failed to serialize krb5 context for "
+		printerr(1, "WARNING: Failed to serialize krb5 context for "
 			    "user with uid %d for server %s\n",
 			 uid, clp->servername);
 		goto out_return_error;

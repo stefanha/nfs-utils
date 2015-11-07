@@ -716,7 +716,7 @@ gssd_inotify_cb(int ifd, short UNUSED(which), void *UNUSED(data))
 
 found:
 			if (!tdi) {
-				printerr(1, "inotify event for unknown wd!!! - "
+				printerr(5, "inotify event for unknown wd!!! - "
 					 "ev->wd (%d) ev->name (%s) ev->mask (0x%08x)\n",
 					 ev->wd, ev->len > 0 ? ev->name : "<?>", ev->mask);
 				rescan = true;
@@ -820,7 +820,7 @@ main(int argc, char *argv[])
 	 * the results of getpw*.
 	 */
 	if (setenv("HOME", "/", 1)) {
-		printerr(1, "Unable to set $HOME: %s\n", strerror(errno));
+		printerr(0, "gssd: Unable to set $HOME: %s\n", strerror(errno));
 		exit(1);
 	}
 
@@ -891,19 +891,19 @@ main(int argc, char *argv[])
 
 	pipefs_dir = opendir(pipefs_path);
 	if (!pipefs_dir) {
-		printerr(1, "ERROR: opendir(%s) failed: %s\n", pipefs_path, strerror(errno));
+		printerr(0, "ERROR: opendir(%s) failed: %s\n", pipefs_path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
 	pipefs_fd = dirfd(pipefs_dir);
 	if (fchdir(pipefs_fd)) {
-		printerr(1, "ERROR: fchdir(%s) failed: %s\n", pipefs_path, strerror(errno));
+		printerr(0, "ERROR: fchdir(%s) failed: %s\n", pipefs_path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
 	inotify_fd = inotify_init1(IN_NONBLOCK);
 	if (inotify_fd == -1) {
-		printerr(1, "ERROR: inotify_init1 failed: %s\n", strerror(errno));
+		printerr(0, "ERROR: inotify_init1 failed: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -920,7 +920,7 @@ main(int argc, char *argv[])
 
 	event_dispatch();
 
-	printerr(1, "ERROR: event_dispatch() returned!\n");
+	printerr(0, "ERROR: event_dispatch() returned!\n");
 	return EXIT_FAILURE;
 }
 
