@@ -150,7 +150,7 @@ do_downcall(int k5_fd, uid_t uid, struct authgss_private_data *pd,
 	unsigned int timeout = context_timeout;
 	unsigned int buf_size = 0;
 
-	printerr(1, "doing downcall: lifetime_rec=%u acceptor=%.*s\n",
+	printerr(2, "doing downcall: lifetime_rec=%u acceptor=%.*s\n",
 		lifetime_rec, acceptor->length, acceptor->value);
 	buf_size = sizeof(uid) + sizeof(timeout) + sizeof(pd->pd_seq_win) +
 		sizeof(pd->pd_ctx_hndl.length) + pd->pd_ctx_hndl.length +
@@ -189,7 +189,7 @@ do_error_downcall(int k5_fd, uid_t uid, int err)
 	unsigned int timeout = 0;
 	int	zero = 0;
 
-	printerr(1, "doing error downcall\n");
+	printerr(2, "doing error downcall\n");
 
 	if (WRITE_BYTES(&p, end, uid)) goto out_err;
 	if (WRITE_BYTES(&p, end, timeout)) goto out_err;
@@ -484,7 +484,7 @@ krb5_not_machine_creds(struct clnt_info *clp, uid_t uid, char *tgtname,
 	char		**dname;
 	int		err, resp = -1;
 
-	printerr(1, "krb5_not_machine_creds: uid %d tgtname %s\n", 
+	printerr(2, "krb5_not_machine_creds: uid %d tgtname %s\n", 
 		uid, tgtname);
 
 	*chg_err = change_identity(uid);
@@ -531,7 +531,7 @@ krb5_use_machine_creds(struct clnt_info *clp, uid_t uid, char *tgtname,
 	int	nocache = 0;
 	int	success = 0;
 
-	printerr(1, "krb5_use_machine_creds: uid %d tgtname %s\n", 
+	printerr(2, "krb5_use_machine_creds: uid %d tgtname %s\n", 
 		uid, tgtname);
 
 	do {
@@ -601,8 +601,6 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	gss_OID			mech;
 	gss_buffer_desc		acceptor  = {0};
 
-	printerr(1, "handling krb5 upcall (%s)\n", clp->relpath);
-
 	token.length = 0;
 	token.value = NULL;
 	memset(&pd, 0, sizeof(struct authgss_private_data));
@@ -628,8 +626,6 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	 * used for this case is not important.
 	 *
 	 */
-	printerr(2, "%s: service is '%s'\n", __func__,
-		 service ? service : "<null>");
 	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0 &&
 				service == NULL)) {
 
@@ -643,7 +639,7 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 			/* Child: fall through to rest of function */
 			childpid = getpid();
 			unsetenv("KRB5CCNAME");
-			printerr(1, "CHILD forked pid %d \n", childpid);
+			printerr(2, "CHILD forked pid %d \n", childpid);
 			break;
 		case -1:
 			/* fork() failed! */
@@ -676,9 +672,7 @@ no_fork:
 			if (auth == NULL)
 				goto out_return_error;
 		} else {
-			printerr(1, "WARNING: Failed to create krb5 context "
-				 "for user with uid %d for server %s\n",
-				 uid, clp->servername);
+			/* krb5_not_machine_creds logs the error */
 			goto out_return_error;
 		}
 	}
@@ -752,6 +746,8 @@ handle_krb5_upcall(struct clnt_info *clp)
 		return;
 	}
 
+	printerr(2, "\n%s: uid %d (%s)\n", __func__, uid, clp->relpath);
+
 	process_krb5_upcall(clp, uid, clp->krb5_fd, NULL, NULL);
 }
 
@@ -768,8 +764,6 @@ handle_gssd_upcall(struct clnt_info *clp)
 	char			*service = NULL;
 	char			*enctypes = NULL;
 
-	printerr(1, "handling gssd upcall (%s)\n", clp->relpath);
-
 	lbuflen = read(clp->gssd_fd, lbuf, sizeof(lbuf));
 	if (lbuflen <= 0 || lbuf[lbuflen-1] != '\n') {
 		printerr(0, "WARNING: handle_gssd_upcall: "
@@ -778,7 +772,7 @@ handle_gssd_upcall(struct clnt_info *clp)
 	}
 	lbuf[lbuflen-1] = 0;
 
-	printerr(2, "%s: '%s'\n", __func__, lbuf);
+	printerr(2, "\n%s: '%s' (%s)\n", __func__, lbuf, clp->relpath);
 
 	for (p = strtok(lbuf, " "); p; p = strtok(NULL, " ")) {
 		if (!strncmp(p, "mech=", strlen("mech=")))

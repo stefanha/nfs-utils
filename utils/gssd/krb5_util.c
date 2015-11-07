@@ -451,8 +451,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 	}
 
 	code = 0;
-	printerr(2, "Successfully obtained machine credentials for "
-		 "principal '%s' stored in ccache '%s'\n", pname, cc_name);
+	printerr(2, "%s: principal '%s' ccache:'%s'\n", __func__, pname, cc_name);
   out:
 #if HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ADDRESSLESS
 	if (init_opts)
@@ -1410,16 +1409,21 @@ gssd_acquire_krb5_cred(gss_cred_id_t *gss_cred)
 int
 gssd_acquire_user_cred(gss_cred_id_t *gss_cred)
 {
-	OM_uint32 min_stat;
+	OM_uint32 maj_stat, min_stat;
 	int ret;
 
 	ret = gssd_acquire_krb5_cred(gss_cred);
 
 	/* force validation of cred to check for expiry */
 	if (ret == 0) {
-		if (gss_inquire_cred(&min_stat, *gss_cred, NULL, NULL,
-				     NULL, NULL) != GSS_S_COMPLETE)
-			ret = -1;
+		maj_stat = gss_inquire_cred(&min_stat, *gss_cred, 
+			NULL, NULL, NULL, NULL);
+		if (maj_stat != GSS_S_COMPLETE) {
+			if (get_verbosity() > 0)
+				pgsserr("gss_inquire_cred",
+					maj_stat, min_stat, &krb5oid);
+				ret = -1;
+			}
 	}
 
 	return ret;
