@@ -206,7 +206,7 @@ prepare_krb5_rfc4121_buffer(gss_krb5_lucid_context_v1_t *lctx,
 	if (WRITE_BYTES(&p, end, lctx->send_seq)) goto out_err;
 
 	/* Protocol 0 here implies DES3 or RC4 */
-	printerr(2, "%s: protocol %d\n", __FUNCTION__, lctx->protocol);
+	printerr(4, "%s: protocol %d\n", __FUNCTION__, lctx->protocol);
 	if (lctx->protocol == 0) {
 		enctype = lctx->rfc1964_kd.ctx_key.type;
 		keysize = lctx->rfc1964_kd.ctx_key.length;
@@ -219,7 +219,7 @@ prepare_krb5_rfc4121_buffer(gss_krb5_lucid_context_v1_t *lctx,
 			keysize = lctx->cfx_kd.ctx_key.length;
 		}
 	}
-	printerr(2, "%s: serializing key with enctype %d and size %d\n",
+	printerr(4, "%s: serializing key with enctype %d and size %d\n",
 		 __FUNCTION__, enctype, keysize);
 
 	if (WRITE_BYTES(&p, end, enctype)) goto out_err;
@@ -265,7 +265,7 @@ serialize_krb5_ctx(gss_ctx_id_t *ctx, gss_buffer_desc *buf, int32_t *endtime)
 	gss_krb5_lucid_context_v1_t *lctx = 0;
 	int retcode = 0;
 
-	printerr(2, "DEBUG: %s: lucid version!\n", __FUNCTION__);
+	printerr(4, "DEBUG: %s: lucid version!\n", __FUNCTION__);
 	maj_stat = gss_export_lucid_sec_context(&min_stat, ctx,
 						1, &return_ctx);
 	if (maj_stat != GSS_S_COMPLETE) {

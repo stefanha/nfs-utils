@@ -356,7 +356,7 @@ gssd_get_single_krb5_cred(krb5_context context,
 	 */
 	now += 300;
 	if (ple->ccname && ple->endtime > now && !nocache) {
-		printerr(2, "INFO: Credentials in CC '%s' are good until %d\n",
+		printerr(3, "INFO: Credentials in CC '%s' are good until %d\n",
 			 ple->ccname, ple->endtime);
 		code = 0;
 		goto out;
@@ -476,7 +476,7 @@ gssd_set_krb5_ccache_name(char *ccname)
 #ifdef USE_GSS_KRB5_CCACHE_NAME
 	u_int	maj_stat, min_stat;
 
-	printerr(2, "using gss_krb5_ccache_name to select krb5 ccache %s\n",
+	printerr(3, "using gss_krb5_ccache_name to select krb5 ccache %s\n",
 		 ccname);
 	maj_stat = gss_krb5_ccache_name(&min_stat, ccname, NULL);
 	if (maj_stat != GSS_S_COMPLETE) {
@@ -491,7 +491,7 @@ gssd_set_krb5_ccache_name(char *ccname)
 	 * function above for which there is no generic gssapi
 	 * equivalent.)
 	 */
-	printerr(2, "using environment variable to select krb5 ccache %s\n",
+	printerr(3, "using environment variable to select krb5 ccache %s\n",
 		 ccname);
 	setenv("KRB5CCNAME", ccname, 1);
 #endif
@@ -1092,8 +1092,8 @@ gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirpattern)
 	struct dirent		*d;
 	int			err, i, j;
 
-	printerr(2, "getting credentials for client with uid %u for "
-		    "server %s\n", uid, servername);
+	printerr(3, "looking for client creds with uid %u for "
+		    "server %s in %s\n", uid, servername, dirpattern);
 
 	for (i = 0, j = 0; dirpattern[i] != '\0'; i++) {
 		switch (dirpattern[i]) {

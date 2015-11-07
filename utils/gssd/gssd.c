@@ -556,7 +556,7 @@ gssd_scan_topdir(const char *name)
 		if (clp->scanned)
 			continue;
 
-		printerr(2, "destroying client %s\n", clp->relpath);
+		printerr(3, "destroying client %s\n", clp->relpath);
 		saveprev = clp->list.tqe_prev;
 		TAILQ_REMOVE(&tdi->clnt_list, clp, list);
 		gssd_destroy_client(clp);

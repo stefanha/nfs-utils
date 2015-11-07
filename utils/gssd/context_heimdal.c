@@ -260,7 +260,7 @@ serialize_krb5_ctx(gss_ctx_id_t *_ctx, gss_buffer_desc *buf, int32_t *endtime)
 	if (write_heimdal_seq_key(&p, end, ctx)) goto out_err;
 
 	buf->length = p - (char *)buf->value;
-	printerr(2, "serialize_krb5_ctx: returning buffer "
+	printerr(4, "serialize_krb5_ctx: returning buffer "
 		    "with %d bytes\n", buf->length);
 
 	return 0;
