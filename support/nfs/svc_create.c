@@ -133,7 +133,7 @@ svc_create_bindaddr(struct netconfig *nconf, const uint16_t port)
 		hint.ai_family = AF_INET6;
 #endif	/* IPV6_SUPPORTED */
 	else {
-		xlog(D_GENERAL, "Unrecognized bind address family: %s",
+		xlog(L_ERROR, "Unrecognized bind address family: %s",
 			nconf->nc_protofmly);
 		return NULL;
 	}
@@ -143,7 +143,7 @@ svc_create_bindaddr(struct netconfig *nconf, const uint16_t port)
 	else if (strcmp(nconf->nc_proto, NC_TCP) == 0)
 		hint.ai_protocol = (int)IPPROTO_TCP;
 	else {
-		xlog(D_GENERAL, "Unrecognized bind address protocol: %s",
+		xlog(L_ERROR, "Unrecognized bind address protocol: %s",
 			nconf->nc_proto);
 		return NULL;
 	}
@@ -275,7 +275,7 @@ svc_create_nconf_rand_port(const char *name, const rpcprog_t program,
 	xprt = svc_tli_create(RPC_ANYFD, nconf, &bindaddr, 0, 0);
 	freeaddrinfo(ai);
 	if (xprt == NULL) {
-		xlog(D_GENERAL, "Failed to create listener xprt "
+		xlog(L_ERROR, "Failed to create listener xprt "
 			"(%s, %u, %s)", name, version, nconf->nc_netid);
 		return 0;
 	}
@@ -286,10 +286,12 @@ svc_create_nconf_rand_port(const char *name, const rpcprog_t program,
 		return 0;
 	}
 
+	rpc_createerr.cf_stat = rpc_createerr.cf_error.re_errno = 0;
 	if (!svc_reg(xprt, program, version, dispatch, nconf)) {
 		/* svc_reg(3) destroys @xprt in this case */
-		xlog(D_GENERAL, "Failed to register (%s, %u, %s)",
-				name, version, nconf->nc_netid);
+		xlog(L_ERROR, "Failed to register (%s, %u, %s): %s",
+				name, version, nconf->nc_netid, 
+				clnt_spcreateerror("svc_reg() err"));
 		return 0;
 	}
 
