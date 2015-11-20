@@ -92,6 +92,7 @@ static const char *nfs_version_opttbl[] = {
 	"v4",
 	"vers",
 	"nfsvers",
+	"minorversion",
 	NULL,
 };
 
@@ -1272,7 +1273,11 @@ nfs_nfs_version(struct mount_options *options, struct nfs_version *version)
 	if (!(version->major = strtol(version_val, &cptr, 10)))
 		goto ret_error;
 
-	if (version->major < 4)
+	if (strcmp(nfs_version_opttbl[i], "minorversion") == 0) {
+		version->v_mode = V_SPECIFIC;
+		version->minor = version->major;
+		version->major = 4;
+	} else if (version->major < 4)
 		version->v_mode = V_SPECIFIC;
 
 	if (*cptr == '.') {
