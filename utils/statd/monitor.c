@@ -72,6 +72,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		.sin_addr.s_addr	= htonl(INADDR_LOOPBACK),
 	};
 	char *dnsname = NULL;
+	int existing = 0;
 
 	xlog(D_CALL, "Received SM_MON for %s from %s", mon_name, my_name);
 
@@ -148,17 +149,26 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 		if (statd_matchhostname(NL_MY_NAME(clnt), my_name) &&
 		    NL_MY_PROC(clnt) == id->my_proc &&
 		    NL_MY_PROG(clnt) == id->my_prog &&
-		    NL_MY_VERS(clnt) == id->my_vers &&
-		    memcmp(NL_PRIV(clnt), argp->priv, SM_PRIV_SIZE) == 0) {
-			/* Hey!  We already know you guys! */
-			xlog(D_GENERAL,
-				"Duplicate SM_MON request for %s "
-				"from procedure on %s",
-				mon_name, my_name);
+		    NL_MY_VERS(clnt) == id->my_vers) {
+			if (memcmp(NL_PRIV(clnt), argp->priv, SM_PRIV_SIZE)) {
+				xlog(D_GENERAL,
+					"Received SM_MON request with new "
+					"cookie for %s from procedure on %s",
+					mon_name, my_name);
 
-			/* But we'll let you pass anyway. */
-			free(dnsname);
-			goto success;
+				existing = 1; 
+				break;
+			} else {
+				/* Hey!  We already know you guys! */
+				xlog(D_GENERAL,
+					"Duplicate SM_MON request for %s "
+					"from procedure on %s",
+					mon_name, my_name);
+
+				/* But we'll let you pass anyway. */
+				free(dnsname);
+				goto success;
+			}
 		}
 		clnt = NL_NEXT(clnt);
 	}
@@ -167,7 +177,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 * We're committed...ignoring errors.  Let's hope that a malloc()
 	 * doesn't fail.  (I should probably fix this assumption.)
 	 */
-	if (!(clnt = nlist_new(my_name, mon_name, 0))) {
+	if (!existing && !(clnt = nlist_new(my_name, mon_name, 0))) {
 		free(dnsname);
 		xlog_warn("out of memory");
 		goto failure;
@@ -180,8 +190,11 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	clnt->dns_name = dnsname;
 
 	/*
-	 * Now, Create file on stable storage for host.
+	 * Now, Create file on stable storage for host, first deleting any
+	 * existing records on file.
 	 */
+	nsm_delete_monitored_host(dnsname, mon_name, my_name);
+
 	if (!nsm_insert_monitored_host(dnsname,
 				(struct sockaddr *)(char *)&my_addr, argp)) {
 		nlist_free(NULL, clnt);
@@ -190,7 +203,8 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 
 	/* PRC: do the HA callout: */
 	ha_callout("add-client", mon_name, my_name, -1);
-	nlist_insert(&rtnl, clnt);
+	if (!existing)
+		nlist_insert(&rtnl, clnt);
 	xlog(D_GENERAL, "MONITORING %s for %s", mon_name, my_name);
  success:
 	result.res_stat = STAT_SUCC;
