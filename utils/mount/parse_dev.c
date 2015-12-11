@@ -118,7 +118,8 @@ static int nfs_parse_simple_hostname(const char *dev,
 	if (pathname) {
 		*pathname = strndup(colon, path_len);
 		if (*pathname == NULL) {
-			free(*hostname);
+			if (hostname)
+				free(*hostname);
 			return nfs_pdn_nomem_err();
 		}
 	}
