@@ -80,8 +80,9 @@ static int keyring_clear(const char *keyring)
 
 	key = find_key_by_type_and_desc("keyring", keyring, 0);
 	if (key == -1) {
-		xlog_err("'%s' keyring was not found.", keyring);
-		return EXIT_FAILURE;
+		if (verbose)
+			xlog_warn("'%s' keyring was not found.", keyring);
+		return EXIT_SUCCESS;
 	}
 
 	if (keyctl_clear(key) < 0) {
@@ -89,10 +90,9 @@ static int keyring_clear(const char *keyring)
 				(unsigned int)key);
 		return EXIT_FAILURE;
 	}
-	
+
 	if (verbose)
 		xlog_warn("'%s' cleared", keyring);
-
 	return EXIT_SUCCESS;
 }
 
@@ -402,6 +402,11 @@ int main(int argc, char **argv)
 			xlog_warn(usage, progname);
 			break;
 		}
+	}
+
+	if (geteuid() != 0) {
+		xlog_err("Must be run as root.");
+		return EXIT_FAILURE;
 	}
 
 	if ((rc = nfs4_init_name_mapping(PATH_IDMAPDCONF)))  {
