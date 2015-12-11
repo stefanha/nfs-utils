@@ -199,6 +199,12 @@ flush_nfsd_idmap_cache(void)
 	return ret;
 }
 
+void usage(char *progname)
+{
+	fprintf(stderr, "Usage: %s [-fvCS] [-p path] [-c path]\n",
+		basename(progname));
+}
+
 int
 main(int argc, char **argv)
 {
@@ -232,9 +238,11 @@ main(int argc, char **argv)
 			conf_path = optarg;
 		if (opt == '?') {
 			if (strchr(GETOPTSTR, optopt))
-				errx(1, "'-%c' option requires an argument.", optopt);
+				warnx("'-%c' option requires an argument.", optopt);
 			else
-				errx(1, "'-%c' is an invalid argument.", optopt);
+				warnx("'-%c' is an invalid argument.", optopt);
+			usage(progname);
+			exit(1);
 		}
 	}
 	optind = 1;
