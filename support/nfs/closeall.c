@@ -31,6 +31,7 @@ closeall(int min)
 	} else {
 		int fd = sysconf(_SC_OPEN_MAX);
 		while (--fd >= min)
-			(void) close(fd);
+			if(fd >= 0)
+				(void) close(fd);
 	}
 }

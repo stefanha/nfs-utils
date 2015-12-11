@@ -536,7 +536,8 @@ nsm_get_state(_Bool update)
 		state++;
 
 update:
-	(void)close(fd);
+	if(fd >= 0)
+		(void)close(fd);
 
 	if (update) {
 		state += 2;
