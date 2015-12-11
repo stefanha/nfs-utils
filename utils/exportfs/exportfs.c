@@ -405,8 +405,17 @@ unexportfs_parsed(char *hname, char *path, int verbose)
 			hname = ai->ai_canonname;
 	}
 
+	/*
+	 * It's possible the specified path ends with a '/'. But
+	 * the entry from exportlist won't has the trailing '/',
+	 * so need to deal with it.
+	*/
+	size_t nlen = strlen(path);
+	while (path[nlen - 1] == '/')
+		nlen--;
+
 	for (exp = exportlist[htype].p_head; exp; exp = exp->m_next) {
-		if (path && strcmp(path, exp->m_export.e_path))
+		if (path && strncmp(path, exp->m_export.e_path, nlen))
 			continue;
 		if (htype != exp->m_client->m_type)
 			continue;
