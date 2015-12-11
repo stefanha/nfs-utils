@@ -180,9 +180,6 @@ get_nameinfo(const struct sockaddr *sap,
  * Incoming hostnames are looked up to determine the canonical hostname,
  * and incoming presentation addresses are converted to canonical
  * hostnames.
- *
- * We won't monitor peers that don't have a reverse map.  The canonical
- * name gives us a key for our monitor list.
  */
 __attribute__((__malloc__))
 char *
@@ -207,7 +204,7 @@ statd_canonical_name(const char *hostname)
 		result = get_nameinfo(ai->ai_addr, ai->ai_addrlen,
 					buf, (socklen_t)sizeof(buf));
 		freeaddrinfo(ai);
-		if (!result)
+		if (!result || buf[0] == '\0')
 			/* OK to use presentation address,
 			 * if no reverse map exists */
 			return strdup(hostname);
