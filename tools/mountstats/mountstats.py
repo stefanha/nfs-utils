@@ -150,6 +150,8 @@ Nfsv3ops = [
     'COMMIT'
 ]
 
+# This list should be kept in-sync with the NFSPROC4_CLNT_* enum in
+# include/linux/nfs4.h in the kernel.
 Nfsv4ops = [
     'NULL',
     'READ',
@@ -204,7 +206,12 @@ Nfsv4ops = [
     'FREE_STATEID',
     'GETDEVICELIST',
     'BIND_CONN_TO_SESSION',
-    'DESTROY_CLIENTID'
+    'DESTROY_CLIENTID',
+    'SEEK',
+    'ALLOCATE',
+    'DEALLOCATE',
+    'LAYOUTSTATS',
+    'CLONE'
 ]
 
 class DeviceData:
