@@ -10,8 +10,10 @@
 .Sh SYNOPSIS
 .\" For a program:  program [-abc] file ...
 .Nm rpc.idmapd
-.Op Fl v
 .Op Fl f
+.Op Fl v
+.Op Fl C
+.Op Fl S
 .Op Fl p Ar path
 .Op Fl c Ar path
 .Sh DESCRIPTION
