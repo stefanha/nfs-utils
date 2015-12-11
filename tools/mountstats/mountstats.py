@@ -563,7 +563,10 @@ class DeviceData:
         for the nfsstat command.
         """
         for op in new_stats.__rpc_data['ops']:
-            self.__rpc_data[op] = list(map(add, self.__rpc_data[op], new_stats.__rpc_data[op]))
+            try:
+                self.__rpc_data[op] = list(map(add, self.__rpc_data[op], new_stats.__rpc_data[op]))
+            except KeyError:
+                continue
 
     def __print_rpc_op_stats(self, op, sample_time):
         """Print generic stats for one RPC op
