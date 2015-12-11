@@ -32,7 +32,7 @@ enum {
 	CLTPROC3_SZ = 22,
 	SRVPROC4_SZ = 2,
 	CLTPROC4_SZ = 60,
-	SRVPROC4OPS_SZ = 59,
+	SRVPROC4OPS_SZ = 71,
 };
 
 static unsigned int	srvproc2info[SRVPROC2_SZ+2],
@@ -182,6 +182,19 @@ static const char *     nfssrvproc4opname[SRVPROC4OPS_SZ] = {
 	"want_deleg",
 	"destroy_clid",
 	"reclaim_comp",
+	/* nfsv4.2 server ops */
+	"allocate",
+	"copy",
+	"copy_notify",
+	"deallocate",
+	"ioadvise",
+	"layouterror",
+	"layoutstats",
+	"offloadcancel",
+	"offloadstatus",
+	"readplus",
+	"seek",
+	"write_same",
 };
 
 #define LABEL_srvnet		"Server packet stats:\n"
