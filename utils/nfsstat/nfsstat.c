@@ -31,7 +31,7 @@ enum {
 	SRVPROC3_SZ = 22,
 	CLTPROC3_SZ = 22,
 	SRVPROC4_SZ = 2,
-	CLTPROC4_SZ = 49,
+	CLTPROC4_SZ = 60,
 	SRVPROC4OPS_SZ = 59,
 };
 
@@ -127,19 +127,31 @@ static const char *	nfscltproc4name[CLTPROC4_SZ] = {
 	"remove",    "rename",    "link",    "symlink",     "create",      "pathconf",
 	"statfs",    "readlink",  "readdir", "server_caps", "delegreturn", "getacl",
 	"setacl",    "fs_locations",
-	"rel_lkowner", "secinfo",
+	"rel_lkowner", "secinfo", "fsid_present",
 	/* nfsv4.1 client ops */
 	"exchange_id",
-	"create_ses",
-	"destroy_ses",
+	"create_session",
+	"destroy_session",
 	"sequence",
-	"get_lease_t",
+	"get_lease_time",
 	"reclaim_comp",
-	"layoutget",
 	"getdevinfo",
+	"layoutget",
 	"layoutcommit",
 	"layoutreturn",
 	"getdevlist",
+	"secinfo_no",
+	"test_stateid",
+	"free_stateid",
+	"getdevicelist",
+	"bind_conn_to_ses",
+	"destroy_clientid",
+	/* nfsv4.2 client ops */
+	"seek",
+	"allocate",
+	"deallocate",
+	"layoutstats",
+	"clone",
 };
 
 static const char *     nfssrvproc4opname[SRVPROC4OPS_SZ] = {
@@ -823,13 +835,13 @@ print_callstats(const char *hdr, const char **names,
 		total += info[i];
 	if (!total)
 		total = 1;
-	for (i = 0; i < nr; i += 6) {
-		for (j = 0; j < 6 && i + j < nr; j++)
-			printf("%-13s", names[i+j]);
+	for (i = 0; i < nr; i += 5) {
+		for (j = 0; j < 5 && i + j < nr; j++)
+			printf("%-17s", names[i+j]);
 		printf("\n");
-		for (j = 0; j < 6 && i + j < nr; j++) {
+		for (j = 0; j < 5 && i + j < nr; j++) {
 			pct = ((unsigned long long) info[i+j]*100)/total;
-			printf("%-8u%3llu%% ", info[i+j], pct);
+			printf("%-8u%3llu%%     ", info[i+j], pct);
 		}
 		printf("\n");
 	}
