@@ -185,7 +185,7 @@ static int nfs_connect_nb(const int fd, const struct sockaddr *sap,
 	 * use it later.
 	 */
 	ret = connect(fd, sap, salen);
-	if (ret < 0 && errno != EINPROGRESS) {
+	if (ret < 0 && errno != EINPROGRESS && errno != EINTR) {
 		ret = -1;
 		goto done;
 	}
@@ -197,10 +197,16 @@ static int nfs_connect_nb(const int fd, const struct sockaddr *sap,
 	FD_ZERO(&rset);
 	FD_SET(fd, &rset);
 
-	ret = select(fd + 1, NULL, &rset, NULL, timeout);
-	if (ret <= 0) {
-		if (ret == 0)
-			errno = ETIMEDOUT;
+	while ((ret = select(fd + 1, NULL, &rset, NULL, timeout)) < 0) {
+		if (errno != EINTR) {
+			ret = -1;
+			goto done;
+		} else {
+			continue;
+		}
+	}
+	if (ret == 0) {
+		errno = ETIMEDOUT;
 		ret = -1;
 		goto done;
 	}
