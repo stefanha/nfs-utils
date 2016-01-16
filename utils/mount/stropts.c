@@ -841,6 +841,9 @@ check_result:
 	case EPROTONOSUPPORT:
 		/* A clear indication that the server or our
 		 * client does not support NFS version 4 and minor */
+	case EINVAL:
+		/* A less clear indication that our client
+		 * does not support NFSv4 minor version. */
 		if (mi->version.v_mode == V_GENERAL &&
 			mi->version.minor == 0)
 				return result;
