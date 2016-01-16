@@ -794,6 +794,7 @@ int start_statd(void)
 	if (stat(START_STATD, &stb) == 0) {
 		if (S_ISREG(stb.st_mode) && (stb.st_mode & S_IXUSR)) {
 			int cnt = STATD_TIMEOUT * 10;
+			int status = 0;
 			const struct timespec ts = {
 				.tv_sec = 0,
 				.tv_nsec = 100000000,
@@ -808,7 +809,10 @@ int start_statd(void)
 						progname, strerror(errno));
 				break;
 			default: /* parent */
-				waitpid(pid, NULL,0);
+				if (waitpid(pid, &status,0) == pid &&
+				    status == 0)
+					/* assume it worked */
+					return 1;
 				break;
 			}
 			while (1) {
