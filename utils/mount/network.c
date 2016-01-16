@@ -1631,7 +1631,10 @@ int nfs_options2pmap(struct mount_options *options,
 		return 0;
 	if (!nfs_nfs_version(options, &version))
 		return 0;
-	nfs_pmap->pm_vers = version.major;
+	if (version.v_mode == V_DEFAULT)
+		nfs_pmap->pm_vers = 0;
+	else
+		nfs_pmap->pm_vers = version.major;
 	if (!nfs_nfs_protocol(options, &nfs_pmap->pm_prot))
 		return 0;
 	if (!nfs_nfs_port(options, &nfs_pmap->pm_port))
