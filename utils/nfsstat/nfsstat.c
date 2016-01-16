@@ -31,7 +31,7 @@ enum {
 	SRVPROC3_SZ = 22,
 	CLTPROC3_SZ = 22,
 	SRVPROC4_SZ = 2,
-	CLTPROC4_SZ = 60,
+	CLTPROC4_SZ = 59,
 	SRVPROC4OPS_SZ = 71,
 };
 
@@ -135,11 +135,10 @@ static const char *	nfscltproc4name[CLTPROC4_SZ] = {
 	"sequence",
 	"get_lease_time",
 	"reclaim_comp",
-	"getdevinfo",
 	"layoutget",
+	"getdevinfo",
 	"layoutcommit",
 	"layoutreturn",
-	"getdevlist",
 	"secinfo_no",
 	"test_stateid",
 	"free_stateid",
