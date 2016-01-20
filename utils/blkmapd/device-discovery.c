@@ -427,7 +427,10 @@ void sig_die(int signal)
 	BL_LOG_ERR("exit on signal(%d)\n", signal);
 	exit(1);
 }
-
+static void usage(void)
+{
+	fprintf(stderr, "Usage: blkmapd [-hdf]\n" );
+}
 /* Daemon */
 int main(int argc, char **argv)
 {
@@ -435,7 +438,7 @@ int main(int argc, char **argv)
 	struct stat statbuf;
 	char pidbuf[64];
 
-	while ((opt = getopt(argc, argv, "df")) != -1) {
+	while ((opt = getopt(argc, argv, "hdf")) != -1) {
 		switch (opt) {
 		case 'd':
 			dflag = 1;
@@ -443,6 +446,13 @@ int main(int argc, char **argv)
 		case 'f':
 			fg = 1;
 			break;
+		case 'h':
+			usage();
+			exit(0);
+		default:
+			usage();
+			exit(1);
+			
 		}
 	}
 
