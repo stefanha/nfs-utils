@@ -794,9 +794,10 @@ main(int argc, char **argv)
 		}
 
 	/* No more arguments allowed. */
-	if (optind != argc || !version_any())
+	if (optind != argc || !version_any()) {
+		fprintf(stderr, "%s: No protocol versions specified!\n", progname); 
 		usage(progname, 1);
-
+	}
 	if (chdir(state_dir)) {
 		fprintf(stderr, "%s: chdir(%s) failed: %s\n",
 			progname, state_dir, strerror(errno));
