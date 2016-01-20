@@ -10,6 +10,7 @@
 .Sh SYNOPSIS
 .\" For a program:  program [-abc] file ...
 .Nm rpc.idmapd
+.Op Fl h
 .Op Fl f
 .Op Fl v
 .Op Fl C
@@ -34,6 +35,8 @@ program.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds_imagedir
+.It Fl h
+Display usage message.
 .It Fl v
 Increases the verbosity level (can be specified multiple times).
 .It Fl f
