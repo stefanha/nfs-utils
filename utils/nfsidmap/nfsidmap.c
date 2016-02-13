@@ -428,7 +428,7 @@ int main(int argc, char **argv)
 		return keyring_clear(DEFAULT_KEYRING);
 	}
 
-	xlog_stderr(0);
+	xlog_stderr(verbose);
 	if ((argc - optind) != 2) {
 		xlog_err("Bad arg count. Check /etc/request-key.conf");
 		xlog_warn(usage, progname);
