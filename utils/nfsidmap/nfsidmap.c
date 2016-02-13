@@ -430,7 +430,7 @@ int main(int argc, char **argv)
 
 	xlog_stderr(verbose);
 	if ((argc - optind) != 2) {
-		xlog_err("Bad arg count. Check /etc/request-key.conf");
+		xlog_warn("Bad arg count. Check /etc/request-key.conf");
 		xlog_warn(usage, progname);
 		return EXIT_FAILURE;
 	}
