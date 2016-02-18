@@ -53,6 +53,7 @@ static struct option longopts[] =
 	{ "rdma", 2, 0, 'R' },
 	{ "grace-time", 1, 0, 'G'},
 	{ "lease-time", 1, 0, 'L'},
+	{ "vsock", 1, 0, 'v' },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -61,6 +62,7 @@ main(int argc, char **argv)
 {
 	int	count = NFSD_NPROC, c, i, error = 0, portnum, fd, found_one;
 	char *p, *progname, *port, *rdma_port = NULL;
+	char *vsock_port = NULL;
 	char **haddr = NULL;
 	int hcounter = 0;
 	struct conf_list *hosts;
@@ -145,7 +147,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:stTituUrG:L:", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:stTituUrG:L:v:", longopts, NULL)) != EOF) {
 		switch(c) {
 		case 'd':
 			xlog_config(D_ALL, 1);
@@ -180,7 +182,9 @@ main(int argc, char **argv)
 			else
 				rdma_port = "nfsrdma";
 			break;
-
+		case 'v': /* --vsock */
+			vsock_port = optarg;
+			break;
 		case 'N':
 			switch((c = strtol(optarg, &p, 0))) {
 			case 4:
@@ -309,7 +313,8 @@ main(int argc, char **argv)
 	}
 
 	if (NFSCTL_VERISSET(versbits, 4) &&
-	    !NFSCTL_TCPISSET(protobits)) {
+	    !NFSCTL_TCPISSET(protobits) &&
+	    !vsock_port) {
 		xlog(L_ERROR, "version 4 requires the TCP protocol");
 		exit(1);
 	}
@@ -353,6 +358,13 @@ main(int argc, char **argv)
 		if (!error)
 			socket_up = 1;
 	}
+
+	if (vsock_port) {
+		error = nfssvc_set_vsock(vsock_port);
+		if (!error)
+			socket_up = 1;
+	}
+
 set_threads:
 	/* don't start any threads if unable to hand off any sockets */
 	if (!socket_up) {

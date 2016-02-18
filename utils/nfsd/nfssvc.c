@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "vsock.h"
 #include "nfslib.h"
 #include "xlog.h"
 #include "nfssvc.h"
@@ -302,6 +303,67 @@ nfssvc_set_rdmaport(const char *port)
 	}
 	close(fd);
 	return ret;
+}
+
+int
+nfssvc_set_vsock(const char *port)
+{
+	struct sockaddr_vm svm;
+	int nport;
+	char buf[20];
+	int rc = 1;
+	int sockfd = -1;
+	int fd = -1;
+	char *ep;
+
+	nport = strtol(port, &ep, 10);
+	if (!*port || *ep) {
+		xlog(L_ERROR, "unable to interpret port name %s",
+		     port);
+		goto out;
+	}
+
+	sockfd = socket(AF_VSOCK, SOCK_STREAM, 0);
+	if (sockfd < 0) {
+		xlog(L_ERROR, "unable to create AF_VSOCK socket: "
+			      "errno %d (%m)", errno);
+		goto out;
+	}
+
+	svm.svm_family = AF_VSOCK;
+	svm.svm_port = nport;
+	svm.svm_cid = VMADDR_CID_ANY;
+
+	if (bind(sockfd, (struct sockaddr*)&svm, sizeof(svm))) {
+		xlog(L_ERROR, "unable to bind AF_VSOCK socket: "
+			      "errno %d (%m)", errno);
+		goto out;
+	}
+
+	if (listen(sockfd, 64)) {
+		xlog(L_ERROR, "unable to create listening socket: "
+			      "errno %d (%m)", errno);
+		goto out;
+	}
+
+	fd = open(NFSD_PORTS_FILE, O_WRONLY);
+	if (fd < 0) {
+		xlog(L_ERROR, "couldn't open ports file: errno "
+		     "%d (%m)", errno);
+		goto out;
+	}
+	snprintf(buf, sizeof(buf), "%d\n", sockfd);
+	if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
+		xlog(L_ERROR, "unable to request vsock services: %m");
+		goto out;
+	}
+	rc = 0;
+out:
+	if (fd != -1)
+		close(fd);
+	if (sockfd != -1)
+		close(sockfd);
+	return rc;
 }
 
 void

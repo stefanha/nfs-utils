@@ -52,6 +52,10 @@ Listen for RDMA requests on an alternate port - may be a number or a
 name listed in
 .BR /etc/services .
 .TP
+.BI \-\-vsock= port
+Listen for vsock requests on a given port number.
+Requires NFS version 4.0 or later.
+.TP
 .B \-N " or " \-\-no-nfs-version vers
 This option can be used to request that 
 .B rpc.nfsd
