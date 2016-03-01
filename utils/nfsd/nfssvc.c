@@ -282,7 +282,7 @@ nfssvc_set_rdmaport(const char *port)
 	int fd;
 
 	if (sv)
-		nport = sv->s_port;
+		nport = ntohs(sv->s_port);
 	else {
 		char *ep;
 		nport = strtol(port, &ep, 10);
