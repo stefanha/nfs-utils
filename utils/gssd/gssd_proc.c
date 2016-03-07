@@ -393,7 +393,7 @@ create_auth_rpc_client(struct clnt_info *clp,
 	auth = authgss_create_default(rpc_clnt, tgtname, &sec);
 	if (!auth) {
 		/* Our caller should print appropriate message */
-		printerr(1, "WARNING: Failed to create krb5 context for "
+		printerr(2, "WARNING: Failed to create krb5 context for "
 			    "user with uid %d for server %s\n",
 			 uid, tgtname);
 		goto out_fail;
@@ -557,7 +557,7 @@ krb5_use_machine_creds(struct clnt_info *clp, uid_t uid, char *tgtname,
 				success++;
 				break;
 			}
-			printerr(2, "WARNING: Failed to create machine krb5"
+			printerr(2, "WARNING: Failed to create machine krb5 "
 				"context with cred cache %s for server %s\n",
 				*ccname, clp->servername);
 		}
@@ -565,12 +565,13 @@ krb5_use_machine_creds(struct clnt_info *clp, uid_t uid, char *tgtname,
 		if (!success) {
 			if(nocache == 0) {
 				nocache++;
-				printerr(2, "WARNING: Machine cache prematurely"					 "expired or corrupted trying to"
-					 "recreate cache for server %s\n",
+				printerr(2, "WARNING: Machine cache prematurely "
+					"expired or corrupted trying to "
+					"recreate cache for server %s\n",
 					clp->servername);
 			} else {
-				printerr(1, "WARNING: Failed to create machine"
-					 "krb5 context with any credentials"
+				printerr(1, "ERROR: Failed to create machine "
+					 "krb5 context with any credentials "
 					 "cache for server %s\n",
 					clp->servername);
 				goto out;
