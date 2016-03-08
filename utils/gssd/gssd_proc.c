@@ -231,7 +231,7 @@ populate_port(struct sockaddr *sa, const socklen_t salen,
 	switch (sa->sa_family) {
 	case AF_INET:
 		if (s4->sin_port != 0) {
-			printerr(4, "DEBUG: port already set to %d\n",
+			printerr(2, "DEBUG: port already set to %d\n",
 				 ntohs(s4->sin_port));
 			return 1;
 		}
@@ -239,7 +239,7 @@ populate_port(struct sockaddr *sa, const socklen_t salen,
 #ifdef IPV6_SUPPORTED
 	case AF_INET6:
 		if (s6->sin6_port != 0) {
-			printerr(4, "DEBUG: port already set to %d\n",
+			printerr(2, "DEBUG: port already set to %d\n",
 				 ntohs(s6->sin6_port));
 			return 1;
 		}
