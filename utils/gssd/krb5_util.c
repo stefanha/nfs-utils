@@ -796,7 +796,7 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 	char **realmnames = NULL;
 	char myhostname[NI_MAXHOST], targethostname[NI_MAXHOST];
 	char myhostad[NI_MAXHOST+1];
-	int i, j, retval;
+	int i, j, k, retval;
 	char *default_realm = NULL;
 	char *realm;
 	char *k5err = NULL;
@@ -941,8 +941,8 @@ find_keytab_entry(krb5_context context, krb5_keytab kt, const char *tgtname,
 				 * moving on to the svcname
 				 */
 				if (strcmp(svcnames[j],"$") == 0 && !tried_upper) {
-					for (i = 0; myhostad[i] != '$'; ++i) {
-						myhostad[i] = toupper(myhostad[i]);
+					for (k = 0; myhostad[k] != '$'; ++k) {
+						myhostad[k] = toupper(myhostad[k]);
 					}
 					j--;
 					tried_upper = 1;
