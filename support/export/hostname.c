@@ -69,7 +69,7 @@ host_ntop(const struct sockaddr *sap, char *buf, const size_t buflen)
 
 	memset(buf, 0, buflen);
 
-	if (sin->sin_family != AF_INET)
+	if (sin->sin_family != AF_INET) {
 		(void)strncpy(buf, "bad family", buflen - 1);
 		return buf;
 	}
