@@ -115,10 +115,7 @@ must be invoked with the option
 .B \-n " or " \-\-no-tcp
 Don't advertise TCP for mount.
 .TP
-.B \-P
-Ignored (compatibility with unfsd??).
-.TP
-.B \-p num " or " \-\-port num
+.B \-p num " or " \-P num " or " \-\-port num
 Specifies the port number used for RPC listener sockets.
 If this option is not specified,
 .B rpc.mountd
