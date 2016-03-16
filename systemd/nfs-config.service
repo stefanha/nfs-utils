@@ -5,5 +5,9 @@ DefaultDependencies=no
 
 [Service]
 Type=oneshot
-RemainAfterExit=yes
+# This service needs to run any time any nfs service
+# is started, so changes to local config files get
+# incorporated.  Having "RemainAfterExit=no" (the default)
+# ensures this happens.
+RemainAfterExit=no
 ExecStart=/usr/lib/systemd/scripts/nfs-utils_env.sh
