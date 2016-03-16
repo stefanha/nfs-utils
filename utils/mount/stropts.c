@@ -960,6 +960,15 @@ static int nfsmount_fg(struct nfsmount_info *mi)
 		if (nfs_try_mount(mi))
 			return EX_SUCCESS;
 
+		if (errno == EBUSY)
+			/* The only cause of EBUSY is if exactly the desired
+			 * filesystem is already mounted.  That can arguably
+			 * be seen as success.  "mount -a" tries to optimise
+			 * out this case but sometimes fails.  Help it out
+			 * by pretending everything is rosy
+			 */
+			return EX_SUCCESS;
+
 		if (nfs_is_permanent_error(errno))
 			break;
 
