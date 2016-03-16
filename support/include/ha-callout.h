@@ -47,7 +47,7 @@ ha_callout(char *event, char *arg1, char *arg2, int arg3)
 			      arg3 < 0 ? NULL : buf,
 			      NULL);
 			perror("execl");
-			exit(2);
+			_exit(2);
 		case -1: perror("fork");
 			break;
 		default: pid = waitpid(pid, &ret, 0);
