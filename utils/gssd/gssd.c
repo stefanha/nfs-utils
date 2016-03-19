@@ -400,8 +400,9 @@ gssd_get_clnt(struct topdir *tdi, const char *name)
 
 	clp->wd = inotify_add_watch(inotify_fd, clp->relpath, IN_CREATE | IN_DELETE);
 	if (clp->wd < 0) {
-		printerr(0, "ERROR: inotify_add_watch failed for %s: %s\n",
-			 clp->relpath, strerror(errno));
+		if (errno != ENOENT)
+			printerr(0, "ERROR: inotify_add_watch failed for %s: %s\n",
+			 	clp->relpath, strerror(errno));
 		goto out;
 	}
 
