@@ -53,7 +53,7 @@ client and systemd cannot specify is two-pronged reverse dependency.
 (i.e. stop this unit if none of these units are running)
 
 Distro specific commandline configuration can be provided by
-installing a script /usr/lib/systemd/scripts/nfs-utils_env.sh
+installing a script /usr/libexec/nfs-utils/nfs-utils_env.sh
 This should write /run/sysconfig/nfs-utils based on configuration
 information such as in /etc/sysconfig/nfs or /etc/defaults/nfs.
 It is run once by nfs-config.service.
