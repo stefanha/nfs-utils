@@ -866,21 +866,16 @@ main(int argc, char *argv[])
 		progname = argv[0];
 
 	initerr(progname, verbosity, fg);
-#ifdef HAVE_AUTHGSS_SET_DEBUG_LEVEL
-	if (verbosity && rpc_verbosity == 0)
-		rpc_verbosity = verbosity;
-	authgss_set_debug_level(rpc_verbosity);
-#elif HAVE_LIBTIRPC_SET_DEBUG
+#ifdef HAVE_LIBTIRPC_SET_DEBUG
 	/*
-	 * Only set the libtirpc debug level if explicitly requested via -r...
-	 * gssd is chatty enough as it is.
+	 * Only set the libtirpc debug level if explicitly requested via -r.
 	 */
 	if (rpc_verbosity > 0)
 		libtirpc_set_debug(progname, rpc_verbosity, fg);
 #else
-        if (rpc_verbosity > 0)
-		printerr(0, "Warning: rpcsec_gss library does not "
-			    "support setting debug level\n");
+	if (rpc_verbosity > 0)
+		printerr(0, "Warning: libtirpc does not "
+			    "support setting debug levels\n");
 #endif
 
 	if (gssd_check_mechs() != 0)
