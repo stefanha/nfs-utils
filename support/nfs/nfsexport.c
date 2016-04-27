@@ -19,6 +19,7 @@
 
 #include "nfslib.h"
 #include "misc.h"
+#include "xcommon.h"
 
 	/* if /proc/net/rpc/... exists, then 
 	 * write to it, as that interface is more stable.

@@ -31,6 +31,7 @@
 #include "mountd.h"
 #include "fsloc.h"
 #include "pseudoflavors.h"
+#include "xcommon.h"
 
 #ifdef USE_BLKID
 #include "blkid/blkid.h"

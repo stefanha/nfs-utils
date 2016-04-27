@@ -51,6 +51,7 @@
 #include <libdevmapper.h>
 
 #include "device-discovery.h"
+#include "xcommon.h"
 
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define EVENT_BUFSIZE (1024 * EVENT_SIZE)

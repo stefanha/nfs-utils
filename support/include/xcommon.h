@@ -17,6 +17,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef MAJOR_IN_MKDEV
+#include <sys/mkdev.h>
+#elif defined(MAJOR_IN_SYSMACROS)
+#include <sys/sysmacros.h>
+#endif
+
 #define streq(s, t)	(strcmp ((s), (t)) == 0)
 
 /* Functions in sundries.c that are used in mount.c and umount.c  */ 
