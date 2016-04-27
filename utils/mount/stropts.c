@@ -383,23 +383,32 @@ static int nfs_validate_options(struct nfsmount_info *mi)
 	if (!nfs_nfs_proto_family(mi->options, &family))
 		return 0;
 
-	hint.ai_family = (int)family;
-	error = getaddrinfo(mi->hostname, NULL, &hint, &mi->address);
-	if (error != 0) {
-		nfs_error(_("%s: Failed to resolve server %s: %s"),
-			progname, mi->hostname, gai_strerror(error));
-		mi->address = NULL;
-		return 0;
+	/*
+	 * A remount is not going to be able to change the server's address,
+	 * nor should we try to resolve another address for the server as we
+	 * may end up with a different address.
+	 */
+	if (mi->flags & MS_REMOUNT) {
+		po_remove_all(mi->options, "addr");
+	} else {
+		hint.ai_family = (int)family;
+		error = getaddrinfo(mi->hostname, NULL, &hint, &mi->address);
+		if (error != 0) {
+			nfs_error(_("%s: Failed to resolve server %s: %s"),
+				progname, mi->hostname, gai_strerror(error));
+			mi->address = NULL;
+			return 0;
+		}
+
+		if (!nfs_append_addr_option(mi->address->ai_addr,
+						mi->address->ai_addrlen, mi->options))
+			return 0;
 	}
 
 	if (!nfs_set_version(mi))
 		return 0;
 
 	if (!nfs_append_sloppy_option(mi->options))
-		return 0;
-
-	if (!nfs_append_addr_option(mi->address->ai_addr,
-					mi->address->ai_addrlen, mi->options))
 		return 0;
 
 	return 1;
