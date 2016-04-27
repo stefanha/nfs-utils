@@ -795,6 +795,7 @@ int start_statd(void)
 		if (S_ISREG(stb.st_mode) && (stb.st_mode & S_IXUSR)) {
 			int cnt = STATD_TIMEOUT * 10;
 			int status = 0;
+			char * const envp[1] = { NULL };
 			const struct timespec ts = {
 				.tv_sec = 0,
 				.tv_nsec = 100000000,
@@ -802,7 +803,9 @@ int start_statd(void)
 			pid_t pid = fork();
 			switch (pid) {
 			case 0: /* child */
-				execl(START_STATD, START_STATD, NULL);
+				setgid(0);
+				setuid(0);
+				execle(START_STATD, START_STATD, NULL, envp);
 				exit(1);
 			case -1: /* error */
 				nfs_error(_("%s: fork failed: %s"),
