@@ -630,36 +630,6 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	if (uid != 0 || (uid == 0 && root_uses_machine_creds == 0 &&
 				service == NULL)) {
 
-		/* already running as uid 0 */
-		if (uid == 0)
-			goto no_fork;
-
-		pid = fork();
-		switch(pid) {
-		case 0:
-			/* Child: fall through to rest of function */
-			childpid = getpid();
-			unsetenv("KRB5CCNAME");
-			printerr(2, "CHILD forked pid %d \n", childpid);
-			break;
-		case -1:
-			/* fork() failed! */
-			printerr(0, "WARNING: unable to fork() to handle"
-				"upcall: %s\n", strerror(errno));
-			return;
-		default:
-			/* Parent: just wait on child to exit and return */
-			do {
-				pid = wait(&err);
-			} while(pid == -1 && errno != -ECHILD);
-
-			if (WIFSIGNALED(err))
-				printerr(0, "WARNING: forked child was killed"
-					 "with signal %d\n", WTERMSIG(err));
-			return;
-		}
-no_fork:
-
 		auth = krb5_not_machine_creds(clp, uid, tgtname, &downcall_err,
 						&err, &rpc_clnt);
 		if (err)
@@ -736,12 +706,29 @@ out_return_error:
 	goto out;
 }
 
+/* signal to the parent thread that we have read from the file descriptor.
+ * it should allow the parent to proceed to poll on the descriptor for
+ * the next upcall from the kernel.
+ */
+static inline void
+signal_parent_event_consumed(void)
+{
+	pthread_mutex_lock(&pmutex);
+	thread_started = true;
+	pthread_cond_signal(&pcond);
+	pthread_mutex_unlock(&pmutex);
+}
+
 void
 handle_krb5_upcall(struct clnt_info *clp)
 {
 	uid_t			uid;
+	int 			status;
 
-	if (read(clp->krb5_fd, &uid, sizeof(uid)) < (ssize_t)sizeof(uid)) {
+	status = read(clp->krb5_fd, &uid, sizeof(uid)) < (ssize_t)sizeof(uid);
+	signal_parent_event_consumed();
+
+	if (status) {
 		printerr(0, "WARNING: failed reading uid from krb5 "
 			    "upcall pipe: %s\n", strerror(errno));
 		return;
@@ -766,6 +753,8 @@ handle_gssd_upcall(struct clnt_info *clp)
 	char			*enctypes = NULL;
 
 	lbuflen = read(clp->gssd_fd, lbuf, sizeof(lbuf));
+	signal_parent_event_consumed();
+
 	if (lbuflen <= 0 || lbuf[lbuflen-1] != '\n') {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "failed reading request\n");

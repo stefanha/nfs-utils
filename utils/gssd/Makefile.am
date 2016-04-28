@@ -49,7 +49,8 @@ gssd_LDADD = \
 	$(RPCSECGSS_LIBS) \
 	$(KRBLIBS) \
 	$(GSSAPI_LIBS) \
-	$(LIBTIRPC)
+	$(LIBTIRPC) \
+	$(LIBPTHREAD)
 
 gssd_LDFLAGS = \
 	$(KRBLDFLAGS)

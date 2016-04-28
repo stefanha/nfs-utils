@@ -87,7 +87,9 @@ unsigned int  rpc_timeout = 5;
 char *preferred_realm = NULL;
 /* Avoid DNS reverse lookups on server names */
 static bool avoid_dns = true;
-
+int thread_started = false;
+pthread_mutex_t pmutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t pcond = PTHREAD_COND_INITIALIZER;
 
 TAILQ_HEAD(topdir_list_head, topdir) topdir_list;
 
@@ -361,20 +363,54 @@ gssd_destroy_client(struct clnt_info *clp)
 
 static void gssd_scan(void);
 
+static inline void 
+wait_for_child_and_detach(pthread_t th)
+{
+	pthread_mutex_lock(&pmutex);
+	while (!thread_started)
+		pthread_cond_wait(&pcond, &pmutex);
+	thread_started = false;
+	pthread_mutex_unlock(&pmutex);
+	pthread_detach(th);
+}
+
+/* For each upcall create a thread, detach from the main process so that
+ * resources are released back into the system without the need for a join.
+ * We need to wait for the child thread to start and consume the event from
+ * the file descriptor.
+ */
 static void
 gssd_clnt_gssd_cb(int UNUSED(fd), short UNUSED(which), void *data)
 {
 	struct clnt_info *clp = data;
+	pthread_t th;
+	int ret;
 
-	handle_gssd_upcall(clp);
+	ret = pthread_create(&th, NULL, (void *)handle_gssd_upcall,
+				(void *)clp);
+	if (ret != 0) {
+		printerr(0, "ERROR: pthread_create failed: ret %d: %s\n",
+			 ret, strerror(errno));
+		return;
+	}
+	wait_for_child_and_detach(th);
 }
 
 static void
 gssd_clnt_krb5_cb(int UNUSED(fd), short UNUSED(which), void *data)
 {
 	struct clnt_info *clp = data;
+	pthread_t th;
+	int ret;
 
-	handle_krb5_upcall(clp);
+	ret = pthread_create(&th, NULL, (void *)handle_krb5_upcall,
+				(void *)clp);
+	if (ret != 0) {
+		printerr(0, "ERROR: pthread_create failed: ret %d: %s\n",
+			 ret, strerror(errno));
+		return;
+	}
+	wait_for_child_and_detach(th);
 }
 
 static struct clnt_info *

@@ -36,6 +36,7 @@
 #include <gssapi/gssapi.h>
 #include <event.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #ifndef GSSD_PIPEFS_DIR
 #define GSSD_PIPEFS_DIR		"/var/lib/nfs/rpc_pipefs"
@@ -61,6 +62,10 @@ extern int			root_uses_machine_creds;
 extern unsigned int 		context_timeout;
 extern unsigned int rpc_timeout;
 extern char			*preferred_realm;
+extern pthread_mutex_t ple_lock;
+extern pthread_cond_t pcond;
+extern pthread_mutex_t pmutex;
+extern int thread_started;
 
 struct clnt_info {
 	TAILQ_ENTRY(clnt_info)	list;

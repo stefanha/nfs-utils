@@ -382,6 +382,9 @@ if test "$enable_gss" = yes; then
   dnl Check for Kerberos V5
   AC_KERBEROS_V5
 
+  dnl Check for pthreads
+  AC_LIBPTHREAD
+
   dnl librpcsecgss already has a dependency on libgssapi,
   dnl but we need to make sure we get the right version
   if test "$enable_gss" = yes; then
