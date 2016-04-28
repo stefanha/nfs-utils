@@ -69,6 +69,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <syscall.h>
 
 #include "gssd.h"
 #include "err_util.h"
@@ -436,7 +437,7 @@ change_identity(uid_t uid)
 	struct passwd	*pw;
 
 	/* drop list of supplimentary groups first */
-	if (setgroups(0, NULL) != 0) {
+	if (syscall(SYS_setgroups, 0, 0) != 0) {
 		printerr(0, "WARNING: unable to drop supplimentary groups!");
 		return errno;
 	}
@@ -453,20 +454,18 @@ change_identity(uid_t uid)
 		}
 	}
 
-	/*
-	 * Switch the GIDs. Note that we leave the saved-set-gid alone in an
-	 * attempt to prevent attacks via ptrace()
+	/* Switch the UIDs and GIDs. */
+	/* For the threaded version we have to set uid,gid per thread instead
+	 * of per process. glibc setresuid() when called from a thread, it'll
+	 * send a signal to all other threads to synchronize the uid in all
+	 * other threads. To bypass this, we have to call syscall() directly.
 	 */
-	if (setresgid(pw->pw_gid, pw->pw_gid, -1) != 0) {
+	if (syscall(SYS_setresgid, pw->pw_gid, pw->pw_gid, pw->pw_gid) != 0) {
 		printerr(0, "WARNING: failed to set gid to %u!\n", pw->pw_gid);
 		return errno;
 	}
 
-	/*
-	 * Switch UIDs, but leave saved-set-uid alone to prevent ptrace() by
-	 * other processes running with this uid.
-	 */
-	if (setresuid(uid, uid, -1) != 0) {
+	if (syscall(SYS_setresuid, uid, uid, uid) != 0) {
 		printerr(0, "WARNING: Failed to setuid for user with uid %u\n",
 				uid);
 		return errno;
