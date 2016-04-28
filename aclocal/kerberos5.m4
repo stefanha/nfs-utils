@@ -43,15 +43,6 @@ AC_DEFUN([AC_KERBEROS_V5],[
                    -f $dir/lib/libgssapi_krb5.so \) ; then
          AC_DEFINE(HAVE_KRB5, 1, [Define this if you have MIT Kerberos libraries])
          KRBDIR="$dir"
-  dnl If we are using MIT K5 1.3.1 and before, we *MUST* use the
-  dnl private function (gss_krb5_ccache_name) to get correct
-  dnl behavior of changing the ccache used by gssapi.
-  dnl Starting in 1.3.2, we *DO NOT* want to use
-  dnl gss_krb5_ccache_name, instead we want to set KRB5CCNAME
-  dnl to get gssapi to use a different ccache
-         if test $K5VERS -le 131; then
-           AC_DEFINE(USE_GSS_KRB5_CCACHE_NAME, 1, [Define this if the private function, gss_krb5_cache_name, must be used to tell the Kerberos library which credentials cache to use. Otherwise, this is done by setting the KRB5CCNAME environment variable])
-         fi
          gssapi_lib=gssapi_krb5
          break
       dnl The following ugly hack brought on by the split installation
@@ -92,8 +83,6 @@ AC_DEFUN([AC_KERBEROS_V5],[
     AC_DEFINE(HAVE_LUCID_CONTEXT_SUPPORT, 1, [Define this if the Kerberos GSS library supports gss_krb5_export_lucid_sec_context]), ,$KRBLIBS)
   AC_CHECK_LIB($gssapi_lib, gss_krb5_set_allowable_enctypes,
     AC_DEFINE(HAVE_SET_ALLOWABLE_ENCTYPES, 1, [Define this if the Kerberos GSS library supports gss_krb5_set_allowable_enctypes]), ,$KRBLIBS)
-  AC_CHECK_LIB($gssapi_lib, gss_krb5_ccache_name,
-    AC_DEFINE(HAVE_GSS_KRB5_CCACHE_NAME, 1, [Define this if the Kerberos GSS library supports gss_krb5_ccache_name]), ,$KRBLIBS)
   AC_CHECK_LIB($gssapi_lib, gss_krb5_free_lucid_sec_context,
     AC_DEFINE(HAVE_GSS_KRB5_FREE_LUCID_SEC_CONTEXT, 1, [Define this if the Kerberos GSS library supports gss_krb5_free_lucid_sec_context]), ,$KRBLIBS)
 

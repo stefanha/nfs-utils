@@ -547,7 +547,15 @@ krb5_use_machine_creds(struct clnt_info *clp, uid_t uid, char *tgtname,
 			goto out;
 		}
 		for (ccname = credlist; ccname && *ccname; ccname++) {
-			gssd_setup_krb5_machine_gss_ccache(*ccname);
+			u_int min_stat;
+
+			if (gss_krb5_ccache_name(&min_stat, *ccname, NULL) !=
+					GSS_S_COMPLETE) {
+				printerr(1, "WARNING: gss_krb5_ccache_name "
+					 "with name '%s' failed (%s)\n",
+					 *ccname, error_message(min_stat));
+				continue;
+			}
 			if ((create_auth_rpc_client(clp, tgtname, rpc_clnt,
 						&auth, uid,
 						AUTHTYPE_KRB5,

@@ -468,37 +468,6 @@ gssd_get_single_krb5_cred(krb5_context context,
 }
 
 /*
- * Depending on the version of Kerberos, we either need to use
- * a private function, or simply set the environment variable.
- */
-static void
-gssd_set_krb5_ccache_name(char *ccname)
-{
-#ifdef USE_GSS_KRB5_CCACHE_NAME
-	u_int	maj_stat, min_stat;
-
-	printerr(3, "using gss_krb5_ccache_name to select krb5 ccache %s\n",
-		 ccname);
-	maj_stat = gss_krb5_ccache_name(&min_stat, ccname, NULL);
-	if (maj_stat != GSS_S_COMPLETE) {
-		printerr(0, "WARNING: gss_krb5_ccache_name with "
-			"name '%s' failed (%s)\n",
-			ccname, error_message(min_stat));
-	}
-#else
-	/*
-	 * Set the KRB5CCNAME environment variable to tell the krb5 code
-	 * which credentials cache to use.  (Instead of using the private
-	 * function above for which there is no generic gssapi
-	 * equivalent.)
-	 */
-	printerr(3, "using environment variable to select krb5 ccache %s\n",
-		 ccname);
-	setenv("KRB5CCNAME", ccname, 1);
-#endif
-}
-
-/*
  * Given a principal, find a matching ple structure
  */
 static struct gssd_k5_kt_princ *
@@ -1094,6 +1063,7 @@ gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirpattern)
 	const char		*cctype;
 	struct dirent		*d;
 	int			err, i, j;
+	u_int			maj_stat, min_stat;
 
 	printerr(3, "looking for client creds with uid %u for "
 		    "server %s in %s\n", uid, servername, dirpattern);
@@ -1129,22 +1099,16 @@ gssd_setup_krb5_user_gss_ccache(uid_t uid, char *servername, char *dirpattern)
 
 	printerr(2, "using %s as credentials cache for client with "
 		    "uid %u for server %s\n", buf, uid, servername);
-	gssd_set_krb5_ccache_name(buf);
-	return 0;
-}
 
-/*
- * Let the gss code know where to find the machine credentials ccache.
- *
- * Returns:
- *	void
- */
-void
-gssd_setup_krb5_machine_gss_ccache(char *ccname)
-{
-	printerr(2, "using %s as credentials cache for machine creds\n",
-		 ccname);
-	gssd_set_krb5_ccache_name(ccname);
+	printerr(3, "using gss_krb5_ccache_name to select krb5 ccache %s\n",
+		 buf);
+	maj_stat = gss_krb5_ccache_name(&min_stat, buf, NULL);
+	if (maj_stat != GSS_S_COMPLETE) {
+		printerr(0, "ERROR: unable to get user cred cache '%s' "
+			 "failed (%s)\n", buf, error_message(min_stat));
+		return maj_stat;
+	}
+	return 0;
 }
 
 /*
