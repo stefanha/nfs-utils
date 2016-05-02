@@ -108,10 +108,13 @@ main(int argc, char **argv)
 	xlog_stderr(1);
 	xlog_syslog(0);
 
-	while ((c = getopt(argc, argv, "afhio:ruvs")) != EOF) {
+	while ((c = getopt(argc, argv, "ad:fhio:ruvs")) != EOF) {
 		switch(c) {
 		case 'a':
 			f_all = 1;
+			break;
+		case 'd':
+			xlog_sconfig(optarg, 1);
 			break;
 		case 'f':
 			force_flush = 1;
@@ -878,6 +881,6 @@ error(nfs_export *exp, int err)
 static void
 usage(const char *progname, int n)
 {
-	fprintf(stderr, "usage: %s [-afhioruvs] [host:/path]\n", progname);
+	fprintf(stderr, "usage: %s [-adfhioruvs] [host:/path]\n", progname);
 	exit(n);
 }

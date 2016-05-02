@@ -88,6 +88,9 @@ appropriate export entry for the host given in
 to be added to the kernel's export table.
 .SH OPTIONS
 .TP
+.B \-d kind " or " \-\-debug kind
+Turn on debugging. Valid kinds are: all, auth, call, general and parse.
+.TP
 .B -a
 Export or unexport all directories.
 .TP
