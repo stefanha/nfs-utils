@@ -230,7 +230,7 @@ host_canonname(const struct sockaddr *sap)
 	default:
 		(void)getnameinfo(sap, salen, buf, (socklen_t)sizeof(buf),
 							NULL, 0, NI_NUMERICHOST);
-		xlog(D_GENERAL, "%s: failed to resolve %s: %s",
+		xlog(D_PARSE, "%s: failed to resolve %s: %s",
 				__func__, buf, gai_strerror(error));
 		return NULL;
 	}
