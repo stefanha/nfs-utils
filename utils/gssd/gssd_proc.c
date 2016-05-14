@@ -603,7 +603,6 @@ process_krb5_upcall(struct clnt_info *clp, uid_t uid, int fd, char *tgtname,
 	gss_buffer_desc		token;
 	int			err, downcall_err = -EACCES;
 	OM_uint32		maj_stat, min_stat, lifetime_rec;
-	pid_t			pid, childpid = -1;
 	gss_name_t		gacceptor = GSS_C_NO_NAME;
 	gss_OID			mech;
 	gss_buffer_desc		acceptor  = {0};
@@ -701,11 +700,7 @@ out:
 	if (rpc_clnt)
 		clnt_destroy(rpc_clnt);
 
-	pid = getpid();
-	if (pid == childpid)
-		exit(0);
-	else
-		return;
+	return;
 
 out_return_error:
 	do_error_downcall(fd, uid, downcall_err);
