@@ -79,7 +79,6 @@
 #include "nfsrpc.h"
 #include "nfslib.h"
 #include "gss_names.h"
-#include "misc.h"
 
 /* Encryption types supported by the kernel rpcsec_gss code */
 int num_krb5_enctypes = 0;
@@ -713,45 +712,22 @@ out_return_error:
 	goto out;
 }
 
-/* signal to the parent thread that we have read from the file descriptor.
- * it should allow the parent to proceed to poll on the descriptor for
- * the next upcall from the kernel.
- */
-static inline void
-signal_parent_event_consumed(void)
+void
+handle_krb5_upcall(struct clnt_upcall_info *info)
 {
-	pthread_mutex_lock(&pmutex);
-	thread_started = true;
-	pthread_cond_signal(&pcond);
-	pthread_mutex_unlock(&pmutex);
+	struct clnt_info *clp = info->clp;
+
+	printerr(2, "\n%s: uid %d (%s)\n", __func__, info->uid, clp->relpath);
+
+	process_krb5_upcall(clp, info->uid, clp->krb5_fd, NULL, NULL);
+	free(info);
 }
 
 void
-handle_krb5_upcall(struct clnt_info *clp)
+handle_gssd_upcall(struct clnt_upcall_info *info)
 {
+	struct clnt_info	*clp = info->clp;
 	uid_t			uid;
-	int 			status;
-
-	status = read(clp->krb5_fd, &uid, sizeof(uid)) < (ssize_t)sizeof(uid);
-	signal_parent_event_consumed();
-
-	if (status) {
-		printerr(0, "WARNING: failed reading uid from krb5 "
-			    "upcall pipe: %s\n", strerror(errno));
-		return;
-	}
-
-	printerr(2, "\n%s: uid %d (%s)\n", __func__, uid, clp->relpath);
-
-	process_krb5_upcall(clp, uid, clp->krb5_fd, NULL, NULL);
-}
-
-void
-handle_gssd_upcall(struct clnt_info *clp)
-{
-	uid_t			uid;
-	char			lbuf[RPC_CHAN_BUF_SIZE];
-	int			lbuflen = 0;
 	char			*p;
 	char			*mech = NULL;
 	char			*uidstr = NULL;
@@ -759,19 +735,9 @@ handle_gssd_upcall(struct clnt_info *clp)
 	char			*service = NULL;
 	char			*enctypes = NULL;
 
-	lbuflen = read(clp->gssd_fd, lbuf, sizeof(lbuf));
-	signal_parent_event_consumed();
+	printerr(2, "\n%s: '%s' (%s)\n", __func__, info->lbuf, clp->relpath);
 
-	if (lbuflen <= 0 || lbuf[lbuflen-1] != '\n') {
-		printerr(0, "WARNING: handle_gssd_upcall: "
-			    "failed reading request\n");
-		return;
-	}
-	lbuf[lbuflen-1] = 0;
-
-	printerr(2, "\n%s: '%s' (%s)\n", __func__, lbuf, clp->relpath);
-
-	for (p = strtok(lbuf, " "); p; p = strtok(NULL, " ")) {
+	for (p = strtok(info->lbuf, " "); p; p = strtok(NULL, " ")) {
 		if (!strncmp(p, "mech=", strlen("mech=")))
 			mech = p + strlen("mech=");
 		else if (!strncmp(p, "uid=", strlen("uid=")))
@@ -787,8 +753,8 @@ handle_gssd_upcall(struct clnt_info *clp)
 	if (!mech || strlen(mech) < 1) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "failed to find gss mechanism name "
-			    "in upcall string '%s'\n", lbuf);
-		return;
+			    "in upcall string '%s'\n", info->lbuf);
+		goto out;
 	}
 
 	if (uidstr) {
@@ -800,21 +766,21 @@ handle_gssd_upcall(struct clnt_info *clp)
 	if (!uidstr) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "failed to find uid "
-			    "in upcall string '%s'\n", lbuf);
-		return;
+			    "in upcall string '%s'\n", info->lbuf);
+		goto out;
 	}
 
 	if (enctypes && parse_enctypes(enctypes) != 0) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			 "parsing encryption types failed: errno %d\n", errno);
-		return;
+		goto out;
 	}
 
 	if (target && strlen(target) < 1) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			 "failed to parse target name "
-			 "in upcall string '%s'\n", lbuf);
-		return;
+			 "in upcall string '%s'\n", info->lbuf);
+		goto out;
 	}
 
 	/*
@@ -828,8 +794,8 @@ handle_gssd_upcall(struct clnt_info *clp)
 	if (service && strlen(service) < 1) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			 "failed to parse service type "
-			 "in upcall string '%s'\n", lbuf);
-		return;
+			 "in upcall string '%s'\n", info->lbuf);
+		goto out;
 	}
 
 	if (strcmp(mech, "krb5") == 0 && clp->servername)
@@ -840,5 +806,8 @@ handle_gssd_upcall(struct clnt_info *clp)
 				 "received unknown gss mech '%s'\n", mech);
 		do_error_downcall(clp->gssd_fd, uid, -EACCES);
 	}
+out:
+	free(info);
+	return;
 }
 

@@ -49,7 +49,7 @@
 #define GSSD_DEFAULT_MACHINE_CRED_SUFFIX	"machine"
 #define GSSD_DEFAULT_KEYTAB_FILE		"/etc/krb5.keytab"
 #define GSSD_SERVICE_NAME			"nfs"
-
+#define RPC_CHAN_BUF_SIZE			32768
 /*
  * The gss mechanisms that we can handle
  */
@@ -85,8 +85,15 @@ struct clnt_info {
 	struct			sockaddr_storage addr;
 };
 
-void handle_krb5_upcall(struct clnt_info *clp);
-void handle_gssd_upcall(struct clnt_info *clp);
+struct clnt_upcall_info {
+	struct clnt_info 	*clp;
+	char			lbuf[RPC_CHAN_BUF_SIZE];
+	int			lbuflen;
+	uid_t			uid;
+};
+
+void handle_krb5_upcall(struct clnt_upcall_info *clp);
+void handle_gssd_upcall(struct clnt_upcall_info *clp);
 
 
 #endif /* _RPC_GSSD_H_ */
