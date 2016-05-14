@@ -9,7 +9,7 @@
 .SH NAME
 blkmapd \- pNFS block layout mapping daemon
 .SH SYNOPSIS
-.B "blkmapd [-d] [-f]"
+.B "blkmapd [-h] [-d] [-f]"
 .SH DESCRIPTION
 The
 .B blkmapd
@@ -32,6 +32,9 @@ daemon uses the device-mapper driver to construct logical devices that
 reflect the server topology, and passes these devices to the kernel for use
 by the pNFS block layout client.
 .SH OPTIONS
+.TP
+.B -h
+Display usage message.
 .TP
 .B -d
 Performs device discovery only then exits.
