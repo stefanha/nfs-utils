@@ -303,6 +303,22 @@ gssd_read_service_info(int dirfd, struct clnt_info *clp)
 		goto fail;
 	}
 
+	/*
+	 * The user space RPC library has no support for
+	 * RPC-over-RDMA at this time, so change 'rdma'
+	 * to 'tcp', and '20049' to '2049'.
+	 */
+	if (strcmp(protoname, "rdma") == 0) {
+		free(protoname);
+		protoname = strdup("tcp");
+		if (!protoname)
+			goto fail;
+		free(port);
+		port = strdup("2049");
+		if (!port)
+			goto fail;
+	}
+
 	if (!gssd_addrstr_to_sockaddr((struct sockaddr *)&clp->addr,
 				 address, port ? port : ""))
 		goto fail;
