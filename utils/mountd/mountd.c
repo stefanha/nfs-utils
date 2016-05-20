@@ -911,7 +911,7 @@ usage(const char *prog, int n)
 "	[-o num|--descriptors num] [-f exports-file|--exports-file=file]\n"
 "	[-p|--port port] [-V version|--nfs-version version]\n"
 "	[-N version|--no-nfs-version version] [-n|--no-tcp]\n"
-"	[-H ha-callout prog] [-r | --reverse-lookup]\n"
+"	[-H prog |--ha-callout prog] [-r |--reverse-lookup]\n"
 "	[-s|--state-directory-path path] [-g|--manage-gids]\n"
 "	[-t num|--num-threads=num] [-u|--no-udp]\n", prog);
 	exit(n);
