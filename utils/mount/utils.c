@@ -110,7 +110,7 @@ void mount_usage(void)
 void umount_usage(void)
 {
 	printf(_("usage: %s dir [-fvnrlh]\n"), progname);
-	printf(_("options:\n\t-f\t\tforce unmount\n"));
+	printf(_("options:\n\t-f\tforce unmount\n"));
 	printf(_("\t-v\tverbose\n"));
 	printf(_("\t-n\tDo not update /etc/mtab\n"));
 	printf(_("\t-r\tremount\n"));
