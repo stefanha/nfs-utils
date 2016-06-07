@@ -208,6 +208,7 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 
 	if (!spec || (*spec != '/' && strchr(spec,':') == NULL)) {
 		nfs_error(_("%s: no mount point provided"), progname);
+		umount_usage();
 		return EX_USAGE;
 	}
 
@@ -329,6 +330,7 @@ static int mount_main(struct libmnt_context *cxt, int argc, char **argv)
 
 	if (!mount_point) {
 		nfs_error(_("%s: no mount point provided"), progname);
+		mount_usage();
 		goto err;
 	}
 	if (!spec) {
