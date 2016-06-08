@@ -15,6 +15,8 @@ nfsidmap \- The NFS idmapper upcall program
 .B "nfsidmap -d"
 .br
 .B "nfsidmap -l"
+.br
+.B "nfsidmap -h"
 .SH DESCRIPTION
 The NFSv4 protocol represents the local system's UID and GID values
 on the wire as strings of the form
@@ -70,6 +72,9 @@ Display the system's effective NFSv4 domain name on
 .TP
 .B -g user
 Revoke the gid key of the given user.
+.TP
+.B -h
+Display usage message.
 .TP
 .B -l
 Display on

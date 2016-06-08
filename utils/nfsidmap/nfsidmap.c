@@ -17,7 +17,7 @@
 #include "conffile.h"
 
 int verbose = 0;
-char *usage = "Usage: %s [-v] [-c || [-u|-g|-r key] || -d || -l || [-t timeout] key desc]";
+char *usage = "Usage: %s [-vh] [-c || [-u|-g|-r key] || -d || -l || [-t timeout] key desc]";
 
 #define MAX_ID_LEN   11
 #define IDMAP_NAMESZ 128
@@ -369,7 +369,7 @@ int main(int argc, char **argv)
 
 	xlog_open(progname);
 
-	while ((opt = getopt(argc, argv, "du:g:r:ct:vl")) != -1) {
+	while ((opt = getopt(argc, argv, "hdu:g:r:ct:vl")) != -1) {
 		switch (opt) {
 		case 'd':
 			display++;
@@ -398,9 +398,10 @@ int main(int argc, char **argv)
 		case 't':
 			timeout = atoi(optarg);
 			break;
+		case 'h':
 		default:
 			xlog_warn(usage, progname);
-			break;
+			exit(opt == 'h' ? 0 : 1);
 		}
 	}
 
