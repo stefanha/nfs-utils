@@ -6,6 +6,10 @@
 # site.
 PATH="/sbin:/usr/sbin:/bin:/usr/bin"
 
+# Use flock to serialize the running of this script
+exec 200> /var/run/rpc.statd.lock
+flock -e 200
+
 if [ -s /var/run/rpc.statd.pid ] &&
        [ 1`cat /var/run/rpc.statd.pid` -gt 1 ] &&
        kill -0 `cat /var/run/rpc.statd.pid` > /dev/null 2>&1
