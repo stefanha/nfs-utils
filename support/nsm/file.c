@@ -1013,7 +1013,7 @@ nsm_load_notify_list(nsm_populate_t func)
 
 static void
 nsm_delete_host(const char *directory, const char *hostname,
-		const char *mon_name, const char *my_name)
+		const char *mon_name, const char *my_name, const int chatty)
 {
 	char line[LINELEN + 1 + SM_MAXSTRLEN + 2];
 	char *outbuf = NULL;
@@ -1029,8 +1029,9 @@ nsm_delete_host(const char *directory, const char *hostname,
 	}
 
 	if (stat(path, &stb) == -1) {
-		xlog(L_ERROR, "Failed to delete: "
-			"could not stat original file %s: %m", path);
+		if (chatty)
+			xlog(L_ERROR, "Failed to delete: "
+				"could not stat original file %s: %m", path);
 		goto out;
 	}
 	remaining = (size_t)stb.st_size + 1;
@@ -1109,13 +1110,14 @@ out:
  * @hostname: '\0'-terminated C string containing hostname of record to delete
  * @mon_name: '\0'-terminated C string containing monname of record to delete
  * @my_name: '\0'-terminated C string containing myname of record to delete
+ * @chatty: should an error be logged if the monitor file doesn't exist?
  *
  */
 void
 nsm_delete_monitored_host(const char *hostname, const char *mon_name,
-		const char *my_name)
+		const char *my_name, const int chatty)
 {
-	nsm_delete_host(NSM_MONITOR_DIR, hostname, mon_name, my_name);
+	nsm_delete_host(NSM_MONITOR_DIR, hostname, mon_name, my_name, chatty);
 }
 
 /**
@@ -1129,5 +1131,5 @@ void
 nsm_delete_notified_host(const char *hostname, const char *mon_name,
 		const char *my_name)
 {
-	nsm_delete_host(NSM_NOTIFY_DIR, hostname, mon_name, my_name);
+	nsm_delete_host(NSM_NOTIFY_DIR, hostname, mon_name, my_name, 1);
 }

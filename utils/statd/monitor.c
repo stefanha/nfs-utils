@@ -193,7 +193,7 @@ sm_mon_1_svc(struct mon *argp, struct svc_req *rqstp)
 	 * Now, Create file on stable storage for host, first deleting any
 	 * existing records on file.
 	 */
-	nsm_delete_monitored_host(dnsname, mon_name, my_name);
+	nsm_delete_monitored_host(dnsname, mon_name, my_name, 0);
 
 	if (!nsm_insert_monitored_host(dnsname,
 				(struct sockaddr *)(char *)&my_addr, argp)) {
@@ -324,7 +324,7 @@ sm_unmon_1_svc(struct mon_id *argp, struct svc_req *rqstp)
 			ha_callout("del-client", mon_name, my_name, -1);
 
 			nsm_delete_monitored_host(clnt->dns_name,
-							mon_name, my_name);
+							mon_name, my_name, 1);
 			nlist_free(&rtnl, clnt);
 
 			return (&result);
@@ -379,7 +379,7 @@ sm_unmon_all_1_svc(struct my_id *argp, struct svc_req *rqstp)
 			/* PRC: do the HA callout: */
 			ha_callout("del-client", mon_name, my_name, -1);
 			nsm_delete_monitored_host(clnt->dns_name,
-							mon_name, my_name);
+							mon_name, my_name, 1);
 			nlist_free(&rtnl, clnt);
 			++count;
 			clnt = temp;
