@@ -22,7 +22,7 @@ nfsdcltrack \- NFSv4 Client Tracking Callout Program
 nfsdcltrack [\-d] [\-f] [\-s stable storage dir] <command> <args...>
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-nfsdcltack is the NFSv4 client tracking callout program. It is not necessary
+nfsdcltrack is the NFSv4 client tracking callout program. It is not necessary
 to install this program on machines that are not acting as NFSv4 servers.
 .PP
 When a network partition is combined with a server reboot, there are
