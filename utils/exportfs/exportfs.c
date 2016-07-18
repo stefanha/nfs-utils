@@ -585,8 +585,8 @@ validate_export(nfs_export *exp)
 		xlog(L_ERROR, "Failed to stat %s: %m", path);
 		return;
 	}
-	if (!S_ISDIR(stb.st_mode) && !S_ISREG(stb.st_mode)) {
-		xlog(L_ERROR, "%s is neither a directory nor a file. "
+	if (!S_ISDIR(stb.st_mode)) {
+		xlog(L_ERROR, "%s is not a directory. "
 			"Remote access will fail", path);
 		return;
 	}
