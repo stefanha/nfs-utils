@@ -436,7 +436,6 @@ static void usage(void)
 int main(int argc, char **argv)
 {
 	int opt, dflag = 0, fg = 0, ret = 1;
-	struct stat statbuf;
 	char pidbuf[64];
 
 	while ((opt = getopt(argc, argv, "hdf")) != -1) {
@@ -460,11 +459,6 @@ int main(int argc, char **argv)
 	if (fg) {
 		openlog("blkmapd", LOG_PERROR, 0);
 	} else {
-		if (!stat(PID_FILE, &statbuf)) {
-			fprintf(stderr, "Pid file %s already existed\n", PID_FILE);
-			exit(1);
-		}
-
 		if (daemon(0, 0) != 0) {
 			fprintf(stderr, "Daemonize failed\n");
 			exit(1);
@@ -478,7 +472,7 @@ int main(int argc, char **argv)
 		}
 
 		if (lockf(pidfd, F_TLOCK, 0) < 0) {
-			BL_LOG_ERR("Lock pid file %s failed\n", PID_FILE);
+			BL_LOG_ERR("Already running; Exiting!");
 			close(pidfd);
 			exit(1);
 		}
