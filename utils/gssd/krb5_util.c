@@ -1380,17 +1380,17 @@ gssd_acquire_user_cred(gss_cred_id_t *gss_cred)
 	int ret;
 
 	ret = gssd_acquire_krb5_cred(gss_cred);
+	if (ret)
+		return ret;
 
 	/* force validation of cred to check for expiry */
-	if (ret == 0) {
-		maj_stat = gss_inquire_cred(&min_stat, *gss_cred, 
+	maj_stat = gss_inquire_cred(&min_stat, *gss_cred,
 			NULL, NULL, NULL, NULL);
-		if (maj_stat != GSS_S_COMPLETE) {
-			if (get_verbosity() > 0)
-				pgsserr("gss_inquire_cred",
-					maj_stat, min_stat, &krb5oid);
-				ret = -1;
-			}
+	if (maj_stat != GSS_S_COMPLETE) {
+		if (get_verbosity() > 0)
+			pgsserr("gss_inquire_cred",
+				maj_stat, min_stat, &krb5oid);
+		ret = -1;
 	}
 
 	return ret;
