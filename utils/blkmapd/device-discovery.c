@@ -486,13 +486,13 @@ int main(int argc, char **argv)
 	signal(SIGHUP, SIG_IGN);
 
 	if (dflag) {
-		bl_discover_devices();
-		exit(0);
+		ret = bl_discover_devices();
+		goto out;
 	}
 
 	if ((bl_watch_fd = inotify_init()) < 0) {
 		BL_LOG_ERR("init inotify failed %s\n", strerror(errno));
-		exit(1);
+		goto out;
 	}
 
 	/* open pipe file */
@@ -513,7 +513,7 @@ int main(int argc, char **argv)
 			BL_LOG_ERR("inquiry process return %d\n", ret);
 		}
 	}
-
+out:
 	if (pidfd >= 0) {
 		close(pidfd);
 		unlink(PID_FILE);
