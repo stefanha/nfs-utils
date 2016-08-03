@@ -38,6 +38,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <linux/in6.h>
 #include <netinet/in.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
@@ -1113,6 +1114,7 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
 		.sin6_addr		= IN6ADDR_ANY_INIT,
 	};
 	int sock, result = 0;
+	int val;
 
 	sock = socket(sap->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0)
@@ -1124,6 +1126,9 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
 			goto out;
 		break;
 	case AF_INET6:
+		/* Make sure the call-back address is public/permanent */
+		val = IPV6_PREFER_SRC_PUBLIC;
+		setsockopt(sock, SOL_IPV6, IPV6_ADDR_PREFERENCES, &val, sizeof(val));
 		if (bind(sock, SAFE_SOCKADDR(&sin6), sizeof(sin6)) < 0)
 			goto out;
 		break;
