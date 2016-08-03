@@ -158,8 +158,8 @@ up to a maximum timeout length of 60 seconds.
 The number of times the NFS client retries a request before
 it attempts further recovery action. If the
 .B retrans
-option is not specified, the NFS client tries each request
-three times.
+option is not specified, the NFS client tries each UDP request
+three times and each TCP request twice.
 .IP
 The NFS client generates a "server not responding" message
 after
@@ -391,6 +391,16 @@ is 2 minutes, and the default value for background mounts is 10000 minutes
 If a value of zero is specified, the
 .BR mount (8)
 command exits immediately after the first failure.
+.IP
+Note that this only affects how many retries are made and doesn't
+affect the delay caused by each retry.  For UDP each retry takes the
+time determined by the
+.BR timeo
+and
+.BR retrans
+options, which by default will be about 7 seconds.  For TCP the
+default is 3 minutes, but system TCP connection timeouts will
+sometimes limit the timeout of each retransmission to around 2 minutes.
 .TP 1.5i
 .BI sec= flavors
 A colon-separated list of one or more security flavors to use for accessing
