@@ -84,6 +84,7 @@ struct nfsmount_info {
 				*type;		/* "nfs" or "nfs4" */
 	char			*hostname;	/* server's hostname */
 	struct addrinfo		*address;	/* server's addresses */
+	sa_family_t		family;		/* Address family */
 
 	struct mount_options	*options;	/* parsed mount options */
 	char			**extra_opts;	/* string for /etc/mtab */
@@ -371,39 +372,19 @@ static int nfs_set_version(struct nfsmount_info *mi)
  */
 static int nfs_validate_options(struct nfsmount_info *mi)
 {
-	struct addrinfo hint = {
-		.ai_protocol	= (int)IPPROTO_UDP,
-	};
-	sa_family_t family;
-	int error;
-
 	if (!nfs_parse_devname(mi->spec, &mi->hostname, NULL))
 		return 0;
 
-	if (!nfs_nfs_proto_family(mi->options, &family))
+	if (!nfs_nfs_proto_family(mi->options, &mi->family))
 		return 0;
 
 	/*
 	 * A remount is not going to be able to change the server's address,
 	 * nor should we try to resolve another address for the server as we
 	 * may end up with a different address.
+	 * A non-remount will set 'addr' from ->hostname
 	 */
-	if (mi->flags & MS_REMOUNT) {
-		po_remove_all(mi->options, "addr");
-	} else {
-		hint.ai_family = (int)family;
-		error = getaddrinfo(mi->hostname, NULL, &hint, &mi->address);
-		if (error != 0) {
-			nfs_error(_("%s: Failed to resolve server %s: %s"),
-				progname, mi->hostname, gai_strerror(error));
-			mi->address = NULL;
-			return 0;
-		}
-
-		if (!nfs_append_addr_option(mi->address->ai_addr,
-						mi->address->ai_addrlen, mi->options))
-			return 0;
-	}
+	po_remove_all(mi->options, "addr");
 
 	if (!nfs_set_version(mi))
 		return 0;
@@ -903,6 +884,32 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 {
 	int result = 0;
 
+	if (mi->address == NULL) {
+		struct addrinfo hint = {
+			.ai_protocol	= (int)IPPROTO_UDP,
+		};
+		int error;
+		struct addrinfo *address;
+
+		hint.ai_family = (int)mi->family;
+		error = getaddrinfo(mi->hostname, NULL, &hint, &address);
+		if (error != 0) {
+			if (error == EAI_AGAIN)
+				errno = EAGAIN;
+			else {
+				nfs_error(_("%s: Failed to resolve server %s: %s"),
+					  progname, mi->hostname, gai_strerror(error));
+				errno = EALREADY;
+			}
+			return 0;
+		}
+
+		if (!nfs_append_addr_option(address->ai_addr,
+					    address->ai_addrlen, mi->options))
+			return 0;
+		mi->address = address;
+	}
+
 	switch (mi->version.major) {
 		case 2:
 		case 3:
@@ -941,6 +948,7 @@ static int nfs_is_permanent_error(int error)
 	case ETIMEDOUT:
 	case ECONNREFUSED:
 	case EHOSTUNREACH:
+	case EAGAIN:
 		return 0;	/* temporary */
 	default:
 		return 1;	/* permanent */
