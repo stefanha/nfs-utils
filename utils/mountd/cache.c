@@ -1334,7 +1334,23 @@ static void nfsd_export(int f)
 	found = lookup_export(dom, path, ai);
 
 	if (found) {
-		if (dump_to_cache(f, buf, sizeof(buf), dom, path, &found->m_export, 0) < 0) {
+		char *mp = found->m_export.e_mountpoint;
+
+		if (mp && !*mp)
+			mp = found->m_export.e_path;
+		if (mp && !is_mountpoint(mp))
+			/* Exportpoint is not mounted, so tell kernel it is
+			 * not available.
+			 * This will cause it not to appear in the V4 Pseudo-root
+			 * and so a "mount" of this path will fail, just like with
+			 * V3.
+			 * And filehandle for this mountpoint from an earlier
+			 * mount will block in nfsd.fh lookup.
+			 */
+			dump_to_cache(f, buf, sizeof(buf), dom, path,
+				      NULL, 60);
+		else if (dump_to_cache(f, buf, sizeof(buf), dom, path,
+					 &found->m_export, 0) < 0) {
 			xlog(L_WARNING,
 			     "Cannot export %s, possibly unsupported filesystem"
 			     " or fsid= required", path);
