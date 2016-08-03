@@ -86,14 +86,6 @@ Turn on debugging. Valid kinds are: all, auth, call, general and parse.
 .B \-F " or " \-\-foreground
 Run in foreground (do not daemonize)
 .TP
-.B \-f export-file " or " \-\-exports-file export-file
-This option specifies the exports file, listing the clients that this
-server is prepared to serve and parameters to apply to each
-such mount (see
-.BR exports (5)).
-By default, export information is read from
-.IR /etc/exports .
-.TP
 .B \-h " or " \-\-help
 Display usage message.
 .TP

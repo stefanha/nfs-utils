@@ -36,7 +36,6 @@ enum auth_error
 };
 
 static void		auth_fixpath(char *path);
-static char	*export_file = NULL;
 static nfs_export my_exp;
 static nfs_client my_client;
 
@@ -44,10 +43,8 @@ extern int new_cache;
 extern int use_ipaddr;
 
 void
-auth_init(char *exports)
+auth_init(void)
 {
-
-	export_file = exports;
 	auth_reload();
 	xtab_mount_write();
 }

@@ -39,7 +39,7 @@ bool_t		mount_pathconf_2_svc(struct svc_req *, dirpath *, ppathcnf *);
 bool_t		mount_mnt_3_svc(struct svc_req *, dirpath *, mountres3 *);
 
 void		mount_dispatch(struct svc_req *, SVCXPRT *);
-void		auth_init(char *export_file);
+void		auth_init(void);
 unsigned int	auth_reload(void);
 nfs_export *	auth_authenticate(const char *what,
 					const struct sockaddr *caller,
