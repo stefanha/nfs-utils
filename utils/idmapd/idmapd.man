@@ -23,6 +23,29 @@ is the NFSv4 ID <-> name mapping daemon.  It provides functionality to
 the NFSv4 kernel client and server, to which it communicates via
 upcalls, by translating user and group IDs to names, and vice versa.
 .Pp
+The system derives the
+.I user
+part of the string by performing a password or group lookup.
+The lookup mechanism is configured in
+.Pa /etc/idmapd.conf
+.Pp
+By default, the
+.I domain
+part of the string is the system's DNS domain name.
+It can also be specified in
+.Pa /etc/idmapd.conf
+if the system is multi-homed,
+or if the system's DNS domain name does
+not match the name of the system's Kerberos realm.
+.Pp
+When the domain is not specified in /etc/idmapd.conf
+the local DNS server will be queried for the 
+.Sy _nfsv4idmapdomain 
+text record. If the record exists
+that will be used as the domain. When the record
+does not exist, the domain part of the DNS domain
+will used. 
+.Pp
 Note that on more recent kernels only the NFSv4 server uses
 .Nm .
 The NFSv4 client instead uses
