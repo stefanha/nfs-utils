@@ -26,7 +26,6 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
-#include <dirent.h>
 #include <limits.h>
 #include <time.h>
 
@@ -47,7 +46,6 @@ static void	error(nfs_export *exp, int err);
 static void	usage(const char *progname, int n);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
-static int	export_d_read(const char *dname);
 static void grab_lockfile(void);
 static void release_lockfile(void);
 
@@ -698,63 +696,6 @@ out:
 	freeaddrinfo(results1);
 	freeaddrinfo(results2);
 	return result;
-}
-
-/* Based on mnt_table_parse_dir() in
-   util-linux-ng/shlibs/mount/src/tab_parse.c */
-static int
-export_d_read(const char *dname)
-{
-	int n = 0, i;
-	struct dirent **namelist = NULL;
-	int volumes = 0;
-
-
-	n = scandir(dname, &namelist, NULL, versionsort);
-	if (n < 0) {
-		if (errno == ENOENT)
-			/* Silently return */
-			return volumes;
-		xlog(L_NOTICE, "scandir %s: %s", dname, strerror(errno));
-	} else if (n == 0)
-		return volumes;
-
-	for (i = 0; i < n; i++) {
-		struct dirent *d = namelist[i];
-		size_t namesz;
-		char fname[PATH_MAX + 1];
-		int fname_len;
-
-
-		if (d->d_type != DT_UNKNOWN
-		    && d->d_type != DT_REG
-		    && d->d_type != DT_LNK)
-			continue;
-		if (*d->d_name == '.')
-			continue;
-
-#define _EXT_EXPORT_SIZ   (sizeof(_EXT_EXPORT) - 1)
-		namesz = strlen(d->d_name);
-		if (!namesz
-		    || namesz < _EXT_EXPORT_SIZ + 1
-		    || strcmp(d->d_name + (namesz - _EXT_EXPORT_SIZ),
-			      _EXT_EXPORT))
-			continue;
-
-		fname_len = snprintf(fname, PATH_MAX +1, "%s/%s", dname, d->d_name);
-		if (fname_len > PATH_MAX) {
-			xlog(L_WARNING, "Too long file name: %s in %s", d->d_name, dname);
-			continue;
-		}
-
-		volumes += export_read(fname);
-	}
-
-	for (i = 0; i < n; i++)
-		free(namelist[i]);
-	free(namelist);
-
-	return volumes;
 }
 
 static char
