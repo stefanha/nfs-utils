@@ -948,6 +948,7 @@ static int nfs_is_permanent_error(int error)
 	case ETIMEDOUT:
 	case ECONNREFUSED:
 	case EHOSTUNREACH:
+	case EOPNOTSUPP:	/* aka RPC_PROGNOTREGISTERED */
 	case EAGAIN:
 		return 0;	/* temporary */
 	default:
@@ -1019,8 +1020,7 @@ static int nfsmount_parent(struct nfsmount_info *mi)
 	if (nfs_try_mount(mi))
 		return EX_SUCCESS;
 
-	/* retry background mounts when the server is not up */
-	if (nfs_is_permanent_error(errno) && errno != EOPNOTSUPP) {
+	if (nfs_is_permanent_error(errno)) {
 		mount_error(mi->spec, mi->node, errno);
 		return EX_FAIL;
 	}
@@ -1055,8 +1055,7 @@ static int nfsmount_child(struct nfsmount_info *mi)
 		if (nfs_try_mount(mi))
 			return EX_SUCCESS;
 
-		/* retry background mounts when the server is not up */
-		if (nfs_is_permanent_error(errno) && errno != EOPNOTSUPP)
+		if (nfs_is_permanent_error(errno))
 			break;
 
 		if (time(NULL) > timeout)
