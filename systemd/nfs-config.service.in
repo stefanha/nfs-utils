@@ -10,4 +10,4 @@ Type=oneshot
 # incorporated.  Having "RemainAfterExit=no" (the default)
 # ensures this happens.
 RemainAfterExit=no
-ExecStart=/usr/libexec/nfs-utils/nfs-utils_env.sh
+ExecStart=@_libexecdir@/nfs-utils/nfs-utils_env.sh
