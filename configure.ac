@@ -516,9 +516,15 @@ AC_SUBST([ACLOCAL_AMFLAGS], ["-I $ac_macro_dir \$(ACLOCAL_FLAGS)"])
 AC_SUBST([_libexecdir])
 AC_CONFIG_COMMANDS_PRE([eval eval _libexecdir=$libexecdir])
 
+# make _sysconfdir available for substituion in config files
+# 2 "evals" needed late to expand variable names.
+AC_SUBST([_sysconfdir])
+AC_CONFIG_COMMANDS_PRE([eval eval _sysconfdir=$sysconfdir])
+
 AC_CONFIG_FILES([
 	Makefile
 	systemd/nfs-config.service
+	systemd/rpc-gssd.service
 	linux-nfs/Makefile
 	support/Makefile
 	support/export/Makefile

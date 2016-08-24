@@ -5,7 +5,7 @@ Conflicts=umount.target
 Requires=var-lib-nfs-rpc_pipefs.mount
 After=var-lib-nfs-rpc_pipefs.mount
 
-ConditionPathExists=/etc/krb5.keytab
+ConditionPathExists=@_sysconfdir@/krb5.keytab
 
 PartOf=nfs-utils.service
 
