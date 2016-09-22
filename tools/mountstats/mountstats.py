@@ -412,6 +412,8 @@ class DeviceData:
         print('  short reads: %d  short writes: %d' % \
             (self.__nfs_data['shortreads'], self.__nfs_data['shortwrites']))
         print('  NFSERR_DELAYs from server: %d' % self.__nfs_data['delay'])
+        print('  pNFS READs: %d' % self.__nfs_data['pnfsreads'])
+        print('  pNFS WRITEs: %d' % self.__nfs_data['pnfswrites'])
 
     def display_nfs_bytes(self):
         """Pretty-print the NFS event counters
