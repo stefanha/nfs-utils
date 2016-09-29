@@ -919,9 +919,7 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 	int result = 0;
 
 	if (mi->address == NULL) {
-		struct addrinfo hint = {
-			.ai_protocol	= (int)IPPROTO_UDP,
-		};
+		struct addrinfo hint = {};
 		int error;
 		struct addrinfo *address;
 
