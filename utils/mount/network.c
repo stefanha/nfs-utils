@@ -1417,7 +1417,7 @@ sa_family_t	config_default_family = AF_INET;
 static int
 nfs_verify_family(sa_family_t family)
 {
-	if (family != AF_INET)
+	if (family != AF_INET && family != AF_VSOCK)
 		return 0;
 
 	return 1;
