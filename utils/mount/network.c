@@ -330,6 +330,12 @@ int nfs_string_to_sockaddr(const char *address, struct sockaddr *sap,
 int nfs_present_sockaddr(const struct sockaddr *sap, const socklen_t salen,
 			 char *buf, const size_t buflen)
 {
+	if (sap->sa_family == AF_VSOCK) {
+		snprintf(buf, buflen, "vsock:%u",
+			 ((struct sockaddr_vm *)sap)->svm_cid);
+		return 1;
+	}
+
 #ifdef HAVE_GETNAMEINFO
 	int result;
 
