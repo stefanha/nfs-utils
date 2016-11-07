@@ -70,11 +70,15 @@ static void warn_duplicated_exports(nfs_export *exp, struct exportent *eep)
 /**
  * export_read - read entries from /etc/exports
  * @fname: name of file to read from
+ * @ignore_hosts: don't check validity of host names
  *
  * Returns number of read entries.
+ * @ignore_hosts can be set when the host names won't be used
+ * and when getting delays or errors due to problems with
+ * hostname looking is not acceptable.
  */
 int
-export_read(char *fname)
+export_read(char *fname, int ignore_hosts)
 {
 	struct exportent	*eep;
 	nfs_export		*exp;
@@ -83,7 +87,7 @@ export_read(char *fname)
 
 	setexportent(fname, "r");
 	while ((eep = getexportent(0,1)) != NULL) {
-		exp = export_lookup(eep->e_hostname, eep->e_path, 0);
+		exp = export_lookup(eep->e_hostname, eep->e_path, ignore_hosts);
 		if (!exp) {
 			if (export_create(eep, 0))
 				/* possible complaints already logged */
@@ -100,13 +104,14 @@ export_read(char *fname)
 /**
  * export_d_read - read entries from /etc/exports.
  * @fname: name of directory to read from
+ * @ignore_hosts: don't check validity of host names
  *
  * Returns number of read entries.
  * Based on mnt_table_parse_dir() in
  *  util-linux-ng/shlibs/mount/src/tab_parse.c
  */
 int
-export_d_read(const char *dname)
+export_d_read(const char *dname, int ignore_hosts)
 {
 	int n = 0, i;
 	struct dirent **namelist = NULL;
@@ -150,7 +155,7 @@ export_d_read(const char *dname)
 			continue;
 		}
 
-		volumes += export_read(fname);
+		volumes += export_read(fname, ignore_hosts);
 	}
 
 	for (i = 0; i < n; i++)

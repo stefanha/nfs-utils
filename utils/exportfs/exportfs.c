@@ -183,8 +183,8 @@ main(int argc, char **argv)
 	atexit(release_lockfile);
 
 	if (f_export && ! f_ignore) {
-		if (! (export_read(_PATH_EXPORTS) +
-		       export_d_read(_PATH_EXPORTS_D))) {
+		if (! (export_read(_PATH_EXPORTS, 0) +
+		       export_d_read(_PATH_EXPORTS_D, 0))) {
 			if (f_verbose)
 				xlog(L_WARNING, "No file systems exported!");
 		}

@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
 	path = malloc(strlen(argv[1]) + sizeof(dirbase) + sizeof(filebase));
 	if (!path)
 		exit(2);
-	if (export_read(_PATH_EXPORTS) +
-	    export_d_read(_PATH_EXPORTS_D) == 0)
+	if (export_read(_PATH_EXPORTS, 1) +
+	    export_d_read(_PATH_EXPORTS_D, 1) == 0)
 		/* Nothing is exported, so nothing to do */
 		exit(0);
 
