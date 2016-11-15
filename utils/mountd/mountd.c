@@ -107,7 +107,6 @@ unregister_services (void)
 static void
 cleanup_lockfiles (void)
 {
-	unlink(_PATH_XTABLCK);
 	unlink(_PATH_ETABLCK);
 	unlink(_PATH_RMTABLCK);
 }
@@ -289,7 +288,7 @@ mount_umntall_1_svc(struct svc_req *rqstp, void *UNUSED(argp),
 	xlog(D_CALL, "Received UMNTALL request from %s",
 		host_ntop(sap, buf, sizeof(buf)));
 
-	/* Reload /etc/xtab if necessary */
+	/* Reload /etc/exports if necessary */
 	auth_reload();
 
 	mountlist_del_all(nfs_getrpccaller(rqstp->rq_xprt));
@@ -350,7 +349,7 @@ mount_pathconf_2_svc(struct svc_req *rqstp, dirpath *path, ppathcnf *res)
 	if (*p == '\0')
 		p = "/";
 
-	/* Reload /etc/xtab if necessary */
+	/* Reload /etc/exports if necessary */
 	auth_reload();
 
 	/* Resolve symlinks */
@@ -531,12 +530,6 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 	} else {
 		int did_export = 0;
 	retry:
-		if (exp->m_exported<1) {
-			export_export(exp);
-			did_export = 1;
-		}
-		if (!exp->m_xtabent)
-			xtab_append(exp);
 
 		if (v3)
 			fh = getfh_size((struct sockaddr_in *)sap, p, 64);

@@ -23,7 +23,6 @@ ACLOCAL_AMFLAGS = -I aclocal
 
 install-data-hook:
 	if [ ! -d $(DESTDIR)$(statedir) ]; then mkdir -p $(DESTDIR)$(statedir); fi
-	touch $(DESTDIR)$(statedir)/xtab; chmod 644 $(DESTDIR)$(statedir)/xtab
 	touch $(DESTDIR)$(statedir)/etab; chmod 644 $(DESTDIR)$(statedir)/etab
 	touch $(DESTDIR)$(statedir)/rmtab; chmod 644 $(DESTDIR)$(statedir)/rmtab
 	mkdir -p $(DESTDIR)$(statdpath)/sm $(DESTDIR)$(statdpath)/sm.bak
@@ -32,7 +31,7 @@ install-data-hook:
 	-chown $(statduser) $(DESTDIR)$(statdpath)/sm $(DESTDIR)$(statdpath)/sm.bak $(DESTDIR)$(statdpath)/state
 
 uninstall-hook:
-	rm $(DESTDIR)$(statedir)/xtab
+	rm -f $(DESTDIR)$(statedir)/xtab
 	rm $(DESTDIR)$(statedir)/etab
 	rm $(DESTDIR)$(statedir)/rmtab
 	rm $(DESTDIR)$(statdpath)/state

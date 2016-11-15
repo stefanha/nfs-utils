@@ -35,15 +35,6 @@
 #ifndef _PATH_IDMAPDCONF
 #define _PATH_IDMAPDCONF	"/etc/idmapd.conf"
 #endif
-#ifndef _PATH_XTAB
-#define _PATH_XTAB		NFS_STATEDIR "/xtab"
-#endif
-#ifndef _PATH_XTABTMP
-#define _PATH_XTABTMP		NFS_STATEDIR "/xtab.tmp"
-#endif
-#ifndef _PATH_XTABLCK
-#define _PATH_XTABLCK		NFS_STATEDIR "/.xtab.lock"
-#endif
 #ifndef _PATH_ETAB
 #define _PATH_ETAB		NFS_STATEDIR "/etab"
 #endif

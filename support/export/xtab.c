@@ -1,7 +1,7 @@
 /*
  * support/export/xtab.c
  *
- * Interface to the xtab file.
+ * Interface to the etab/exports file.
  *
  * Copyright (C) 1995, 1996 Olaf Kirch <okir@monad.swb.de>
  */
@@ -29,7 +29,6 @@ xtab_read(char *xtab, char *lockfn, int is_export)
 {
     /* is_export == 0  => reading /proc/fs/nfs/exports - we know these things are exported to kernel
      * is_export == 1  => reading /var/lib/nfs/etab - these things are allowed to be exported
-     * is_export == 2  => reading /var/lib/nfs/xtab - these things might be known to kernel
      */
 	struct exportent	*xp;
 	nfs_export		*exp;
@@ -55,9 +54,6 @@ xtab_read(char *xtab, char *lockfn, int is_export)
 			if ((xp->e_flags & NFSEXP_FSID) && xp->e_fsid == 0)
 				v4root_needed = 0;
 			break;
-		case 2:
-			exp->m_exported = -1;/* may be exported */
-			break;
 		}
 	}
 	endexportent();
@@ -79,7 +75,7 @@ xtab_mount_read(void)
 		return xtab_read(_PATH_PROC_EXPORTS_ALT,
 				 _PATH_PROC_EXPORTS_ALT, 0);
 	} else
-		return xtab_read(_PATH_XTAB, _PATH_XTABLCK, 2);
+		return 0;
 }
 
 int
@@ -133,29 +129,6 @@ int
 xtab_export_write()
 {
 	return xtab_write(_PATH_ETAB, _PATH_ETABTMP, _PATH_ETABLCK, 1);
-}
-
-int
-xtab_mount_write()
-{
-	return xtab_write(_PATH_XTAB, _PATH_XTABTMP, _PATH_XTABLCK, 0);
-}
-
-void
-xtab_append(nfs_export *exp)
-{
-	struct exportent xe;
-	int		lockid;
-
-	if ((lockid = xflock(_PATH_XTABLCK, "w")) < 0)
-		return;
-	setexportent(_PATH_XTAB, "a");
-	xe = exp->m_export;
-	xe.e_hostname = exp->m_client->m_hostname;
-	putexportent(&xe);
-	endexportent();
-	xfunlock(lockid);
-	exp->m_xtabent = 1;
 }
 
 /*

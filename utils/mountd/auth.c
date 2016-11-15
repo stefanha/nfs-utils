@@ -46,7 +46,6 @@ void
 auth_init(void)
 {
 	auth_reload();
-	xtab_mount_write();
 }
 
 /*

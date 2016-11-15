@@ -219,8 +219,6 @@ main(int argc, char **argv)
 	xtab_export_write();
 	if (new_cache)
 		cache_flush(force_flush);
-	if (!new_cache)
-		xtab_mount_write();
 
 	return export_errno;
 }
@@ -238,7 +236,7 @@ exports_update_one(nfs_export *exp, int verbose)
 		       exp->m_export.e_path, exp->m_export.e_mountpoint);
 		exp->m_mayexport = 0;
 	}
-	if (exp->m_mayexport && ((exp->m_exported<1) || exp->m_changed)) {
+	if (exp->m_mayexport && exp->m_changed) {
 		if (verbose)
 			printf("%sexporting %s:%s to kernel\n",
 			       exp->m_exported ?"re":"",

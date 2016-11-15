@@ -96,7 +96,7 @@ typedef struct mexport {
 	struct mexport *	m_next;
 	struct mclient *	m_client;
 	struct exportent	m_export;
-	int			m_exported;	/* known to knfsd. -1 means not sure */
+	int			m_exported;	/* known to knfsd. */
 	int			m_xtabent  : 1,	/* xtab entry exists */
 				m_mayexport: 1,	/* derived from xtabbed */
 				m_changed  : 1, /* options (may) have changed */
@@ -150,9 +150,7 @@ int				export_unexport(nfs_export *);
 
 int				xtab_mount_read(void);
 int				xtab_export_read(void);
-int				xtab_mount_write(void);
 int				xtab_export_write(void);
-void				xtab_append(nfs_export *);
 
 int				secinfo_addflavor(struct flav_info *, struct exportent *);
 
