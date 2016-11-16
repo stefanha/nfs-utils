@@ -24,6 +24,12 @@ AC_ARG_WITH(statedir,
 	statedir=$withval,
 	statedir=/var/lib/nfs)
 	AC_SUBST(statedir)
+AC_ARG_WITH(nfsconfig,
+	[AC_HELP_STRING([--with-nfsconfig=/config/file],
+			[use general config file /config/file @<:@default=/etc/nfs.conf@:>@])],
+	nfsconfig=$withval,
+	nfsconfig=/etc/nfs.conf)
+	AC_SUBST(nfsconfig)
 AC_ARG_WITH(statdpath,
 	[AC_HELP_STRING([--with-statdpath=/foo],
 			[define the statd state dir as /foo instead of the NFS statedir @<:@default=/var/lib/nfs@:>@])],
@@ -468,6 +474,7 @@ dnl Export some path names to config.h
 dnl *************************************************************
 AC_DEFINE_UNQUOTED(NFS_STATEDIR, "$statedir", [This defines the location of the NFS state files. Warning: this must match definitions in config.mk!])
 AC_DEFINE_UNQUOTED(NSM_DEFAULT_STATEDIR, "$statdpath", [Define this to the pathname where statd keeps its state file])
+AC_DEFINE_UNQUOTED(NFS_CONFFILE, "$nfsconfig", [This defines the location of NFS daemon config file])
 
 if test "x$cross_compiling" = "xno"; then
 	CFLAGS_FOR_BUILD=${CFLAGS_FOR_BUILD-"$CFLAGS"}

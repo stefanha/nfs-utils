@@ -67,6 +67,20 @@ Check to see if a nfs_client_id4 is allowed to reclaim. This command requires a 
 .IP "\fBgracedone\fR" 4
 .IX Item "gracedone"
 Remove any unreclaimed client records from the database. This command requires a epoch boot time as an argument.
+.SH "EXTERNAL CONFIGURATION"
+The directory for stable storage information can be set via the file
+.B /etc/nfs.conf
+by setting the
+.B storagedir
+value in the
+.B nfsdcltrack
+section.  For example:
+.in +5
+[nfsdcltrack]
+.br
+  storagedir = /shared/nfs/nfsdcltrack
+.in -5
+Debuging to syslog can also be enabled by setting "debug = 1" in this file.
 .SH "LEGACY TRANSITION MECHANISM"
 .IX Header "LEGACY TRANSITION MECHANISM"
 The Linux kernel NFSv4 server has historically tracked this information
