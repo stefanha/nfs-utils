@@ -197,7 +197,6 @@ static const struct secinfo_flag_displaymap {
 	const char *set;
 	const char *unset;
 } secinfo_flag_displaymap[] = {
-	{ NFSEXP_READONLY, "ro", "rw" },
 	{ NFSEXP_INSECURE_PORT, "insecure", "secure" },
 	{ NFSEXP_ROOTSQUASH, "root_squash", "no_root_squash" },
 	{ NFSEXP_ALLSQUASH, "all_squash", "no_all_squash" },

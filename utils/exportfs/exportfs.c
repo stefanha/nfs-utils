@@ -753,20 +753,18 @@ dump(int verbose, int export_format)
 				c = dumpopt(c, "rw");
 			if (ep->e_flags & NFSEXP_ASYNC)
 				c = dumpopt(c, "async");
+			else
+				c = dumpopt(c, "sync");
 			if (ep->e_flags & NFSEXP_GATHERED_WRITES)
 				c = dumpopt(c, "wdelay");
+			else
+				c = dumpopt(c, "no_wdelay");
 			if (ep->e_flags & NFSEXP_NOHIDE)
 				c = dumpopt(c, "nohide");
+			else
+				c = dumpopt(c, "hide");
 			if (ep->e_flags & NFSEXP_CROSSMOUNT)
 				c = dumpopt(c, "crossmnt");
-			if (ep->e_flags & NFSEXP_INSECURE_PORT)
-				c = dumpopt(c, "insecure");
-			if (ep->e_flags & NFSEXP_ROOTSQUASH)
-				c = dumpopt(c, "root_squash");
-			else
-				c = dumpopt(c, "no_root_squash");
-			if (ep->e_flags & NFSEXP_ALLSQUASH)
-				c = dumpopt(c, "all_squash");
 			if (ep->e_flags & NFSEXP_NOSUBTREECHECK)
 				c = dumpopt(c, "no_subtree_check");
 			if (ep->e_flags & NFSEXP_NOAUTHNLM)
