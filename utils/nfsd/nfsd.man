@@ -95,11 +95,11 @@ New file open requests (NFSv4) and new file locks (NLM) will not be
 allowed until after this time has passed to allow clients to recover state.
 .TP
 .I nproc
-specify the number of NFS server threads. By default, just one
-thread is started. However, for optimum performance several threads
+specify the number of NFS server threads. By default, eight
+threads are started. However, for optimum performance several threads
 should be used. The actual figure depends on the number of and the work
 load created by the NFS clients, but a useful starting point is
-8 threads. Effects of modifying that number can be checked using
+eight threads. Effects of modifying that number can be checked using
 the
 .BR nfsstat (8)
 program.
@@ -114,6 +114,48 @@ In particular
 .B rpc.nfsd 0
 will stop all threads and thus close any open connections.
 
+.SH CONFIGURATION FILE
+Many of the options that can be set on the command line can also be
+controlled through values set in the
+.B [nfsd]
+section of the
+.I /etc/nfs.conf
+configuration file.  Values recognized include:
+.TP
+.B threads
+The number of threads to start.
+.TP
+.B grace-time
+The grace time, for both NFSv4 and NLM, in seconds.
+.TP
+.B lease-time
+The lease time for NFSv4, in seconds.
+.TP
+.B rdma
+Set RDMA port.  Use "rdma=nfsrdma" to enable standard port.
+.TP
+.B UDP
+Enable (with "on" or "yes" etc) or disable ("off", "no") UDP support.
+.TP
+.B TCP
+Enable or disable TCP support.
+.TP
+.B vers2
+.TP
+.B vers3
+.TP
+.B vers4
+Enable or disable a major NFS version.  3 and 4 are normally enabled
+by default.
+.TP
+.B vers4.1
+.TP
+.B vers4.2
+.TP
+.B vers4.3
+Setting these to "off" or similar will disable the selected minor
+versions.  All are enabled by default.
+
 .SH NOTES
 If the program is built with TI-RPC support, it will enable any protocol and
 address family combinations that are marked visible in the
@@ -125,6 +167,7 @@ database.
 .BR rpc.mountd (8),
 .BR exports (5),
 .BR exportfs (8),
+.BR nfs.conf (5),
 .BR rpc.rquotad (8),
 .BR nfsstat (8),
 .BR netconfig(5).

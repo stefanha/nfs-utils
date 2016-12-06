@@ -24,6 +24,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "conffile.h"
 #include "nfslib.h"
 #include "nfssvc.h"
 #include "xlog.h"
@@ -32,6 +33,8 @@
 #ifndef NFSD_NPROC
 #define NFSD_NPROC 8
 #endif
+
+char *conf_path = NFS_CONFFILE;
 
 static void	usage(const char *);
 
@@ -75,6 +78,39 @@ main(int argc, char **argv)
 
 	xlog_syslog(0);
 	xlog_stderr(1);
+
+	conf_init();
+	count = conf_get_num("nfsd", "threads", count);
+	grace = conf_get_num("nfsd", "grace-time", grace);
+	lease = conf_get_num("nfsd", "lease-time", lease);
+	rdma_port = conf_get_str("nfsd", "rdma");
+	if (conf_get_bool("nfsd", "udp", NFSCTL_UDPISSET(protobits)))
+		NFSCTL_UDPSET(protobits);
+	else
+		NFSCTL_UDPUNSET(protobits);
+	if (conf_get_bool("nfsd", "tcp", NFSCTL_TCPISSET(protobits)))
+		NFSCTL_TCPSET(protobits);
+	else
+		NFSCTL_TCPUNSET(protobits);
+	for (i = 2; i <= 4; i++) {
+		char tag[10];
+		sprintf(tag, "vers%d", i);
+		if (conf_get_bool("nfsd", tag, NFSCTL_VERISSET(versbits, i)))
+			NFSCTL_VERSET(versbits, i);
+		else
+			NFSCTL_VERUNSET(versbits, i);
+	}
+	/* We assume the kernel will default all minor versions to 'on',
+	 * and allow the config file to disable some.
+	 */
+	for (i = 0; i <= NFS4_MAXMINOR; i++) {
+		char tag[20];
+		sprintf(tag, "vers4.%d", i);
+		if (!conf_get_bool("nfsd", tag, 1)) {
+			NFSCTL_VERSET(minorversset, i);
+			NFSCTL_VERUNSET(minorversset, i);
+		}
+	}
 
 	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTUrG:L:", longopts, NULL)) != EOF) {
 		switch(c) {

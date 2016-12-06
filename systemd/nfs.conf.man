@@ -76,8 +76,32 @@ file is the only way to configure this program.  See
 .BR nfsdcltrack (8)
 for details.
 
+.TP
+.B nfsd
+Recognized values:
+.BR threads ,
+.BR grace-time ,
+.BR lease-time ,
+.BR udp ,
+.BR tcp ,
+.BR vers2 ,
+.BR vers3 ,
+.BR vers4 ,
+.BR vers4.0 ,
+.BR vers4.1 ,
+.BR vers4.2 ,
+.BR rdma .
+
+Version and protocol values are Boolean values as described above.
+Threads and the two times are integers.
+.B rdma
+is a service name or number.  See
+.BR rpc.nfsd (8)
+for details.
+
 .SH FILES
 .I /etc/nfs.conf
 .SH SEE ALSO
 .BR nfsdcltrack (8),
+.BR rpc.nfsd (8),
 .BR nfsmount.conf (5).
