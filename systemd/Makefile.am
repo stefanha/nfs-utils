@@ -5,7 +5,6 @@ MAINTAINERCLEANFILES = Makefile.in
 unit_files =  \
     nfs-client.target \
     \
-    nfs-config.service \
     nfs-mountd.service \
     nfs-server.service \
     nfs-utils.service \

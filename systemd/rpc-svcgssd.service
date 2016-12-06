@@ -11,10 +11,6 @@ ConditionPathExists=|!/run/gssproxy.pid
 ConditionPathExists=|!/proc/net/rpc/use-gss-proxy
 ConditionPathExists=/etc/krb5.keytab
 
-Wants=nfs-config.service
-After=nfs-config.service
-
 [Service]
-EnvironmentFile=-/run/sysconfig/nfs-utils
 Type=forking
-ExecStart=/usr/sbin/rpc.svcgssd $SVCGSSDARGS
+ExecStart=/usr/sbin/rpc.svcgssd

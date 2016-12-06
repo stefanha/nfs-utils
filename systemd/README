@@ -19,8 +19,8 @@ by a suitable 'preset' setting:
     can work (if no type is given, ".service" is assumed).
 
  nfs-client.target
-    If enabled, daemons needs for an nfs client are enabled.
-    This does *not* include rpc.statd.  the rpc-statd.service unit
+    If enabled, daemons needed for an nfs client are enabled.
+    This does *not* include rpc.statd.  The rpc-statd.service unit
     is started by /usr/sbin/start-statd which mount.nfs will run
     if statd is needed.
 
@@ -52,11 +52,19 @@ It cannot stop rpc.statd or rpc.gssd as they may be in use by the
 client and systemd cannot specify is two-pronged reverse dependency.
 (i.e. stop this unit if none of these units are running)
 
-Distro specific commandline configuration can be provided by
-installing a script /usr/libexec/nfs-utils/nfs-utils_env.sh
-This should write /run/sysconfig/nfs-utils based on configuration
-information such as in /etc/sysconfig/nfs or /etc/defaults/nfs.
-It is run once by nfs-config.service.
+Distro specific configuration can be included in /etc/nfs.conf, or
+by providing drop-in files which replace the ExecStart line for a given
+service, and possibly add an EnvironmentFile line.
+
+For example, if systemd/system/nfs-mountd.service.d/local.conf
+contained
+  [Service]
+  EnvironmentFile=/etc/sysconfig/nfs
+  ExecStart=
+  ExecStart=/usr/sbin/rpc.mountd $RPCMOUNTDOPTS
+
+then the setting of RPCMOUNTDOPTS in /etc/sysconfig/nfs would be
+passed to rpc.mountd.
 
 rpc.gssd and rpc.svcgssd are assumed to be needed if /etc/krb5.keytab
 is present.
