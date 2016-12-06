@@ -52,6 +52,7 @@
 #pragma GCC visibility push(hidden)
 
 static void conf_load_defaults(void);
+static int conf_load(int trans, char *path);
 static int conf_set(int , char *, char *, char *, 
 	char *, int , int );
 
@@ -308,8 +309,11 @@ conf_parse_line(int trans, char *line, size_t sz)
 					break;
 				}
 			}
-			/* XXX Perhaps should we not ignore errors?  */
-			conf_set(trans, section, arg, line, val, 0, 0);
+			if (strcasecmp(line, "include") == 0)
+				conf_load(trans, val);
+			else
+				/* XXX Perhaps should we not ignore errors?  */
+				conf_set(trans, section, arg, line, val, 0, 0);
 			return;
 		}
 	}

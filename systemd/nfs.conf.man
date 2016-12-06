@@ -42,6 +42,19 @@ or
 .RB \*(lq ; \*(rq
 is ignored, as is any blank line.
 .PP
+The value name
+.B include
+is special.  If a section contains
+.RS
+.B include = /some/file/name
+.RE
+then the named file will be read, and any value assignments found
+there-in will be added to the current section.  If the file contains
+section headers, then new sections will be created just as if the
+included file appeared in place of the
+.B include
+line.
+.PP
 Lookup of section and value names is case-insensitive.
 
 Where a Boolean value is expected, any of
