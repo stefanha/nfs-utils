@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <grp.h>
 
+#include "conffile.h"
 #include "sockaddr.h"
 #include "xlog.h"
 #include "nsm.h"
@@ -66,6 +67,7 @@ static _Bool		opt_update_state = true;
 static unsigned int	opt_max_retry = 15 * 60;
 static char *		opt_srcaddr = NULL;
 static char *		opt_srcport = NULL;
+char *			conf_path = NFS_CONFFILE;
 
 static void		notify(const int sock);
 static int		notify_host(int, struct nsm_host *);
@@ -479,12 +481,21 @@ main(int argc, char **argv)
 {
 	int	c, sock, force = 0;
 	char *	progname;
+	char *	s;
 
 	progname = strrchr(argv[0], '/');
 	if (progname != NULL)
 		progname++;
 	else
 		progname = argv[0];
+
+	conf_init();
+	opt_max_retry = conf_get_num("sm-notify", "retry-time", opt_max_retry / 60) * 60;
+	opt_srcport = conf_get_str("sm-notify", "outgoing-port");
+	opt_srcaddr = conf_get_str("sm-notify", "outgoing-addr");
+	s = conf_get_str("statd", "state-directory-path");
+	if (s && !nsm_setup_pathnames(argv[0], s))
+		exit(1);
 
 	while ((c = getopt(argc, argv, "dm:np:v:P:f")) != -1) {
 		switch (c) {

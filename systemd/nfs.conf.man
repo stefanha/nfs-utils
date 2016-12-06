@@ -142,6 +142,16 @@ See
 .BR rpc.statd (8)
 for details.
 
+.TP
+.B sm-notify
+Recognized values:
+.BR retry-time ,
+.BR outgoing-port ", and"
+.BR outgoing-addr .
+
+See
+.BR sm-notify (8)
+for details.
 
 .SH FILES
 .I /etc/nfs.conf

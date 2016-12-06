@@ -219,6 +219,33 @@ argument when sending SM_NOTIFY requests.
 .IP
 This option can be useful in multi-homed configurations where
 the remote requires notification from a specific network address.
+.SH CONFIGURATION FILE
+Many of the options that can be set on the command line can also be
+controlled through values set in the
+.B [sm-notify]
+or, in one case, the
+.B [statd]
+section of the
+.I /etc/nfs.conf
+configuration file.
+
+Values recognized in the
+.B [sm-notify]
+section include:
+.BR retry-time ,
+.BR outgoing-port ", and"
+.BR outgoing-addr .
+These have the same effect as the command line options
+.BR m ,
+.BR p ", and"
+.B v
+respectively.
+
+The value recognized in the
+.B [statd]
+section is
+.BR state-directory-path .
+
 .SH SECURITY
 The
 .B sm-notify
