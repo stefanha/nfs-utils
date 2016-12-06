@@ -45,6 +45,14 @@ or
 .RB \*(lq ; \*(rq
 is ignored, as is any blank line.
 .PP
+If the assigned value started with a
+.RB \*(lq $ \*(rq
+then the remainder is treated as a name and looked for in the section
+.B [environment]
+or in the processes environment (see
+.BR environ (7)).
+The value found is used for this value.
+.PP
 The value name
 .B include
 is special.  If a section contains

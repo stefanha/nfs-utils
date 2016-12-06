@@ -519,12 +519,24 @@ char *
 conf_get_str(char *section, char *tag)
 {
 	struct conf_binding *cb;
-
+retry:
 	cb = LIST_FIRST (&conf_bindings[conf_hash (section)]);
 	for (; cb; cb = LIST_NEXT (cb, link)) {
 		if (strcasecmp (section, cb->section) == 0
-				&& strcasecmp (tag, cb->tag) == 0)
+		    && strcasecmp (tag, cb->tag) == 0) {
+			if (cb->value[0] == '$') {
+				/* expand $name from [environment] section,
+				 * or from environment
+				 */
+				char *env = getenv(cb->value+1);
+				if (env)
+					return env;
+				section = "environment";
+				tag = cb->value + 1;
+				goto retry;
+			}
 			return cb->value;
+		}
 	}
 	return 0;
 }
