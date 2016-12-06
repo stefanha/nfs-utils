@@ -35,6 +35,8 @@ in the current section to
 .BR 4 .
 Leading and trailing spaces and tab
 are ignored, as are spaces and tabs surrounding the equals sign.
+Single and double quotes surrounding the assigned value are also
+removed.
 .PP
 Any line starting with
 .RB \*(lq # \*(rq

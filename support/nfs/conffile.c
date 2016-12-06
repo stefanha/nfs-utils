@@ -212,7 +212,7 @@ static void
 conf_parse_line(int trans, char *line, size_t sz)
 {
 	char *val, *ptr;
-	size_t i, valsize;
+	size_t i;
 	size_t j;
 	static char *section = 0;
 	static char *arg = 0;
@@ -299,16 +299,23 @@ conf_parse_line(int trans, char *line, size_t sz)
 			}
 			line[strcspn (line, " \t=")] = '\0';
 			val = line + i + 1 + strspn (line + i + 1, " \t");
-			valsize = 0;
-			while (val[valsize++]);
 
-			/* Skip trailing spaces and comments */
-			for (j = 0; j < valsize; j++) {
-				if (val[j] == '#' || val[j] == ';' || isspace(val[j])) {
-					val[j] = '\0';
-					break;
+			if (line[0] == '"') {
+				line ++;
+				j = strcspn(line, "\"");
+				line[j] = 0;
+			} else if (line[0] == '\'') {
+				line ++;
+				j = strcspn(line, "'");
+				line[j] = 0;
+			} else
+				/* Skip trailing spaces and comments */
+				for (j = 0; val[j]; j++) {
+					if (val[j] == '#' || val[j] == ';' || isspace(val[j])) {
+						val[j] = '\0';
+						break;
+					}
 				}
-			}
 			if (strcasecmp(line, "include") == 0)
 				conf_load(trans, val);
 			else
