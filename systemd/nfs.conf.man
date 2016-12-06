@@ -36,7 +36,8 @@ in the current section to
 Leading and trailing spaces and tab
 are ignored, as are spaces and tabs surrounding the equals sign.
 Single and double quotes surrounding the assigned value are also
-removed.
+removed.  If the resulting string is empty, the whole assignment
+is ignored.
 .PP
 Any line starting with
 .RB \*(lq # \*(rq

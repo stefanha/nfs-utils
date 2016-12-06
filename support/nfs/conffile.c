@@ -748,6 +748,8 @@ conf_set(int transaction, char *section, char *arg,
 {
 	struct conf_trans *node;
 
+	if (!value || !*value)
+		return 0;
 	node = conf_trans_node(transaction, CONF_SET);
 	if (!node)
 		return 1;
