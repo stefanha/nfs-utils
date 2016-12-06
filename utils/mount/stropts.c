@@ -935,20 +935,44 @@ static int nfs_try_mount(struct nfsmount_info *mi)
  * failed so far, but fail immediately if there is a local
  * error (like a bad mount option).
  *
- * ESTALE is also a temporary error because some servers
- * return ESTALE when a share is temporarily offline.
+ * If there is a remote error, like ESTALE or RPC_PROGNOTREGISTERED
+ * then it is probably permanent, but there is a small chance
+ * the it is temporary can we caught the server at an awkward
+ * time during start-up.  So require that we see three of those
+ * before treating them as permanent.
+ * For ECONNREFUSED, wait a bit longer as there is often a longer
+ * gap between the network being ready and the NFS server starting.
  *
  * Returns 1 if we should fail immediately, or 0 if we
  * should retry.
  */
 static int nfs_is_permanent_error(int error)
 {
+	static int prev_error;
+	static int rpt_cnt;
+
+	if (error == prev_error)
+		rpt_cnt += 1;
+	else
+		rpt_cnt = 1;
+	prev_error = error;
+
 	switch (error) {
 	case ESTALE:
-	case ETIMEDOUT:
-	case ECONNREFUSED:
-	case EHOSTUNREACH:
 	case EOPNOTSUPP:	/* aka RPC_PROGNOTREGISTERED */
+		/* If two in a row, assume permanent */
+		return rpt_cnt >= 3;
+	case ECONNREFUSED:
+		/* Like the above, this can be temporary during a
+		 * small window.  However it is typically a larger
+		 * window than for the others, and we have historically
+		 * treated this as a temporary (i.e. long timeout)
+		 * error with no complaints, so continue to treat
+		 * it as temporary.
+		 */
+		return 0;	/* temporary */
+	case ETIMEDOUT:
+	case EHOSTUNREACH:
 	case EAGAIN:
 		return 0;	/* temporary */
 	default:
@@ -1000,7 +1024,7 @@ static int nfsmount_fg(struct nfsmount_info *mi)
 			if (secs > 10)
 				secs = 10;
 		}
-	};
+	}
 
 	mount_error(mi->spec, mi->node, errno);
 	return EX_FAIL;
