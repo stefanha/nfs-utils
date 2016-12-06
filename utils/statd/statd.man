@@ -8,7 +8,7 @@
 .\" Rewritten by Chuck Lever <chuck.lever@oracle.com>, 2009.
 .\" Copyright 2009 Oracle.  All rights reserved.
 .\"
-.TH RPC.STATD 8 "1 November 2009
+.TH RPC.STATD 8 "1 November 2009"
 .SH NAME
 rpc.statd \- NSM service daemon
 .SH SYNOPSIS
@@ -247,7 +247,7 @@ should listen on for
 .B NLM
 requests.
 .TP
-.BI "\-P, " "" \-\-state\-directory\-path " pathname
+.BI "\-P, " "" \-\-state\-directory\-path " pathname"
 Specifies the pathname of the parent directory
 where NSM state information resides.
 If this option is not specified,
@@ -267,6 +267,37 @@ Causes
 to display version information on
 .I stderr
 and then exit.
+.SH CONFIGURATION FILE
+Many of the options that can be set on the command line can also be
+controlled through values set in the
+.B [statd]
+or, in some cases, the
+.B [lockd]
+sections of the
+.I /etc/nfs.conf
+configuration file.
+Values recognized in the
+.B [statd]
+section include
+.BR port ,
+.BR outgoing-port ,
+.BR name ,
+.BR state-directory-path ", and"
+.B ha-callout
+which each have the same effect as the option with the same name.
+
+The values recognized in the
+.B [lockd]
+section include
+.B port
+and
+.B udp-port
+which have the same effect as the
+.B --nlm-port
+and
+.B --nlm-udp-port
+options, respectively.
+
 .SH SECURITY
 The
 .B rpc.statd

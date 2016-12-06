@@ -118,6 +118,31 @@ section, are used to configure mountd.  See
 .BR rpc.mountd (8)
 for details.
 
+.TP
+.B statd
+Recognized values:
+.BR port ,
+.BR outgoing-port ,
+.BR name ,
+.BR state-directory-path ,
+.BR ha-callout .
+
+See
+.BR rpc.statd (8)
+for details.
+
+.TP
+.B lockd
+Recognized values:
+.B port
+and
+.BR udp-port .
+
+See
+.BR rpc.statd (8)
+for details.
+
+
 .SH FILES
 .I /etc/nfs.conf
 .SH SEE ALSO

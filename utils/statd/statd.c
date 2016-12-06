@@ -26,6 +26,7 @@
 #include <sys/wait.h>
 #include <grp.h>
 
+#include "conffile.h"
 #include "statd.h"
 #include "nfslib.h"
 #include "nfsrpc.h"
@@ -36,6 +37,7 @@
 #include <sys/socket.h>
 
 int	run_mode = 0;		/* foreground logging mode */
+char	*conf_path = NFS_CONFFILE;
 
 /* LH - I had these local to main, but it seemed silly to have 
  * two copies of each - one in main(), one static in log.c... 
@@ -242,6 +244,7 @@ static void set_nlm_port(char *type, int port)
 int main (int argc, char **argv)
 {
 	extern char *optarg;
+	char *s;
 	int pid;
 	int arg;
 	int port = 0, out_port = 0;
@@ -265,6 +268,23 @@ int main (int argc, char **argv)
 
 	/* Set hostname */
 	MY_NAME = NULL;
+
+	conf_init();
+	out_port = conf_get_num("statd", "outgoing-port", out_port);
+	port = conf_get_num("statd", "port", port);
+	MY_NAME = conf_get_str("statd", "name");
+	if (MY_NAME)
+		run_mode |= STATIC_HOSTNAME;
+	s = conf_get_str("statd", "state-directory-path");
+	if (s && !nsm_setup_pathnames(argv[0], s))
+		exit(1);
+	s = conf_get_str("statd", "ha-callout");
+	if (s)
+		ha_callout_prog = s;
+
+	nlm_tcp = conf_get_num("lockd", "port", nlm_tcp);
+	/* udp defaults to the same as tcp ! */
+	nlm_udp = conf_get_num("lockd", "udp-port", nlm_tcp);
 
 	/* Process command line switches */
 	while ((arg = getopt_long(argc, argv, "h?vVFNH:dn:p:o:P:LT:U:", longopts, NULL)) != EOF) {
