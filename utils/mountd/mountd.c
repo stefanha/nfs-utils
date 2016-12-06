@@ -721,11 +721,7 @@ main(int argc, char **argv)
 			reverse_resolve = 1;
 			break;
 		case 's':
-			if ((state_dir = xstrdup(optarg)) == NULL) {
-				fprintf(stderr, "%s: xstrdup(%s) failed!\n",
-					progname, optarg);
-				exit(1);
-			}
+			state_dir = xstrdup(optarg);
 			break;
 		case 't':
 			num_threads = atoi (optarg);

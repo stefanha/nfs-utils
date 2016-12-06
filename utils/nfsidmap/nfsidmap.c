@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include "xlog.h"
 #include "conffile.h"
+#include "xcommon.h"
 
 int verbose = 0;
 char *usage = "Usage: %s [-vh] [-c || [-u|-g|-r key] || -d || -l || [-t timeout] key desc]";
@@ -441,11 +442,7 @@ int main(int argc, char **argv)
 
 	key = strtol(argv[optind++], NULL, 10);
 
-	arg = strdup(argv[optind]);
-	if (arg == NULL) {
-		xlog_err("strdup failed: %m");
-		return EXIT_FAILURE;
-	}
+	arg = xstrdup(argv[optind]);
 	type = strtok(arg, ":");
 	value = strtok(NULL, ":");
 	if (value == NULL) {

@@ -332,11 +332,8 @@ int main (int argc, char **argv)
 				exit(1);
 			break;
 		case 'H': /* PRC: specify the ha-callout program */
-			if ((ha_callout_prog = xstrdup(optarg)) == NULL) {
-				fprintf(stderr, "%s: xstrdup(%s) failed!\n",
-					argv[0], optarg);
+			if ((ha_callout_prog = xstrdup(optarg)) == NULL)
 				exit(1);
-			}
 			break;
 		case '?':	/* heeeeeelllllllpppp? heh */
 		case 'h':

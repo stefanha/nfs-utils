@@ -27,6 +27,7 @@
 #include "nfslib.h"
 #include "nfssvc.h"
 #include "xlog.h"
+#include "xcommon.h"
 
 #ifndef NFSD_NPROC
 #define NFSD_NPROC 8
@@ -67,23 +68,9 @@ main(int argc, char **argv)
 	int grace = -1;
 	int lease = -1;
 
-	progname = strdup(basename(argv[0]));
-	if (!progname) {
-		fprintf(stderr, "%s: unable to allocate memory.\n", argv[0]);
-		exit(1);
-	}
-
-	port = strdup("nfs");
-	if (!port) {
-		fprintf(stderr, "%s: unable to allocate memory.\n", progname);
-		exit(1);
-	}
-
-	haddr = malloc(sizeof(char *));
-	if (!haddr) {
-		fprintf(stderr, "%s: unable to allocate memory.\n", progname);
-		exit(1);
-	}
+	progname = xstrdup(basename(argv[0]));
+	port = xstrdup("nfs");
+	haddr = xmalloc(sizeof(char *));
 	haddr[0] = NULL;
 
 	xlog_syslog(0);
@@ -103,12 +90,7 @@ main(int argc, char **argv)
 					exit(1);
 				}
 			}
-			haddr[hcounter] = strdup(optarg);
-			if (!haddr[hcounter]) {
-				fprintf(stderr, "%s: unable to allocate "
-					"memory.\n", progname);
-				exit(1);
-			}
+			haddr[hcounter] = xstrdup(optarg);
 			hcounter++;
 			break;
 		case 'P':	/* XXX for nfs-server compatibility */
@@ -121,12 +103,7 @@ main(int argc, char **argv)
 				usage(progname);
 			}
 			free(port);
-			port = strdup(optarg);
-			if (!port) {
-				fprintf(stderr, "%s: unable to allocate "
-						"memory.\n", progname);
-				exit(1);
-			}
+			port = xstrdup(optarg);
 			break;
 		case 'r':
 			rdma_port = "nfsrdma";
