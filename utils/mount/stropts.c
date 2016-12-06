@@ -990,10 +990,8 @@ static int nfsmount_fg(struct nfsmount_info *mi)
 		if (nfs_is_permanent_error(errno))
 			break;
 
-		if (time(NULL) > timeout) {
-			errno = ETIMEDOUT;
+		if (time(NULL) > timeout)
 			break;
-		}
 
 		if (errno != ETIMEDOUT) {
 			if (sleep(secs))
