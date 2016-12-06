@@ -44,6 +44,22 @@ is ignored, as is any blank line.
 .PP
 Lookup of section and value names is case-insensitive.
 
+Where a Boolean value is expected, any of
+.BR true ,
+.BR t ,
+.BR yes ,
+.BR y ,
+.BR on ", or"
+.B 1
+can be used for "true", while
+.BR false ,
+.BR f ,
+.BR no ,
+.BR n ,
+.BR off ", or"
+.B 0
+can be used for "false".  Comparisons are case-insensitive.
+
 .SH SECTIONS
 The following sections are known to various programs, and can contain
 the given named values.

@@ -446,6 +446,38 @@ conf_get_num(char *section, char *tag, int def)
 	return def;
 }
 
+/*
+ * Return the Boolean value denoted by TAG in section SECTION, or DEF
+ * if that tags does not exist.
+ * FALSE is returned for case-insensitve comparisons with 0, f, false, n, no, off
+ * TRUE is returned for 1, t, true, y, yes, on
+ * A failure to match one of these results in DEF
+ */
+_Bool
+conf_get_bool(char *section, char *tag, _Bool def)
+{
+	char *value = conf_get_str(section, tag);
+
+	if (!value)
+		return def;
+	if (strcasecmp(value, "1") == 0 ||
+	    strcasecmp(value, "t") == 0 ||
+	    strcasecmp(value, "true") == 0 ||
+	    strcasecmp(value, "y") == 0 ||
+	    strcasecmp(value, "yes") == 0 ||
+	    strcasecmp(value, "on") == 0)
+		return true;
+
+	if (strcasecmp(value, "0") == 0 ||
+	    strcasecmp(value, "f") == 0 ||
+	    strcasecmp(value, "false") == 0 ||
+	    strcasecmp(value, "n") == 0 ||
+	    strcasecmp(value, "no") == 0 ||
+	    strcasecmp(value, "off") == 0)
+		return false;
+	return def;
+}
+
 /* Validate X according to the range denoted by TAG in section SECTION.  */
 int
 conf_match_num(char *section, char *tag, int x)
