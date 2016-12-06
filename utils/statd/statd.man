@@ -418,6 +418,11 @@ it attempts to start listeners on network transports marked 'visible' in
 As long as at least one network transport listener starts successfully,
 .B rpc.statd
 will operate.
+.SH ENVIRONMENT
+.TP
+.B RPC_STATD_NO_NOTIFY=
+If set to a positive integer, has the same effect as
+.IR \-\-no\-notify .
 .SH FILES
 .TP 2.5i
 .I /var/lib/nfs/sm

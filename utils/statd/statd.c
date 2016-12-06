@@ -251,9 +251,14 @@ int main (int argc, char **argv)
 	int nlm_udp = 0, nlm_tcp = 0;
 	struct rlimit rlim;
 	int notify_sockfd;
+	char *env;
 
 	/* Default: daemon mode, no other options */
 	run_mode = 0;
+
+	env = getenv("RPC_STATD_NO_NOTIFY");
+	if (env && atoi(env) > 0)
+		run_mode |= MODE_NO_NOTIFY;
 
 	/* Log to stderr if there's an error during startup */
 	xlog_stderr(1);

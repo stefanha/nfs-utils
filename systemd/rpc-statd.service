@@ -11,7 +11,8 @@ Wants=nfs-config.service
 After=nfs-config.service
 
 [Service]
+Environment=RPC_STATD_NO_NOTIFY=1
 EnvironmentFile=-/run/sysconfig/nfs-utils
 Type=forking
 PIDFile=/var/run/rpc.statd.pid
-ExecStart=/usr/sbin/rpc.statd --no-notify $STATDARGS
+ExecStart=/usr/sbin/rpc.statd $STATDARGS
