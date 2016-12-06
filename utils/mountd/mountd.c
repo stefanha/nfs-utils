@@ -22,6 +22,8 @@
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
+
+#include "conffile.h"
 #include "xmalloc.h"
 #include "misc.h"
 #include "mountd.h"
@@ -37,6 +39,8 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, nfs_export **,
 int reverse_resolve = 0;
 int manage_gids;
 int use_ipaddr = -1;
+
+char *conf_path = NFS_CONFFILE;
 
 /* PRC: a high-availability callout program can be specified with -H
  * When this is done, the program will receive callouts whenever clients
@@ -654,6 +658,7 @@ main(int argc, char **argv)
 {
 	char    *state_dir = NFS_STATEDIR;
 	char	*progname;
+	char	*s;
 	unsigned int listeners = 0;
 	int	foreground = 0;
 	int	port = 0;
@@ -668,6 +673,37 @@ main(int argc, char **argv)
 		progname++;
 	else
 		progname = argv[0];
+
+	conf_init();
+	manage_gids = conf_get_bool("mountd", "manage-gids", manage_gids);
+	descriptors = conf_get_num("mountd", "descriptors", descriptors);
+	port = conf_get_num("mountd", "port", port);
+	num_threads = conf_get_num("mountd", "threads", num_threads);
+	reverse_resolve = conf_get_bool("mountd", "reverse-lookup", reverse_resolve);
+	ha_callout_prog = conf_get_str("mountd", "ha-callout");
+
+	s = conf_get_str("mountd", "state-directory-path");
+	if (s)
+		state_dir = s;
+
+	/* NOTE: following uses "nfsd" section of nfs.conf !!!! */
+	if (conf_get_bool("nfsd", "udp", NFSCTL_UDPISSET(_rpcprotobits)))
+		NFSCTL_UDPSET(_rpcprotobits);
+	else
+		NFSCTL_UDPUNSET(_rpcprotobits);
+	if (conf_get_bool("nfsd", "tcp", NFSCTL_TCPISSET(_rpcprotobits)))
+		NFSCTL_TCPSET(_rpcprotobits);
+	else
+		NFSCTL_TCPUNSET(_rpcprotobits);
+	for (vers = 2; vers <= 4; vers++) {
+		char tag[10];
+		sprintf(tag, "vers%d", vers);
+		if (conf_get_bool("nfsd", tag, NFSCTL_VERISSET(nfs_version, vers)))
+			NFSCTL_VERSET(nfs_version, vers);
+		else
+			NFSCTL_VERUNSET(nfs_version, vers);
+	}
+
 
 	/* Parse the command line options and arguments. */
 	opterr = 0;

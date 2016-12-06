@@ -92,11 +92,30 @@ Recognized values:
 .BR vers4.2 ,
 .BR rdma .
 
-Version and protocol values are Boolean values as described above.
+Version and protocol values are Boolean values as described above,
+and are also used by
+.BR rpc.mountd .
 Threads and the two times are integers.
 .B rdma
 is a service name or number.  See
 .BR rpc.nfsd (8)
+for details.
+
+.TP
+.B mountd
+Recognized values:
+.BR manage-gids ,
+.BR descriptors ,
+.BR port ,
+.BR threads ,
+.BR reverse-lookup ,
+.BR state-directory-path ,
+.BR ha-callout .
+
+These, together with the protocol and version values in the
+.B [nfsd]
+section, are used to configure mountd.  See
+.BR rpc.mountd (8)
 for details.
 
 .SH FILES
@@ -104,4 +123,5 @@ for details.
 .SH SEE ALSO
 .BR nfsdcltrack (8),
 .BR rpc.nfsd (8),
+.BR rpc.mountd (8),
 .BR nfsmount.conf (5).

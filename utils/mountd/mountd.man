@@ -199,6 +199,39 @@ the server. Note that the 'primary' group id is not affected so a
 .B newgroup
 command on the client will still be effective.  This function requires
 a Linux Kernel with version at least 2.6.21.
+
+.SH CONFIGURATION FILE
+Many of the options that can be set on the command line can also be
+controlled through values set in the
+.B [mountd]
+or, in some cases, the
+.B [nfsd]
+sections of the
+.I /etc/nfs.conf
+configuration file.
+Values recognized in the
+.B [mountd]
+section include
+.BR manage-gids ,
+.BR descriptors ,
+.BR port ,
+.BR threads ,
+.BR reverse-lookup ", and"
+.BR state-directory-path ,
+.B ha-callout
+which each have the same effect as the option with the same name.
+
+The values recognized in the
+.B [nfsd]
+section include
+.BR TCP ,
+.BR UDP ,
+.BR vers2 ,
+.BR vers3 ", and"
+.B vers4
+which each have same same meaning as given by
+.BR rpc.nfsd (8).
+
 .SH TCP_WRAPPERS SUPPORT
 You can protect your
 .B rpc.mountd
@@ -253,6 +286,7 @@ table of clients accessing server's exports
 .BR rpc.nfsd (8),
 .BR rpc.rquotad (8),
 .BR nfs (5),
+.BR nfs.conf (5),
 .BR tcpd (8),
 .BR hosts_access (5),
 .BR iptables (8),
