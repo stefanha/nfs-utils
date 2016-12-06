@@ -63,22 +63,6 @@ xtab_read(char *xtab, char *lockfn, int is_export)
 }
 
 int
-xtab_mount_read(void)
-{
-	int fd;
-	if ((fd=open(_PATH_PROC_EXPORTS, O_RDONLY))>=0) {
-		close(fd);
-		return xtab_read(_PATH_PROC_EXPORTS,
-				 _PATH_PROC_EXPORTS, 0);
-	} else if ((fd=open(_PATH_PROC_EXPORTS_ALT, O_RDONLY) >= 0)) {
-		close(fd);
-		return xtab_read(_PATH_PROC_EXPORTS_ALT,
-				 _PATH_PROC_EXPORTS_ALT, 0);
-	} else
-		return 0;
-}
-
-int
 xtab_export_read(void)
 {
 	return xtab_read(_PATH_ETAB, _PATH_ETABLCK, 1);

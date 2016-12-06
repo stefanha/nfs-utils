@@ -45,8 +45,7 @@ char buf[128];
 /*
  * Using the "new" interfaces for nfsd requires that /proc/fs/nfsd is
  * actually mounted. Make an attempt to mount it here if it doesn't appear
- * to be. If the mount attempt fails, no big deal -- fall back to using nfsctl
- * instead.
+ * to be.
  */
 void
 nfssvc_mount_nfsdfs(char *progname)
@@ -118,9 +117,8 @@ nfssvc_setfds(const struct addrinfo *hints, const char *node, const char *port)
 	char *proto, *family;
 
 	/*
-	 * if file can't be opened, then assume that it's not available and
-	 * that the caller should just fall back to the old nfsctl interface
- 	 */
+	 * if file can't be opened, fail.
+	 */
 	fd = open(NFSD_PORTS_FILE, O_WRONLY);
 	if (fd < 0)
 		return 0;
@@ -368,10 +366,8 @@ nfssvc_setvers(unsigned int ctlbits, unsigned int minorvers, unsigned int minorv
 }
 
 int
-nfssvc_threads(unsigned short port, const int nrservs)
+nfssvc_threads(const int nrservs)
 {
-	struct nfsctl_arg	arg;
-	struct servent *ent;
 	ssize_t n;
 	int fd;
 
@@ -390,17 +386,5 @@ nfssvc_threads(unsigned short port, const int nrservs)
 		else
 			return 0;
 	}
-
-	if (!port) {
-		ent = getservbyname("nfs", "udp");
-		if (ent != NULL)
-			port = ntohs(ent->s_port);
-		else
-			port = NFS_PORT;
-	}
-
-	arg.ca_version = NFSCTL_VERSION;
-	arg.ca_svc.svc_nthreads = nrservs;
-	arg.ca_svc.svc_port = port;
-	return nfsctl(NFSCTL_SVC, &arg, NULL);
+	return -1;
 }

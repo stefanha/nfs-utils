@@ -315,7 +315,7 @@ set_threads:
 	}
 	closeall(3);
 
-	if ((error = nfssvc_threads(portnum, count)) < 0)
+	if ((error = nfssvc_threads(count)) < 0)
 		xlog(L_ERROR, "error starting threads: errno %d (%m)", errno);
 out:
 	free(port);

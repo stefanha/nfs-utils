@@ -40,9 +40,7 @@
 static void	export_all(int verbose);
 static void	exportfs(char *arg, char *options, int verbose);
 static void	unexportfs(char *arg, int verbose);
-static void	exports_update(int verbose);
 static void	dump(int verbose, int export_format);
-static void	error(nfs_export *exp, int err);
 static void	usage(const char *progname, int n);
 static void	validate_export(nfs_export *exp);
 static int	matchhostname(const char *hostname1, const char *hostname2);
@@ -94,7 +92,6 @@ main(int argc, char **argv)
 	int	f_reexport = 0;
 	int	f_ignore = 0;
 	int	i, c;
-	int	new_cache = 0;
 	int	force_flush = 0;
 
 	if ((progname = strrchr(argv[0], '/')) != NULL)
@@ -157,17 +154,9 @@ main(int argc, char **argv)
 		xlog(L_ERROR, "-r and -u are incompatible");
 		return 1;
 	}
-	new_cache = check_new_cache();
 	if (optind == argc && ! f_all) {
 		if (force_flush) {
-			if (new_cache)
-				cache_flush(1);
-			else {
-				xlog(L_ERROR, "-f is available only "
-					"with new cache controls. "
-					"Mount /proc/fs/nfsd first");
-				return 1;
-			}
+			cache_flush(1);
 			return 0;
 		} else {
 			xtab_export_read();
@@ -209,69 +198,11 @@ main(int argc, char **argv)
 		if (!f_export)
 			for (i = optind ; i < argc ; i++)
 				unexportfs(argv[i], f_verbose);
-		if (!new_cache)
-			rmtab_read();
-	}
-	if (!new_cache) {
-		xtab_mount_read();
-		exports_update(f_verbose);
 	}
 	xtab_export_write();
-	if (new_cache)
-		cache_flush(force_flush);
+	cache_flush(force_flush);
 
 	return export_errno;
-}
-
-static void
-exports_update_one(nfs_export *exp, int verbose)
-{
-		/* check mountpoint option */
-	if (exp->m_mayexport &&
-	    exp->m_export.e_mountpoint &&
-	    !is_mountpoint(exp->m_export.e_mountpoint[0]?
-			   exp->m_export.e_mountpoint:
-			   exp->m_export.e_path)) {
-		printf("%s not exported as %s not a mountpoint.\n",
-		       exp->m_export.e_path, exp->m_export.e_mountpoint);
-		exp->m_mayexport = 0;
-	}
-	if (exp->m_mayexport && exp->m_changed) {
-		if (verbose)
-			printf("%sexporting %s:%s to kernel\n",
-			       exp->m_exported ?"re":"",
-			       exp->m_client->m_hostname,
-			       exp->m_export.e_path);
-		if (!export_export(exp))
-			error(exp, errno);
-	}
-	if (exp->m_exported && ! exp->m_mayexport) {
-		if (verbose)
-			printf("unexporting %s:%s from kernel\n",
-			       exp->m_client->m_hostname,
-			       exp->m_export.e_path);
-		if (!export_unexport(exp))
-			error(exp, errno);
-	}
-}
-
-
-/* we synchronise intention with reality.
- * entries with m_mayexport get exported
- * entries with m_exported but not m_mayexport get unexported
- * looking at m_client->m_type == MCL_FQDN and m_client->m_type == MCL_GSS only
- */
-static void
-exports_update(int verbose)
-{
-	nfs_export 	*exp;
-
-	for (exp = exportlist[MCL_FQDN].p_head; exp; exp=exp->m_next) {
-		exports_update_one(exp, verbose);
-	}
-	for (exp = exportlist[MCL_GSS].p_head; exp; exp=exp->m_next) {
-		exports_update_one(exp, verbose);
-	}
 }
 
 /*
@@ -438,10 +369,6 @@ unexportfs_parsed(char *hname, char *path, int verbose)
 					exp->m_client->m_hostname,
 					exp->m_export.e_path);
 		}
-#if 0
-		if (exp->m_exported && !export_unexport(exp))
-			error(exp, errno);
-#endif
 		exp->m_xtabent = 0;
 		exp->m_mayexport = 0;
 		success = 1;
@@ -806,13 +733,6 @@ dump(int verbose, int export_format)
 			printf("%c\n", (c != '(')? ')' : ' ');
 		}
 	}
-}
-
-static void
-error(nfs_export *exp, int err)
-{
-	xlog(L_ERROR, "%s:%s: %s", exp->m_client->m_hostname,
-		exp->m_export.e_path, strerror(err));
 }
 
 static void

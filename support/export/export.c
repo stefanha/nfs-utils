@@ -29,9 +29,6 @@ static void	export_init(nfs_export *exp, nfs_client *clp,
 static void	export_add(nfs_export *exp);
 static int	export_check(const nfs_export *exp, const struct addrinfo *ai,
 				const char *path);
-static nfs_export *
-		export_allowed_internal(const struct addrinfo *ai,
-				const char *path);
 
 void
 exportent_release(struct exportent *eep)
@@ -291,59 +288,6 @@ export_find(const struct addrinfo *ai, const char *path)
 				return exp;
 			return export_dup(exp, ai);
 		}
-	}
-
-	return NULL;
-}
-
-static nfs_export *
-export_allowed_internal(const struct addrinfo *ai, const char *path)
-{
-	nfs_export	*exp;
-	int		i;
-
-	for (i = 0; i < MCL_MAXTYPES; i++) {
-		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
-			if (!exp->m_mayexport ||
-			    !export_check(exp, ai, path))
-				continue;
-			return exp;
-		}
-	}
-
-	return NULL;
-}
-
-/**
- * export_allowed - determine if this export is allowed
- * @ai: pointer to addrinfo for client
- * @path: '\0'-terminated ASCII string containing export path
- *
- * Returns a pointer to nfs_export data matching @ai and @path,
- * or NULL if the export is not allowed.
- */
-nfs_export *
-export_allowed(const struct addrinfo *ai, const char *path)
-{
-	nfs_export		*exp;
-	char			epath[MAXPATHLEN+1];
-	char			*p = NULL;
-
-	if (path [0] != '/') return NULL;
-
-	strncpy(epath, path, sizeof (epath) - 1);
-	epath[sizeof (epath) - 1] = '\0';
-
-	/* Try the longest matching exported pathname. */
-	while (1) {
-		exp = export_allowed_internal(ai, epath);
-		if (exp)
-			return exp;
-		/* We have to treat the root, "/", specially. */
-		if (p == &epath[1]) break;
-		p = strrchr(epath, '/');
-		if (p == epath) p++;
-		*p = '\0';
 	}
 
 	return NULL;

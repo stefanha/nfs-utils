@@ -27,4 +27,4 @@ int	nfssvc_set_sockets(const unsigned int protobits,
 void	nfssvc_set_time(const char *type, const int seconds);
 int	nfssvc_set_rdmaport(const char *port);
 void	nfssvc_setvers(unsigned int ctlbits, unsigned int minorvers4, unsigned int minorvers4set);
-int	nfssvc_threads(unsigned short port, int nrservs);
+int	nfssvc_threads(int nrservs);

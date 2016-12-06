@@ -39,7 +39,6 @@ static void		auth_fixpath(char *path);
 static nfs_export my_exp;
 static nfs_client my_client;
 
-extern int new_cache;
 extern int use_ipaddr;
 
 void
@@ -210,17 +209,9 @@ auth_authenticate_internal(const struct sockaddr *caller, const char *path,
 {
 	nfs_export *exp;
 
-	if (new_cache) {
-		exp = auth_authenticate_newcache(caller, path, ai, error);
-		if (!exp)
-			return NULL;
-	} else {
-		exp = export_find(ai, path);
-		if (exp == NULL) {
-			*error = no_entry;
-			return NULL;
-		}
-	}
+	exp = auth_authenticate_newcache(caller, path, ai, error);
+	if (!exp)
+		return NULL;
 	if (!(exp->m_export.e_flags & NFSEXP_INSECURE_PORT) &&
 		     nfs_get_port(caller) >= IPPORT_RESERVED) {
 		*error = illegal_port;

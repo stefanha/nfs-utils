@@ -129,25 +129,9 @@ void daemon_ready(void);
  */
 int			wildmat(char *text, char *pattern);
 
-/*
- * nfsd library functions.
- */
-int			nfsctl(int, struct nfsctl_arg *, union nfsctl_res *);
-int			nfsaddclient(struct nfsctl_client *clp);
-int			nfsdelclient(struct nfsctl_client *clp);
-int			nfsexport(struct nfsctl_export *exp);
-int			nfsunexport(struct nfsctl_export *exp);
-
-struct nfs_fh_len *	getfh_old(const struct sockaddr_in *sin,
-					const dev_t dev, const ino_t ino);
-struct nfs_fh_len *	getfh(const struct sockaddr_in *sin, const char *path);
-struct nfs_fh_len *	getfh_size(const struct sockaddr_in *sin,
-					const char *path, int const size);
-
 int qword_get(char **bpp, char *dest, int bufsize);
 int qword_get_int(char **bpp, int *anint);
 void cache_flush(int force);
-int check_new_cache(void);
 void qword_add(char **bpp, int *lp, char *str);
 void qword_addhex(char **bpp, int *lp, char *buf, int blen);
 void qword_addint(char **bpp, int *lp, int n);

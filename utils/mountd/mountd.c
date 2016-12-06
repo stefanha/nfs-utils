@@ -35,7 +35,6 @@ static exports		get_exportlist(void);
 static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, nfs_export **, mountstat3 *, int v3);
 
 int reverse_resolve = 0;
-int new_cache = 0;
 int manage_gids;
 int use_ipaddr = -1;
 
@@ -495,8 +494,7 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 		return NULL;
 	}
 	if (estb.st_dev != stb.st_dev
-		   && (!new_cache
-			   || !(exp->m_export.e_flags & NFSEXP_CROSSMOUNT))) {
+	    && !(exp->m_export.e_flags & NFSEXP_CROSSMOUNT)) {
 		xlog(L_WARNING, "request to export directory %s below nearest filesystem %s",
 		     p, exp->m_export.e_path);
 		*error = MNT3ERR_ACCES;
@@ -512,45 +510,18 @@ get_rootfh(struct svc_req *rqstp, dirpath *path, nfs_export **expret,
 		return NULL;
 	}
 
-	if (new_cache) {
-		/* This will be a static private nfs_export with just one
-		 * address.  We feed it to kernel then extract the filehandle,
-		 * 
-		 */
+	/* This will be a static private nfs_export with just one
+	 * address.  We feed it to kernel then extract the filehandle,
+	 */
 
-		if (cache_export(exp, p)) {
-			*error = MNT3ERR_ACCES;
-			return NULL;
-		}
-		fh = cache_get_filehandle(exp, v3?64:32, p);
-		if (fh == NULL) {
-			*error = MNT3ERR_ACCES;
-			return NULL;
-		}
-	} else {
-		int did_export = 0;
-	retry:
-
-		if (v3)
-			fh = getfh_size((struct sockaddr_in *)sap, p, 64);
-		if (!v3 || (fh == NULL && errno == EINVAL)) {
-			/* We first try the new nfs syscall. */
-			fh = getfh((struct sockaddr_in *)sap, p);
-			if (fh == NULL && errno == EINVAL)
-				/* Let's try the old one. */
-				fh = getfh_old((struct sockaddr_in *)sap,
-						stb.st_dev, stb.st_ino);
-		}
-		if (fh == NULL && !did_export) {
-			exp->m_exported = 0;
-			goto retry;
-		}
-
-		if (fh == NULL) {
-			xlog(L_WARNING, "getfh failed: %s", strerror(errno));
-			*error = MNT3ERR_ACCES;
-			return NULL;
-		}
+	if (cache_export(exp, p)) {
+		*error = MNT3ERR_ACCES;
+		return NULL;
+	}
+	fh = cache_get_filehandle(exp, v3?64:32, p);
+	if (fh == NULL) {
+		*error = MNT3ERR_ACCES;
+		return NULL;
 	}
 	*error = MNT_OK;
 	mountlist_add(host_ntop(sap, buf, sizeof(buf)), p);
@@ -827,9 +798,7 @@ main(int argc, char **argv)
 	if (!foreground)
 		closeall(3);
 
-	new_cache = check_new_cache();
-	if (new_cache)
-		cache_open();
+	cache_open();
 
 	unregister_services();
 	if (version2()) {

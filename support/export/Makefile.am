@@ -10,7 +10,7 @@ GENFILES	= $(GENFILES_CLNT) $(GENFILES_SVC) $(GENFILES_XDR) $(GENFILES_H)
 EXTRA_DIST	= mount.x
 
 noinst_LIBRARIES = libexport.a
-libexport_a_SOURCES = client.c export.c hostname.c nfsctl.c rmtab.c \
+libexport_a_SOURCES = client.c export.c hostname.c \
 		      xtab.c mount_clnt.c mount_xdr.c
 BUILT_SOURCES 	= $(GENFILES)
 

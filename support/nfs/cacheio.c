@@ -198,18 +198,6 @@ int qword_get_uint(char **bpp, unsigned int *anint)
 	return 0;
 }
 
-/* Check if we should use the new caching interface
- * This succeeds iff the "nfsd" filesystem is mounted on
- * /proc/fs/nfs
- */
-int
-check_new_cache(void)
-{
-	return	(access("/proc/fs/nfs/filehandle", F_OK) == 0) ||
-		(access("/proc/fs/nfsd/filehandle", F_OK) == 0);
-}	
-
-
 /* flush the kNFSd caches.
  * Set the flush time to the mtime of _PATH_ETAB or
  * if force, to now.
