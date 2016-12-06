@@ -36,7 +36,9 @@ unit_files += \
 endif
 endif
 
-EXTRA_DIST = $(unit_files)
+man5_MANS	= nfs.conf.man
+
+EXTRA_DIST = $(unit_files) $(man5_MANS)
 
 unit_dir = /usr/lib/systemd/system
 generator_dir = /usr/lib/systemd/system-generators
