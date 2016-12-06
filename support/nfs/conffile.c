@@ -366,23 +366,18 @@ conf_init (void)
 	conf_reinit();
 }
 
-/* Open the config file and map it into our address space, then parse it.  */
-void
-conf_reinit(void)
+static int
+conf_load(int trans, char *path)
 {
-	struct conf_binding *cb = 0;
-	int fd, trans;
-	unsigned int i;
-	size_t sz;
-	char *new_conf_addr = 0;
 	struct stat sb;
+	if ((stat (path, &sb) == 0) || (errno != ENOENT)) {
+		char *new_conf_addr;
+		size_t sz = sb.st_size;
+		int fd = open (path, O_RDONLY, 0);
 
-	if ((stat (conf_path, &sb) == 0) || (errno != ENOENT)) {
-		sz = sb.st_size;
-		fd = open (conf_path, O_RDONLY, 0);
 		if (fd == -1) {
-			xlog_warn("conf_reinit: open (\"%s\", O_RDONLY) failed", conf_path);
-			return;
+			xlog_warn("conf_reinit: open (\"%s\", O_RDONLY) failed", path);
+			return -1;
 		}
 
 		new_conf_addr = malloc(sz);
@@ -399,13 +394,28 @@ conf_reinit(void)
 		}
 		close(fd);
 
-		trans = conf_begin();
 		/* XXX Should we not care about errors and rollback?  */
 		conf_parse(trans, new_conf_addr, sz);
 		free(new_conf_addr);
+		return 0;
+	fail:
+		close(fd);
+		free(new_conf_addr);
 	}
-	else
-		trans = conf_begin();
+	return -1;
+}
+
+/* Open the config file and map it into our address space, then parse it.  */
+void
+conf_reinit(void)
+{
+	struct conf_binding *cb = 0;
+	int trans;
+	unsigned int i;
+
+	trans = conf_begin();
+	if (conf_load(trans, conf_path) < 0)
+		return;
 
 	/* Load default configuration values.  */
 	conf_load_defaults();
@@ -419,11 +429,6 @@ conf_reinit(void)
 
 	conf_end(trans, 1);
 	return;
-
-fail:
-	if (new_conf_addr)
-		free(new_conf_addr);
-	close (fd);
 }
 
 /*
