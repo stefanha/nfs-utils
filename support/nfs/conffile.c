@@ -107,8 +107,6 @@ struct conf_binding {
 char *conf_path;
 LIST_HEAD (conf_bindings, conf_binding) conf_bindings[256];
 
-static char *conf_addr;
-
 static __inline__ uint8_t
 conf_hash(char *s)
 {
@@ -396,7 +394,7 @@ conf_reinit(void)
 		/* XXX I assume short reads won't happen here.  */
 		if (read (fd, new_conf_addr, sz) != (int)sz) {
 			xlog_warn("conf_reinit: read (%d, %p, %lu) failed",
-   				fd, new_conf_addr, (unsigned long)sz);
+				fd, new_conf_addr, (unsigned long)sz);
 			goto fail;
 		}
 		close(fd);
@@ -404,6 +402,7 @@ conf_reinit(void)
 		trans = conf_begin();
 		/* XXX Should we not care about errors and rollback?  */
 		conf_parse(trans, new_conf_addr, sz);
+		free(new_conf_addr);
 	}
 	else
 		trans = conf_begin();
@@ -412,17 +411,13 @@ conf_reinit(void)
 	conf_load_defaults();
 
 	/* Free potential existing configuration.  */
-	if (conf_addr) {
-		for (i = 0; i < sizeof conf_bindings / sizeof conf_bindings[0]; i++) {
-			cb = LIST_FIRST (&conf_bindings[i]);
-			for (; cb; cb = LIST_FIRST (&conf_bindings[i]))
-				conf_remove_now(cb->section, cb->tag);
-		}
-		free (conf_addr);
+	for (i = 0; i < sizeof conf_bindings / sizeof conf_bindings[0]; i++) {
+		cb = LIST_FIRST (&conf_bindings[i]);
+		for (; cb; cb = LIST_FIRST (&conf_bindings[i]))
+			conf_remove_now(cb->section, cb->tag);
 	}
 
 	conf_end(trans, 1);
-	conf_addr = new_conf_addr;
 	return;
 
 fail:
