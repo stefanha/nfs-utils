@@ -100,7 +100,7 @@ static unsigned char blob[NFS4_OPAQUE_LIMIT];
 static void
 usage(char *progname)
 {
-	printf("%s [ -hfd ] [ -s dir ] < cmd > < arg >\n", progname);
+	printf("Usage: %s [ -hfd ] [ -s dir ] < cmd > < arg >\n", progname);
 	printf("Where < cmd > is one of the following and takes the following < arg >:\n");
 	printf("    init\n");
 	printf("    create <nfs_client_id4>\n");
