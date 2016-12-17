@@ -45,6 +45,23 @@ Use the system default credentials
 .RI (host/ FQDN @ REALM )
 rather than the default
 .RI nfs/ FQDN @ REALM .
+.SH CONFIGURATION FILE
+Some of the options that can be set on the command line can also be
+controlled through values set in the
+.B [svcgssd]
+section of the
+.I /etc/nfs.conf
+configuration file.  Values recognized include:
+.TP
+.B principal
+If set to
+.B system
+this is equivalent to the
+.B -n
+option.  If set to any other value, that is used like the
+.B -p
+option.
+
 .SH SEE ALSO
 .BR rpc.gssd(8),
 .SH AUTHORS

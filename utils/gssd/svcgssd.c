@@ -61,6 +61,9 @@
 #include "svcgssd.h"
 #include "gss_util.h"
 #include "err_util.h"
+#include "conffile.h"
+
+char *conf_path = NFS_CONFFILE;
 
 void
 sig_die(int signal)
@@ -98,6 +101,17 @@ main(int argc, char *argv[])
 	extern char *optarg;
 	char *progname;
 	char *principal = NULL;
+	char *s;
+
+	conf_init();
+
+	s = conf_get_str("svcgssd", "principal");
+	if (!s)
+		;
+	else if (strcmp(s, "system")== 0)
+		get_creds = 0;
+	else
+		principal = s;
 
 	while ((opt = getopt(argc, argv, "fivrnp:")) != -1) {
 		switch (opt) {

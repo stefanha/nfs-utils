@@ -208,6 +208,15 @@ See
 for details.
 
 .TP
+.B svcgssd
+Recognized values:
+.BR principal .
+
+See
+.BR rpc.svcgssd (8)
+for details.
+
+.TP
 .B exportfs
 Only
 .B debug=
