@@ -36,6 +36,7 @@
 #include "nfslib.h"
 #include "exportfs.h"
 #include "xlog.h"
+#include "conffile.h"
 
 static void	export_all(int verbose);
 static void	exportfs(char *arg, char *options, int verbose);
@@ -49,6 +50,7 @@ static void release_lockfile(void);
 
 static const char *lockfile = EXP_LOCKFILE;
 static int _lockfd = -1;
+char *conf_path = NFS_CONFFILE;
 
 /*
  * If we aren't careful, changes made by exportfs can be lost
@@ -102,6 +104,9 @@ main(int argc, char **argv)
 	xlog_open(progname);
 	xlog_stderr(1);
 	xlog_syslog(0);
+
+	conf_init();
+	xlog_from_conffile("exportfs");
 
 	while ((c = getopt(argc, argv, "ad:fhio:ruvs")) != EOF) {
 		switch(c) {

@@ -189,6 +189,12 @@ See
 .BR sm-notify (8)
 for details.
 
+.TP
+.B exportfs
+Only
+.B debug=
+is recognized.
+
 .SH FILES
 .I /etc/nfs.conf
 .SH SEE ALSO

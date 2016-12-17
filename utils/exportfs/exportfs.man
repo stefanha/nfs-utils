@@ -90,6 +90,13 @@ to be added to the kernel's export table.
 .TP
 .B \-d kind " or " \-\-debug kind
 Turn on debugging. Valid kinds are: all, auth, call, general and parse.
+Debugging can also be turned on by setting
+.B debug=
+in the
+.B [exportfs]
+section of
+.IR /etc/nfs.conf .
+
 .TP
 .B -a
 Export or unexport all directories.
@@ -295,6 +302,7 @@ master table of exports
 table of clients accessing server's exports
 .SH SEE ALSO
 .BR exports (5),
+.BR nfs.conf (5),
 .BR rpc.mountd (8),
 .BR netgroup (5)
 .SH AUTHORS
