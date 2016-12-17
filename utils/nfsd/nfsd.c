@@ -59,7 +59,7 @@ static struct option longopts[] =
 int
 main(int argc, char **argv)
 {
-	int	count = NFSD_NPROC, c, i, error = 0, portnum = 0, fd, found_one;
+	int	count = NFSD_NPROC, c, i, error = 0, portnum, fd, found_one;
 	char *p, *progname, *port, *rdma_port = NULL;
 	char **haddr = NULL;
 	int hcounter = 0;
@@ -132,12 +132,6 @@ main(int argc, char **argv)
 		case 'P':	/* XXX for nfs-server compatibility */
 		case 'p':
 			/* only the last -p option has any effect */
-			portnum = atoi(optarg);
-			if (portnum <= 0 || portnum > 65535) {
-				fprintf(stderr, "%s: bad port number: %s\n",
-					progname, optarg);
-				usage(progname);
-			}
 			free(port);
 			port = xstrdup(optarg);
 			break;
@@ -244,6 +238,15 @@ main(int argc, char **argv)
 	}
 
 	xlog_open(progname);
+
+	portnum = strtol(port, &p, 0);
+	if (!*p && (portnum <= 0 || portnum > 65535)) {
+		/* getaddrinfo will catch other errors, but not
+		 * out-of-range numbers.
+		 */
+		xlog(L_ERROR, "invalid port number: %s", port);
+		exit(1);
+	}
 
 	/* make sure that at least one version is enabled */
 	found_one = 0;
