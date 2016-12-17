@@ -297,6 +297,60 @@ The default timeout is set to 5 seconds.
 If you get messages like "WARNING: can't create tcp rpc_clnt to server
 %servername% for user with uid %uid%: RPC: Remote system error -
 Connection timed out", you should consider an increase of this timeout.
+.SH CONFIGURATION FILE
+Many of the options that can be set on the command line can also be
+controlled through values set in the
+.B [gssd]
+section of the
+.I /etc/nfs.conf
+configuration file.  Values recognized include:
+.TP
+.B use-memcache
+A Boolean flag equivalent to
+.BR -M .
+.TP
+.B use-machine-creds
+A Boolean flag. Setting to
+.B false
+is equivalent to giving the
+.B -n
+flag.
+.TP
+.B avoid-dns
+Setting to
+.B false
+is equivalent to providing the
+.B -D
+flag.
+.TP
+.B limit-to-legacy-enctypes
+Equivalent to
+.BR -l .
+.TP
+.B context-timeout
+Equivalent to
+.BR -T .
+.TP
+.B rpc-timeout
+Equivalent to
+.BR -t .
+.TP
+.B pipefs-directory
+Equivalent to
+.BR -p .
+.TP
+.B keytab-file
+Equivalent to
+.BR -k .
+.TP
+.BR cred-cache-directory
+Equivalent to
+.BR -d .
+.TP
+.B preferred-realm
+Equivalent to
+.BR -R .
+
 .SH SEE ALSO
 .BR rpc.svcgssd (8),
 .BR kerberos (1),

@@ -71,6 +71,7 @@
 #include "gss_util.h"
 #include "krb5_util.h"
 #include "nfslib.h"
+#include "conffile.h"
 
 static char *pipefs_path = GSSD_PIPEFS_DIR;
 static DIR *pipefs_dir;
@@ -78,6 +79,7 @@ static int pipefs_fd;
 static int inotify_fd;
 struct event inotify_ev;
 
+char *conf_path = NFS_CONFFILE;
 char *keytabfile = GSSD_DEFAULT_KEYTAB_FILE;
 char **ccachesearch;
 int  use_memcache = 0;
@@ -847,6 +849,33 @@ main(int argc, char *argv[])
 	char *progname;
 	char *ccachedir = NULL;
 	struct event sighup_ev;
+	char *s;
+
+	conf_init();
+	use_memcache = conf_get_bool("gssd", "use-memcache", use_memcache);
+	root_uses_machine_creds = conf_get_bool("gssd", "use-machine-creds",
+						root_uses_machine_creds);
+	avoid_dns = conf_get_bool("gssd", "avoid-dns", avoid_dns);
+#ifdef HAVE_SET_ALLOWABLE_ENCTYPES
+	limit_to_legacy_enctypes = conf_get_bool("gssd", "limit-to-legacy-enctypes",
+						 limit_to_legacy_enctypes);
+#endif
+	context_timeout = conf_get_num("gssd", "context-timeout", context_timeout);
+	rpc_timeout = conf_get_num("gssd", "rpc-timeout", rpc_timeout);
+	s = conf_get_str("gssd", "pipefs-directory");
+	if (!s)
+		s = conf_get_str("general", "pipefs-directory");
+	if (s)
+		pipefs_path = s;
+	s = conf_get_str("gssd", "keytab-file");
+	if (s)
+		keytabfile = s;
+	s = conf_get_str("gssd", "cred-cache-directory");
+	if (s)
+		ccachedir = s;
+	s = conf_get_str("gssd", "preferred-realm");
+	if (s)
+		preferred_realm = s;
 
 	while ((opt = getopt(argc, argv, "DfvrlmnMp:k:d:t:T:R:")) != -1) {
 		switch (opt) {

@@ -190,6 +190,24 @@ See
 for details.
 
 .TP
+.B gssd
+Recognized values:
+.BR use-memcache ,
+.BR use-machine-creds ,
+.BR avoid-dns ,
+.BR limit-to-legacy-enctypes ,
+.BR context-timeout ,
+.BR rpc-timeout ,
+.BR pipefs-directory ,
+.BR keytab-file ,
+.BR cred-cache-directory ,
+.BR preferred-realm .
+
+See
+.BR rpc.gssd (8)
+for details.
+
+.TP
 .B exportfs
 Only
 .B debug=
