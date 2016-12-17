@@ -80,6 +80,7 @@ main(int argc, char **argv)
 	xlog_stderr(1);
 
 	conf_init();
+	xlog_from_conffile("nfsd");
 	count = conf_get_num("nfsd", "threads", count);
 	grace = conf_get_num("nfsd", "grace-time", grace);
 	lease = conf_get_num("nfsd", "lease-time", lease);

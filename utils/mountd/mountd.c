@@ -675,6 +675,7 @@ main(int argc, char **argv)
 		progname = argv[0];
 
 	conf_init();
+	xlog_from_conffile("mountd");
 	manage_gids = conf_get_bool("mountd", "manage-gids", manage_gids);
 	descriptors = conf_get_num("mountd", "descriptors", descriptors);
 	port = conf_get_num("mountd", "port", port);

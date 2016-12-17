@@ -29,6 +29,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include "nfslib.h"
+#include "conffile.h"
 
 #undef	VERBOSE_PRINTF
 
@@ -123,6 +124,19 @@ xlog_sconfig(char *kind, int on)
 		return;
 	}
 	xlog_config(tbl->df_fac, on);
+}
+
+void
+xlog_from_conffile(char *service)
+{
+	struct conf_list *kinds;
+	struct conf_list_node *n;
+
+	kinds = conf_get_list(service, "debug");
+	if (!kinds || !kinds->cnt)
+		return;
+	TAILQ_FOREACH(n, &(kinds->fields), link)
+		xlog_sconfig(n->field, 1);
 }
 
 int

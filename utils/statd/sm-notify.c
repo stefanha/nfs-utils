@@ -490,6 +490,7 @@ main(int argc, char **argv)
 		progname = argv[0];
 
 	conf_init();
+	xlog_from_conffile("sm-notify");
 	opt_max_retry = conf_get_num("sm-notify", "retry-time", opt_max_retry / 60) * 60;
 	opt_srcport = conf_get_str("sm-notify", "outgoing-port");
 	opt_srcaddr = conf_get_str("sm-notify", "outgoing-addr");

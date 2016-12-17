@@ -86,7 +86,15 @@ can be used for "false".  Comparisons are case-insensitive.
 
 .SH SECTIONS
 The following sections are known to various programs, and can contain
-the given named values.
+the given named values.  Most sections can also contain a
+.B debug
+value, which can be one or more from the list
+.BR general ,
+.BR call ,
+.BR auth ,
+.BR parse ,
+.BR all .
+When a list is given, the members should be comma-separated.
 .TP
 .B nfsdcltrack
 Recognized values:

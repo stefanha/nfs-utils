@@ -275,6 +275,7 @@ int main (int argc, char **argv)
 	MY_NAME = NULL;
 
 	conf_init();
+	xlog_from_conffile("statd");
 	out_port = conf_get_num("statd", "outgoing-port", out_port);
 	port = conf_get_num("statd", "port", port);
 	MY_NAME = conf_get_str("statd", "name");
