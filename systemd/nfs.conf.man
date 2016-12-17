@@ -104,6 +104,7 @@ for details.
 .B nfsd
 Recognized values:
 .BR threads ,
+.BR host ,
 .BR port ,
 .BR grace-time ,
 .BR lease-time ,

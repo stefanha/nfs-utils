@@ -63,6 +63,7 @@ main(int argc, char **argv)
 	char *p, *progname, *port, *rdma_port = NULL;
 	char **haddr = NULL;
 	int hcounter = 0;
+	struct conf_list *hosts;
 	int	socket_up = 0;
 	unsigned int minorvers = 0;
 	unsigned int minorversset = 0;
@@ -114,12 +115,26 @@ main(int argc, char **argv)
 		}
 	}
 
+	hosts = conf_get_list("nfsd", "host");
+	if (hosts && hosts->cnt) {
+		struct conf_list_node *n;
+		haddr = realloc(haddr, sizeof(char*) * hosts->cnt);
+		TAILQ_FOREACH(n, &(hosts->fields), link) {
+			haddr[hcounter] = n->field;
+			hcounter++;
+		}
+	}
+
 	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTUrG:L:", longopts, NULL)) != EOF) {
 		switch(c) {
 		case 'd':
 			xlog_config(D_ALL, 1);
 			break;
 		case 'H':
+			if (hosts) {
+				hosts = NULL;
+				hcounter = 0;
+			}
 			if (hcounter) {
 				haddr = realloc(haddr, sizeof(char*) * hcounter+1);
 				if(!haddr) {

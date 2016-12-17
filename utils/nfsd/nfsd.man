@@ -125,6 +125,13 @@ configuration file.  Values recognized include:
 .B threads
 The number of threads to start.
 .TP
+.B host
+A host name, or comma separated list of host names, that
+.I rpc.nfsd
+will listen on.  Use of the
+.B --host
+option replaces all host names listed here.
+.TP
 .B grace-time
 The grace time, for both NFSv4 and NLM, in seconds.
 .TP
