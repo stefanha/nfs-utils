@@ -300,14 +300,14 @@ conf_parse_line(int trans, char *line, size_t sz)
 			line[strcspn (line, " \t=")] = '\0';
 			val = line + i + 1 + strspn (line + i + 1, " \t");
 
-			if (line[0] == '"') {
-				line ++;
-				j = strcspn(line, "\"");
-				line[j] = 0;
-			} else if (line[0] == '\'') {
-				line ++;
-				j = strcspn(line, "'");
-				line[j] = 0;
+			if (val[0] == '"') {
+				val ++;
+				j = strcspn(val, "\"");
+				val[j] = 0;
+			} else if (val[0] == '\'') {
+				val ++;
+				j = strcspn(val, "'");
+				val[j] = 0;
 			} else {
 				/* Skip trailing spaces and comments */
 				for (j = 0; val[j]; j++) {
