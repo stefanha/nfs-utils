@@ -345,6 +345,8 @@ unexportfs_parsed(char *hname, char *path, int verbose)
 		nlen--;
 
 	for (exp = exportlist[htype].p_head; exp; exp = exp->m_next) {
+		if (strlen(exp->m_export.e_path) != nlen)
+			continue;
 		if (path && strncmp(path, exp->m_export.e_path, nlen))
 			continue;
 		if (htype != exp->m_client->m_type)
