@@ -71,8 +71,8 @@ main(int argc, char **argv)
 	int grace = -1;
 	int lease = -1;
 
-	progname = xstrdup(basename(argv[0]));
-	port = xstrdup("nfs");
+	progname = basename(argv[0]);
+	port = "nfs";
 	haddr = xmalloc(sizeof(char *));
 	haddr[0] = NULL;
 
@@ -126,14 +126,13 @@ main(int argc, char **argv)
 					exit(1);
 				}
 			}
-			haddr[hcounter] = xstrdup(optarg);
+			haddr[hcounter] = optarg;
 			hcounter++;
 			break;
 		case 'P':	/* XXX for nfs-server compatibility */
 		case 'p':
 			/* only the last -p option has any effect */
-			free(port);
-			port = xstrdup(optarg);
+			port = optarg;
 			break;
 		case 'r':
 			rdma_port = "nfsrdma";
@@ -334,11 +333,7 @@ set_threads:
 	if ((error = nfssvc_threads(count)) < 0)
 		xlog(L_ERROR, "error starting threads: errno %d (%m)", errno);
 out:
-	free(port);
-	for(i=0; i < hcounter; i++)
-		free(haddr[i]);
 	free(haddr);
-	free(progname);
 	return (error != 0);
 }
 
