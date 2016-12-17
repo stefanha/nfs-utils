@@ -131,6 +131,9 @@ The grace time, for both NFSv4 and NLM, in seconds.
 .B lease-time
 The lease time for NFSv4, in seconds.
 .TP
+.B port
+Set the port for TCP/UDP to bind to.
+.TP
 .B rdma
 Set RDMA port.  Use "rdma=nfsrdma" to enable standard port.
 .TP

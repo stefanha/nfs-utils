@@ -72,7 +72,6 @@ main(int argc, char **argv)
 	int lease = -1;
 
 	progname = basename(argv[0]);
-	port = "nfs";
 	haddr = xmalloc(sizeof(char *));
 	haddr[0] = NULL;
 
@@ -83,6 +82,9 @@ main(int argc, char **argv)
 	count = conf_get_num("nfsd", "threads", count);
 	grace = conf_get_num("nfsd", "grace-time", grace);
 	lease = conf_get_num("nfsd", "lease-time", lease);
+	port = conf_get_str("nfsd", "port");
+	if (!port)
+		port = "nfs";
 	rdma_port = conf_get_str("nfsd", "rdma");
 	if (conf_get_bool("nfsd", "udp", NFSCTL_UDPISSET(protobits)))
 		NFSCTL_UDPSET(protobits);
