@@ -308,14 +308,18 @@ conf_parse_line(int trans, char *line, size_t sz)
 				line ++;
 				j = strcspn(line, "'");
 				line[j] = 0;
-			} else
+			} else {
 				/* Skip trailing spaces and comments */
 				for (j = 0; val[j]; j++) {
-					if (val[j] == '#' || val[j] == ';' || isspace(val[j])) {
+					if ((val[j] == '#' || val[j] == ';')
+					    && (j == 0 || isspace(val[j-1]))) {
 						val[j] = '\0';
 						break;
 					}
 				}
+				while (j && isspace(val[j-1]))
+					val[--j] = '\0';
+			}
 			if (strcasecmp(line, "include") == 0)
 				conf_load(trans, val);
 			else
