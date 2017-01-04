@@ -57,7 +57,7 @@ This option can be used to request that
 .B rpc.nfsd
 does not offer certain versions of NFS. The current version of
 .B rpc.nfsd
-can support NFS versions 2,3,4 and the newer version 4.1.
+can support major NFS versions 2,3,4 and the minor versions 4.1 and 4.2.
 .TP
 .B \-s " or " \-\-syslog
 By default,
@@ -82,7 +82,7 @@ This option can be used to request that
 .B rpc.nfsd
 offer certain versions of NFS. The current version of
 .B rpc.nfsd
-can support NFS versions 2,3,4 and the newer version 4.1.
+can support major NFS versions 2,3,4 and the minor versions 4.1 and 4.2.
 .TP
 .B \-L " or " \-\-lease-time seconds
 Set the lease-time used for NFSv4.  This corresponds to how often
