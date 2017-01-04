@@ -473,8 +473,10 @@ static int can_test(void)
 	return 1;
 }
 
-static int test_export(char *path, int with_fsid)
+static int test_export(nfs_export *exp, int with_fsid)
 {
+	char *path = exp->m_export.e_path;
+	int flags = exp->m_export.e_flags | (with_fsid ? NFSEXP_FSID : 0);
 	/* beside max path, buf size should take protocol str into account */
 	char buf[NFS_MAXPATHLEN+1+64] = { 0 };
 	char *bp = buf;
@@ -487,7 +489,7 @@ static int test_export(char *path, int with_fsid)
 	qword_add(&bp, &len, path);
 	if (len < 1)
 		return 0;
-	snprintf(bp, len, " 3 %d 65534 65534 0\n", with_fsid ? NFSEXP_FSID : 0);
+	snprintf(bp, len, " 3 %d 65534 65534 0\n", flags);
 	fd = open("/proc/net/rpc/nfsd.export/channel", O_WRONLY);
 	if (fd < 0)
 		return 0;
@@ -529,12 +531,12 @@ validate_export(nfs_export *exp)
 
 	if ((exp->m_export.e_flags & NFSEXP_FSID) || exp->m_export.e_uuid ||
 	    fs_has_fsid) {
-		if ( !test_export(path, 1)) {
+		if ( !test_export(exp, 1)) {
 			xlog(L_ERROR, "%s does not support NFS export", path);
 			return;
 		}
-	} else if ( ! test_export(path, 0)) {
-		if (test_export(path, 1))
+	} else if ( !test_export(exp, 0)) {
+		if (test_export(exp, 1))
 			xlog(L_ERROR, "%s requires fsid= for NFS export", path);
 		else
 			xlog(L_ERROR, "%s does not support NFS export", path);
