@@ -161,10 +161,10 @@ by default.
 .B vers4.1
 .TP
 .B vers4.2
-.TP
-.B vers4.3
 Setting these to "off" or similar will disable the selected minor
-versions.  All are enabled by default.
+versions.  Setting to "on" will enable them.  The default values
+are determined by the kernel, and usually minor versions default to
+being enabled once the implementation is sufficiently complete.
 
 .SH NOTES
 If the program is built with TI-RPC support, it will enable any protocol and

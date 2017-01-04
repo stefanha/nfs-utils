@@ -107,12 +107,24 @@ main(int argc, char **argv)
 	/* We assume the kernel will default all minor versions to 'on',
 	 * and allow the config file to disable some.
 	 */
-	for (i = 0; i <= NFS4_MAXMINOR; i++) {
+	for (i = NFS4_MINMINOR; i <= NFS4_MAXMINOR; i++) {
 		char tag[20];
 		sprintf(tag, "vers4.%d", i);
+		/* The default for minor version support is to let the
+		 * kernel decide.  We could ask the kernel what that choice
+		 * will be, but that is needlessly complex.
+		 * Instead, perform a config-file lookup using each of the
+		 * two possible default.  If the result is different from the
+		 * default, then impose that value, else don't make a change
+		 * (i.e. don't set the bit in minorversset).
+		 */
 		if (!conf_get_bool("nfsd", tag, 1)) {
 			NFSCTL_VERSET(minorversset, i);
-			NFSCTL_VERUNSET(minorversset, i);
+			NFSCTL_VERUNSET(minorvers, i);
+		}
+		if (conf_get_bool("nfsd", tag, 0)) {
+			NFSCTL_VERSET(minorversset, i);
+			NFSCTL_VERSET(minorvers, i);
 		}
 	}
 
