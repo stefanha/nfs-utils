@@ -95,6 +95,9 @@ int main(int argc, char *argv[])
 	FILE		*f, *fstab;
 	struct mntent	*mnt;
 
+	/* Avoid using any external services */
+	xlog_syslog(0);
+
 	if (argc != 4 || argv[1][0] != '/') {
 		fprintf(stderr, "nfs-server-generator: create systemd dependencies for nfs-server\n");
 		fprintf(stderr, "Usage: normal-dir early-dir late-dir\n");
