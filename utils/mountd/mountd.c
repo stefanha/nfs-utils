@@ -852,8 +852,6 @@ main(int argc, char **argv)
 	sa.sa_handler = sig_hup;
 	sigaction(SIGHUP, &sa, NULL);
 
-	auth_init();
-
 	if (!foreground) {
 		/* We first fork off a child. */
 		if ((c = fork()) > 0)
