@@ -389,7 +389,7 @@ main(int argc, char **argv)
 		switch (c) {
 		case 'a':
 			fprintf(stderr, "nfsstat: nfs acls are not yet supported.\n");
-			return -1;
+			return 1;
 		case 'c':
 			opt_clt = 1;
 			break;
@@ -455,7 +455,7 @@ main(int argc, char **argv)
 					"not yet supported\n");
 			return 2;
 		case 'm':
-			return mounts(MOUNTSFILE);
+			return ! mounts(MOUNTSFILE);
 		case '\1':
 			usage(progname);
 			return 0;
@@ -464,7 +464,7 @@ main(int argc, char **argv)
 			return 0;
 		default:
 			printf("Try `%s --help' for more information.\n", progname);
-			return -1;
+			return 1;
 		}
 	}
 
