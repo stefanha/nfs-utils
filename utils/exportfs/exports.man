@@ -417,6 +417,14 @@ devices. The default can be explicitly requested with the
 .I no_pnfs
 option.
 
+.TP
+.IR security_label
+With this option set, clients using NFSv4.2 or higher will be able to
+set and retrieve security labels (such as those used by SELinux).  This
+will only work if all clients use a consistent security policy.  Note
+that early kernels did not support this export option, and instead
+enabled security labels by default.
+
 .SS User ID Mapping
 .PP
 .B nfsd
