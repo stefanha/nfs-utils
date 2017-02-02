@@ -517,6 +517,10 @@ nfs_rewrite_pmap_mount_options(struct mount_options *options, int checkv4)
 	unsigned long protocol;
 	struct pmap mnt_pmap;
 
+	/* initialize structs */
+	memset(&nfs_pmap, 0, sizeof(struct pmap));
+	memset(&mnt_pmap, 0, sizeof(struct pmap));
+
 	/*
 	 * Version and transport negotiation is not required
 	 * and does not work for RDMA mounts.

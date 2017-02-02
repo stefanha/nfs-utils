@@ -1638,6 +1638,7 @@ int nfs_options2pmap(struct mount_options *options,
 		     struct pmap *nfs_pmap, struct pmap *mnt_pmap)
 {
 	struct nfs_version version;
+	memset(&version, 0, sizeof(version));
 
 	if (!nfs_nfs_program(options, &nfs_pmap->pm_prog))
 		return 0;
