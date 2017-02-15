@@ -729,9 +729,16 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 	char			*target = NULL;
 	char			*service = NULL;
 	char			*enctypes = NULL;
+	char			*upcall_str;
 	char			*pbuf = info->lbuf;
 
 	printerr(2, "\n%s: '%s' (%s)\n", __func__, info->lbuf, clp->relpath);
+
+	upcall_str = strdup(info->lbuf);
+	if (upcall_str == NULL) {
+		printerr(0, "ERROR: malloc failure\n");
+		goto out_nomem;
+	}
 
 	while ((p = strsep(&pbuf, " "))) {
 		if (!strncmp(p, "mech=", strlen("mech=")))
@@ -749,7 +756,7 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 	if (!mech || strlen(mech) < 1) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "failed to find gss mechanism name "
-			    "in upcall string '%s'\n", info->lbuf);
+			    "in upcall string '%s'\n", upcall_str);
 		goto out;
 	}
 
@@ -762,7 +769,7 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 	if (!uidstr) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			    "failed to find uid "
-			    "in upcall string '%s'\n", info->lbuf);
+			    "in upcall string '%s'\n", upcall_str);
 		goto out;
 	}
 
@@ -775,7 +782,7 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 	if (target && strlen(target) < 1) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			 "failed to parse target name "
-			 "in upcall string '%s'\n", info->lbuf);
+			 "in upcall string '%s'\n", upcall_str);
 		goto out;
 	}
 
@@ -790,7 +797,7 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 	if (service && strlen(service) < 1) {
 		printerr(0, "WARNING: handle_gssd_upcall: "
 			 "failed to parse service type "
-			 "in upcall string '%s'\n", info->lbuf);
+			 "in upcall string '%s'\n", upcall_str);
 		goto out;
 	}
 
@@ -803,6 +810,8 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 		do_error_downcall(clp->gssd_fd, uid, -EACCES);
 	}
 out:
+	free(upcall_str);
+out_nomem:
 	free(info);
 	return;
 }
