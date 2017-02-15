@@ -144,7 +144,7 @@ Instead, mount the nfsd filesystem on
 .IR /proc/fs/nfsd .
 .TP
 .BI "\-s," "" " \-\-state\-directory\-path "  directory
-Specify a directory in which to place statd state information.
+Specify a directory in which to place state information (etab and rmtab).
 If this option is not specified the default of
 .I /var/lib/nfs
 is used.

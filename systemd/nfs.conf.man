@@ -154,6 +154,13 @@ section, are used to configure mountd.  See
 .BR rpc.mountd (8)
 for details.
 
+The
+.B state-directory-path
+value in the
+.B [mountd]
+section is also used by
+.BR exportfs (8).
+
 .TP
 .B statd
 Recognized values:

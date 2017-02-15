@@ -29,6 +29,7 @@
 #include "mountd.h"
 #include "rpcmisc.h"
 #include "pseudoflavors.h"
+#include "nfslib.h"
 
 extern void my_svc_run(void);
 
@@ -39,6 +40,9 @@ static struct nfs_fh_len *get_rootfh(struct svc_req *, dirpath *, nfs_export **,
 int reverse_resolve = 0;
 int manage_gids;
 int use_ipaddr = -1;
+
+struct state_paths etab;
+struct state_paths rmtab;
 
 char *conf_path = NFS_CONFFILE;
 
@@ -110,8 +114,8 @@ unregister_services (void)
 static void
 cleanup_lockfiles (void)
 {
-	unlink(_PATH_ETABLCK);
-	unlink(_PATH_RMTABLCK);
+	unlink(etab.lockfn);
+	unlink(rmtab.lockfn);
 }
 
 /* Wait for all worker child processes to exit and reap them */
@@ -181,6 +185,8 @@ fork_workers(void)
 	wait_for_workers();
 	unregister_services();
 	cleanup_lockfiles();
+	free_state_path_names(&etab);
+	free_state_path_names(&rmtab);
 	xlog(L_NOTICE, "mountd: no more workers, exiting\n");
 	exit(0);
 }
@@ -198,6 +204,8 @@ killer (int sig)
 		wait_for_workers();
 	}
 	cleanup_lockfiles();
+	free_state_path_names(&etab);
+	free_state_path_names(&rmtab);
 	xlog (L_NOTICE, "Caught signal %d, un-registering and exiting.", sig);
 	exit(0);
 }
@@ -656,7 +664,6 @@ get_exportlist(void)
 int
 main(int argc, char **argv)
 {
-	char    *state_dir = NFS_STATEDIR;
 	char	*progname;
 	char	*s;
 	unsigned int listeners = 0;
@@ -684,8 +691,8 @@ main(int argc, char **argv)
 	ha_callout_prog = conf_get_str("mountd", "ha-callout");
 
 	s = conf_get_str("mountd", "state-directory-path");
-	if (s)
-		state_dir = s;
+	if (s && !state_setup_basedir(argv[0], s))
+		exit(1);
 
 	/* NOTE: following uses "nfsd" section of nfs.conf !!!! */
 	if (conf_get_bool("nfsd", "udp", NFSCTL_UDPISSET(_rpcprotobits)))
@@ -758,7 +765,8 @@ main(int argc, char **argv)
 			reverse_resolve = 1;
 			break;
 		case 's':
-			state_dir = xstrdup(optarg);
+			if (!state_setup_basedir(argv[0], optarg))
+				exit(1);
 			break;
 		case 't':
 			num_threads = atoi (optarg);
@@ -790,11 +798,10 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: No protocol versions specified!\n", progname); 
 		usage(progname, 1);
 	}
-	if (chdir(state_dir)) {
-		fprintf(stderr, "%s: chdir(%s) failed: %s\n",
-			progname, state_dir, strerror(errno));
-		exit(1);
-	}
+	if (!setup_state_path_names(progname, ETAB, ETABTMP, ETABLCK, &etab))
+		return 1;
+	if (!setup_state_path_names(progname, RMTAB, RMTABTMP, RMTABLCK, &rmtab))
+		return 1;
 
 	if (getrlimit (RLIMIT_NOFILE, &rlim) != 0)
 		fprintf(stderr, "%s: getrlimit (RLIMIT_NOFILE) failed: %s\n",
@@ -888,6 +895,8 @@ main(int argc, char **argv)
 
 	xlog(L_ERROR, "RPC service loop terminated unexpectedly. Exiting...\n");
 	unregister_services();
+	free_state_path_names(&etab);
+	free_state_path_names(&rmtab);
 	exit(1);
 }
 

@@ -27,6 +27,8 @@
 #include <time.h>
 #include <errno.h>
 
+extern struct state_paths etab;
+
 void qword_add(char **bpp, int *lp, char *str)
 {
 	char *bp = *bpp;
@@ -199,7 +201,7 @@ int qword_get_uint(char **bpp, unsigned int *anint)
 }
 
 /* flush the kNFSd caches.
- * Set the flush time to the mtime of _PATH_ETAB or
+ * Set the flush time to the mtime of the etab state file or
  * if force, to now.
  * the caches to flush are:
  *  auth.unix.ip nfsd.export nfsd.fh
@@ -228,7 +230,7 @@ cache_flush(int force)
 	};
 	now = time(0);
 	if (force ||
-	    stat(_PATH_ETAB, &stb) != 0 ||
+	    stat(etab.statefn, &stb) != 0 ||
 	    stb.st_mtime > now)
 		stb.st_mtime = time(0);
 	

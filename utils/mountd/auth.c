@@ -41,6 +41,8 @@ static nfs_client my_client;
 
 extern int use_ipaddr;
 
+extern struct state_paths etab;
+
 void
 auth_init(void)
 {
@@ -84,10 +86,10 @@ auth_reload()
 	static unsigned int	counter;
 	int			fd;
 
-	if ((fd = open(_PATH_ETAB, O_RDONLY)) < 0) {
-		xlog(L_FATAL, "couldn't open %s", _PATH_ETAB);
+	if ((fd = open(etab.statefn, O_RDONLY)) < 0) {
+		xlog(L_FATAL, "couldn't open %s", etab.statefn);
 	} else if (fstat(fd, &stb) < 0) {
-		xlog(L_FATAL, "couldn't stat %s", _PATH_ETAB);
+		xlog(L_FATAL, "couldn't stat %s", etab.statefn);
 		close(fd);
 	} else if (last_fd != -1 && stb.st_ino == last_inode) {
 		/* We opened the etab file before, and its inode

@@ -52,6 +52,8 @@ static const char *lockfile = EXP_LOCKFILE;
 static int _lockfd = -1;
 char *conf_path = NFS_CONFFILE;
 
+struct state_paths etab;
+
 /*
  * If we aren't careful, changes made by exportfs can be lost
  * when multiple exports process run at once:
@@ -95,6 +97,7 @@ main(int argc, char **argv)
 	int	f_ignore = 0;
 	int	i, c;
 	int	force_flush = 0;
+	char	*s;
 
 	if ((progname = strrchr(argv[0], '/')) != NULL)
 		progname++;
@@ -107,6 +110,11 @@ main(int argc, char **argv)
 
 	conf_init();
 	xlog_from_conffile("exportfs");
+
+	/* NOTE: following uses "mountd" section of nfs.conf !!!! */
+	s = conf_get_str("mountd", "state-directory-path");
+	if (s && !state_setup_basedir(argv[0], s))
+		exit(1);
 
 	while ((c = getopt(argc, argv, "ad:fhio:ruvs")) != EOF) {
 		switch(c) {
@@ -159,13 +167,17 @@ main(int argc, char **argv)
 		xlog(L_ERROR, "-r and -u are incompatible");
 		return 1;
 	}
+	if (!setup_state_path_names(progname, ETAB, ETABTMP, ETABLCK, &etab))
+		return 1;
 	if (optind == argc && ! f_all) {
 		if (force_flush) {
 			cache_flush(1);
+			free_state_path_names(&etab);
 			return 0;
 		} else {
 			xtab_export_read();
 			dump(f_verbose, f_export_format);
+			free_state_path_names(&etab);
 			return 0;
 		}
 	}
@@ -206,6 +218,7 @@ main(int argc, char **argv)
 	}
 	xtab_export_write();
 	cache_flush(force_flush);
+	free_state_path_names(&etab);
 
 	return export_errno;
 }

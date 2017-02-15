@@ -33,12 +33,14 @@
 
 static FILE	*rmfp = NULL;
 
+extern struct state_paths rmtab;
+
 int
 setrmtabent(char *type)
 {
 	if (rmfp)
 		fclose(rmfp);
-	rmfp = fsetrmtabent(_PATH_RMTAB, type);
+	rmfp = fsetrmtabent(rmtab.statefn, type);
 	return (rmfp != NULL);
 }
 

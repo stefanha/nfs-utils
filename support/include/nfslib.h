@@ -35,28 +35,23 @@
 #ifndef _PATH_IDMAPDCONF
 #define _PATH_IDMAPDCONF	"/etc/idmapd.conf"
 #endif
-#ifndef _PATH_ETAB
-#define _PATH_ETAB		NFS_STATEDIR "/etab"
-#endif
-#ifndef _PATH_ETABTMP
-#define _PATH_ETABTMP		NFS_STATEDIR "/etab.tmp"
-#endif
-#ifndef _PATH_ETABLCK
-#define _PATH_ETABLCK		NFS_STATEDIR "/.etab.lock"
-#endif
-#ifndef _PATH_RMTAB
-#define _PATH_RMTAB		NFS_STATEDIR "/rmtab"
-#endif
-#ifndef _PATH_RMTABTMP
-#define _PATH_RMTABTMP		_PATH_RMTAB ".tmp"
-#endif
-#ifndef _PATH_RMTABLCK
-#define _PATH_RMTABLCK		NFS_STATEDIR "/.rmtab.lock"
-#endif
 #ifndef _PATH_PROC_EXPORTS
 #define	_PATH_PROC_EXPORTS	"/proc/fs/nfs/exports"
 #define	_PATH_PROC_EXPORTS_ALT	"/proc/fs/nfsd/exports"
 #endif
+
+#define ETAB		"etab"
+#define ETABTMP		"etab.tmp"
+#define ETABLCK 	".etab.lock"
+#define RMTAB		"rmtab"
+#define RMTABTMP	"rmtab.tmp"
+#define RMTABLCK	".rmtab.lock"
+
+struct state_paths {
+	char *statefn;
+	char *tmpfn;
+	char *lockfn;
+};
 
 /* Maximum number of security flavors on an export: */
 #define SECFLAVOR_COUNT 8
@@ -119,6 +114,10 @@ struct rmtabent *	fgetrmtabent(FILE *fp, int log, long *pos);
 void			fputrmtabent(FILE *fp, struct rmtabent *xep, long *pos);
 void			fendrmtabent(FILE *fp);
 void			frewindrmtabent(FILE *fp);
+
+_Bool state_setup_basedir(const char *, const char *);
+int setup_state_path_names(const char *, const char *, const char *, const char *, struct state_paths *);
+void free_state_path_names(struct state_paths *);
 
 /* mydaemon */
 void daemon_init(bool fg);

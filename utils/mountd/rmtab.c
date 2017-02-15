@@ -28,6 +28,8 @@
 
 extern int reverse_resolve;
 
+extern struct state_paths rmtab;
+
 /* If new path is a link do not destroy it but place the
  * file where the link points.
  */
@@ -59,7 +61,7 @@ mountlist_add(char *host, const char *path)
 	int		lockid;
 	long		pos;
 
-	if ((lockid = xflock(_PATH_RMTABLCK, "a")) < 0)
+	if ((lockid = xflock(rmtab.lockfn, "a")) < 0)
 		return;
 	setrmtabent("r+");
 	while ((rep = getrmtabent(1, &pos)) != NULL) {
@@ -99,13 +101,13 @@ mountlist_del(char *hname, const char *path)
 	int		lockid;
 	int		match;
 
-	if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
+	if ((lockid = xflock(rmtab.lockfn, "w")) < 0)
 		return;
 	if (!setrmtabent("r")) {
 		xfunlock(lockid);
 		return;
 	}
-	if (!(fp = fsetrmtabent(_PATH_RMTABTMP, "w"))) {
+	if (!(fp = fsetrmtabent(rmtab.tmpfn, "w"))) {
 		endrmtabent();
 		xfunlock(lockid);
 		return;
@@ -121,9 +123,9 @@ mountlist_del(char *hname, const char *path)
 		if (!match || rep->r_count)
 			fputrmtabent(fp, rep, NULL);
 	}
-	if (slink_safe_rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
+	if (slink_safe_rename(rmtab.tmpfn, rmtab.statefn) < 0) {
 		xlog(L_ERROR, "couldn't rename %s to %s",
-				_PATH_RMTABTMP, _PATH_RMTAB);
+				rmtab.tmpfn, rmtab.statefn);
 	}
 	endrmtabent();	/* close & unlink */
 	fendrmtabent(fp);
@@ -138,7 +140,7 @@ mountlist_del_all(const struct sockaddr *sap)
 	FILE		*fp;
 	int		lockid;
 
-	if ((lockid = xflock(_PATH_RMTABLCK, "w")) < 0)
+	if ((lockid = xflock(rmtab.lockfn, "w")) < 0)
 		return;
 	hostname = host_canonname(sap);
 	if (hostname == NULL) {
@@ -151,7 +153,7 @@ mountlist_del_all(const struct sockaddr *sap)
 	if (!setrmtabent("r"))
 		goto out_free;
 
-	if (!(fp = fsetrmtabent(_PATH_RMTABTMP, "w")))
+	if (!(fp = fsetrmtabent(rmtab.tmpfn, "w")))
 		goto out_close;
 
 	while ((rep = getrmtabent(1, NULL)) != NULL) {
@@ -160,9 +162,9 @@ mountlist_del_all(const struct sockaddr *sap)
 			continue;
 		fputrmtabent(fp, rep, NULL);
 	}
-	if (slink_safe_rename(_PATH_RMTABTMP, _PATH_RMTAB) < 0) {
+	if (slink_safe_rename(rmtab.tmpfn, rmtab.statefn) < 0) {
 		xlog(L_ERROR, "couldn't rename %s to %s",
-				_PATH_RMTABTMP, _PATH_RMTAB);
+				rmtab.tmpfn, rmtab.statefn);
 	}
 	fendrmtabent(fp);
 out_close:
@@ -195,11 +197,11 @@ mountlist_list(void)
 	struct stat		stb;
 	int			lockid;
 
-	if ((lockid = xflock(_PATH_RMTABLCK, "r")) < 0)
+	if ((lockid = xflock(rmtab.lockfn, "r")) < 0)
 		return NULL;
-	if (stat(_PATH_RMTAB, &stb) < 0) {
+	if (stat(rmtab.statefn, &stb) < 0) {
 		xlog(L_ERROR, "can't stat %s: %s",
-				_PATH_RMTAB, strerror(errno));
+				rmtab.statefn, strerror(errno));
 		xfunlock(lockid);
 		return NULL;
 	}

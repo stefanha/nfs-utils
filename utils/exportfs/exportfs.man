@@ -148,6 +148,29 @@ options.
 .TP
 .B -s
 Display the current export list suitable for /etc/exports.
+
+.SH CONFIGURATION FILE
+The
+.B [exportfs]
+section of the
+.I /etc/nfs.conf
+configuration file can contain a
+.B debug
+value, which can be one or more from the list
+.BR general ,
+.BR call ,
+.BR auth ,
+.BR parse ,
+.BR all .
+When a list is given, the members should be comma-separated.
+
+.B exportfs
+will also recognize the
+.B state-directory-path
+value from the
+.B [mountd]
+section.
+
 .SH DISCUSSION
 .SS Exporting Directories
 The first synopsis shows how to invoke

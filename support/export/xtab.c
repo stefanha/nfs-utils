@@ -14,12 +14,20 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <libgen.h>
 
 #include "nfslib.h"
 #include "exportfs.h"
 #include "xio.h"
 #include "xlog.h"
 #include "v4root.h"
+#include "misc.h"
+
+static char state_base_dirname[PATH_MAX] = NFS_STATEDIR;
+extern struct state_paths etab;
 
 int v4root_needed;
 static void cond_rename(char *newfile, char *oldfile);
@@ -65,7 +73,7 @@ xtab_read(char *xtab, char *lockfn, int is_export)
 int
 xtab_export_read(void)
 {
-	return xtab_read(_PATH_ETAB, _PATH_ETABLCK, 1);
+	return xtab_read(etab.statefn, etab.lockfn, 1);
 }
 
 /*
@@ -112,7 +120,7 @@ xtab_write(char *xtab, char *xtabtmp, char *lockfn, int is_export)
 int
 xtab_export_write()
 {
-	return xtab_write(_PATH_ETAB, _PATH_ETABTMP, _PATH_ETABLCK, 1);
+	return xtab_write(etab.statefn, etab.tmpfn, etab.lockfn, 1);
 }
 
 /*
@@ -157,4 +165,75 @@ static void cond_rename(char *newfile, char *oldfile)
 	close(ofd);
 	rename(newfile, oldfile);
 	return;
+}
+
+/*
+ * Returns a dynamically allocated, '\0'-terminated buffer
+ * containing an appropriate pathname, or NULL if an error
+ * occurs.  Caller must free the returned result with free(3).
+ */
+static char *
+state_make_pathname(const char *tabname)
+{
+	return generic_make_pathname(state_base_dirname, tabname);
+}
+
+/**
+ * state_setup_basedir - set up basedir
+ * @progname: C string containing name of program, for error messages
+ * @parentdir: C string containing pathname to on-disk state, or NULL
+ *
+ * This runs before logging is set up, so error messages are directed
+ * to stderr.
+ *
+ * Returns true and sets up our basedir, if @parentdir was valid
+ * and usable; otherwise false is returned.
+ */
+_Bool
+state_setup_basedir(const char *progname, const char *parentdir)
+{
+	return generic_setup_basedir(progname, parentdir, state_base_dirname,
+				     PATH_MAX);
+}
+
+int
+setup_state_path_names(const char *progname, const char *statefn,
+		      const char *tmpfn, const char *lockfn,
+		      struct state_paths *paths)
+{
+	paths->statefn = state_make_pathname(statefn);
+	if (!paths->statefn) {
+		fprintf(stderr, "%s: state_make_pathname(%s) failed\n",
+			progname, statefn);
+		goto out_err;
+	}
+	paths->tmpfn = state_make_pathname(tmpfn);
+	if (!paths->tmpfn) {
+		fprintf(stderr, "%s: state_make_pathname(%s) failed\n",
+			progname, tmpfn);
+		goto out_free_statefn;
+	}
+	paths->lockfn = state_make_pathname(lockfn);
+	if (!paths->lockfn) {
+		fprintf(stderr, "%s: state_make_pathname(%s) failed\n",
+			progname, lockfn);
+		goto out_free_tmpfn;
+	}
+	return 1;
+
+out_free_tmpfn:
+	free(paths->tmpfn);
+out_free_statefn:
+	free(paths->statefn);
+out_err:
+	return 0;
+
+}
+
+void
+free_state_path_names(struct state_paths *paths)
+{
+	free(paths->statefn);
+	free(paths->tmpfn);
+	free(paths->lockfn);
 }
