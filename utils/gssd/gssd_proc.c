@@ -729,10 +729,11 @@ handle_gssd_upcall(struct clnt_upcall_info *info)
 	char			*target = NULL;
 	char			*service = NULL;
 	char			*enctypes = NULL;
+	char			*pbuf = info->lbuf;
 
 	printerr(2, "\n%s: '%s' (%s)\n", __func__, info->lbuf, clp->relpath);
 
-	for (p = strtok(info->lbuf, " "); p; p = strtok(NULL, " ")) {
+	while ((p = strsep(&pbuf, " "))) {
 		if (!strncmp(p, "mech=", strlen("mech=")))
 			mech = p + strlen("mech=");
 		else if (!strncmp(p, "uid=", strlen("uid=")))
