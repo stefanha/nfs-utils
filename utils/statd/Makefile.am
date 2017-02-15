@@ -18,6 +18,7 @@ statd_LDADD = ../../support/nsm/libnsm.a \
 	      $(LIBWRAP) $(LIBNSL) $(LIBCAP) $(LIBTIRPC)
 sm_notify_LDADD = ../../support/nsm/libnsm.a \
 		  ../../support/nfs/libnfs.a \
+	          ../../support/misc/libmisc.a \
 		  $(LIBNSL) $(LIBCAP) $(LIBTIRPC)
 
 EXTRA_DIST = sim_sm_inter.x $(man8_MANS) simulate.c

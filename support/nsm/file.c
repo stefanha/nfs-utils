@@ -88,6 +88,7 @@
 
 #include "xlog.h"
 #include "nsm.h"
+#include "misc.h"
 
 #define RPCARGSLEN	(4 * (8 + 1))
 #define LINELEN		(RPCARGSLEN + SM_PRIV_SIZE * 2 + 1)
@@ -170,25 +171,7 @@ __attribute__((__malloc__))
 static char *
 nsm_make_pathname(const char *directory)
 {
-	size_t size;
-	char *path;
-	int len;
-
-	size = strlen(nsm_base_dirname) + strlen(directory) + 2;
-	if (size > PATH_MAX)
-		return NULL;
-
-	path = malloc(size);
-	if (path == NULL)
-		return NULL;
-
-	len = snprintf(path, size, "%s/%s", nsm_base_dirname, directory);
-	if (error_check(len, size)) {
-		free(path);
-		return NULL;
-	}
-
-	return path;
+	return generic_make_pathname(nsm_base_dirname, directory);
 }
 
 /*
@@ -293,29 +276,8 @@ out:
 _Bool
 nsm_setup_pathnames(const char *progname, const char *parentdir)
 {
-	static char buf[PATH_MAX];
-	struct stat st;
-	char *path;
-
-	/* First: test length of name and whether it exists */
-	if (lstat(parentdir, &st) == -1) {
-		(void)fprintf(stderr, "%s: Failed to stat %s: %s",
-				progname, parentdir, strerror(errno));
-		return false;
-	}
-
-	/* Ensure we have a clean directory pathname */
-	strncpy(buf, parentdir, sizeof(buf));
-	path = dirname(buf);
-	if (*path == '.') {
-		(void)fprintf(stderr, "%s: Unusable directory %s",
-				progname, parentdir);
-		return false;
-	}
-
-	xlog(D_CALL, "Using %s as the state directory", parentdir);
-	strncpy(nsm_base_dirname, parentdir, sizeof(nsm_base_dirname));
-	return true;
+	return generic_setup_basedir(progname, parentdir, nsm_base_dirname,
+				     PATH_MAX);
 }
 
 /**
