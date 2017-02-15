@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <time.h>
+#include <grp.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -804,6 +805,7 @@ int start_statd(void)
 			pid_t pid = fork();
 			switch (pid) {
 			case 0: /* child */
+				setgroups(0, NULL);
 				setgid(0);
 				setuid(0);
 				execle(START_STATD, START_STATD, NULL, envp);
