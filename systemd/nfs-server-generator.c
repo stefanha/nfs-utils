@@ -84,6 +84,28 @@ static void systemd_escape(FILE *f, char *path)
 	}
 }
 
+static int has_noauto_flag(char *path)
+{
+	FILE		*fstab;
+	struct mntent	*mnt;
+
+	fstab = setmntent("/etc/fstab", "r");
+	if (!fstab)
+		return 0;
+
+	while ((mnt = getmntent(fstab)) != NULL) {
+		int l = strlen(mnt->mnt_dir);
+		if (strncmp(mnt->mnt_dir, path, l) != 0)
+			continue;
+		if (path[l] && path[l] != '/')
+			continue;
+		if (hasmntopt(mnt, "noauto"))
+			break;
+	}
+	fclose(fstab);
+	return mnt != NULL;
+}
+
 int main(int argc, char *argv[])
 {
 	char		*path;
@@ -123,6 +145,10 @@ int main(int argc, char *argv[])
 	for (i = 0; i < MCL_MAXTYPES; i++) {
 		for (exp = exportlist[i].p_head; exp; exp = exp->m_next) {
 			if (!is_unique(&list, exp->m_export.e_path))
+				continue;
+			if (exp->m_export.e_mountpoint)
+				continue;
+			if (has_noauto_flag(exp->m_export.e_path))
 				continue;
 			if (strchr(exp->m_export.e_path, ' '))
 				fprintf(f, "RequiresMountsFor=\"%s\"\n",
