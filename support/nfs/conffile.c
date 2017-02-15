@@ -533,7 +533,7 @@ retry:
 				 * or from environment
 				 */
 				char *env = getenv(cb->value+1);
-				if (env)
+				if (env && *env)
 					return env;
 				section = "environment";
 				tag = cb->value + 1;
