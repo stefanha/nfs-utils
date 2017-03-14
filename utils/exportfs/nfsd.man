@@ -105,11 +105,6 @@ clients have for different filesystems.
 The caches are:
 
 .TP
-.B auth.domain
-This cache maps the name of a client (or domain) to an internal data
-structure.  The only access that is possible is to flush the cache.
-
-.TP
 .B auth.unix.ip
 This cache contains a mapping from IP address to the name of the
 authentication domain that the ipaddress should be treated as part of.
@@ -133,7 +128,8 @@ are:
 .B flush
 When a number of seconds since epoch (1 Jan 1970) is written to this
 file, all entries in the cache that were last updated before that file
-become invalidated and will be flushed out.  Writing 1 will flush
+become invalidated and will be flushed out.  Writing a time in the
+future (in seconds since epoch) will flush
 everything.  This is the only file that will always be present.
 
 .TP
