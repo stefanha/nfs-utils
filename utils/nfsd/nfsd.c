@@ -67,6 +67,7 @@ main(int argc, char **argv)
 	int	socket_up = 0;
 	unsigned int minorvers = 0;
 	unsigned int minorversset = 0;
+	unsigned int minormask = 0;
 	unsigned int versbits = NFSCTL_VERDEFAULT;
 	unsigned int protobits = NFSCTL_ALLBITS;
 	int grace = -1;
@@ -104,10 +105,16 @@ main(int argc, char **argv)
 		else
 			NFSCTL_VERUNSET(versbits, i);
 	}
+
+	nfssvc_get_minormask(&minormask);
 	/* We assume the kernel will default all minor versions to 'on',
 	 * and allow the config file to disable some.
 	 */
-	for (i = NFS4_MINMINOR; i <= NFS4_MAXMINOR; i++) {
+	if (NFSCTL_VERISSET(versbits, 4)) {
+		NFSCTL_MINORSET(minorversset, 0);
+		NFSCTL_MINORSET(minorvers, 0);
+	}
+	for (i = 1; i <= NFS4_MAXMINOR; i++) {
 		char tag[20];
 		sprintf(tag, "vers4.%d", i);
 		/* The default for minor version support is to let the
@@ -119,12 +126,12 @@ main(int argc, char **argv)
 		 * (i.e. don't set the bit in minorversset).
 		 */
 		if (!conf_get_bool("nfsd", tag, 1)) {
-			NFSCTL_VERSET(minorversset, i);
-			NFSCTL_VERUNSET(minorvers, i);
+			NFSCTL_MINORSET(minorversset, i);
+			NFSCTL_MINORUNSET(minorvers, i);
 		}
 		if (conf_get_bool("nfsd", tag, 0)) {
-			NFSCTL_VERSET(minorversset, i);
-			NFSCTL_VERSET(minorvers, i);
+			NFSCTL_MINORSET(minorversset, i);
+			NFSCTL_MINORSET(minorvers, i);
 		}
 	}
 
@@ -179,13 +186,17 @@ main(int argc, char **argv)
 			case 4:
 				if (*p == '.') {
 					int i = atoi(p+1);
-					if (i < NFS4_MINMINOR || i > NFS4_MAXMINOR) {
+					if (i < 0 || i > NFS4_MAXMINOR) {
 						fprintf(stderr, "%s: unsupported minor version\n", optarg);
 						exit(1);
 					}
-					NFSCTL_VERSET(minorversset, i);
-					NFSCTL_VERUNSET(minorvers, i);
-					break;
+					NFSCTL_MINORSET(minorversset, i);
+					NFSCTL_MINORUNSET(minorvers, i);
+					if (minorvers != 0)
+						break;
+				} else {
+					minorvers = 0;
+					minorversset = minormask;
 				}
 			case 3:
 			case 2:
@@ -201,14 +212,14 @@ main(int argc, char **argv)
 			case 4:
 				if (*p == '.') {
 					int i = atoi(p+1);
-					if (i < NFS4_MINMINOR || i > NFS4_MAXMINOR) {
+					if (i < 0 || i > NFS4_MAXMINOR) {
 						fprintf(stderr, "%s: unsupported minor version\n", optarg);
 						exit(1);
 					}
-					NFSCTL_VERSET(minorversset, i);
-					NFSCTL_VERSET(minorvers, i);
-					break;
-				}
+					NFSCTL_MINORSET(minorversset, i);
+					NFSCTL_MINORSET(minorvers, i);
+				} else
+					minorvers = minorversset = minormask;
 			case 3:
 			case 2:
 				NFSCTL_VERSET(versbits, c);

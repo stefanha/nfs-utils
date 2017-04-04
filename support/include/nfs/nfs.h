@@ -16,8 +16,8 @@
 #define NFSD_MINVERS 2
 #define NFSD_MAXVERS 4
 
-#define NFS4_MINMINOR 1
-#define NFS4_MAXMINOR WORD_BIT
+#define NFS4_MINMINOR 0
+#define NFS4_MAXMINOR (WORD_BIT-1)
 
 struct nfs_fh_len {
 	int		fh_size;
@@ -29,15 +29,18 @@ struct nfs_fh_len {
 #define NFSCTL_TCPBIT		      (1 << (18 - 1))
 
 #define NFSCTL_VERUNSET(_cltbits, _v) ((_cltbits) &= ~(1 << ((_v) - 1))) 
+#define NFSCTL_MINORUNSET(_cltbits, _v) ((_cltbits) &= ~(1 << (_v)))
 #define NFSCTL_UDPUNSET(_cltbits)     ((_cltbits) &= ~NFSCTL_UDPBIT) 
 #define NFSCTL_TCPUNSET(_cltbits)     ((_cltbits) &= ~NFSCTL_TCPBIT) 
 
 #define NFSCTL_VERISSET(_cltbits, _v) ((_cltbits) & (1 << ((_v) - 1))) 
+#define NFSCTL_MINORISSET(_cltbits, _v) ((_cltbits) & (1 << (_v)))
 #define NFSCTL_UDPISSET(_cltbits)     ((_cltbits) & NFSCTL_UDPBIT) 
 #define NFSCTL_TCPISSET(_cltbits)     ((_cltbits) & NFSCTL_TCPBIT) 
 
 #define NFSCTL_VERDEFAULT (0xc)       /* versions 3 and 4 */
 #define NFSCTL_VERSET(_cltbits, _v)   ((_cltbits) |= (1 << ((_v) - 1))) 
+#define NFSCTL_MINORSET(_cltbits, _v)   ((_cltbits) |= (1 << (_v)))
 #define NFSCTL_UDPSET(_cltbits)       ((_cltbits) |= NFSCTL_UDPBIT)
 #define NFSCTL_TCPSET(_cltbits)       ((_cltbits) |= NFSCTL_TCPBIT)
 
