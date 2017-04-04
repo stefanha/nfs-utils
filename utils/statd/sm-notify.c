@@ -45,6 +45,8 @@
 
 #define NLM_END_GRACE_FILE	"/proc/fs/lockd/nlm_end_grace"
 
+int lift_grace = 1;
+
 struct nsm_host {
 	struct nsm_host *	next;
 	char *			name;
@@ -494,6 +496,7 @@ main(int argc, char **argv)
 	opt_max_retry = conf_get_num("sm-notify", "retry-time", opt_max_retry / 60) * 60;
 	opt_srcport = conf_get_str("sm-notify", "outgoing-port");
 	opt_srcaddr = conf_get_str("sm-notify", "outgoing-addr");
+	lift_grace = conf_get_bool("sm-notify", "lift-grace", lift_grace);
 	s = conf_get_str("statd", "state-directory-path");
 	if (s && !nsm_setup_pathnames(argv[0], s))
 		exit(1);
@@ -570,7 +573,8 @@ usage:		fprintf(stderr,
 	(void)nsm_retire_monitored_hosts();
 	if (nsm_load_notify_list(smn_get_host) == 0) {
 		xlog(D_GENERAL, "No hosts to notify; exiting");
-		nsm_lift_grace_period();
+		if (lift_grace)
+			nsm_lift_grace_period();
 		return 0;
 	}
 

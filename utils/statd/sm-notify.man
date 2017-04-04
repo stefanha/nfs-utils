@@ -241,6 +241,24 @@ These have the same effect as the command line options
 .B v
 respectively.
 
+An additional value recognized in the
+.B [sm-notify]
+section is
+.BR lift-grace .
+By default,
+.B sm-notify
+will lift lockd's grace period early if it has no hosts to notify.
+Some high availability configurations will run one
+.B sm-notify
+per floating IP address.  In these configurations, lifting the
+grace period early may prevent clients from reclaiming locks.
+.RB "Setting " lift-grace " to " n
+will prevent
+.B sm-notify
+from ending the grace period early.
+.B lift-grace
+has no corresponding command line option.
+
 The value recognized in the
 .B [statd]
 section is
