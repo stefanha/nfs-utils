@@ -27,6 +27,7 @@ struct nfs_fh_len {
 
 #define NFSCTL_UDPBIT		      (1 << (17 - 1))
 #define NFSCTL_TCPBIT		      (1 << (18 - 1))
+#define NFSCTL_PROTODEFAULT	      (NFSCTL_TCPBIT)
 
 #define NFSCTL_VERUNSET(_cltbits, _v) ((_cltbits) &= ~(1 << ((_v) - 1))) 
 #define NFSCTL_MINORUNSET(_cltbits, _v) ((_cltbits) &= ~(1 << (_v)))
@@ -45,6 +46,5 @@ struct nfs_fh_len {
 #define NFSCTL_TCPSET(_cltbits)       ((_cltbits) |= NFSCTL_TCPBIT)
 
 #define NFSCTL_ANYPROTO(_cltbits)     ((_cltbits) & (NFSCTL_UDPBIT | NFSCTL_TCPBIT))
-#define NFSCTL_ALLBITS (~0)
 
 #endif /* _NFS_NFS_H */

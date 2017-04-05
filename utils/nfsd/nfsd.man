@@ -67,15 +67,17 @@ logs error messages (and debug messages, if enabled) to stderr. This option make
 log these messages to syslog instead. Note that errors encountered during
 option processing will still be logged to stderr regardless of this option.
 .TP
+.B \-t " or " \-\-tcp
+Instruct the kernel nfs server to open and listen on a TCP socket. This is the default.
+.TP
 .B \-T " or " \-\-no-tcp
-Disable 
-.B rpc.nfsd 
-from accepting TCP connections from clients.
+Instruct the kernel nfs server not to open and listen on a TCP socket.
+.TP
+.B \-u " or " \-\-udp
+Instruct the kernel nfs server to open and listen on a UDP socket.
 .TP
 .B \-U " or " \-\-no-udp
-Disable
-.B rpc.nfsd
-from accepting UDP connections from clients.
+Instruct the kernel nfs server not to open and listen on a UDP socket. This is the default.
 .TP
 .B \-V " or " \-\-nfs-version vers
 This option can be used to request that 

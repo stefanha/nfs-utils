@@ -44,7 +44,9 @@ static struct option longopts[] =
 	{ "help", 0, 0, 'h' },
 	{ "no-nfs-version", 1, 0, 'N' },
 	{ "nfs-version", 1, 0, 'V' },
+	{ "tcp", 0, 0, 't' },
 	{ "no-tcp", 0, 0, 'T' },
+	{ "udp", 0, 0, 'u' },
 	{ "no-udp", 0, 0, 'U' },
 	{ "port", 1, 0, 'P' },
 	{ "port", 1, 0, 'p' },
@@ -69,7 +71,7 @@ main(int argc, char **argv)
 	unsigned int minorversset = 0;
 	unsigned int minormask = 0;
 	unsigned int versbits = NFSCTL_VERDEFAULT;
-	unsigned int protobits = NFSCTL_ALLBITS;
+	unsigned int protobits = NFSCTL_PROTODEFAULT;
 	int grace = -1;
 	int lease = -1;
 
@@ -145,7 +147,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:sTUrG:L:", longopts, NULL)) != EOF) {
+	while ((c = getopt_long(argc, argv, "dH:hN:V:p:P:stTitUrG:L:", longopts, NULL)) != EOF) {
 		switch(c) {
 		case 'd':
 			xlog_config(D_ALL, 1);
@@ -233,8 +235,14 @@ main(int argc, char **argv)
 			xlog_syslog(1);
 			xlog_stderr(0);
 			break;
+		case 't':
+			NFSCTL_TCPSET(protobits);
+			break;
 		case 'T':
 			NFSCTL_TCPUNSET(protobits);
+			break;
+		case 'u':
+			NFSCTL_UDPSET(protobits);
 			break;
 		case 'U':
 			NFSCTL_UDPUNSET(protobits);
@@ -383,9 +391,9 @@ usage(const char *prog)
 {
 	fprintf(stderr, "Usage:\n"
 		"%s [-d|--debug] [-H hostname] [-p|-P|--port port]\n"
-		"     [-N|--no-nfs-version version] [-V|--nfs-version version]\n"
-		"     [-s|--syslog] [-T|--no-tcp] [-U|--no-udp] [-r|--rdma=]\n"
-		"     [-G|--grace-time secs] [-L|--leasetime secs] nrservs\n",
+		"   [-N|--no-nfs-version version] [-V|--nfs-version version]\n"
+		"   [-s|--syslog] [-t|--tcp] [-T|--no-tcp] [-u|--udp] [-U|--no-udp]\n"
+		"   [-r|--rdma=] [-G|--grace-time secs] [-L|--leasetime secs] nrservs\n",
 		prog);
 	exit(2);
 }
