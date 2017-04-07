@@ -7,8 +7,8 @@ Wants=rpcbind.socket
 Wants=rpc-statd.service nfs-idmapd.service
 Wants=rpc-statd-notify.service
 
-After= local-fs.target
-After= network.target proc-fs-nfsd.mount rpcbind.socket nfs-mountd.service
+After= local-fs.target network-online.target
+After= proc-fs-nfsd.mount rpcbind.socket nfs-mountd.service
 After= nfs-idmapd.service rpc-statd.service
 Before= rpc-statd-notify.service
 
