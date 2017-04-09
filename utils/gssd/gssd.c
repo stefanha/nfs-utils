@@ -857,6 +857,10 @@ read_gss_conf(void)
 	s = conf_get_str("gssd", "pipefs-directory");
 	if (!s)
 		s = conf_get_str("general", "pipefs-directory");
+	else
+		printerr(0, "WARNING: Specifying pipefs-directory in the [gssd] "
+			 "section of %s is deprecated.  Use the [general] "
+			 "section instead.", NFS_CONFFILE);
 	if (s)
 		pipefs_path = s;
 	s = conf_get_str("gssd", "keytab-file");

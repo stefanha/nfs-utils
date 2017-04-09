@@ -335,10 +335,6 @@ Equivalent to
 Equivalent to
 .BR -t .
 .TP
-.B pipefs-directory
-Equivalent to
-.BR -p .
-.TP
 .B keytab-file
 Equivalent to
 .BR -k .
@@ -350,6 +346,14 @@ Equivalent to
 .B preferred-realm
 Equivalent to
 .BR -R .
+.P
+In addtion, the following value is recognized from the
+.B [general]
+section:
+.TP
+.B pipefs-directory
+Equivalent to
+.BR -p .
 
 .SH SEE ALSO
 .BR rpc.svcgssd (8),

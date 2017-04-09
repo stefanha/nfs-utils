@@ -102,6 +102,8 @@ Recognized values:
 
 See
 .BR rpc.idmapd (8)
+and
+.BR rpc.gssd (8)
 for details.
 
 .TP
@@ -214,7 +216,6 @@ Recognized values:
 .BR limit-to-legacy-enctypes ,
 .BR context-timeout ,
 .BR rpc-timeout ,
-.BR pipefs-directory ,
 .BR keytab-file ,
 .BR cred-cache-directory ,
 .BR preferred-realm .
