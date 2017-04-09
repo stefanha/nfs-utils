@@ -96,6 +96,15 @@ value, which can be one or more from the list
 .BR all .
 When a list is given, the members should be comma-separated.
 .TP
+.B general
+Recognized values:
+.BR pipefs-directory .
+
+See
+.BR rpc.idmapd (8)
+for details.
+
+.TP
 .B nfsdcltrack
 Recognized values:
 .BR storagedir .

@@ -73,11 +73,28 @@ The default value is \&"/var/lib/nfs/rpc_pipefs\&".
 .It Fl c Ar path
 Use configuration file
 .Ar path .
+This option is deprecated.
 .It Fl C
 Client-only: perform no idmapping for any NFS server, even if one is detected.
 .It Fl S
 Server-only: perform no idmapping for any NFS client, even if one is detected.
 .El
+.Sh CONFIGURATION FILES
+.Nm
+recognizes the following value from the
+.Sy [general]
+section of the
+.Pa /etc/nfs.conf
+configuration file:
+.Bl -tag -width Ds_imagedir
+.It Sy pipefs-directory
+Equivalent to
+.Sy -p .
+.El
+.Pp
+All other settings related to id mapping are found in the
+.Pa /etc/idmapd.conf
+configuration file.
 .Sh EXAMPLES
 .Cm rpc.idmapd -f -vvv
 .Pp
@@ -94,9 +111,11 @@ messages to console, and with a verbosity level of 3.
 .\" This next request is for sections 1, 6, 7 & 8 only.
 .\" .Sh ENVIRONMENT
 .Sh FILES
-.Pa /etc/idmapd.conf
+.Pa /etc/idmapd.conf ,
+.Pa /etc/nfs.conf
 .Sh SEE ALSO
 .Xr idmapd.conf 5 ,
+.Xr nfs.conf 5 ,
 .Xr nfsidmap 8
 .\".Sh SEE ALSO
 .\".Xr nylon.conf 4

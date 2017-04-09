@@ -166,7 +166,7 @@ static uid_t nobodyuid;
 static gid_t nobodygid;
 
 /* Used by conffile.c in libnfs.a */
-char *conf_path;
+char *conf_path = NULL;
 
 static int
 flush_nfsd_cache(char *path, time_t now)
@@ -220,7 +220,6 @@ main(int argc, char **argv)
 	int ret;
 	char *progname;
 
-	conf_path = _PATH_IDMAPDCONF;
 	nobodyuser = NFS4NOBODY_USER;
 	nobodygroup = NFS4NOBODY_GROUP;
 	strlcpy(pipefsdir, PIPEFS_DIR, sizeof(pipefsdir));
@@ -234,8 +233,11 @@ main(int argc, char **argv)
 #define GETOPTSTR "hvfd:p:U:G:c:CS"
 	opterr=0; /* Turn off error messages */
 	while ((opt = getopt(argc, argv, GETOPTSTR)) != -1) {
-		if (opt == 'c')
+		if (opt == 'c') {
+			warnx("-c is deprecated and may be removed in the "
+			      "future.  See idmapd(8).");
 			conf_path = optarg;
+		}
 		if (opt == '?') {
 			if (strchr(GETOPTSTR, optopt))
 				warnx("'-%c' option requires an argument.", optopt);
@@ -247,17 +249,33 @@ main(int argc, char **argv)
 	}
 	optind = 1;
 
-	if (stat(conf_path, &sb) == -1 && (errno == ENOENT || errno == EACCES)) {
-		warn("Skipping configuration file \"%s\"", conf_path);
-		conf_path = NULL;
+	if (conf_path) { /* deprecated -c option was specified */
+		if (stat(conf_path, &sb) == -1 && (errno == ENOENT || errno == EACCES)) {
+			warn("Skipping configuration file \"%s\"", conf_path);
+			conf_path = NULL;
+		} else {
+			conf_init();
+			verbose = conf_get_num("General", "Verbosity", 0);
+			cache_entry_expiration = conf_get_num("General",
+					"Cache-Expiration", DEFAULT_IDMAP_CACHE_EXPIRY);
+			CONF_SAVE(xpipefsdir, conf_get_str("General", "Pipefs-Directory"));
+			if (xpipefsdir != NULL)
+				strlcpy(pipefsdir, xpipefsdir, sizeof(pipefsdir));
+			CONF_SAVE(nobodyuser, conf_get_str("Mapping", "Nobody-User"));
+			CONF_SAVE(nobodygroup, conf_get_str("Mapping", "Nobody-Group"));
+		}
 	} else {
+		conf_path = NFS_CONFFILE;
 		conf_init();
-		verbose = conf_get_num("General", "Verbosity", 0);
-		cache_entry_expiration = conf_get_num("General",
-				"Cache-Expiration", DEFAULT_IDMAP_CACHE_EXPIRY);
 		CONF_SAVE(xpipefsdir, conf_get_str("General", "Pipefs-Directory"));
 		if (xpipefsdir != NULL)
 			strlcpy(pipefsdir, xpipefsdir, sizeof(pipefsdir));
+
+		conf_path = _PATH_IDMAPDCONF;
+		conf_init();
+		verbose = conf_get_num("General", "Verbosity", 0);
+		cache_entry_expiration = conf_get_num("General",
+				"cache-expiration", DEFAULT_IDMAP_CACHE_EXPIRY);
 		CONF_SAVE(nobodyuser, conf_get_str("Mapping", "Nobody-User"));
 		CONF_SAVE(nobodygroup, conf_get_str("Mapping", "Nobody-Group"));
 	}
