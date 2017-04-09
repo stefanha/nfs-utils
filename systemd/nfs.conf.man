@@ -101,7 +101,8 @@ Recognized values:
 .BR pipefs-directory .
 
 See
-.BR rpc.idmapd (8)
+.BR blkmapd (8),
+.BR rpc.idmapd (8),
 and
 .BR rpc.gssd (8)
 for details.

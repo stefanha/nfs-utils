@@ -43,9 +43,24 @@ Performs device discovery only then exits.
 Runs
 .B blkmapd
 in the foreground and sends output to stderr (as opposed to syslogd)
+.SH CONFIGURATION FILE
+The
+.B blkmapd
+daemon recognizes the following value from the
+.B [general]
+section of the
+.I /etc/nfs.conf
+configuration file:
+.TP
+.B pipefs-directory
+Tells
+.B blkmapd
+where to look for the rpc_pipefs filesystem.  The default value is
+.IR /var/lib/nfs/rpc_pipefs .
 .SH SEE ALSO
 .BR nfs (5),
-.BR dmsetup (8)
+.BR dmsetup (8),
+.BR nfs.conf (5)
 .sp
 RFC 5661 for the NFS version 4.1 specification.
 .br

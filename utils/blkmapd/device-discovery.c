@@ -50,20 +50,36 @@
 #include <errno.h>
 #include <libdevmapper.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "device-discovery.h"
 #include "xcommon.h"
+#include "nfslib.h"
+#include "conffile.h"
 
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define EVENT_BUFSIZE (1024 * EVENT_SIZE)
 
-#define BL_PIPE_FILE	"/var/lib/nfs/rpc_pipefs/nfs/blocklayout"
-#define NFSPIPE_DIR	"/var/lib/nfs/rpc_pipefs/nfs"
 #define RPCPIPE_DIR	"/var/lib/nfs/rpc_pipefs"
 #define PID_FILE	"/var/run/blkmapd.pid"
+
+#define CONF_SAVE(w, f) do {			\
+	char *p = f;				\
+	if (p != NULL)				\
+		(w) = p;			\
+} while (0)
+
+static char bl_pipe_file[PATH_MAX];
+static char nfspipe_dir[PATH_MAX];
+static char rpcpipe_dir[PATH_MAX];
 
 struct bl_disk *visible_disk_list;
 int    bl_watch_fd, bl_pipe_fd, nfs_pipedir_wfd, rpc_pipedir_wfd;
 int    pidfd = -1;
+char   *conf_path = NULL;
+
 
 struct bl_disk_path *bl_get_path(const char *filepath,
 				 struct bl_disk_path *paths)
@@ -358,8 +374,8 @@ static void bl_rpcpipe_cb(void)
 				continue;
 			if (event->mask & IN_CREATE) {
 				BL_LOG_WARNING("nfs pipe dir created\n");
-				bl_watch_dir(NFSPIPE_DIR, &nfs_pipedir_wfd);
-				bl_pipe_fd = open(BL_PIPE_FILE, O_RDWR);
+				bl_watch_dir(nfspipe_dir, &nfs_pipedir_wfd);
+				bl_pipe_fd = open(bl_pipe_file, O_RDWR);
 			} else if (event->mask & IN_DELETE) {
 				BL_LOG_WARNING("nfs pipe dir deleted\n");
 				inotify_rm_watch(bl_watch_fd, nfs_pipedir_wfd);
@@ -372,7 +388,7 @@ static void bl_rpcpipe_cb(void)
 				continue;
 			if (event->mask & IN_CREATE) {
 				BL_LOG_WARNING("blocklayout pipe file created\n");
-				bl_pipe_fd = open(BL_PIPE_FILE, O_RDWR);
+				bl_pipe_fd = open(bl_pipe_file, O_RDWR);
 				if (bl_pipe_fd < 0)
 					BL_LOG_ERR("open %s failed: %s\n",
 						event->name, strerror(errno));
@@ -437,6 +453,19 @@ int main(int argc, char **argv)
 {
 	int opt, dflag = 0, fg = 0, ret = 1;
 	char pidbuf[64];
+	char *xrpcpipe_dir = NULL;
+
+	strncpy(rpcpipe_dir, RPCPIPE_DIR, sizeof(rpcpipe_dir));
+	conf_path = NFS_CONFFILE;
+	conf_init();
+	CONF_SAVE(xrpcpipe_dir, conf_get_str("general", "pipefs-directory"));
+	if (xrpcpipe_dir != NULL)
+		strlcpy(rpcpipe_dir, xrpcpipe_dir, sizeof(rpcpipe_dir));
+
+	strncpy(nfspipe_dir, rpcpipe_dir, sizeof(nfspipe_dir));
+	strlcat(nfspipe_dir, "/nfs", sizeof(nfspipe_dir));
+	strncpy(bl_pipe_file, rpcpipe_dir, sizeof(bl_pipe_file));
+	strlcat(bl_pipe_file, "/nfs/blocklayout", sizeof(bl_pipe_file));
 
 	while ((opt = getopt(argc, argv, "hdf")) != -1) {
 		switch (opt) {
@@ -496,12 +525,12 @@ int main(int argc, char **argv)
 	}
 
 	/* open pipe file */
-	bl_watch_dir(RPCPIPE_DIR, &rpc_pipedir_wfd);
-	bl_watch_dir(NFSPIPE_DIR, &nfs_pipedir_wfd);
+	bl_watch_dir(rpcpipe_dir, &rpc_pipedir_wfd);
+	bl_watch_dir(nfspipe_dir, &nfs_pipedir_wfd);
 
-	bl_pipe_fd = open(BL_PIPE_FILE, O_RDWR);
+	bl_pipe_fd = open(bl_pipe_file, O_RDWR);
 	if (bl_pipe_fd < 0)
-		BL_LOG_ERR("open pipe file %s failed: %s\n", BL_PIPE_FILE, strerror(errno));
+		BL_LOG_ERR("open pipe file %s failed: %s\n", bl_pipe_file, strerror(errno));
 
 	while (1) {
 		/* discover device when needed */
