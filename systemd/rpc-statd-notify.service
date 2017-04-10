@@ -1,7 +1,7 @@
 [Unit]
 Description=Notify NFS peers of a restart
 DefaultDependencies=no
-Requires=network.target
+Wants=network-online.target
 After=local-fs.target network.target nss-lookup.target
 
 # if we run an nfs server, it needs to be running before we

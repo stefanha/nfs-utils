@@ -3,11 +3,11 @@ Description=NFS server and services
 DefaultDependencies=no
 Requires= network.target proc-fs-nfsd.mount
 Requires= nfs-mountd.service
-Wants=rpcbind.socket
+Wants=rpcbind.socket network-online.target
 Wants=rpc-statd.service nfs-idmapd.service
 Wants=rpc-statd-notify.service
 
-After= local-fs.target network-online.target
+After= local-fs.target
 After= proc-fs-nfsd.mount rpcbind.socket nfs-mountd.service
 After= nfs-idmapd.service rpc-statd.service
 Before= rpc-statd-notify.service
