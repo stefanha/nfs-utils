@@ -29,6 +29,7 @@
 #include "misc.h"
 #include "nfslib.h"
 #include "exportfs.h"
+#include "systemd.h"
 
 /* A simple "set of strings" to remove duplicates
  * found in /etc/exports
@@ -55,35 +56,6 @@ static int is_unique(struct list **lp, char *path)
 	return 1;
 }
 
-/* We need to convert a path name to a systemd unit
- * name.  This requires some translation ('/' -> '-')
- * and some escaping.
- */
-static void systemd_escape(FILE *f, char *path)
-{
-	while (*path == '/')
-		path++;
-	if (!*path) {
-		/* "/" becomes "-", otherwise leading "/" is ignored */
-		fputs("-", f);
-		return;
-	}
-	while (*path) {
-		char c = *path++;
-
-		if (c == '/') {
-			/* multiple non-trailing slashes become '-' */
-			while (*path == '/')
-				path++;
-			if (*path)
-				fputs("-", f);
-		} else if (isalnum(c) || c == ':' || c == '.')
-			fputc(c, f);
-		else
-			fprintf(f, "\\x%02x", c & 0xff);
-	}
-}
-
 static int has_noauto_flag(char *path)
 {
 	FILE		*fstab;
@@ -108,7 +80,7 @@ static int has_noauto_flag(char *path)
 
 int main(int argc, char *argv[])
 {
-	char		*path;
+	char		*path, *spath;
 	char		dirbase[] = "/nfs-server.service.d";
 	char		filebase[] = "/order-with-mounts.conf";
 	nfs_export	*exp;
@@ -167,9 +139,15 @@ int main(int argc, char *argv[])
 		if (strcmp(mnt->mnt_type, "nfs") != 0 &&
 		    strcmp(mnt->mnt_type, "nfs4") != 0)
 			continue;
-		fprintf(f, "Before= ");
-		systemd_escape(f, mnt->mnt_dir);
-		fprintf(f, ".mount\n");
+
+		spath = systemd_escape(mnt->mnt_dir, ".mount");
+		if (!spath) {
+			fprintf(stderr, 
+				"nfs-server-generator: convert path failed: %s\n",
+				mnt->mnt_dir);
+			continue;
+		}
+		fprintf(f, "Before=%s\n", spath);
 	}
 
 	fclose(fstab);

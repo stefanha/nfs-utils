@@ -2,8 +2,8 @@
 Description=pNFS block layout mapping daemon
 DefaultDependencies=no
 Conflicts=umount.target
-After=var-lib-nfs-rpc_pipefs.mount
-Requires=var-lib-nfs-rpc_pipefs.mount
+After=rpc_pipefs.target
+Requires=rpc_pipefs.target
 
 PartOf=nfs-utils.service
 
