@@ -4,7 +4,7 @@ DefaultDependencies=no
 Conflicts=umount.target
 Requires=nss-lookup.target rpcbind.socket
 Wants=network-online.target
-After=nss-lookup.target rpcbind.socket
+After=network-online.target nss-lookup.target rpcbind.socket
 
 PartOf=nfs-utils.service
 
