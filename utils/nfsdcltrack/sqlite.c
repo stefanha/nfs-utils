@@ -101,7 +101,7 @@ sqlite_query_schema_version(void)
 		"SELECT value FROM parameters WHERE key == \"version\";",
 		 -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		xlog(L_ERROR, "Unable to prepare select statement: %s",
+		xlog(D_GENERAL, "Unable to prepare select statement: %s",
 			sqlite3_errmsg(dbh));
 		ret = 0;
 		goto out;
@@ -110,7 +110,7 @@ sqlite_query_schema_version(void)
 	/* query schema version */
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		xlog(L_ERROR, "Select statement execution failed: %s",
+		xlog(D_GENERAL, "Select statement execution failed: %s",
 				sqlite3_errmsg(dbh));
 		ret = 0;
 		goto out;
