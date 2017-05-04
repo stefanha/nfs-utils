@@ -868,7 +868,10 @@ check_result:
 			result = nfs_try_mount_v4(mi);
 			if (result == 0 && errno != ECONNREFUSED)
 				goto check_result;
-		}
+		} else if (result == 0)
+			/* Restore original errno with v3 failures */
+			errno = ECONNREFUSED;
+
 		return result;
 	default:
 		return result;
