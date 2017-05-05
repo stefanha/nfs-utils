@@ -69,7 +69,6 @@ static _Bool		opt_update_state = true;
 static unsigned int	opt_max_retry = 15 * 60;
 static char *		opt_srcaddr = NULL;
 static char *		opt_srcport = NULL;
-char *			conf_path = NFS_CONFFILE;
 
 static void		notify(const int sock);
 static int		notify_host(int, struct nsm_host *);
@@ -491,7 +490,7 @@ main(int argc, char **argv)
 	else
 		progname = argv[0];
 
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	xlog_from_conffile("sm-notify");
 	opt_max_retry = conf_get_num("sm-notify", "retry-time", opt_max_retry / 60) * 60;
 	opt_srcport = conf_get_str("sm-notify", "outgoing-port");

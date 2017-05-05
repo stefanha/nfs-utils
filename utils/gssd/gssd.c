@@ -79,7 +79,6 @@ static int pipefs_fd;
 static int inotify_fd;
 struct event inotify_ev;
 
-char *conf_path = NFS_CONFFILE;
 char *keytabfile = GSSD_DEFAULT_KEYTAB_FILE;
 char **ccachesearch;
 int  use_memcache = 0;
@@ -843,7 +842,7 @@ read_gss_conf(void)
 {
 	char *s;
 
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	use_memcache = conf_get_bool("gssd", "use-memcache", use_memcache);
 	root_uses_machine_creds = conf_get_bool("gssd", "use-machine-creds",
 						root_uses_machine_creds);

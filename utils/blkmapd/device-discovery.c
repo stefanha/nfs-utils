@@ -78,7 +78,6 @@ static char rpcpipe_dir[PATH_MAX];
 struct bl_disk *visible_disk_list;
 int    bl_watch_fd, bl_pipe_fd, nfs_pipedir_wfd, rpc_pipedir_wfd;
 int    pidfd = -1;
-char   *conf_path = NULL;
 
 
 struct bl_disk_path *bl_get_path(const char *filepath,
@@ -456,8 +455,7 @@ int main(int argc, char **argv)
 	char *xrpcpipe_dir = NULL;
 
 	strncpy(rpcpipe_dir, RPCPIPE_DIR, sizeof(rpcpipe_dir));
-	conf_path = NFS_CONFFILE;
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	CONF_SAVE(xrpcpipe_dir, conf_get_str("general", "pipefs-directory"));
 	if (xrpcpipe_dir != NULL)
 		strlcpy(rpcpipe_dir, xrpcpipe_dir, sizeof(rpcpipe_dir));

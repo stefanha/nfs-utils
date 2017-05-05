@@ -50,7 +50,6 @@ static void release_lockfile(void);
 
 static const char *lockfile = EXP_LOCKFILE;
 static int _lockfd = -1;
-char *conf_path = NFS_CONFFILE;
 
 struct state_paths etab;
 
@@ -108,7 +107,7 @@ main(int argc, char **argv)
 	xlog_stderr(1);
 	xlog_syslog(0);
 
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	xlog_from_conffile("exportfs");
 
 	/* NOTE: following uses "mountd" section of nfs.conf !!!! */

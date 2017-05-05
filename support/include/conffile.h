@@ -48,8 +48,6 @@ struct conf_list {
 	TAILQ_HEAD(conf_list_fields_head, conf_list_node) fields;
 };
 
-extern char    *conf_path;
-
 extern int      conf_begin(void);
 extern int      conf_decode_base64(uint8_t *, uint32_t *, unsigned char *);
 extern int      conf_end(int, int);
@@ -61,9 +59,8 @@ extern int      conf_get_num(char *, char *, int);
 extern _Bool    conf_get_bool(char *, char *, _Bool);
 extern char    *conf_get_str(char *, char *);
 extern char    *conf_get_section(char *, char *, char *);
-extern void     conf_init(void);
+extern void     conf_init(const char *);
 extern int      conf_match_num(char *, char *, int);
-extern void     conf_reinit(void);
 extern int      conf_remove(int, char *, char *);
 extern int      conf_remove_section(int, char *);
 extern void     conf_report(void);

@@ -30,6 +30,10 @@
  * This code was written under funding by Ericsson Radio Systems.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
@@ -52,7 +56,7 @@
 #pragma GCC visibility push(hidden)
 
 static void conf_load_defaults(void);
-static int conf_load(int trans, char *path);
+static int conf_load(int trans, const char *path);
 static int conf_set(int , char *, char *, char *, 
 	char *, int , int );
 
@@ -73,8 +77,10 @@ TAILQ_HEAD (conf_trans_head, conf_trans) conf_trans_queue;
 /*
  * Radix-64 Encoding.
  */
+#if 0
 static const uint8_t bin2asc[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+#endif
 
 static const uint8_t asc2bin[] =
 {
@@ -105,7 +111,6 @@ struct conf_binding {
   int is_default;
 };
 
-char *conf_path;
 LIST_HEAD (conf_bindings, conf_binding) conf_bindings[256];
 
 static __inline__ uint8_t
@@ -369,20 +374,8 @@ conf_load_defaults(void)
 	return;
 }
 
-void
-conf_init (void)
-{
-	unsigned int i;
-
-	for (i = 0; i < sizeof conf_bindings / sizeof conf_bindings[0]; i++)
-		LIST_INIT (&conf_bindings[i]);
-
-	TAILQ_INIT (&conf_trans_queue);
-	conf_reinit();
-}
-
 static int
-conf_load(int trans, char *path)
+conf_load(int trans, const char *path)
 {
 	struct stat sb;
 	if ((stat (path, &sb) == 0) || (errno != ENOENT)) {
@@ -421,15 +414,15 @@ conf_load(int trans, char *path)
 }
 
 /* Open the config file and map it into our address space, then parse it.  */
-void
-conf_reinit(void)
+static void
+conf_reinit(const char *conf_file)
 {
 	struct conf_binding *cb = 0;
 	int trans;
 	unsigned int i;
 
 	trans = conf_begin();
-	if (conf_load(trans, conf_path) < 0)
+	if (conf_load(trans, conf_file) < 0)
 		return;
 
 	/* Load default configuration values.  */
@@ -444,6 +437,20 @@ conf_reinit(void)
 
 	conf_end(trans, 1);
 	return;
+}
+
+void
+conf_init (const char *conf_file)
+{
+	unsigned int i;
+
+	for (i = 0; i < sizeof conf_bindings / sizeof conf_bindings[0]; i++)
+		LIST_INIT (&conf_bindings[i]);
+
+	TAILQ_INIT (&conf_trans_queue);
+
+	if (conf_file == NULL) conf_file=NFS_CONFFILE;
+	conf_reinit(conf_file);
 }
 
 /*

@@ -22,7 +22,6 @@
 #include "systemd.h"
 
 #define RPC_PIPEFS_DEFAULT "/var/lib/nfs/rpc_pipefs"
-char *conf_path = NFS_CONFFILE;
 
 static int generate_mount_unit(const char *pipefs_path, const char *pipefs_unit,
 			       const char *dirname)
@@ -122,7 +121,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	s = conf_get_str("general", "pipefs-directory");
 	if (!s)
 		exit(0);

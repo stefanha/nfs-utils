@@ -165,9 +165,6 @@ static char *nobodyuser, *nobodygroup;
 static uid_t nobodyuid;
 static gid_t nobodygid;
 
-/* Used by conffile.c in libnfs.a */
-char *conf_path = NULL;
-
 static int
 flush_nfsd_cache(char *path, time_t now)
 {
@@ -219,6 +216,7 @@ main(int argc, char **argv)
 	int serverstart = 1, clientstart = 1;
 	int ret;
 	char *progname;
+	char *conf_path = NULL;
 
 	nobodyuser = NFS4NOBODY_USER;
 	nobodygroup = NFS4NOBODY_GROUP;
@@ -254,7 +252,7 @@ main(int argc, char **argv)
 			warn("Skipping configuration file \"%s\"", conf_path);
 			conf_path = NULL;
 		} else {
-			conf_init();
+			conf_init(conf_path);
 			verbose = conf_get_num("General", "Verbosity", 0);
 			cache_entry_expiration = conf_get_num("General",
 					"Cache-Expiration", DEFAULT_IDMAP_CACHE_EXPIRY);
@@ -266,13 +264,13 @@ main(int argc, char **argv)
 		}
 	} else {
 		conf_path = NFS_CONFFILE;
-		conf_init();
+		conf_init(conf_path);
 		CONF_SAVE(xpipefsdir, conf_get_str("General", "Pipefs-Directory"));
 		if (xpipefsdir != NULL)
 			strlcpy(pipefsdir, xpipefsdir, sizeof(pipefsdir));
 
 		conf_path = _PATH_IDMAPDCONF;
-		conf_init();
+		conf_init(conf_path);
 		verbose = conf_get_num("General", "Verbosity", 0);
 		cache_entry_expiration = conf_get_num("General",
 				"cache-expiration", DEFAULT_IDMAP_CACHE_EXPIRY);

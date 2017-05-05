@@ -37,7 +37,6 @@
 #include <sys/socket.h>
 
 int	run_mode = 0;		/* foreground logging mode */
-char	*conf_path = NFS_CONFFILE;
 
 /* LH - I had these local to main, but it seemed silly to have 
  * two copies of each - one in main(), one static in log.c... 
@@ -274,7 +273,7 @@ int main (int argc, char **argv)
 	/* Set hostname */
 	MY_NAME = NULL;
 
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	xlog_from_conffile("statd");
 	out_port = conf_get_num("statd", "outgoing-port", out_port);
 	port = conf_get_num("statd", "port", port);

@@ -20,6 +20,10 @@
 #include "conffile.h"
 #include "xlog.h"
 
+#ifndef MOUNTOPTS_CONFFILE
+#define MOUNTOPTS_CONFFILE "/etc/nfsmount.conf"
+#endif
+
 extern char *conf_get_mntopts(char *, char *, char *);
 
 static inline void mount_config_init(char *program)
@@ -28,7 +32,7 @@ static inline void mount_config_init(char *program)
 	/*
 	 * Read the the default mount options
 	 */
-	conf_init();
+	conf_init(MOUNTOPTS_CONFFILE);
 }
 
 static inline char *mount_config_opts(char *spec,

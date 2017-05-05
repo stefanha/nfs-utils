@@ -51,10 +51,6 @@
 #define NFSMOUNT_SERVER "Server"
 #endif
 
-#ifndef MOUNTOPTS_CONFFILE
-#define MOUNTOPTS_CONFFILE "/etc/nfsmount.conf"
-#endif
-char *conf_path = MOUNTOPTS_CONFFILE;
 enum {
 	MNT_NOARG=0,
 	MNT_INTARG,

@@ -56,8 +56,6 @@
 /* defined by RFC 3530 */
 #define NFS4_OPAQUE_LIMIT	1024
 
-char *conf_path = NFS_CONFFILE;
-
 /* private data structures */
 struct cltrack_cmd {
 	char *name;
@@ -566,7 +564,7 @@ main(int argc, char **argv)
 	xlog_syslog(1);
 	xlog_stderr(0);
 
-	conf_init();
+	conf_init(NFS_CONFFILE); 
 	xlog_from_conffile("nfsdcltrack");
 	val = conf_get_str("nfsdcltrack", "storagedir");
 	if (val)

@@ -34,8 +34,6 @@
 #define NFSD_NPROC 8
 #endif
 
-char *conf_path = NFS_CONFFILE;
-
 static void	usage(const char *);
 
 static struct option longopts[] =
@@ -82,7 +80,7 @@ main(int argc, char **argv)
 	xlog_syslog(0);
 	xlog_stderr(1);
 
-	conf_init();
+	conf_init(NFS_CONFFILE); 
 	xlog_from_conffile("nfsd");
 	count = conf_get_num("nfsd", "threads", count);
 	grace = conf_get_num("nfsd", "grace-time", grace);

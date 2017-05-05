@@ -44,8 +44,6 @@ int use_ipaddr = -1;
 struct state_paths etab;
 struct state_paths rmtab;
 
-char *conf_path = NFS_CONFFILE;
-
 /* PRC: a high-availability callout program can be specified with -H
  * When this is done, the program will receive callouts whenever clients
  * send mount or unmount requests -- the callout is not needed for 2.6 kernel */
@@ -681,7 +679,7 @@ main(int argc, char **argv)
 	else
 		progname = argv[0];
 
-	conf_init();
+	conf_init(NFS_CONFFILE);
 	xlog_from_conffile("mountd");
 	manage_gids = conf_get_bool("mountd", "manage-gids", manage_gids);
 	descriptors = conf_get_num("mountd", "descriptors", descriptors);

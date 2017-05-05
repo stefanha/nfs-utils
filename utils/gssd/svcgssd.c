@@ -63,8 +63,6 @@
 #include "err_util.h"
 #include "conffile.h"
 
-char *conf_path = NFS_CONFFILE;
-
 void
 sig_die(int signal)
 {
@@ -103,7 +101,7 @@ main(int argc, char *argv[])
 	char *principal = NULL;
 	char *s;
 
-	conf_init();
+	conf_init(NFS_CONFFILE); 
 
 	s = conf_get_str("svcgssd", "principal");
 	if (!s)
