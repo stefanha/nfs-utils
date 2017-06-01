@@ -214,13 +214,11 @@ conf_set_now(char *section, char *arg, char *tag,
  * headers and feed tag-value pairs into our configuration database.
  */
 static void
-conf_parse_line(int trans, char *line, size_t sz)
+conf_parse_line(int trans, char *line, size_t sz, char **section, char **subsection)
 {
 	char *val, *ptr;
 	size_t i;
 	size_t j;
-	static char *section = 0;
-	static char *arg = 0;
 	static int ln = 0;
 
 	/* Lines starting with '#' or ';' are comments.  */
@@ -247,12 +245,12 @@ conf_parse_line(int trans, char *line, size_t sz)
 				break;
 			}
 		}
-		if (section)
-			free(section);
+		if (*section)
+			free(*section);
 		if (i == sz) {
 			xlog_warn("config file error: line %d: "
  				"non-matched ']', ignoring until next section", ln);
-			section = 0;
+			*section = NULL;
 			return;
 		}
 		/* Strip off any blanks before ']' */
@@ -262,18 +260,19 @@ conf_parse_line(int trans, char *line, size_t sz)
 			val++, j++;
 		if (*val)
 			i = j;
-		section = malloc(i+1);
-		if (!section) {
+		*section = malloc(i+1);
+		if (!*section) {
 			xlog_warn("conf_parse_line: %d: malloc (%lu) failed", ln,
 						(unsigned long)i);
 			return;
 		}
-		strncpy(section, line, i);
-		section[i] = '\0';
+		strncpy(*section, line, i);
+		(*section)[i] = '\0';
 
-		if (arg) 
-			free(arg);
-		arg = 0;
+		if (*subsection) {
+			free(*subsection);
+			*subsection = NULL;
+		}
 
 		ptr = strchr(val, '"');
 		if (ptr == NULL)
@@ -286,8 +285,8 @@ conf_parse_line(int trans, char *line, size_t sz)
  				"non-matched '\"', ignoring until next section", ln);
 		}  else {
 			*ptr = '\0';
-			arg = strdup(line);
-			if (!arg) 
+			*subsection = strdup(line);
+			if (!*subsection) 
 				xlog_warn("conf_parse_line: %d: malloc arg failed", ln);
 		}
 		return;
@@ -297,7 +296,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 	for (i = 0; i < sz; i++) {
 		if (line[i] == '=') {
 			/* If no section, we are ignoring the lines.  */
-			if (!section) {
+			if (!*section) {
 			xlog_warn("config file error: line %d: "
 				"ignoring line due to no section", ln);
 				return;
@@ -329,7 +328,7 @@ conf_parse_line(int trans, char *line, size_t sz)
 				conf_load(trans, val);
 			else
 				/* XXX Perhaps should we not ignore errors?  */
-				conf_set(trans, section, arg, line, val, 0, 0);
+				conf_set(trans, *section, *subsection, line, val, 0, 0);
 			return;
 		}
 	}
@@ -348,6 +347,8 @@ conf_parse(int trans, char *buf, size_t sz)
 	char *cp = buf;
 	char *bufend = buf + sz;
 	char *line;
+	char *section = NULL;
+	char *subsection = NULL;
 
 	line = cp;
 	while (cp < bufend) {
@@ -357,7 +358,7 @@ conf_parse(int trans, char *buf, size_t sz)
 				*(cp - 1) = *cp = ' ';
 			else {
 				*cp = '\0';
-				conf_parse_line(trans, line, cp - line);
+				conf_parse_line(trans, line, cp - line, &section, &subsection);
 				line = cp + 1;
 			}
 		}
@@ -365,6 +366,8 @@ conf_parse(int trans, char *buf, size_t sz)
 	}
 	if (cp != line)
 		xlog_warn("conf_parse: last line non-terminated, ignored.");
+	if (section) free(section);
+	if (subsection) free(subsection);
 }
 
 static void
