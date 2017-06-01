@@ -315,9 +315,10 @@ static int nfs_set_version(struct nfsmount_info *mi)
 	if (!nfs_nfs_version(mi->options, &mi->version))
 		return 0;
 
-	if (strncmp(mi->type, "nfs4", 4) == 0)
+	if (strncmp(mi->type, "nfs4", 4) == 0) {
 		mi->version.major = 4;
-
+		mi->version.v_mode = V_GENERAL;
+	}
 	/*
 	 * Before 2.6.32, the kernel NFS client didn't
 	 * support "-t nfs vers=4" mounts, so NFS version
@@ -838,9 +839,6 @@ check_result:
 	case EINVAL:
 		/* A less clear indication that our client
 		 * does not support NFSv4 minor version. */
-		if (mi->version.v_mode == V_GENERAL &&
-			mi->version.minor == 0)
-				return result;
 		if (mi->version.v_mode != V_SPECIFIC) {
 			if (mi->version.minor > 0) {
 				mi->version.minor--;
@@ -862,6 +860,9 @@ check_result:
 		/* UDP-Only servers won't support v4, but maybe it
 		 * just isn't ready yet.  So try v3, but double-check
 		 * with rpcbind for v4. */
+		if (mi->version.v_mode == V_GENERAL)
+			/* Mustn't try v2,v3 */
+			return result;
 		result = nfs_try_mount_v3v2(mi, TRUE);
 		if (result == 0 && errno == EAGAIN) {
 			/* v4 server seems to be registered now. */
@@ -878,6 +879,9 @@ check_result:
 	}
 
 fall_back:
+	if (mi->version.v_mode == V_GENERAL)
+		/* v2,3 fallback not allowed */
+		return result;
 	return nfs_try_mount_v3v2(mi, FALSE);
 }
 
