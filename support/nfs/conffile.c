@@ -416,13 +416,32 @@ conf_load(int trans, const char *path)
 	return -1;
 }
 
+/* remove and free up any existing config state */
+static void conf_free_bindings(void)
+{
+	unsigned int i;
+	for (i = 0; i < sizeof conf_bindings / sizeof conf_bindings[0]; i++) {
+		struct conf_binding *cb, *next;
+
+		cb = LIST_FIRST(&conf_bindings[i]);
+		for (; cb; cb = next) {
+			next = LIST_NEXT(cb, link);
+			LIST_REMOVE(cb, link);
+			free(cb->section);
+			free(cb->arg);
+			free(cb->tag);
+			free(cb->value);
+			free(cb);
+		}
+		LIST_INIT(&conf_bindings[i]);
+	}
+}
+
 /* Open the config file and map it into our address space, then parse it.  */
 static void
 conf_reinit(const char *conf_file)
 {
-	struct conf_binding *cb = 0;
 	int trans;
-	unsigned int i;
 
 	trans = conf_begin();
 	if (conf_load(trans, conf_file) < 0)
@@ -432,12 +451,9 @@ conf_reinit(const char *conf_file)
 	conf_load_defaults();
 
 	/* Free potential existing configuration.  */
-	for (i = 0; i < sizeof conf_bindings / sizeof conf_bindings[0]; i++) {
-		cb = LIST_FIRST (&conf_bindings[i]);
-		for (; cb; cb = LIST_FIRST (&conf_bindings[i]))
-			conf_remove_now(cb->section, cb->tag);
-	}
+	conf_free_bindings();
 
+	/* Apply the new configuration values */
 	conf_end(trans, 1);
 	return;
 }
@@ -454,6 +470,27 @@ conf_init (const char *conf_file)
 
 	if (conf_file == NULL) conf_file=NFS_CONFFILE;
 	conf_reinit(conf_file);
+}
+
+/* 
+ * Empty the config and free up any used memory 
+ */
+void
+conf_cleanup(void)
+{
+	conf_free_bindings();
+
+	struct conf_trans *node, *next;
+	for (node = TAILQ_FIRST(&conf_trans_queue); node; node = next) {
+		next = TAILQ_NEXT(node, link);
+		TAILQ_REMOVE (&conf_trans_queue, node, link);
+		if (node->section) free(node->section);
+		if (node->arg) free(node->arg);
+		if (node->tag) free(node->tag);
+		if (node->value) free(node->value);
+		free (node);
+	}
+	TAILQ_INIT(&conf_trans_queue);
 }
 
 /*

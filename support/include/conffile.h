@@ -60,6 +60,7 @@ extern _Bool    conf_get_bool(char *, char *, _Bool);
 extern char    *conf_get_str(char *, char *);
 extern char    *conf_get_section(char *, char *, char *);
 extern void     conf_init(const char *);
+extern void     conf_cleanup(void);
 extern int      conf_match_num(char *, char *, int);
 extern int      conf_remove(int, char *, char *);
 extern int      conf_remove_section(int, char *);
