@@ -32,6 +32,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include "vsock.h"
+
 /*
  * This type is for defining buffers that contain network socket
  * addresses.
@@ -51,6 +53,7 @@ union nfs_sockaddr {
 	struct sockaddr		sa;
 	struct sockaddr_in	s4;
 	struct sockaddr_in6	s6;
+	struct sockaddr_vm	svm;
 };
 
 #if SIZEOF_SOCKLEN_T - 0 == 0
@@ -65,6 +68,8 @@ union nfs_sockaddr {
 #else	/* !IPV6_SUPPORTED */
 #define SIZEOF_SOCKADDR_IN6	SIZEOF_SOCKADDR_UNKNOWN
 #endif	/* !IPV6_SUPPORTED */
+
+#define SIZEOF_SOCKADDR_VM	(socklen_t)sizeof(struct sockaddr_vm)
 
 /**
  * nfs_sockaddr_length - return the size in bytes of a socket address
@@ -81,6 +86,8 @@ nfs_sockaddr_length(const struct sockaddr *sap)
 		return SIZEOF_SOCKADDR_IN;
 	case AF_INET6:
 		return SIZEOF_SOCKADDR_IN6;
+	case AF_VSOCK:
+		return SIZEOF_SOCKADDR_VM;
 	}
 	return SIZEOF_SOCKADDR_UNKNOWN;
 }
@@ -218,6 +225,15 @@ compare_sockaddr6(__attribute__ ((unused)) const struct sockaddr *sa1,
 }
 #endif	/* !IPV6_SUPPORTED */
 
+static inline _Bool
+compare_sockaddr_vsock(const struct sockaddr *sa1, const struct sockaddr *sa2)
+{
+	const struct sockaddr_vm *svm1 = (const struct sockaddr_vm *)sa1;
+	const struct sockaddr_vm *svm2 = (const struct sockaddr_vm *)sa2;
+
+	return svm1->svm_cid == svm2->svm_cid;
+}
+
 /**
  * nfs_compare_sockaddr - compare two socket addresses for equality
  * @sa1: pointer to a socket address
@@ -238,6 +254,8 @@ nfs_compare_sockaddr(const struct sockaddr *sa1, const struct sockaddr *sa2)
 			return compare_sockaddr4(sa1, sa2);
 		case AF_INET6:
 			return compare_sockaddr6(sa1, sa2);
+		case AF_VSOCK:
+			return compare_sockaddr_vsock(sa1, sa2);
 		}
 
 	return false;
