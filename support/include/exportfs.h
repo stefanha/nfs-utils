@@ -89,6 +89,9 @@ set_addrlist(nfs_client *clp, const int i, const struct sockaddr *sap)
 		memcpy(&clp->m_addrlist[i].s6, sap, sizeof(struct sockaddr_in6));
 		break;
 #endif
+	case AF_VSOCK:
+		memcpy(&clp->m_addrlist[i].svm, sap, sizeof(struct sockaddr_vm));
+		break;
 	}
 }
 
