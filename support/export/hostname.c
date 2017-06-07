@@ -30,6 +30,105 @@
 #include "sockaddr.h"
 #include "exportfs.h"
 
+static char *
+host_ntop_vsock(const struct sockaddr *sap, char *buf, const size_t buflen)
+{
+	struct sockaddr_vm *svm = (struct sockaddr_vm *)sap;
+	snprintf(buf, buflen, "vsock:%u", svm->svm_cid);
+	return buf;
+}
+
+/* Allocate an addrinfo for AF_VSOCK.  Free with host_freeaddrinfo(). */
+static struct addrinfo *
+vsock_alloc_addrinfo(struct sockaddr_vm **svm)
+{
+	struct {
+		struct addrinfo ai;
+		struct sockaddr_vm svm;
+	} *vai;
+
+	vai = calloc(1, sizeof(*vai));
+	if (!vai)
+		return NULL;
+
+	vai->ai.ai_family = AF_VSOCK;
+	vai->ai.ai_socktype = SOCK_STREAM;
+	vai->ai.ai_addrlen = sizeof(vai->svm);
+	vai->ai.ai_addr = (struct sockaddr *)&vai->svm;
+	vai->svm.svm_family = AF_VSOCK;
+
+	if (svm)
+		*svm = &vai->svm;
+
+	return &vai->ai;
+}
+
+/* hostname -> addrinfo */
+static struct addrinfo *
+vsock_hostname_addrinfo(const char *hostname)
+{
+	const char *cid_str;
+	char *end_ptr;
+	struct addrinfo *ai;
+	struct sockaddr_vm *svm;
+	long cid;
+
+	cid_str = hostname + strlen("vsock:");
+	cid = strtol(cid_str, &end_ptr, 10);
+	if (end_ptr == cid_str || *end_ptr != '\0')
+		return NULL;
+	if (cid < 0 || cid > UINT32_MAX)
+		return NULL;
+
+	ai = vsock_alloc_addrinfo(&svm);
+	if (!ai)
+		return NULL;
+
+	ai->ai_canonname = strdup(hostname);
+	if (!ai->ai_canonname) {
+		host_freeaddrinfo(ai);
+		return NULL;
+	}
+
+	svm->svm_cid = cid;
+	return ai;
+}
+
+/* sockaddr -> hostname */
+static char *
+vsock_canonname(const struct sockaddr *sap)
+{
+	const struct sockaddr_vm *svm = (const struct sockaddr_vm *)sap;
+	char *canonname;
+
+	if (asprintf(&canonname, "vsock:%u", svm->svm_cid) < 0)
+		return NULL;
+	return canonname;
+}
+
+/* sockaddr -> addrinfo */
+static struct addrinfo *
+vsock_sockaddr_addrinfo(const struct sockaddr *sap)
+{
+	const struct sockaddr_vm *svm = (const struct sockaddr_vm *)sap;
+	struct sockaddr_vm *ai_svm;
+	struct addrinfo *ai;
+
+	ai = vsock_alloc_addrinfo(&ai_svm);
+	if (!ai)
+		return NULL;
+
+	*ai_svm = *svm;
+
+	ai->ai_canonname = vsock_canonname(sap);
+	if (!ai->ai_canonname) {
+		host_freeaddrinfo(ai);
+		return NULL;
+	}
+
+	return ai;
+}
+
 /**
  * host_ntop - generate presentation address given a sockaddr
  * @sap: pointer to socket address
@@ -52,6 +151,9 @@ host_ntop(const struct sockaddr *sap, char *buf, const size_t buflen)
 		return buf;
 	}
 
+	if (sap->sa_family == AF_VSOCK)
+		return host_ntop_vsock(sap, buf, buflen);
+
 	error = getnameinfo(sap, salen, buf, (socklen_t)buflen,
 						NULL, 0, NI_NUMERICHOST);
 	if (error != 0) {
@@ -68,6 +170,9 @@ host_ntop(const struct sockaddr *sap, char *buf, const size_t buflen)
 	const struct sockaddr_in *sin = (const struct sockaddr_in *)(char *)sap;
 
 	memset(buf, 0, buflen);
+
+	if (sap->sa_family == AF_VSOCK)
+		return host_ntop_vsock(sap, buf, buflen);
 
 	if (sin->sin_family != AF_INET) {
 		(void)strncpy(buf, "bad family", buflen - 1);
@@ -120,6 +225,10 @@ host_pton(const char *paddr)
 			__func__);
 		return NULL;
 	}
+
+	if (strncmp(paddr, "vsock:", strlen("vsock:")) == 0)
+		return vsock_hostname_addrinfo(paddr);
+
 	inet4 = 1;
 	if (inet_pton(AF_INET, paddr, &sin.sin_addr) == 0)
 		inet4 = 0;
@@ -174,6 +283,9 @@ host_addrinfo(const char *hostname)
 	};
 	int error;
 
+	if (strncmp(hostname, "vsock:", strlen("vsock:")) == 0)
+		return vsock_hostname_addrinfo(hostname);
+
 	error = getaddrinfo(hostname, NULL, &hint, &ai);
 	switch (error) {
 	case 0:
@@ -202,6 +314,12 @@ host_addrinfo(const char *hostname)
 void
 host_freeaddrinfo(struct addrinfo *ai)
 {
+	if (ai && ai->ai_family == AF_VSOCK) {
+		free(ai->ai_canonname);
+		free(ai);
+		return;
+	}
+
 	freeaddrinfo(ai);
 }
 
@@ -224,6 +342,9 @@ host_canonname(const struct sockaddr *sap)
 	socklen_t salen = nfs_sockaddr_length(sap);
 	char buf[NI_MAXHOST];
 	int error;
+
+	if (sap->sa_family == AF_VSOCK)
+		return vsock_canonname(sap);
 
 	if (salen == 0) {
 		xlog(D_GENERAL, "%s: unsupported address family %d",
@@ -260,6 +381,9 @@ host_canonname(const struct sockaddr *sap)
 	const struct in_addr *addr = &sin->sin_addr;
 	struct hostent *hp;
 
+	if (sap->sa_family == AF_VSOCK)
+		return vsock_canonname(sap);
+
 	if (sap->sa_family != AF_INET)
 		return NULL;
 
@@ -290,6 +414,9 @@ host_reliable_addrinfo(const struct sockaddr *sap)
 {
 	struct addrinfo *ai, *a;
 	char *hostname;
+
+	if (sap->sa_family == AF_VSOCK)
+		return vsock_sockaddr_addrinfo(sap);
 
 	hostname = host_canonname(sap);
 	if (hostname == NULL)
@@ -340,6 +467,9 @@ host_numeric_addrinfo(const struct sockaddr *sap)
 	struct addrinfo *ai;
 	int error;
 
+	if (sap->sa_family == AF_VSOCK)
+		return vsock_sockaddr_addrinfo(sap);
+
 	if (salen == 0) {
 		xlog(D_GENERAL, "%s: unsupported address family %d",
 				__func__, sap->sa_family);
@@ -387,6 +517,9 @@ host_numeric_addrinfo(const struct sockaddr *sap)
 	const struct in_addr *addr = &sin->sin_addr;
 	char buf[INET_ADDRSTRLEN];
 	struct addrinfo *ai;
+
+	if (sap->sa_family == AF_VSOCK)
+		return vsock_sockaddr_addrinfo(sap);
 
 	if (sap->sa_family != AF_INET)
 		return NULL;
