@@ -89,7 +89,7 @@ host_ntop(const struct sockaddr *sap, char *buf, const size_t buflen)
  *		IP presentation address
  *
  * Returns address info structure, or NULL if an error occurs.  Caller
- * must free the returned structure with freeaddrinfo(3).
+ * must free the returned structure with host_freeaddrinfo().
  */
 __attribute__((__malloc__))
 struct addrinfo *
@@ -155,7 +155,7 @@ host_pton(const char *paddr)
  *
  * Returns address info structure with ai_canonname filled in, or NULL
  * if no information is available for @hostname.  Caller must free the
- * returned structure with freeaddrinfo(3).
+ * returned structure with host_freeaddrinfo().
  */
 __attribute__((__malloc__))
 struct addrinfo *
@@ -189,6 +189,20 @@ host_addrinfo(const char *hostname)
 	}
 
 	return NULL;
+}
+
+/**
+ * host_freeaddrinfo - free addrinfo obtained from host_*() functions
+ * @ai: pointer to addrinfo to free
+ *
+ * The addrinfos returned by host_*() functions may not have been allocated by
+ * a call to getaddrinfo(3).  It is not safe to free them directly with
+ * freeaddrinfo(3).  Use this function instead.
+ */
+void
+host_freeaddrinfo(struct addrinfo *ai)
+{
+	freeaddrinfo(ai);
 }
 
 /**
@@ -268,7 +282,7 @@ host_canonname(const struct sockaddr *sap)
  * ai_canonname filled in. If there is a problem with resolution or
  * the resolved records don't match up properly then it returns NULL
  *
- * Caller must free the returned structure with freeaddrinfo(3).
+ * Caller must free the returned structure with host_freeaddrinfo().
  */
 __attribute__((__malloc__))
 struct addrinfo *
@@ -290,7 +304,7 @@ host_reliable_addrinfo(const struct sockaddr *sap)
 		if (nfs_compare_sockaddr(a->ai_addr, sap))
 			break;
 
-	freeaddrinfo(ai);
+	host_freeaddrinfo(ai);
 	if (!a)
 		goto out_free_hostname;
 
@@ -314,7 +328,7 @@ out_free_hostname:
  * @sap: pointer to socket address
  *
  * Returns address info structure, or NULL if an error occurred.
- * Caller must free the returned structure with freeaddrinfo(3).
+ * Caller must free the returned structure with host_freeaddrinfo().
  */
 #ifdef HAVE_GETNAMEINFO
 __attribute__((__malloc__))
@@ -357,7 +371,7 @@ host_numeric_addrinfo(const struct sockaddr *sap)
 		free(ai->ai_canonname);		/* just in case */
 		ai->ai_canonname = strdup(buf);
 		if (ai->ai_canonname == NULL) {
-			freeaddrinfo(ai);
+			host_freeaddrinfo(ai);
 			ai = NULL;
 		}
 	}
@@ -390,7 +404,7 @@ host_numeric_addrinfo(const struct sockaddr *sap)
 	if (ai != NULL) {
 		ai->ai_canonname = strdup(buf);
 		if (ai->ai_canonname == NULL) {
-			freeaddrinfo(ai);
+			host_freeaddrinfo(ai);
 			ai = NULL;
 		}
 	}

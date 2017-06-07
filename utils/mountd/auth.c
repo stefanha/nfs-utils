@@ -297,7 +297,7 @@ auth_authenticate(const char *what, const struct sockaddr *caller,
 			path, epath, error);
 	}
 
-	freeaddrinfo(ai);
+	host_freeaddrinfo(ai);
 	return exp;
 }
 

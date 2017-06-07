@@ -113,7 +113,7 @@ static void auth_unix_ip(int f)
 		ai = client_resolve(tmp->ai_addr);
 		if (ai) {
 			client = client_compose(ai);
-			freeaddrinfo(ai);
+			host_freeaddrinfo(ai);
 		}
 	}
 	bp = buf; blen = sizeof(buf);
@@ -133,7 +133,7 @@ static void auth_unix_ip(int f)
 	xlog(D_CALL, "auth_unix_ip: client %p '%s'", client, client?client: "DEFAULT");
 
 	free(client);
-	freeaddrinfo(tmp);
+	host_freeaddrinfo(tmp);
 
 }
 
@@ -667,7 +667,7 @@ static struct addrinfo *lookup_client_addr(char *dom)
 	if (tmp == NULL)
 		return NULL;
 	ret = client_resolve(tmp->ai_addr);
-	freeaddrinfo(tmp);
+	host_freeaddrinfo(tmp);
 	return ret;
 }
 
@@ -834,7 +834,7 @@ static void nfsd_fh(int f)
 out:
 	if (found_path)
 		free(found_path);
-	freeaddrinfo(ai);
+	host_freeaddrinfo(ai);
 	free(dom);
 	xlog(D_CALL, "nfsd_fh: found %p path %s", found, found ? found->e_path : NULL);
 }
@@ -1364,7 +1364,7 @@ static void nfsd_export(int f)
 	xlog(D_CALL, "nfsd_export: found %p path %s", found, path ? path : NULL);
 	if (dom) free(dom);
 	if (path) free(path);
-	freeaddrinfo(ai);
+	host_freeaddrinfo(ai);
 }
 
 
