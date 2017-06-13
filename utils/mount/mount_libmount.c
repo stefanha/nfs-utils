@@ -188,6 +188,7 @@ static int umount_main(struct libmnt_context *cxt, int argc, char **argv)
 	};
 
 	mnt_context_init_helper(cxt, MNT_ACT_UMOUNT, 0);
+	mnt_context_disable_canonicalize(cxt, 1);
 
 	while ((c = getopt_long (argc, argv, "fvnrlh", longopts, NULL)) != -1) {
 
