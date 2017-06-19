@@ -119,14 +119,22 @@ static void nfs_default_version(struct nfsmount_info *mi)
 	if (mi->version.v_mode == V_DEFAULT &&
 		config_default_vers.v_mode != V_DEFAULT) {
 		mi->version.major = config_default_vers.major;
-		mi->version.minor = config_default_vers.minor;
+		if (config_default_vers.v_mode == V_SPECIFIC)
+			mi->version.minor = config_default_vers.minor;
+		else
+			mi->version.minor = NFS_DEFAULT_MINOR;
 		return;
 	}
 
 	if (mi->version.v_mode == V_GENERAL) {
 		if (config_default_vers.v_mode != V_DEFAULT &&
-		    mi->version.major == config_default_vers.major)
-			mi->version.minor = config_default_vers.minor;
+		    mi->version.major == config_default_vers.major) {
+			if (config_default_vers.v_mode == V_SPECIFIC)
+				mi->version.minor = config_default_vers.minor;
+			else
+				mi->version.minor = NFS_DEFAULT_MINOR;
+		} else
+			mi->version.minor = NFS_DEFAULT_MINOR;
 		return;
 	}
 
@@ -741,13 +749,9 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 	}
 
 	if (mi->version.v_mode != V_SPECIFIC) {
-		if (mi->version.v_mode == V_GENERAL)
-			snprintf(version_opt, sizeof(version_opt) - 1,
-				"vers=%lu", mi->version.major);
-		else
-			snprintf(version_opt, sizeof(version_opt) - 1,
-				"vers=%lu.%lu", mi->version.major,
-				mi->version.minor);
+		snprintf(version_opt, sizeof(version_opt) - 1,
+			"vers=%lu.%lu", mi->version.major,
+			mi->version.minor);
 
 		if (po_append(options, version_opt) == PO_FAILED) {
 			errno = EINVAL;
