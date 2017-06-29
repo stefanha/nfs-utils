@@ -58,8 +58,10 @@ are separated by blanks or tabs.
 .P
 The server's hostname can be an unqualified hostname,
 a fully qualified domain name,
-a dotted quad IPv4 address, or
-an IPv6 address enclosed in square brackets.
+a dotted quad IPv4 address,
+an IPv6 address enclosed in square brackets,
+or a vsock address prefixed with
+.BR vsock: .
 Link-local and site-local IPv6 addresses must be accompanied by an
 interface identifier.
 See
@@ -769,7 +771,7 @@ The
 .I netid
 determines the transport that is used to communicate with the NFS
 server.  Supported options are
-.BR tcp ", " tcp6 ", and " rdma .
+.BR tcp ", " tcp6 ", " rdma ", and " vsock .
 .B tcp6
 use IPv6 addresses and is only available if support for TI-RPC is
 built in. Both others use IPv4 addresses.
@@ -815,8 +817,11 @@ the behavior of this option in more detail.
 .BI clientaddr= n.n.n.n
 .TP 1.5i
 .BI clientaddr= n:n: ... :n
+.TP 1.5i
+.BI clientaddr= n
 Specifies a single IPv4 address (in dotted-quad form),
-or a non-link-local IPv6 address,
+a non-link-local IPv6 address,
+or a vsock address,
 that the NFS client advertises to allow servers
 to perform NFS version 4 callback requests against
 files on this mount point. If  the  server is unable to
@@ -933,6 +938,13 @@ using a raw IPv6 link-local address.
 .nf
 .ta 8n +40n +5n +4n +9n
 	[fe80::215:c5ff:fb3e:e2b1%eth0]:/export	/mnt	nfs	defaults	0 0
+.fi
+.P
+This example shows how to mount using NFS version 4 over vsock.
+.P
+.nf
+.ta 8n +16n +6n +6n +30n
+	vsock:2:/export	/mnt	nfs4	defaults	0 0
 .fi
 .SH "TRANSPORT METHODS"
 NFS clients send requests to NFS servers via

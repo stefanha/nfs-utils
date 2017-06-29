@@ -908,6 +908,40 @@ fall_back:
 	return nfs_try_mount_v3v2(mi, FALSE);
 }
 
+/* There are no guarantees on how getaddrinfo(3) allocates struct addrinfo so
+ * be sure to call free(3) on *address instead of freeaddrinfo(3).
+ */
+static int vsock_getaddrinfo(struct nfsmount_info *mi,
+			     struct addrinfo **address)
+{
+	struct {
+		struct addrinfo ai;
+		struct sockaddr_vm svm;
+	} *vai;
+	long cid;
+	char *endptr;
+
+	errno = 0;
+	cid = strtol(mi->hostname, &endptr, 10);
+	if (errno != 0 || *endptr != '\0' ||
+	    cid < 0 || cid > UINT_MAX)
+		return EAI_NONAME;
+
+	vai = calloc(1, sizeof(*vai));
+	if (!vai)
+		return EAI_MEMORY;
+
+	vai->ai.ai_family	= AF_VSOCK;
+	vai->ai.ai_socktype	= SOCK_STREAM;
+	vai->ai.ai_addrlen	= sizeof(vai->svm);
+	vai->ai.ai_addr		= (struct sockaddr *)&vai->svm;
+	vai->svm.svm_family	= AF_VSOCK;
+	vai->svm.svm_cid	= cid;
+
+	*address = &vai->ai;
+	return 0;
+}
+
 /*
  * This is a single pass through the fg/bg loop.
  *
@@ -919,12 +953,19 @@ static int nfs_try_mount(struct nfsmount_info *mi)
 	int result = 0;
 
 	if (mi->address == NULL) {
-		struct addrinfo hint = {};
-		int error;
-		struct addrinfo *address;
+		int error = 0;
+		struct addrinfo *address = NULL;
 
-		hint.ai_family = (int)mi->family;
-		error = getaddrinfo(mi->hostname, NULL, &hint, &address);
+		if (mi->family == AF_VSOCK)
+			error = vsock_getaddrinfo(mi, &address);
+
+		if (error == 0 && !address) {
+			struct addrinfo hint = {};
+
+			hint.ai_family = (int)mi->family;
+			error = getaddrinfo(mi->hostname, NULL, &hint, &address);
+		}
+
 		if (error != 0) {
 			if (error == EAI_AGAIN)
 				errno = EAGAIN;
@@ -1218,6 +1259,12 @@ int nfsmount_string(const char *spec, const char *node, char *type,
 		po_destroy(mi.options);
 	} else
 		nfs_error(_("%s: internal option parsing error"), progname);
+
+	/* See vsock_getaddrinfo() for why we cannot use freeaddrinfo(3) */
+	if (mi.address && mi.address->ai_family == AF_VSOCK) {
+		free(mi.address);
+		mi.address = NULL;
+	}
 
 	freeaddrinfo(mi.address);
 	free(mi.hostname);
