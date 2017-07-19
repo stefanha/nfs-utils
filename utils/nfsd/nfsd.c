@@ -198,6 +198,7 @@ main(int argc, char **argv)
 					minorvers = 0;
 					minorversset = minormask;
 				}
+				/* FALLTHRU */
 			case 3:
 			case 2:
 				NFSCTL_VERUNSET(versbits, c);
@@ -220,6 +221,7 @@ main(int argc, char **argv)
 					NFSCTL_MINORSET(minorvers, i);
 				} else
 					minorvers = minorversset = minormask;
+				/* FALLTHRU */
 			case 3:
 			case 2:
 				NFSCTL_VERSET(versbits, c);
@@ -261,6 +263,7 @@ main(int argc, char **argv)
 			break;
 		default:
 			fprintf(stderr, "Invalid argument: '%c'\n", c);
+			/* FALLTHRU */
 		case 'h':
 			usage(progname);
 		}
