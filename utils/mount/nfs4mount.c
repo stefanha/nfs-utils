@@ -444,6 +444,7 @@ int nfs4mount(const char *spec, const char *node, int flags,
 			case RPC_SYSTEMERROR:
 				if (errno == ETIMEDOUT)
 					break;
+				/* FALLTHRU */
 			default:
 				rpc_mount_errors(hostname, 0, bg);
 				goto fail;
