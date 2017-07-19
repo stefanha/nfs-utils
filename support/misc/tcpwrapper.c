@@ -72,6 +72,7 @@ present_address(const struct sockaddr *sap, char *buf, const size_t buflen)
 	case AF_INET:
 		if (inet_ntop(AF_INET, &sin->sin_addr, buf, len) != 0)
 			return;
+		break;
 	case AF_INET6:
 		if (inet_ntop(AF_INET6, &sin6->sin6_addr, buf, len) != 0)
 			return;
