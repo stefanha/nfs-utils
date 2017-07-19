@@ -74,7 +74,8 @@ main(int argc, char **argv)
 			opt_c = 1;
 			break;
 		case 'h':
-			usage(0, module);
+			usage(0, module); /* usage does not return */
+			break;
 		case 'm':
 			module = optarg;
 			break;
