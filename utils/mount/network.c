@@ -1235,6 +1235,7 @@ nfs_nfs_program(struct mount_options *options, unsigned long *program)
 			*program = tmp;
 			return 1;
 		}
+		/* FALLTHRU */
 	case PO_BAD_VALUE:
 		nfs_error(_("%s: invalid value for 'nfsprog=' option"),
 				progname);
@@ -1383,6 +1384,7 @@ nfs_nfs_port(struct mount_options *options, unsigned long *port)
 			*port = tmp;
 			return 1;
 		}
+		/* FALLTHRU */
 	case PO_BAD_VALUE:
 		nfs_error(_("%s: invalid value for 'port=' option"),
 				progname);
@@ -1478,6 +1480,7 @@ nfs_mount_program(struct mount_options *options, unsigned long *program)
 			*program = tmp;
 			return 1;
 		}
+		/* FALLTHRU */
 	case PO_BAD_VALUE:
 		nfs_error(_("%s: invalid value for 'mountprog=' option"),
 				progname);
@@ -1509,6 +1512,7 @@ nfs_mount_version(struct mount_options *options, unsigned long *version)
 			*version = tmp;
 			return 1;
 		}
+		/* FALLTHRU */
 	case PO_BAD_VALUE:
 		nfs_error(_("%s: invalid value for 'mountvers=' option"),
 				progname);
@@ -1575,6 +1579,7 @@ nfs_mount_port(struct mount_options *options, unsigned long *port)
 			*port = tmp;
 			return 1;
 		}
+		/* FALLTHRU */
 	case PO_BAD_VALUE:
 		nfs_error(_("%s: invalid value for 'mountport=' option"),
 				progname);
