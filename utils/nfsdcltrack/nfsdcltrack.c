@@ -579,6 +579,7 @@ main(int argc, char **argv)
 		switch (arg) {
 		case 'd':
 			xlog_config(D_ALL, 1);
+			break;
 		case 'f':
 			xlog_syslog(0);
 			xlog_stderr(1);
