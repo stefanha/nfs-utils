@@ -39,7 +39,13 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <linux/in6.h>
+#if defined(__GLIBC__) && (__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 24)
+/* Cannot safely include linux/in6.h in old glibc, so hardcode the needed values */
+# define IPV6_PREFER_SRC_PUBLIC 2
+# define IPV6_ADDR_PREFERENCES 72
+#else
+# include <linux/in6.h>
+#endif
 #include <netinet/in.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
