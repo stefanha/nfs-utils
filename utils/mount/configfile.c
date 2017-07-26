@@ -260,7 +260,7 @@ default_value(char *mopt)
 		}
 	} else if (strncasecmp(field, "vers", strlen("vers")) == 0) {
 		if ((options = po_split(field)) != NULL) {
-			if (!nfs_nfs_version(options, &config_default_vers)) {
+			if (!nfs_nfs_version("nfs", options, &config_default_vers)) {
 				xlog_warn("Unable to set default version: %s", 
 					strerror(errno));
 				

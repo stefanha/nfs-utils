@@ -24,7 +24,7 @@
 #ifndef _NFS_UTILS_MOUNT_STROPTS_H
 #define _NFS_UTILS_MOUNT_STROPTS_H
 
-int nfsmount_string(const char *, const char *, const char *, int,
+int nfsmount_string(const char *, const char *, char *, int,
 			char **, int, int);
 
 #endif	/* _NFS_UTILS_MOUNT_STROPTS_H */

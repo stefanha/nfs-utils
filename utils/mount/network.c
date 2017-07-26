@@ -1261,7 +1261,7 @@ nfs_nfs_program(struct mount_options *options, unsigned long *program)
  * or FALSE if the option was specified with an invalid value.
  */
 int
-nfs_nfs_version(struct mount_options *options, struct nfs_version *version)
+nfs_nfs_version(char *type, struct mount_options *options, struct nfs_version *version)
 {
 	char *version_key, *version_val, *cptr;
 	int i, found = 0;
@@ -1276,10 +1276,11 @@ nfs_nfs_version(struct mount_options *options, struct nfs_version *version)
 		}
 	}
 
-	if (!found)
+	if (!found && strcmp(type, "nfs4") == 0)
+		version_val = type + 3;
+	else if (!found)
 		return 1;
-
-	if (i <= 2 ) {
+	else if (i <= 2 ) {
 		/* v2, v3, v4 */
 		version_val = version_key + 1;
 		version->v_mode = V_SPECIFIC;
@@ -1655,7 +1656,7 @@ int nfs_options2pmap(struct mount_options *options,
 
 	if (!nfs_nfs_program(options, &nfs_pmap->pm_prog))
 		return 0;
-	if (!nfs_nfs_version(options, &version))
+	if (!nfs_nfs_version("nfs", options, &version))
 		return 0;
 	if (version.v_mode == V_DEFAULT)
 		nfs_pmap->pm_vers = 0;

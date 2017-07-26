@@ -180,7 +180,7 @@ static int nfs_umount_is_vers4(const struct mntentchn *mc)
 		options = po_split(pmc->m.mnt_opts);
 		if (options != NULL) {
 			struct nfs_version version;
-			int rc = nfs_nfs_version(options, &version);
+			int rc = nfs_nfs_version("nfs", options, &version);
 			po_destroy(options);
 			if (rc && version.major == 4)
 				goto out_nfs4;
