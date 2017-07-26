@@ -79,7 +79,7 @@ unit should be enabled.
 Several other units which might be considered to be optional, such as
 .I rpc-gssd.service
 are careful to only start if the required configuration file exists.
-.I rpc-gsdd.service
+.I rpc-gssd.service
 will not start if the
 .I krb5.keytab
 file does not exist (typically in
@@ -120,10 +120,11 @@ be needed to reduce system load to an absolute minimum, or to reduce
 attack surface by not running daemons that are not absolutely
 required.
 .PP
-Two particular services which this can apply to are
-.I rpcbind
+Three particular services which this can apply to are
+.IR rpcbind ,
+.IR idmapd ,
 and
-.IR idmapd .
+.IR rpc-gssd .
 .I rpcbind
 is not part of the
 .I nfs-utils
@@ -154,6 +155,15 @@ owners of files.  If
 is not needed and not wanted, it can be masked with
 .RS
 .B systemctl mask idmapd
+.RE
+.I rpc-gssd
+is assumed to be needed if the
+.I krb5.keytab
+file is present.  If a site needs this file present but does not want
+.I rpc-gssd
+running, it can be masked with
+.RS
+.B systemctl mask rpc-gssd
 .RE
 .SH FILES
 /etc/nfs.conf
