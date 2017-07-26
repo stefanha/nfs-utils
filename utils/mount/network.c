@@ -100,7 +100,6 @@ static const char *nfs_version_opttbl[] = {
 	"v4",
 	"vers",
 	"nfsvers",
-	"minorversion",
 	NULL,
 };
 
@@ -1292,17 +1291,19 @@ nfs_nfs_version(char *type, struct mount_options *options, struct nfs_version *v
 	if (!version_val)
 		goto ret_error;
 
-	if (!(version->major = strtol(version_val, &cptr, 10)))
+	version->major = strtol(version_val, &cptr, 10);
+	if (cptr == version_val || (*cptr && *cptr != '.'))
 		goto ret_error;
-
-	if (strcmp(nfs_version_opttbl[i], "minorversion") == 0) {
+	if (version->major == 4 && *cptr != '.' &&
+	    (version_val = po_get(options, "minorversion")) != NULL) {
+		version->minor = strtol(version_val, &cptr, 10);
+		i = -1;
+		if (*cptr)
+			goto ret_error;
 		version->v_mode = V_SPECIFIC;
-		version->minor = version->major;
-		version->major = 4;
 	} else if (version->major < 4)
 		version->v_mode = V_SPECIFIC;
-
-	if (*cptr == '.') {
+	else if (*cptr == '.') {
 		version_val = ++cptr;
 		if (!(version->minor = strtol(version_val, &cptr, 10)) && cptr == version_val)
 			goto ret_error;
@@ -1316,7 +1317,10 @@ nfs_nfs_version(char *type, struct mount_options *options, struct nfs_version *v
 	return 1;
 
 ret_error:
-	if (i <= 2 ) {
+	if (i < 0) {
+		nfs_error(_("%s: parsing error on 'minorversion=' option"),
+			progname);
+	} else if (i <= 2 ) {
 		nfs_error(_("%s: parsing error on 'v' option"),
 			progname);
 	} else if (i == 3 ) {
