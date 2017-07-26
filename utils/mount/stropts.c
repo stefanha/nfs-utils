@@ -727,7 +727,7 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 {
 	struct mount_options *options = po_dup(mi->options);
 	int result = 0;
-	char version_opt[16];
+	char version_opt[32];
 	char *extra_opts = NULL;
 
 	if (!options) {
@@ -749,8 +749,24 @@ static int nfs_do_mount_v4(struct nfsmount_info *mi,
 	}
 
 	if (mi->version.v_mode != V_SPECIFIC) {
+		char *fmt;
+		switch (mi->version.minor) {
+			/* Old kernels don't support the new "vers=x.y"
+			 * option, but do support old versions of NFS4.
+			 * So use the format that is most widely understood.
+			 */
+		case 0:
+			fmt = "vers=%lu";
+			break;
+		case 1:
+			fmt = "vers=%lu,minorversion=%lu";
+			break;
+		default:
+			fmt = "vers=%lu.%lu";
+			break;
+		}
 		snprintf(version_opt, sizeof(version_opt) - 1,
-			"vers=%lu.%lu", mi->version.major,
+			fmt, mi->version.major,
 			mi->version.minor);
 
 		if (po_append(options, version_opt) == PO_FAILED) {
