@@ -312,6 +312,8 @@ main(int argc, char **argv)
 
 	strncat(pipefsdir, "/nfs", sizeof(pipefsdir));
 
+	daemon_init(fg);
+
 	if ((pw = getpwnam(nobodyuser)) == NULL)
 		errx(1, "Could not find user \"%s\"", nobodyuser);
 	nobodyuid = pw->pw_uid;
@@ -327,8 +329,6 @@ main(int argc, char **argv)
 		conf_path = _PATH_IDMAPDCONF;
 	if (nfs4_init_name_mapping(conf_path))
 		errx(1, "Unable to create name to user id mappings.");
-
-	daemon_init(fg);
 
 	event_init();
 
