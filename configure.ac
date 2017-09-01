@@ -410,6 +410,9 @@ fi
 dnl Check for IPv6 support
 AC_IPV6
 
+dnl Check for AF_VSOCK support
+AC_CHECK_HEADERS([linux/vm_sockets.h], , , [#include <sys/socket.h>])
+
 dnl *************************************************************
 dnl Check for headers
 dnl *************************************************************
