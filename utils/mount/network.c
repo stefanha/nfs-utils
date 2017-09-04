@@ -35,6 +35,7 @@
 #include <time.h>
 #include <grp.h>
 
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -1128,6 +1129,34 @@ static int nfs_ca_sockname(const struct sockaddr *sap, const socklen_t salen,
 	};
 	int sock, result = 0;
 	int val;
+
+	if (sap->sa_family == AF_VSOCK) {
+		struct sockaddr_vm *svm = (struct sockaddr_vm *)buf;
+		unsigned int cid;
+		int fd;
+
+		if (*buflen < sizeof(struct sockaddr_vm)) {
+			errno = EINVAL;
+			return 0;
+		}
+
+		fd = open("/dev/vsock", O_RDONLY);
+		if (fd < 0)
+			return 0;
+
+		if (ioctl(fd, IOCTL_VM_SOCKETS_GET_LOCAL_CID, &cid) < 0) {
+			close(fd);
+			return 0;
+		}
+
+		memset(svm, 0, sizeof(*svm));
+		svm->svm_family = AF_VSOCK;
+		svm->svm_cid = cid;
+
+		*buflen = sizeof(*svm);
+		close(fd);
+		return 1;
+	}
 
 	sock = socket(sap->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0)
