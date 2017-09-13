@@ -47,7 +47,9 @@ NFS clients may be specified in a number of ways:
 .IP "single host
 You may specify a host either by an
 abbreviated name recognized be the resolver, the fully qualified domain
-name, an IPv4 address, or an IPv6 address. IPv6 addresses must not be
+name, an IPv4 address, an IPv6 address, or a vsock address prefixed with
+.BR vsock: .
+IPv6 addresses must not be
 inside square brackets in /etc/exports lest they be confused with
 character-class wildcard matches.
 .IP "IP networks
@@ -492,6 +494,12 @@ export entry for
 .B /home/joe
 in the example section below, which maps all requests to uid 150 (which
 is supposedly that of user joe).
+.SS Multiple Address Families
+When machines are specified using IPv4, IPv6, or vsock addresses they have
+access from the given network addresses.  The wildcard \fI*\fR by itself
+matches machines of all address families.
+.BR vsock:*
+can be used to match only vsock machines.
 .SS Extra Export Tables
 After reading 
 .I /etc/exports 
@@ -510,7 +518,7 @@ The format for extra export tables is the same as
 .nf
 .ta +3i
 # sample /etc/exports file
-/               master(rw) trusty(rw,no_root_squash)
+/               master(rw) trusty(rw,no_root_squash) vsock:3(rw)
 /projects       proj*.local.domain(rw)
 /usr            *.local.domain(ro) @trusted(rw)
 /home/joe       pc001(rw,all_squash,anonuid=150,anongid=100)

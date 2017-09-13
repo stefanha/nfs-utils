@@ -299,6 +299,20 @@ static int exportfs_generic(char *arg, char *options, int verbose)
 	return 0;
 }
 
+static int exportfs_vsock(char *arg, char *options, int verbose)
+{
+	char *path;
+
+	if ((path = strchr(arg + strlen("vsock:"), ':')) != NULL)
+		*path++ = '\0';
+
+	if (!path || *path != '/')
+		return 1;
+
+	exportfs_parsed(arg, path, options, verbose);
+	return 0;
+}
+
 static int exportfs_ipv6(char *arg, char *options, int verbose)
 {
 	char *path, *c;
@@ -332,6 +346,8 @@ exportfs(char *arg, char *options, int verbose)
 
 	if (*arg == '[')
 		failed = exportfs_ipv6(arg, options, verbose);
+	else if (strncmp(arg, "vsock:", strlen("vsock:")) == 0)
+		failed = exportfs_vsock(arg, options, verbose);
 	else
 		failed = exportfs_generic(arg, options, verbose);
 	if (failed)
@@ -412,6 +428,20 @@ static int unexportfs_generic(char *arg, int verbose)
 	return 0;
 }
 
+static int unexportfs_vsock(char *arg, int verbose)
+{
+	char *path;
+
+	if ((path = strchr(arg + strlen("vsock:"), ':')) != NULL)
+		*path++ = '\0';
+
+	if (!path || *path != '/')
+		return 1;
+
+	unexportfs_parsed(arg, path, verbose);
+	return 0;
+}
+
 static int unexportfs_ipv6(char *arg, int verbose)
 {
 	char *path, *c;
@@ -445,6 +475,8 @@ unexportfs(char *arg, int verbose)
 
 	if (*arg == '[')
 		failed = unexportfs_ipv6(arg, verbose);
+	else if (strncmp(arg, "vsock:", strlen("vsock:")) == 0)
+		failed = unexportfs_vsock(arg, verbose);
 	else
 		failed = unexportfs_generic(arg, verbose);
 	if (failed)
